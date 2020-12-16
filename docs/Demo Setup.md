@@ -27,7 +27,7 @@ If you do not already have a Minikube available, refer to the installation instr
 [Minikube Installation](https://kubernetes.io/de/docs/tasks/tools/install-minikube/)
 
 Please make sure that Minikube allocates enough resources. I run Minikube in an Ubuntu VM, but within this VM, in
-`--vm-driver=none` parameter. The VM has 10 GB allocated memory. I start Minikube with these parameters:
+`--vm-driver=none` mode. The VM has 10 GB allocated memory. I start Minikube with these parameters:
 
 ```
   minikube start --vm-driver=none --cpus 2 --memory 8192
