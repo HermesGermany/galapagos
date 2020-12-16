@@ -1,0 +1,164 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema",
+    "$id": "http://example.com/example.json",
+    "type": "object",
+    "title": "The root schema",
+    "description": "The root schema comprises the entire JSON document.",
+    "default": {},
+    "examples": [
+        {
+            "id": "abcd1234efgh5678ijkl9101112mnop13141516",
+            "source": "/test/test",
+            "specversion": "1.0",
+            "type": "xy.hades.peter.model.v1.PeterSendung",
+            "datacontenttype": "application/json",
+            "time": "2020-07-31T10:38:09.167669Z",
+            "extensions": {},
+            "extensionsFormats": [],
+            "data": {
+                "auftragsart": "LOL",
+                "orgId": 42
+            }
+        }
+    ],
+    "required": [
+        "id",
+        "source",
+        "specversion",
+        "type",
+        "datacontenttype",
+        "time",
+        "extensions",
+        "extensionsFormats",
+        "data"
+    ],
+    "properties": {
+        "id": {
+            "$id": "#/properties/id",
+            "type": "string",
+            "title": "The id schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": "",
+            "examples": [
+                "abcd1234efgh5678ijkl9101112mnop13141516"
+            ]
+        },
+        "source": {
+            "$id": "#/properties/source",
+            "type": "string",
+            "title": "The source schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": "",
+            "examples": [
+                "/test/test"
+            ]
+        },
+        "specversion": {
+            "$id": "#/properties/specversion",
+            "type": "string",
+            "title": "The specversion schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": "",
+            "examples": [
+                "1.0"
+            ]
+        },
+        "type": {
+            "$id": "#/properties/type",
+            "type": "string",
+            "title": "The type schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": "",
+            "examples": [
+                "xy.hades.peter.model.v1.PeterSendung"
+            ]
+        },
+        "datacontenttype": {
+            "$id": "#/properties/datacontenttype",
+            "type": "string",
+            "title": "The datacontenttype schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": "",
+            "examples": [
+                "application/json"
+            ]
+        },
+        "time": {
+            "$id": "#/properties/time",
+            "type": "string",
+            "title": "The time schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": "",
+            "examples": [
+                "2020-07-31T10:38:09.167669Z"
+            ]
+        },
+        "extensions": {
+            "$id": "#/properties/extensions",
+            "type": "object",
+            "title": "The extensions schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": {},
+            "examples": [
+                {}
+            ],
+            "required": [],
+            "additionalProperties": true
+        },
+        "extensionsFormats": {
+            "$id": "#/properties/extensionsFormats",
+            "type": "array",
+            "title": "The extensionsFormats schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": [],
+            "examples": [
+                []
+            ],
+            "additionalItems": true,
+            "items": {
+                "$id": "#/properties/extensionsFormats/items"
+            }
+        },
+        "data": {
+            "$id": "#/properties/data",
+            "type": "object",
+            "title": "The data schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": {},
+            "examples": [
+                {
+                    "auftragsart": "LOL",
+                    "orgId": 42
+                }
+            ],
+            "required": [
+                "auftragsart",
+                "orgId"
+            ],
+            "properties": {
+                "auftragsart": {
+                    "$id": "#/properties/data/properties/auftragsart",
+                    "type": "string",
+                    "title": "The auftragsart schema",
+                    "description": "An explanation about the purpose of this instance.",
+                    "default": "",
+                    "examples": [
+                        "LOL"
+                    ]
+                },
+                "orgId": {
+                    "$id": "#/properties/data/properties/orgId",
+                    "type": "integer",
+                    "title": "The orgId schema",
+                    "description": "An explanation about the purpose of this instance.",
+                    "default": 0,
+                    "examples": [
+                        42
+                    ]
+                }
+            },
+            "additionalProperties": true
+        }
+    },
+    "additionalProperties": true
+}

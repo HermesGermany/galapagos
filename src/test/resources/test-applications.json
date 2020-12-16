@@ -1,0 +1,45 @@
+[
+{
+  "id": "app-1",
+  "name": "Application ONE",
+  "aliases": ["app1", "app-one", "appone"],
+  "businessCapabilities": [
+    {"id": "bcap-1", "name": "Sales"}  
+  ]
+},
+{
+  "id": "2222",
+  "name": "Runner-App",
+  "aliases": ["app2", "ru", "first-loser"],
+  "businessCapabilities": [
+    {"id": "bcap-1", "name": "Sales"},  
+    {"id": "bcap-2", "name": "IT Support"}
+  ]
+},
+{
+  "id": "3!",
+  "name": "Aramis",
+  "aliases": [],
+  "businessCapabilities": [
+    {"id": "bcap-2", "name": "IT Support"}  
+  ]
+},
+{
+  "id": "four",
+  "name": "Quattro",
+  "aliases": ["audi"],
+  "businessCapabilities": [
+    {"id": "bcap-3", "name": "Orders"}  
+  ]
+},
+{
+  "id": "F.I.V.E",
+  "name": "High Five",
+  "aliases": ["hf"],
+  "businessCapabilities": [
+    {"id": "bcap-3", "name": "Orders"},
+    {"id": "bcap-1", "name": "Sales"}
+  ]
+}
+]
+

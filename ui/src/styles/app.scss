@@ -1,0 +1,31 @@
+/* You can add global styles to this file, and also import other style files */
+
+@import "bootstrap/bootstrap";
+@import "spinner";
+@import "utils";
+@import "rtl";
+@import "responsive";
+
+@media print {
+    .breadcrumb {
+        display: none !important;
+    }
+}
+
+code {
+    font-family: 'Courier New', Courier, monospace
+}
+
+.bg-hermes {
+    background: #0091CD;
+}
+
+.fa-fw {
+    text-align: left;
+}
+
+@media(min-width: 1100px) {
+    .modal-xxl .modal-lg {
+        max-width: 1000px;
+    }
+}

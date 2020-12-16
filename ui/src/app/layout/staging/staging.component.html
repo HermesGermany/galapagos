@@ -1,0 +1,92 @@
+<div [@routerTransition]>
+    <h2 class="text-muted">{{ 'Staging' }}</h2>
+    <hr />
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card mb-3">
+                <div class="card-header bg-hermes text-white">
+                    {{ 'Source Selection' | translate }}
+                </div>
+                <div class="card-body">
+                    {{ 'STAGING_TEXT' | translate }}
+                    <div class="form-group form-inline mt-3">
+                        <label class="mr-3">{{ 'Application' | translate }}</label>
+                        <select class="form-control mr-3" name="appPicker" #appPicker [(ngModel)]="selectedApplication">
+                            <option *ngFor="let app of d.untilNext(availableApplications) | async" [ngValue]="app">{{ app.name }}
+                            </option>
+                        </select>
+                        <span appSpinnerWhile #d="appSpinnerWhile"></span>
+                    </div>
+
+                    <div class="form-group form-inline mt-3">
+                        <label class="mr-3">{{ 'Kafka Environment' | translate }}</label>
+                        <select class="form-control mr-3" name="appPicker" #appPicker [(ngModel)]="selectedEnvironment" (change)="updateTargetEnvironment()">
+                            <option *ngFor="let env of availableEnvironments | async" [ngValue]="env">{{ env.name }}
+                            </option>
+                        </select>
+                        &nbsp;{{ 'to' | translate }}&nbsp;{{ targetEnvironment }}
+                    </div>
+
+                    <button class="btn btn-success mt-4" [disabled]="!selectedApplication || !selectedEnvironment || performing" appSpinnerWhile #c="appSpinnerWhile" (click)="c.while(prepareStaging())"><i class="fas fa-calculator mr-3"></i>{{ 'Analyze Changes' | translate }}</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row" *ngIf="staging !== null && stagingResult.length === 0">
+        <div class="col-md-12">
+            <div class="card mb-3">
+                <div class="card-header">
+                    {{ 'Changes Overview' | translate }}
+                </div>
+                <div class="card-body">
+                    <div *ngIf="changes.length === 0">
+                        <i>{{ 'NO_CHANGES_FOR_STAGING' | translate }}</i>
+                    </div>
+                    <ul *ngIf="changes.length" class="list-unstyled">
+                        <li *ngFor="let change of changes">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" [(ngModel)]="change.selected">
+                                <label class="form-check-label" [innerHTML]="stagingText(change.change)"></label>
+                            </div>
+                            <ul *ngIf="change.change.changeType === 'COMPOUND_CHANGE'">
+                                <li *ngFor="let cc of change.change.additionalChanges">
+                                    <span [innerHTML]="stagingText(cc)"></span>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                    <button class="btn btn-warning mt-3" (click)="e.while(performStaging())" appSpinnerWhile #e="appSpinnerWhile">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>{{ 'APPLY_CHANGES_TO' | translate: translateParams }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row" *ngIf="stagingResult.length">
+            <div class="col-md-12">
+                <div class="card mb-3">
+                    <div class="card-header">
+                        {{ 'Changes Overview' | translate }}
+                    </div>
+                    <div class="card-body">
+                        <ul class="changes">
+                            <li *ngFor="let result of stagingResult" [class.text-danger]="!result.stagingSuccessful" [class.text-success]="result.stagingSuccessful">
+                                <span *ngIf="!result.stagingSuccessful" class="mr-3"><i class="fas fa-times"></i></span>
+                                <span *ngIf="result.stagingSuccessful" class="mr-3"><i class="fas fa-check"></i></span>
+                                <span [innerHTML]="stagingText(result.change)"></span>
+                                <span *ngIf="!result.stagingSuccessful">
+                                    <br>
+                                    <span style="font-size: smaller">{{ result.errorMessage }}</span>
+                                </span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    
+
+</div>

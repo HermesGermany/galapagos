@@ -1,0 +1,36 @@
+<nav class="sidebar" [ngClass]="{sidebarPushRight: isActive, collapsed: collapsed}">
+    <div class="list-group">
+        <a id="dashboardLink" routerLink="/dashboard" [routerLinkActive]="['router-link-active']"
+           class="list-group-item">
+            <i class="fa fa-fw fa-tachometer-alt"></i>
+            <span>{{ 'Dashboard' | translate }}</span>
+        </a>
+        <a [routerLink]="['/topics']" [routerLinkActive]="['router-link-active']" class="list-group-item">
+            <i class="fa fa-fw fa-layer-group"></i>
+            <span>{{ 'Browse Topics' | translate }}</span>
+        </a>
+        <a [routerLink]="['/createtopic']" [routerLinkActive]="['router-link-active']" class="list-group-item">
+            <i class="fa fa-fw fas fa-magic"></i>
+            <span>{{ 'Create Topic' | translate }}</span>
+        </a>
+        <a [routerLink]="['/applications']" [routerLinkActive]="['router-link-active']" class="list-group-item">
+            <i class="fa fa-fw far fa-window-restore"></i>
+            <span>{{ 'My Applications' | translate }}</span>
+        </a>
+        <a [routerLink]="['/staging']" [routerLinkActive]="['router-link-active']" class="list-group-item">
+            <i class="fa fa-fw fas fa-external-link-alt"></i>
+            <span>{{ 'Staging' | translate }}</span>
+        </a>
+
+        <a id="adminSection" *ngIf="isAdmin" [routerLink]="['/admin']" [routerLinkActive]="['router-link-active']"
+           class="list-group-item">
+            <i class="fa fa-fw fas fa-crown"></i>
+            <span>{{ 'Administration' | translate }}</span>
+        </a>
+    </div>
+
+    <div class="toggle-button" [ngClass]="{collapsed: collapsed}" (click)="toggleCollapsed()">
+        <i class="fa fa-fw fa-angle-double-{{collapsed?'right':'left'}}"></i>&nbsp;
+        <span>{{ 'Collapse Sidebar' | translate }}</span>
+    </div>
+</nav>

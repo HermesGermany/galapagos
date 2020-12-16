@@ -1,0 +1,22 @@
+{
+    "/api": {
+      "target": "http://localhost:8080",
+      "secure": false
+    },
+    "/actuator": {
+      "target": "http://localhost:8080",
+      "secure": false
+    },
+    "/files": {
+      "target": "http://localhost:8080",
+      "secure": false
+    },
+    "/schema": {
+      "target": "http://localhost:8080",
+      "secure": false
+    },
+    "/keycloak": {
+      "target": "http://localhost:8080",
+      "secure": false
+    }
+}

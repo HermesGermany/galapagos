@@ -1,0 +1,158 @@
+<div [@routerTransition]>
+    <h2 class="text-muted">{{ 'Create Topic' | translate }}</h2>
+    <hr/>
+    <ngb-alert [dismissible]="false" *ngIf="(availableApplications | async)?.length === 0">
+        {{ 'NO_APPS_FOR_CREATING_TOPIC' | translate }}
+    </ngb-alert>
+    <form #appForm="ngForm">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card mb-3">
+                    <div class="card-header bg-hermes text-white">
+                        {{ 'General' | translate }}
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group form-inline">
+                            <label class="mr-3">{{ 'Kafka Environment' | translate }}</label>
+                            <!--suppress TypeScriptUnresolvedVariable -->
+                            <select class="form-control ml-2" name="environment"
+                                    (change)="selectEnvironment($event.target.value)">
+                                <option *ngFor="let env of allEnvironments | async" [value]="env.id"
+                                        [selected]="env === (selectedEnvironment | async)">{{ env.name }}</option>
+                            </select>
+                        </div>
+                        <ngb-alert *ngIf="(selectedEnvironment | async)?.stagingOnly" type="danger"
+                                   [dismissible]="false">
+                            {{ 'TOPIC_STAGING_ONLY_ENVIRONMENT' | translate }}
+                        </ngb-alert>
+                        <ngb-alert
+                            *ngIf="selectedEnvironment && selectedApplication && showRegistrationWarning && !(selectedEnvironment | async)?.stagingOnly"
+                            type="warning" [dismissible]="false">
+                            {{ 'ENV_APP_WARNING' | translate }}
+                            <a class="ml" routerLink="/applications">{{"My Applications"|translate}}</a>
+                        </ngb-alert>
+
+                        <div class="form-group form-inline">
+                            <label class="mr-3">{{ 'Owning Application' | translate }}</label>
+                            <select class="form-control mr-3" name="appPicker" #appPicker
+                                    (change)="topicNameSpinner.while(suggestTopicName()); checkApplicationCertificate()"
+                                    [(ngModel)]="selectedApplication">
+                                <option *ngFor="let app of d.untilNext(availableApplications) | async"
+                                        [ngValue]="app">{{ app.name }}
+                                </option>
+                            </select>
+                            <span appSpinnerWhile #d="appSpinnerWhile"></span>
+                        </div>
+                        <div class="form-group form-inline">
+                            <label style="margin-right: 1em">{{ 'Topic Type' | translate }}</label>
+                            <select class="form-control" name="topicType" [(ngModel)]="topicType"
+                                    (change)="topicNameSpinner.while(suggestTopicName())">
+                                <option value="EVENTS">Events</option>
+                                <option value="DATA">Data</option>
+                                <option value="COMMANDS">Commands</option>
+                                <option value="INTERNAL">App internal</option>
+                            </select>
+                        </div>
+                        <div class="form-group form-inline" *ngIf="(topicType !== 'INTERNAL') && selectedApplication">
+                            <label style="margin-right: 1em">{{ 'Business Capability' | translate }}</label>
+                            <select class="form-control" [(ngModel)]="selectedBusinessCapability" name="businessCap"
+                                    #businessCap (change)="topicNameSpinner.while(suggestTopicName())">
+                                <option
+                                    *ngFor="let cap of (selectedApplication ? selectedApplication.businessCapabilities : [])"
+                                    [ngValue]="cap">{{ cap.name }}</option>
+                            </select>
+                        </div>
+                        <div class="form-group form-inline">
+                            <label style="margin-right: 1em">{{ 'Topic Name' | translate }}</label>
+                            <input class="form-control mr-3" name="topicName" [(ngModel)]="topicName" size="80"
+                                   spellcheck="false">
+                            <span appSpinnerWhile #topicNameSpinner="appSpinnerWhile"></span>
+
+                            <span *ngIf="namingConventionLink | async">
+                                <a class="ml-3" [href]="(namingConventionLink | async)?.href"
+                                   target="_blank"><i
+                                    class="fas fa-info-circle"></i>&nbsp;{{ (namingConventionLink | async)?.label }}</a>
+                            </span>
+                        </div>
+                        <div class="form-group">
+                            <label>{{ 'Description' | translate }}</label>
+                            <textarea class="form-control" rows="2" name="description"
+                                      [(ngModel)]="description"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row" *ngIf="(showSubscriptionApprovalRequired | async) && topicType && topicType !== 'INTERNAL'">
+            <div class="col-md-12">
+                <div class="card mb-3">
+                    <div class="card-header bg-warning">
+                        <i class="fas fa-shield-alt mr-3"></i>{{ 'Security Settings' | translate }}
+                    </div>
+                    <div class="card-body">
+                        <p [innerHTML]="'SECURITY_SETTINGS_HTML' | translate"></p>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox"
+                                   [(ngModel)]="subscriptionApprovalRequired"
+                                   id="subApprovalReq" name="subApprovalReq" #subApprovalReq>
+                            <label class="form-check-label" for="subApprovalReq">
+                                {{ 'Subscriptions of this topic require approval' | translate }}
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <i class="fas fa-wrench mr-3"></i>{{ 'Advanced Settings' | translate }}
+                    </div>
+                    <div class="card-body">
+                        <p [innerHTML]="'TOPIC_ADVANCED_SETTINGS_HTML' | translate"></p>
+                        <div class="form-group form-inline">
+                            <label style="margin-right: 1em">{{ 'Number of Partitions' | translate }}</label>
+                            <input type="text" name="partitionCount" class="form-control"
+                                   [(ngModel)]="createParams.partitionCount">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row" *ngIf="topicType && topicType !== 'INTERNAL'">
+            <div class="col-md-12">
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <i class="fas fa-file-code mr-3"></i>{{ 'Content' | translate }}
+                    </div>
+                    <div class="card-body">
+                        <p *ngIf="topicType !== 'DATA';else dataText"
+                           [innerHTML]="'INITIAL_SCHEMA_TEXT' | translate"></p>
+                        <ng-template #dataText>
+                            <p [innerHTML]="'INITIAL_SCHEMA_TEXT_DATA_TOPIC' | translate"></p>
+                        </ng-template>
+                        <textarea class="form-control" rows="10" name="initialSchema"
+                                  [(ngModel)]="initialSchema"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card mb-3">
+                    <div class="card-header">
+                        {{ 'Actions' | translate }}
+                    </div>
+                    <div class="card-body">
+                        <button type="button" class="btn btn-success" appSpinnerWhile #b="appSpinnerWhile"
+                                [disabled]="!selectedApplication || !topicType || !topicName || (topicType !== 'INTERNAL' && !selectedBusinessCapability) || (selectedEnvironment | async)?.stagingOnly"
+                                (click)="b.while(createTopic())">
+                            <i class="fas fa-save"></i>&nbsp;{{ 'Create Topic' | translate }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>

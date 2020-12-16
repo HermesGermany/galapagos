@@ -1,0 +1,13 @@
+spring:
+  kafka:
+    bootstrap-servers: "${bootstrap.servers}"
+    ssl:
+      trust-store-location: file:./kafka-truststore.jks
+      trust-store-password: changeit
+      trust-store-type: PKCS12
+      key-store-location: file:./<your-client-keystore>.p12
+      key-store-password: changeit
+      key-store-type: PKCS12
+      protocol: SSL
+    properties:
+      security.protocol: SSL

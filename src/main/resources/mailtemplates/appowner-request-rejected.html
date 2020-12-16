@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<title>Dein Application Owner Request wurde abgelehnt</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</head>
+<body style="font-family: Helvetica, Arial, sans-serif; font-size: 11pt">
+	<p>
+		Hallo liebe/r <span th:text="${user_name}">UserName</span>,
+	</p>
+	<p>Deine Anfrage für die Anwendung <span th:text="${app_name}" style="font-weight:bold">AppName</span> wurde leider von einem Administrator <b>abgelehnt</b>.</p>
+	<p>Um die genauen Gründe zu erfahren, wende Dich bitte an den Galapagos-Administrator <span th:text="${updated_by}" style="font-weight:bold">UserName</span>.</p>
+	<br><br>
+	<p style="text-align: center">
+	</p>
+	<p><i style="font-size: 10pt">Diese E-Mail wurde von Galapagos an Dich als Antragsteller eines Application Owner Requests gesendet. 
+		Wenn Du der Meinung bist, dass Du diese E-Mail fälschlicherweise erhalten hast, wende Dich bitte an einen Galapagos-Administrator.</i>
+	</p>
+</body>
+</html>

@@ -1,0 +1,42 @@
+.ngb-highlight {
+    background: yellow;
+}
+
+th[sortable]::after {
+    content: "\f0dc";
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    margin-left: 0.5em;
+}
+
+th[sortable].asc::after {
+    content: "\f0de";
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    margin-left: 0.5em;
+    color: #FF9800;
+}
+
+th[sortable].desc::after {
+    content: "\f0dd";
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    margin-left: 0.5em;
+    color: #FF9800;
+}
+
+.deprecated {
+    text-decoration: line-through;
+    text-decoration-color: #000000;
+}
+
+.deprecatedNote {
+    font-weight: bold;
+    font-style: italic;
+    margin-left: 10px;
+}
+
+.deprecationText {
+    font-style: italic;
+    margin-left: 10px;
+}

@@ -1,0 +1,269 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "additionalProperties": false,
+  "properties": {
+    "nc:Vehicle": {
+      "description": "A conveyance designed to carry an operator, passengers and/or cargo, over land.",
+      "oneOf": [
+        {
+          "$ref": "#/definitions/nc:VehicleType"
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/nc:VehicleType"
+          }
+        }
+      ]
+    },
+    "nc:VehicleAxleQuantity": {
+      "description": "A count of common axles of rotation of one or more wheels of a vehicle, whether power driven or freely rotating.",
+      "oneOf": [
+        {
+          "$ref": "#/definitions/niem-xs:nonNegativeInteger"
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/niem-xs:nonNegativeInteger"
+          }
+        }
+      ]
+    },
+    "nc:VehicleMSRPAmount": {
+      "description": "A manufacturer's suggested retail price of a vehicle; a price at which a manufacturer recommends a vehicle be sold.",
+      "oneOf": [
+        {
+          "$ref": "#/definitions/nc:AmountType"
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/nc:AmountType"
+          }
+        }
+      ]
+    },
+    "nc:Amount": {
+      "description": "An amount of money.",
+      "oneOf": [
+        {
+          "$ref": "#/definitions/niem-xs:decimal"
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/niem-xs:decimal"
+          }
+        }
+      ]
+    },
+    "nc:Currency": {
+      "description": "A data concept for a unit of money or exchange.",
+      "oneOf": [
+        {
+          "anyOf": [
+            {
+              "$ref": "#/properties/nc:CurrencyCode"
+            }
+          ]
+        },
+        {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/properties/nc:CurrencyCode"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "nc:CurrencyCode": {
+      "description": "A unit of money or exchange.",
+      "oneOf": [
+        {
+          "$ref": "#/definitions/iso_4217:CurrencyCodeType"
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/iso_4217:CurrencyCodeType"
+          }
+        }
+      ]
+    },
+    "nc:VehicleIdentification": {
+      "description": "A unique identification for a specific vehicle.",
+      "oneOf": [
+        {
+          "$ref": "#/definitions/nc:IdentificationType"
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/nc:IdentificationType"
+          }
+        }
+      ]
+    },
+    "nc:IdentificationID": {
+      "description": "An identifier.",
+      "oneOf": [
+        {
+          "$ref": "#/definitions/niem-xs:string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/niem-xs:string"
+          }
+        }
+      ]
+    }
+  },
+  "definitions": {
+    "nc:VehicleType": {
+      "description": "A data type for a conveyance designed to carry an operator, passengers and/or cargo, over land.",
+      "allOf": [
+        {
+          "$ref": "#/definitions/nc:ConveyanceType"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "nc:VehicleAxleQuantity": {
+              "$ref": "#/properties/nc:VehicleAxleQuantity"
+            },
+            "nc:VehicleIdentification": {
+              "$ref": "#/properties/nc:VehicleIdentification"
+            },
+            "nc:VehicleMSRPAmount": {
+              "$ref": "#/properties/nc:VehicleMSRPAmount"
+            }
+          }
+        }
+      ]
+    },
+    "nc:ConveyanceType": {
+      "description": "A data type for a means of transport from place to place.",
+      "allOf": [
+        {
+          "$ref": "#/definitions/_base"
+        },
+        {
+          "$ref": "#/definitions/nc:ItemType"
+        },
+        {
+          "type": "object",
+          "properties": {}
+        }
+      ]
+    },
+    "nc:ItemType": {
+      "description": "A data type for an article or thing.",
+      "allOf": [
+        {
+          "$ref": "#/definitions/_base"
+        },
+        {
+          "type": "object",
+          "properties": {}
+        }
+      ]
+    },
+    "nc:AmountType": {
+      "description": "A data type for an amount of money.",
+      "type": "object",
+      "properties": {
+        "nc:Amount": {
+          "$ref": "#/properties/nc:Amount"
+        },
+        "nc:Currency": {
+          "$ref": "#/properties/nc:Currency"
+        }
+      }
+    },
+    "iso_4217:CurrencyCodeType": {
+      "description": "A data type for a currency that qualifies a monetary amount.",
+      "oneOf": [
+        {
+          "$ref": "#/definitions/iso_4217:CurrencyCodeSimpleType"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "rdf:value": {
+              "$ref": "#/definitions/iso_4217:CurrencyCodeSimpleType"
+            }
+          }
+        }
+      ]
+    },
+    "iso_4217:CurrencyCodeSimpleType": {
+      "type": "string",
+      "description": "A data type for a currency that qualifies a monetary amount.",
+      "oneOf": [
+        {
+          "enum": [
+            "EUR"
+          ],
+          "description": "Euro"
+        },
+        {
+          "enum": [
+            "GBP"
+          ],
+          "description": "Pound Sterling"
+        },
+        {
+          "enum": [
+            "USD"
+          ],
+          "description": "US Dollar"
+        }
+      ]
+    },
+    "nc:IdentificationType": {
+      "description": "A data type for a representation of an identity.",
+      "type": "object",
+      "properties": {
+        "nc:IdentificationID": {
+          "$ref": "#/properties/nc:IdentificationID"
+        }
+      }
+    },
+    "niem-xs:decimal": {
+      "description": "A data type for arbitrary precision decimal numbers.",
+      "type": "number"
+    },
+    "niem-xs:nonNegativeInteger": {
+      "description": "A data type for an integer with a minimum value of 0.",
+      "type": "number"
+    },
+    "niem-xs:string": {
+      "description": "A data type for character strings in XML.",
+      "type": "string"
+    },
+    "_base": {
+      "type": "object",
+      "patternProperties": {
+        "^ism:.*": {
+          "type": "string"
+        },
+        "^ntk:.*": {
+          "type": "string"
+        }
+      },
+      "properties": {
+        "@id": {
+          "format": "uriref"
+        },
+        "@base": {
+          "format": "uriref"
+        }
+      }
+    }
+  }
+}

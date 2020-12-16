@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="de">
+<head>
+    <title>Neue Abonnement-Anfrage</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+</head>
+<body style="font-family: Helvetica, Arial, sans-serif; font-size: 11pt">
+<!--/*@thymesVar id="client_application_name" type="string"*/-->
+<!--/*@thymesVar id="topic_name" type="string"*/-->
+<!--/*@thymesVar id="owner_application_name" type="string"*/-->
+<!--/*@thymesVar id="subscription_description" type="string"*/-->
+<!--/*@thymesVar id="galapagos_topic_url" type="string"*/-->
+<p>
+    Hallo lieber Galapagos-Benutzer,
+</p>
+<p>ein Benutzer hat eine Anfrage gestellt, um für die Anwendung <b>
+<span
+        th:text="${client_application_name}"></span></b>
+    das Topic <b><span th:text="${topic_name}"></span></b> Deiner Anwendung <b><span
+            th:text="${owner_application_name}"></span></b>
+    zu abonnieren.</p>
+<p th:if="${subscription_description != null}">Folgende Beschreibung / Begründung wurde dabei angegeben: <b><span
+        th:text="${subscription_description}"></span></b></p>
+<p>Bitte logge Dich in Galapagos ein und gehe auf die Seite des Topics, um die Anfrage zu prüfen und
+    freizugeben oder ggf. abzulehnen:</p>
+<table style="width:300px; margin-left:auto; margin-right:auto">
+    <tr>
+        <td>
+            <div style="background-color: #0091CD; border-radius: 4px; text-align: center; padding: 1em 1.5em">
+                <a style="font-weight: bold; font-size:16pt; color: white; text-decoration: none"
+                   th:href="${galapagos_topic_url}">Galapagos öffnen</a>
+            </div>
+        </td>
+    </tr>
+</table>
+<br><br>
+<p>Bitte beachte, dass auch ein anderer Topic-Owner Deiner Anwendung diese Anfrage in der Zwischenzeit freigegeben haben
+    kann.</p>
+<br><br>
+<p style="text-align: center">
+</p>
+<p><i style="font-size: 10pt">Diese E-Mail wurde von Galapagos an alle Topic-Owner der Anwendung <span
+        th:text="${owner_application_name}"></span>
+    gesendet. Wenn Du der Meinung bist, dass Du diese E-Mail nicht erhalten solltest, wende Dich bitte an einen
+    Galapagos-Administrator.</i>
+</p>
+</body>
+</html>

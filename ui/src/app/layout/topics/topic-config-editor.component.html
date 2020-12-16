@@ -1,0 +1,57 @@
+<div [@routerTransition]>
+    <h2 class="text-muted">{{ 'Topic' | translate }} {{ topicName | async }} <small>{{ 'Configuration' | translate }}</small></h2>
+    <hr />
+    <div class="row">
+        <div class="col-md-12">
+            <ngb-alert [dismissible]="false" type="info">
+                <p [innerHTML]="'TOPIC_CONFIG_HTML' | translate"></p>
+            </ngb-alert>
+            <ngb-alert [dismissible]="false" type="warning">
+                <p [innerHTML]="'TOPIC_CONFIG_WARNING_HTML' | translate"></p>
+            </ngb-alert>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>{{ 'Configuration Property' | translate }}</th>
+                        <th *ngFor="let env of (environments | async)">{{ env.name }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let config of (allConfigurationProperties | async)">
+                        <td>{{ config.configName }}<br><small *ngIf="config.configDescription" [innerHTML]="config.configDescription"></small></td>
+                        <td *ngFor="let env of (environments | async)">
+                            <div *ngIf="configuration[env.id] && defaultTopicConfigs[env.id]">
+                                <input #configValue class="form-control" type="text" style="min-width: 200px" [(ngModel)]="configuration[env.id][config.configName]"
+                                    [class.default-value]="isDefaultConfig(env.id, config.configName)">
+                                <button class="btn btn-success btn-sm mt-2" (click)="resetConfig(env.id, config.configName)"><i class="fas fa-eraser mr-3"></i>{{ 'Default' | translate }}</button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card mb-3">
+                <div class="card-header">
+                    {{ 'Actions' | translate }}
+                </div>
+                <div class="card-body">
+                    <button type="button" class="btn btn-danger" appSpinnerWhile #b="appSpinnerWhile"
+                        (click)="b.while(saveConfig())">
+                        <i class="fas fa-save"></i>&nbsp;{{ 'Update Topic Configuration' | translate }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+</div>

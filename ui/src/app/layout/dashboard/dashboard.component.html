@@ -1,0 +1,139 @@
+<div [@routerTransition]>
+    <h2 class="text-muted">Dashboard</h2>
+    <hr>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    Kafka Cluster
+                </div>
+                <div class="card-body">
+                    <div class="form-group form-inline">
+                        <label>{{ 'Selected Kafka Environment' | translate }}:</label>
+                        <select class="form-control ml-2" (change)="selectEnvironment($event.target.value)">
+                            <option *ngFor="let env of allEnvironments | async" [value]="env.id" [selected]="env === (selectedEnvironment | async)">{{ env.name }}</option>
+                        </select>
+                        <span *ngIf="(selectedEnvironment | async)?.production" class="text-danger ml-3"><em><b>Production Environment</b></em></span>
+                    </div>
+                    <strong>Bootstrap Servers:</strong>&nbsp;&nbsp;
+                    <code id="bootstrapServers">{{ (selectedEnvironment | async)?.bootstrapServers }}</code>
+                    <br>
+                    <strong>Kafka Version:</strong>&nbsp;&nbsp;
+                    <code id="kafkaVersion">{{ (kafkaVersion | async) }}</code>
+
+                    <!--
+                    <table class="table" style="margin-top: 10px">
+                        <tr *ngFor="let server of serverInfos | async">
+                            <td>{{ server.server }}</td>
+                            <td>
+                                <span *ngIf="server.online" class="badge badge-success">ONLINE</span>
+                                <span *ngIf="!server.online" class="badge badge-danger">OFFLINE</span>
+                            </td>
+                        </tr>
+                        <tr *ngIf="(serverInfos | async)?.length === 0">
+                            <td colspan="2">
+                                <i class="fas fa-sync fa-spin mr-4"></i><i>Checking servers for liveness...</i>
+                            </td>
+                        </tr>
+                    </table>
+                    -->
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row mt-3">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-success text-white" (click)="configTemplatesCollapsed = !configTemplatesCollapsed">
+                    <div class="float-right">
+                        <span><i class="fas fa-angle-double-down"></i></span>
+                    </div>
+                    <i class="fas fa-tools mr-2"></i>
+                    {{ 'Framework Config Templates (click to expand)' | translate }}
+                </div>
+                <div class="card-body" [ngbCollapse]="configTemplatesCollapsed">
+                    <div class="form-group form-inline">
+                        <label>{{ 'Framework' }}</label>
+                        <select class="form-control ml-2" (change)="updateConfigTemplate($event.target.value)">
+                            <option value="spring">Spring</option>
+                            <option value="micronaut">Micronaut</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <textarea class="form-control text-monospace" rows="15" cols="90" [value]="frameworkConfigTemplate | async"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row mt-3">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header text-white bg-hermes">
+                    <i class="fa fa-rocket"></i>&nbsp;&nbsp; {{ 'Get me started!' | translate}}
+                </div>
+                <div class="card-body">
+                    <div>
+                        <a class="quicklink" href="/files/truststore">
+                            <span class="link-icon"><i class="fa fa-award"></i> </span>
+                            <span class="link-text">{{ 'Download Kafka Truststore (for all environments)' | translate }}</span>
+                        </a><br /><br />
+                        <div *ngFor="let link of customLinks | async">
+                            <a class="quicklink" [href]="link.href">
+                            <span class="link-icon"><i class="fa"
+                                                       [class.fa-graduation-cap]="link.linkType === 'EDUCATIONAL'"
+                                                       [class.fa-code-branch]="link.linkType === 'SOURCECODE'"
+                                                       [class.fa-external-link-alt]="link.linkType === 'OTHER'"></i> </span>
+                                <span class="link-text">{{ link.label}}</span>
+                            </a><br/><br/></div>
+                        <!--
+                        <br /><br />
+                        <a class="quicklink" href="http://google.com/">
+                            <span class="link-icon"><i class="fab fa-git-alt"></i> </span>
+                            <span class="link-text">{{ 'Browse Kafka Consumer Demo Project' | translate }}</span>
+                        </a><br /><br />
+                        <a class="quicklink" href="http://google.com/">
+                            <span class="link-icon"><i class="fab fa-git-alt"></i> </span>
+                            <span class="link-text">{{ 'Browse Kafka Producer Demo Project' | translate }}</span>
+                        </a>
+                        -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="card chat-panel">
+                <div class="card-header bg-secondary text-white">
+                    <i class="fa fa-hammer mr-3"></i>{{ 'Latest Changes' | translate }}
+                </div>
+                <div class="card-body">
+                    <ul class="chat" *ngIf="(changelog | async)?.length">
+                        <li class="left clearfix" *ngFor="let change of changelog | async">
+                            <span class="chat-img float-left">
+                                <!-- TODO gravatar? MS Office 365? -->
+                                <img src="/assets/images/default_avatar.png" class="img-circle">
+                            </span>
+                            <div class="chat-body clearfix">
+                                <div class="header">
+                                    <strong>{{ change.principalFullName || change.principal }}</strong>
+                                    <small class="text-muted float-right" [title]="agoTimeStamp(change.timestamp)"><i class="far fa-clock"></i>
+                                        {{ agoString(change.timestamp) }}</small>
+                                </div>
+                                <p [innerHtml]="change.change.html | async"></p>
+                            </div>
+                        </li>
+                    </ul>
+                    <i *ngIf="!(changelog | async)?.length">{{ 'No recent changes' | translate }}</i>
+                </div>
+            </div>
+            <div class="card mt-3">
+                <div class="card-header">
+                    <i class="fas fa-info-circle mr-3"></i>{{ 'Application Info' | translate}}
+                </div>
+                <div class="card-body">
+                    Galapagos Version: <code>{{ (appServerInfo | async)?.app.version }}</code>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

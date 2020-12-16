@@ -1,0 +1,14 @@
+kafka:
+  bootstrap:
+    servers:
+      - ${bootstrap.server}
+  ssl:
+    keystore:
+      location: <your-client-keystore>.p12
+      password: changeit
+    truststore:
+      location: kafka-truststore.jks
+      password: changeit
+      type: PKCS12
+  security:
+    protocol: ssl

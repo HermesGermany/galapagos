@@ -1,0 +1,52 @@
+<div [@routerTransition] *ngIf="isAdmin">
+    <h2 id="adminHeader" class="text-muted">{{ 'Administration' | translate }}</h2>
+    <hr />
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <b>{{ 'Application Owner Requests' | translate }}</b>
+                </div>
+                <div class="card-body table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th scope="col" sortable="createdAt" (sort)="onSort($event)">{{ 'Date' | translate }}</th>
+                                <th scope="col" sortable="userName" (sort)="onSort($event)">{{ 'User name' | translate }}</th>
+                                <th scope="col" sortable="applicationName" (sort)="onSort($event)">{{ 'Application' | translate }}</th>
+                                <th scope="col">{{ 'Comments / Remarks' | translate }}</th>
+                                <th scope="col" sortable="state" (sort)="onSort($event)">{{ 'State' | translate }}</th>
+                                <th scope="col">{{ 'Actions' | translate }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let request of allRequests | async">
+                                <td>{{ niceTimestamp(request.createdAt) }}</td>
+                                <td><ngb-highlight [result]="request.userName" [term]="searchTerm"></ngb-highlight></td>
+                                <td>
+                                    <a *ngIf="request.applicationInfoUrl" [href]="request.applicationInfoUrl" target="_blank"><ngb-highlight [result]="request.applicationName" [term]="searchTerm"></ngb-highlight></a>
+                                    <ngb-highlight *ngIf="!request.applicationInfoUrl" [result]="request.applicationName" [term]="searchTerm"></ngb-highlight></td>
+                                <td><span [innerHTML]="request.comments"></span></td>
+                                <td style="min-width: 9em">
+                                    <span
+                                        class="badge"
+                                        [class.badge-secondary]="request.state === 'SUBMITTED'"
+                                        [class.badge-success]="request.state === 'APPROVED'"
+                                        [class.badge-warning]="request.state === 'RESIGNED'"
+                                        [class.badge-danger]="request.state === 'REJECTED' || request.state === 'REVOKED'"
+                                        [title]="lastChangeTitle(request)"
+                                        >{{ request.state }}</span
+                                    >
+                                </td>
+                                <td style="min-width: 9em">
+                                    <button type="button" class="btn btn-success" appSpinnerWhile #u="appSpinnerWhile" (click)="u.while(approve(request))" [disabled]="request.state === 'APPROVED'"><i class="fa fas fa-thumbs-up"></i></button>&nbsp;
+                                    <button type="button" class="btn btn-danger" appSpinnerWhile #d="appSpinnerWhile" (click)="d.while(reject(request))" [disabled]="request.state === 'REJECTED' || request.state === 'REVOKED'"><i class="fa fas fa-thumbs-down"></i></button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

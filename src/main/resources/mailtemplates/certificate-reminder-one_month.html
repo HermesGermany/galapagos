@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<title>Kafka-Zertifikat läuft bald ab</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</head>
+<!--/*@thymesVar id="app_name" type="java.lang.String"*/-->
+<!--/*@thymesVar id="environment_name" type="java.lang.String"*/-->
+<!--/*@thymesVar id="expiry_date" type="java.time.ZonedDateTime"*/-->
+<body style="font-family: Helvetica, Arial, sans-serif; font-size: 11pt">
+	<p>
+		Hallo lieber Application Topic Administrator,
+	</p>
+	<p>Das Kafka-Client-Zertifikat der Anwendung <span th:text="${app_name}" style="font-weight:bold">AppName</span> für die Kafka-Umgebung <span th:text="${environment_name}" style="font-weight:bold">EnvName</span>
+	läuft innerhalb des <b>nächsten</b> Monats ab, nämlich am <span th:text="${#temporals.format(expiry_date, 'dd.MM.yyyy')}" style="font-weight:bold">xx.yy.zzzz</span>.</p>
+	<p>Du solltest <b>möglichst bald</b> (ggf. in Absprache mit den anderen Application Topic Administratoren) mit Hilfe von Galapagos ein <b>Verlängerungszertifikat</b> ausstellen, um zu vermeiden, dass Deine Anwendung nicht mehr lauffähig ist.</p>
+	<br><br>
+	<p><i style="font-size: 10pt">Diese E-Mail wurde von Galapagos an Dich als Application Topic Administrator der genannten Anwendung gesendet. 
+		Wenn Du der Meinung bist, dass Du diese E-Mail fälschlicherweise erhalten hast, wende Dich bitte an einen Galapagos-Administrator.</i>
+	</p>
+</body>
+</html>

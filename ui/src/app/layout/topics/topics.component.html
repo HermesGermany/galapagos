@@ -1,0 +1,70 @@
+<div [@routerTransition]>
+    <h2 class="text-muted">{{ 'Browse Topics' | translate }}</h2>
+    <hr>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-hermes text-white">
+                    <i class="fa fa-search mr-3"></i>{{ 'Search Options' | translate }}
+                </div>
+                <div class="card-body">
+                    <div class="form-group form-inline">
+                        {{ 'Full text search:' | translate }} <input class="form-control ml-2" type="text" name="searchTerm" [(ngModel)]="searchData.searchTerm" (input)="searchTopics()" />
+                    </div>
+                    <div class="form-group">
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" [(ngModel)]="searchData.showInternalTopics" (change)="searchTopics()"> {{ 'Show internal topics of my applications' | translate }}
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row mt-3">
+        <div class="col-md-12">
+            <!-- get full working example at https://ng-bootstrap.github.io/#/components/table/examples#complete -->
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th scope="col" sortable="name" (sort)="sortTopics($event)">{{ 'Topic Name' | translate }}</th>
+                        <th scope="col">{{ 'Description' | translate }}</th>
+                        <th scope="col" sortable="type" (sort)="sortTopics($event)">{{ 'Topic Type' | translate }}</th>
+                        <th scope="col" sortable="ownerApplication" (sort)="sortTopics($event)">{{ 'Owning Application' | translate }}</th>
+                    </tr>
+                </thead>
+                <tbody *ngIf="!(loadingTopics | async)">
+                    <tr *ngFor="let topic of topics | async">
+                        <td><a [ngClass]="{deprecated:topic.deprecated}" [routerLink]="'/topics/' + topic.name">
+                            <ngb-highlight [result]="topic.name" [term]="searchData.searchTerm"></ngb-highlight>
+                        </a></td>
+                        <td>
+                            <ngb-highlight [result]="topic.description" [term]="searchData.searchTerm"></ngb-highlight>
+                            <span *ngIf="topic.deprecated">
+                                 <span class="deprecatedNote">Deprecated</span>
+                            <span class="deprecationText">{{topic.deprecationText}}</span>
+                            </span>
+                        </td>
+                        <td>{{ topic.topicType }}</td>
+                        <td>
+                            <a *ngIf="topic.ownerApplication && topic.ownerApplication.infoUrl"
+                               [href]="topic.ownerApplication.infoUrl" target="_blank">
+                                <ngb-highlight [result]="topic.ownerApplication.name"
+                                               [term]="searchData.searchTerm"></ngb-highlight>
+                            </a>
+                            <ngb-highlight *ngIf="!topic.ownerApplication || !topic.ownerApplication.infoUrl"
+                                           [result]="topic.ownerApplication ? topic.ownerApplication.name : ''"
+                                           [term]="searchData.searchTerm"></ngb-highlight>
+                        </td>
+                    </tr>
+                </tbody>
+                <tbody *ngIf="loadingTopics | async">
+                    <tr>
+                        <td colspan="4"><i class="fas fa-sync fa-spin mr-4"></i><i>{{ 'Loading topics...' | translate }}</i></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

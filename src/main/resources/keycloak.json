@@ -1,0 +1,8 @@
+{
+  "auth-server-url": "https://my-keycloak.myacme.org/auth/",
+  "realm": "galapagos",
+  "resource": "galapagos-webapp",
+  "public-client": true,
+  "use-resource-role-mappings": true,
+  "principal-attribute": "preferred_username"
+}
