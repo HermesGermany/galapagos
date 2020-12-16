@@ -1,0 +1,77 @@
+[
+  {
+    "id": "app-1",
+    "name": "Premium Prime",
+    "aliases": [
+      "pp",
+      "premium",
+      "prime"
+    ],
+    "infoUrl": "https://github.com/HermesGermany/galapagos",
+    "businessCapabilities": [
+      {
+        "id": "bcap-1",
+        "name": "Sales"
+      }
+    ]
+  },
+  {
+    "id": "2222222-222222-22222-2222222",
+    "name": "Secundus",
+    "aliases": [
+      "app2"
+    ],
+    "infoUrl": "https://en.wikipedia.org/wiki/Secundus",
+    "businessCapabilities": [
+      {
+        "id": "bcap-2",
+        "name": "IT Support"
+      }
+    ]
+  },
+  {
+    "id": "3!",
+    "name": "Aramis",
+    "aliases": [],
+    "businessCapabilities": [
+      {
+        "id": "bcap-1",
+        "name": "Sales"
+      },
+      {
+        "id": "bcap-2",
+        "name": "IT Support"
+      }
+    ]
+  },
+  {
+    "id": "four",
+    "name": "Quattro",
+    "aliases": [
+      "audi"
+    ],
+    "businessCapabilities": [
+      {
+        "id": "bcap-3",
+        "name": "Orders"
+      }
+    ]
+  },
+  {
+    "id": "app-5",
+    "name": "High Five",
+    "aliases": [
+      "hf"
+    ],
+    "businessCapabilities": [
+      {
+        "id": "bcap-3",
+        "name": "Orders"
+      },
+      {
+        "id": "bcap-1",
+        "name": "Sales"
+      }
+    ]
+  }
+]

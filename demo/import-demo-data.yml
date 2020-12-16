@@ -1,0 +1,51 @@
+# Kubernetes Job which imports demo applications into running Galapagos DEMO
+# Demo Applications must be stored in a demo-applications.json in ConfigMap "demo-applications"
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: import-demo-applications
+  namespace: galapagos
+spec:
+  ttlSecondsAfterFinished: 600
+  template:
+    spec:
+      containers:
+        - name: galapagos-update-container
+          image: hermesgermany/galapagos:1.7.0
+          resources:
+            limits:
+              cpu: "250m"
+              memory: "500Mi"
+            requests:
+              cpu: "125m"
+              memory: "300Mi"
+          env:
+            - name: SPRING_CONFIG_ADDITIONAL-LOCATION
+              value: "file:///appconfig/"
+          args:
+            - "--spring.profiles.active=demo,local"
+            - "--galapagos.jobs.import-known-applications"
+            - "--applications.import.file=/tmp/demoapps/demo-applications.json"
+            - "--server.port=-1"
+          volumeMounts:
+            - name: ca
+              mountPath: "/tmp/ca"
+              readOnly: true
+            - name: spring-config
+              mountPath: "/appconfig"
+              readOnly: true
+            - name: demo-apps
+              mountPath: "/tmp/demoapps"
+              readOnly: true
+      restartPolicy: Never  # important, always include!
+      volumes:
+        - name: ca
+          secret:
+            secretName: kafka-ca
+        - name: spring-config
+          configMap:
+            name: spring-properties
+        - name: demo-apps
+          configMap:
+            name: demo-applications
+  backoffLimit: 2

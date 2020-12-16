@@ -1,0 +1,125 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kafka-data
+  labels:
+    app.kubernetes.io/name: kafka-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kafka-sasl-config
+data:
+  jaas.conf: |
+    KafkaServer {
+     org.apache.kafka.common.security.plain.PlainLoginModule required
+     username="broker"
+     password="broker-secret"
+     user_broker="broker-secret";
+    };
+    Client {
+      org.apache.kafka.common.security.plain.PlainLoginModule required
+      username="broker"
+      password="broker-secret";
+    };
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka-deployment
+  labels:
+    app: kafka
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: kafka
+  template:
+    metadata:
+      labels:
+        app: kafka
+    spec:
+      containers:
+        - name: kafka1
+          image: confluentinc/cp-kafka:5.5.2
+          ports:
+            - containerPort: 9092
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "125m"
+            limits:
+              memory: "2048Mi"
+              cpu: "250m"
+          env:
+            - name: KAFKA_BROKER_ID
+              value: "99"
+            - name: KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR
+              value: "1"
+            - name: MY_POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: KAFKA_LISTENERS
+              value: "SSL://:9092,SASL_PLAINTEXT://:29092"
+            - name: KAFKA_ADVERTISED_LISTENERS
+              valueFrom:
+                configMapKeyRef:
+                  name: kafka-config
+                  key: advertised.listeners
+            - name: KAFKA_ZOOKEEPER_CONNECT
+              value: "zookeeper-service:2181"
+            - name: KAFKA_SSL_KEYSTORE_FILENAME
+              value: "server.jks"
+            - name: KAFKA_SSL_KEY_CREDENTIALS
+              value: "keystorepass"
+            - name: KAFKA_SSL_KEYSTORE_CREDENTIALS
+              value: "keystorepass"
+            - name: KAFKA_SSL_CLIENT_AUTH
+              value: "required"
+            - name: KAFKA_SSL_TRUSTSTORE_FILENAME
+              value: "truststore.jks"
+            - name: KAFKA_SSL_TRUSTSTORE_CREDENTIALS
+              value: "keystorepass"
+            - name: KAFKA_SASL_ENABLED_MECHANISMS
+              value: "PLAIN"
+            - name: KAFKA_SASL_MECHANISM_INTER_BROKER_PROTOCOL
+              value: "PLAIN"
+            - name: KAFKA_SECURITY_INTER_BROKER_PROTOCOL
+              value: "SASL_PLAINTEXT"
+            - name: KAFKA_AUTHORIZER_CLASS_NAME
+              value: "kafka.security.auth.SimpleAclAuthorizer"
+            - name: KAFKA_SUPER_USERS
+              value: "User:CN=kafkaadmin;User:broker"
+            - name: CONFLUENT_SUPPORT_METRICS_ENABLE
+              value: "0"
+            - name: KAFKA_LOG_DIRS
+              value: "/var/lib/kafka/data/data"
+            - name: KAFKA_OPTS
+              value: "-Djava.security.auth.login.config=/etc/kafka/jaas/jaas.conf"
+          volumeMounts:
+            - name: certs
+              mountPath: "/etc/kafka/secrets"
+              readOnly: true
+            - name: data
+              mountPath: "/var/lib/kafka/data"
+            - name: jaas-config
+              mountPath: "/etc/kafka/jaas"
+      volumes:
+        - name: certs
+          secret:
+            secretName: kafka-server-certs
+        - name: jaas-config
+          configMap:
+            name: kafka-sasl-config
+        - name: data
+          persistentVolumeClaim:
+            claimName: kafka-data

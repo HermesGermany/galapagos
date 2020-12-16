@@ -1,0 +1,126 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mariadb-data
+  labels:
+    app.kubernetes.io/name: mariadb-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mariadb-deployment
+  labels:
+    app: mariadb
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate  
+  selector:
+    matchLabels:
+      app: mariadb
+  template:
+    metadata:
+      labels:
+        app: mariadb
+    spec:
+      containers:      
+      - name: mariadb-container
+        image: mariadb:10.4
+        ports:
+        - containerPort: 3306
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "125m"
+          limits:
+            memory: "128Mi"
+            cpu: "125m"
+        env:
+        - name: MYSQL_DATABASE
+          value: "keycloak"
+        - name: MYSQL_USER
+          value: "keycloak"
+        - name: MYSQL_PASSWORD
+          value: "kaolcyek"
+        - name: MYSQL_RANDOM_ROOT_PASSWORD
+          value: "yes"
+        volumeMounts:
+        - name: data
+          mountPath: "/var/lib/mysql"
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: mariadb-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: keycloak-db
+spec:
+  type: ClusterIP
+  selector:
+    app: mariadb
+  ports:
+    - protocol: TCP
+      port: 3306
+      targetPort: 3306
+      name: mysql
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keycloak-deployment
+  labels:
+    app: keycloak
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate  
+  selector:
+    matchLabels:
+      app: keycloak
+  template:
+    metadata:
+      labels:
+        app: keycloak
+    spec:
+      containers:      
+      - name: keycloak-container
+        image: jboss/keycloak:9.0.0
+        ports:
+        - containerPort: 8080
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "125m"
+          limits:
+            memory: "1024Mi"
+            cpu: "800m"
+        env:
+        - name: KEYCLOAK_USER
+          value: "admin"
+        - name: KEYCLOAK_PASSWORD
+          value: "admin"
+        - name: KEYCLOAK_IMPORT
+          value: "/tmp/config/galapagos-dev-realm.json"
+        - name: DB_VENDOR
+          value: mariadb
+        - name: DB_ADDR
+          value: keycloak-db
+        - name: DB_USER
+          value: keycloak
+        - name: DB_PASSWORD
+          value: kaolcyek
+        volumeMounts:
+        - name: config
+          mountPath: "/tmp/config"
+      volumes:
+      - name: config
+        configMap:
+          name: keycloak-config

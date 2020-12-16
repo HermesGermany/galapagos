@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: galapagos-deployment
+  labels:
+    app: galapagos
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: galapagos
+  template:
+    metadata:
+      labels:
+        app: galapagos
+    spec:
+      containers:
+        - name: galapagos-container
+          image: hermesgermany/galapagos:1.7.0
+          resources:
+            limits:
+              cpu: "800m"
+              memory: "900Mi"
+            requests:
+              cpu: "250m"
+              memory: "300Mi"
+          env:
+            - name: SPRING_CONFIG_ADDITIONAL-LOCATION
+              value: "file:///appconfig/"
+          args:
+            - "--spring.profiles.active=demo,local,actuator"
+          livenessProbe:
+            httpGet:
+              path: /actuator/info
+              port: 8080
+            initialDelaySeconds: 240
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 10
+          volumeMounts:
+            - name: ca
+              mountPath: "/tmp/ca"
+              readOnly: true
+            - name: spring-config
+              mountPath: "/appconfig"
+              readOnly: true
+      volumes:
+        - name: ca
+          secret:
+            secretName: kafka-ca
+        - name: spring-config
+          configMap:
+            name: spring-properties
