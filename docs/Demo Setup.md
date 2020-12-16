@@ -64,6 +64,9 @@ networking configuration may be required (e.g. adding an Ingress).
 Note that starting up all the services will take some time - several **minutes** is completely normal. You can check the
 progress of the Demo initialization using the script `./demo-status.sh`.
 
+Once the setup is done, open your browser and enter the URL which has been output by the setup script. You will see a
+Keycloak login page. Available users in the demo setup are `admin1` and `user1`, both having their username as password.
+
 ## Reduce Memory Consumption
 
 If you do not have 8 GB of (free!) memory available, you may try to reduce the memory assigned to the Kafka brokers. For
