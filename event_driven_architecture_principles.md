@@ -103,6 +103,7 @@ into **why** these teams want to share data, or if this data is already availabl
 
 We think that establishing a communication channel to another team or publishing relevant business events should be the 
 sole responsibility of the involved teams. Usually **they** have the competence to know what events they require, or
-what the business events are they can publish. When it comes to _sensitive_ data, e.g. containing personal data, the
-**providing team** (in the best case, the Business Owner there) has the competence to determine if a requesting team B
-should have access to their events and associated data or not, so **they** should be the approving instance.
+what the business events are they can publish. When it comes to _sensitive_ data, e.g. business events containing 
+personal data in the payload, the **providing team** (in the best case, the Business Owner there) has the competence to 
+determine if a requesting team B should have access to their events and associated data or not, so **they** should be the 
+approving instance.
