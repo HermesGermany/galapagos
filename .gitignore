@@ -10,6 +10,10 @@ ui/node_modules
 *.jks
 *.srl
 
+# Test certificate files are allowed
+!src/test/resources/certificates/*.cer
+!src/test/resources/certificates/*.key
+
 # Maven versions plugin
 /pom.xml.versionsBackup
 
