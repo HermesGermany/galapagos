@@ -91,5 +91,18 @@ properties.
 Technical measures can be taken to avoid having to provide old, wrong, whatever data formats forever. For instance,
 technical representations of the Business Events (e.g. Topics in Apache Kafka) can be marked as "deprecated" in a 
 central listing, with a reference to a new topic, providing the same Business Event, but with a new payload format.
-This way, consumers have a given amount of time to asynchronously adapt to the new topic. 
+This way, consumers have a given amount of time to asynchronously adapt to the new topic.
 
+## Put Reponsibility where it belongs
+
+In todays enterprise IT infrastructures, often you can find one central team responsible for the _Enterprise Service
+Bus_, or the central Messaging infrastructure. Teams wanting to publish data there, or wanting to receive data from
+another team via this central messaging, usually have to fill out some kind of form (maybe many pages), pass it to that
+team, and get the desired communication channels and associated rights from this team. This team usually does not look
+into **why** these teams want to share data, or if this data is already available elsewhere, or similar questions.
+
+We think that establishing a communication channel to another team or publishing relevant business events should be the 
+sole responsibility of the involved teams. Usually **they** have the competence to know what events they require, or
+what the business events are they can publish. When it comes to _sensitive_ data, e.g. containing personal data, the
+**providing team** (in the best case, the Business Owner there) has the competence to determine if a requesting team B
+should have access to their events and associated data or not, so **they** should be the approving instance.
