@@ -107,3 +107,8 @@ what the business events are they can publish. When it comes to _sensitive_ data
 personal data in the payload, the **providing team** (in the best case, the Business Owner there) has the competence to 
 determine if a requesting team B should have access to their events and associated data or not, so **they** should be the 
 approving instance.
+
+With great power comes great responsibility. The _power_ of teams to publish or subscribe to events brings the
+_responsibility_ to carefully consider the event context, required event payload, and avoid redundancies in the 
+enterprise IT landscape. The teams must provide appropriate information about their events and related decisions in a
+suitable format, e.g. in a company-wide Enterprise Architecture tool.
