@@ -1,0 +1,24 @@
+*               text=auto
+*.txt           text eol=lf
+*.java          text eol=lf
+*.ts            text eol=lf
+*.properties    text eol=lf
+*.xml           text eol=lf
+*.yml           text eol=lf
+*.iml           text eol=lf
+*.md            text eol=lf
+*.svg           text eol=lf
+*.json          text eol=lf
+*.prefs         text eol=lf
+*.scss          text eol=lf
+*.css           text eol=lf
+*.html          text eol=lf
+*.sh            text eol=lf
+*.bat           text eol=crlf
+.classpath      text eol=lf
+.project        text eol=lf
+browserslist    text eol=lf
+LICENSE         text eol=lf
+*.jpg           -text
+*.png           -text
+*.ttf           -text
