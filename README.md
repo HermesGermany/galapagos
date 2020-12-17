@@ -18,6 +18,8 @@ See [Event-Driven Architecture Principles](event_driven_architecture_principles.
 
 Initial Source Code has been **published**. You can now checkout the source and build Galapagos yourself. Additional docs on project structure and how-tos will be added, stay tuned.
 
+**[Discussions](https://github.com/HermesGermany/galapagos/discussions)** are now live! Get in touch - let us talk about the fundamentals, the setup, recommendations for others...
+
 ## Build
 
 To build Galapagos, just run
