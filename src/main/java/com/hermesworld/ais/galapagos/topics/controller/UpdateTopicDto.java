@@ -13,14 +13,19 @@ public class UpdateTopicDto {
 
     private String deprecationText;
 
+    private String description;
+
+    private boolean updateDescription;
+
     private LocalDate eolDate;
 
     public UpdateTopicDto() {
 
     }
 
-    public UpdateTopicDto(String deprecationText, LocalDate eolDate) {
+    public UpdateTopicDto(String deprecationText, LocalDate eolDate, String description) {
         this.deprecationText = deprecationText;
         this.eolDate = eolDate;
+        this.description = description;
     }
 }

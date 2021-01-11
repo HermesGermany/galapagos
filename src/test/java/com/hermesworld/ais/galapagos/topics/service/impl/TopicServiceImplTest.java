@@ -758,6 +758,47 @@ public class TopicServiceImplTest {
 	}
 
 	@Test
+	public void testChangeDescOfTopic() throws Exception {
+
+		TopicMetadata topic = new TopicMetadata();
+		topic.setName("topic-1");
+		topic.setDescription("this topic is not a nice one :(");
+		topic.setOwnerApplicationId("app-1");
+		topic.setType(TopicType.EVENTS);
+		topicRepository.save(topic).get();
+
+		TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator, userService,
+			topicConfig, eventManager);
+
+		service.updateTopicDescription("test", "topic-1", "this topic is now a nice one :)");
+		TopicMetadata savedTopic = topicRepository.getObject("topic-1").get();
+
+		assertEquals("this topic is now a nice one :)", savedTopic.getDescription());
+
+	}
+
+	@Test
+	public void testDontResetDeprecationWhenTopicDescChanges() throws Exception {
+
+		TopicMetadata topic = new TopicMetadata();
+		topic.setName("topic-1");
+		topic.setDescription("this topic is not a nice one :(");
+		topic.setOwnerApplicationId("app-1");
+		topic.setDeprecated(true);
+		topic.setType(TopicType.EVENTS);
+		topicRepository.save(topic).get();
+
+		TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator, userService,
+			topicConfig, eventManager);
+
+		service.updateTopicDescription("test", "topic-1", "this topic is now a nice one :)");
+		TopicMetadata savedTopic = topicRepository.getObject("topic-1").get();
+
+		assertTrue(savedTopic.isDeprecated());
+
+	}
+
+	@Test
 	public void testAddSchemaVersion_DataObjectNestedAtJSONSchemaAndDataTopic() throws Exception {
 		TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator, userService,
 			topicConfig, eventManager);
