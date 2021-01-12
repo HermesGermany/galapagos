@@ -1,14 +1,6 @@
 package com.hermesworld.ais.galapagos.topics.service.impl;
 
-import java.nio.charset.StandardCharsets;
-import java.time.LocalDate;
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-
-import com.hermesworld.ais.galapagos.applications.ApplicationMetadata;
-import com.hermesworld.ais.galapagos.applications.ApplicationsService;
-import com.hermesworld.ais.galapagos.applications.KnownApplication;
+import com.hermesworld.ais.galapagos.applications.*;
 import com.hermesworld.ais.galapagos.applications.impl.KnownApplicationImpl;
 import com.hermesworld.ais.galapagos.events.GalapagosEventManagerMock;
 import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
@@ -21,17 +13,27 @@ import com.hermesworld.ais.galapagos.subscriptions.SubscriptionMetadata;
 import com.hermesworld.ais.galapagos.subscriptions.service.SubscriptionService;
 import com.hermesworld.ais.galapagos.topics.*;
 import com.hermesworld.ais.galapagos.topics.config.GalapagosTopicConfig;
+import com.hermesworld.ais.galapagos.topics.controller.TopicController;
+import com.hermesworld.ais.galapagos.topics.controller.UpdateTopicDto;
+import com.hermesworld.ais.galapagos.topics.service.ValidatingTopicService;
 import com.hermesworld.ais.galapagos.util.FutureUtil;
 import org.json.JSONObject;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 import org.mockito.invocation.InvocationOnMock;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.util.StreamUtils;
+
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 public class TopicServiceImplTest {
 
@@ -53,6 +55,8 @@ public class TopicServiceImplTest {
 	private TopicBasedRepositoryMock<TopicMetadata> topicRepository;
 
 	private TopicBasedRepositoryMock<SchemaMetadata> schemaRepository;
+
+	private ValidatingTopicService topicService;
 
 	@Before
 	public void feedMocks() {
@@ -780,22 +784,38 @@ public class TopicServiceImplTest {
 	@Test
 	public void testDontResetDeprecationWhenTopicDescChanges() throws Exception {
 
+		SubscriptionService subscriptionService = mock(SubscriptionService.class);
+
+		TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator,
+				userService, topicConfig, eventManager);
+		ValidatingTopicServiceImpl validatingService = new ValidatingTopicServiceImpl(service, subscriptionService,
+				applicationsService, kafkaClusters, topicConfig);
+
+		UpdateTopicDto dto = new UpdateTopicDto("topic is now deprecated",LocalDate.of(2199,2,14),
+				"updated description goes here", true);
+
 		TopicMetadata topic = new TopicMetadata();
 		topic.setName("topic-1");
+		topic.setDeprecated(true);
+		topic.setEolDate(LocalDate.of(2299,12,4));
 		topic.setDescription("this topic is not a nice one :(");
 		topic.setOwnerApplicationId("app-1");
-		topic.setDeprecated(true);
 		topic.setType(TopicType.EVENTS);
 		topicRepository.save(topic).get();
 
-		TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator, userService,
-			topicConfig, eventManager);
+		ApplicationOwnerRequest req = new ApplicationOwnerRequest();
+		req.setApplicationId("app-1");
+		req.setState(RequestState.APPROVED);
 
-		service.updateTopicDescription("test", "topic-1", "this topic is now a nice one :)");
+		when(applicationsService.getUserApplicationOwnerRequests()).thenReturn((List.of(req)));
+
+		TopicController controller = new TopicController(validatingService, kafkaClusters, applicationsService, topicNameValidator);
+
+		controller.updateTopic("test", "topic-1", dto);
 		TopicMetadata savedTopic = topicRepository.getObject("topic-1").get();
 
 		assertTrue(savedTopic.isDeprecated());
-
+		assertEquals(topic.getEolDate(), savedTopic.getEolDate());
 	}
 
 	@Test
