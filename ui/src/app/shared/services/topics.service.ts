@@ -1,10 +1,15 @@
-import { Injectable } from '@angular/core';
-import { ApplicationInfo, ApplicationsService, BusinessCapabilityInfo, UserApplicationInfo } from './applications.service';
-import { HttpClient } from '@angular/common/http';
-import { concatMap, map, take } from 'rxjs/operators';
-import { jsonHeader, ReplayContainer } from './services-common';
-import { combineLatest, forkJoin, Observable, of } from 'rxjs';
-import { EnvironmentsService, KafkaEnvironment } from './environments.service';
+import {Injectable} from '@angular/core';
+import {
+    ApplicationInfo,
+    ApplicationsService,
+    BusinessCapabilityInfo,
+    UserApplicationInfo
+} from './applications.service';
+import {HttpClient} from '@angular/common/http';
+import {concatMap, map, take} from 'rxjs/operators';
+import {jsonHeader, ReplayContainer} from './services-common';
+import {combineLatest, forkJoin, Observable, of} from 'rxjs';
+import {EnvironmentsService, KafkaEnvironment} from './environments.service';
 
 export type TopicType = 'EVENTS' | 'DATA' | 'COMMANDS' | 'INTERNAL';
 
@@ -101,6 +106,8 @@ export interface TopicUpdateConfigValue {
 }
 
 export interface TopicRecord {
+
+    partition: number;
 
     offset: number;
 

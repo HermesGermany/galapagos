@@ -1,17 +1,23 @@
-import { Component, OnInit, ViewEncapsulation } from '@angular/core';
-import { routerTransition } from '../../router.animations';
-import { ActivatedRoute, Router } from '@angular/router';
-import { SchemaMetadata, Topic, TopicRecord, TopicsService, TopicSubscription } from '../../shared/services/topics.service';
-import { combineLatest, Observable } from 'rxjs';
-import { finalize, flatMap, map, shareReplay, startWith, take } from 'rxjs/operators';
-import { ApplicationsService, UserApplicationInfo } from '../../shared/services/applications.service';
-import { EnvironmentsService, KafkaEnvironment } from '../../shared/services/environments.service';
-import { ToastService } from '../../shared/modules/toast/toast.service';
-import { TranslateService } from '@ngx-translate/core';
-import { NgbDateStruct, NgbModal } from '@ng-bootstrap/ng-bootstrap';
-import { CertificateService } from '../../shared/services/certificates.service';
+import {Component, OnInit, ViewEncapsulation} from '@angular/core';
+import {routerTransition} from '../../router.animations';
+import {ActivatedRoute, Router} from '@angular/router';
+import {
+    SchemaMetadata,
+    Topic,
+    TopicRecord,
+    TopicsService,
+    TopicSubscription
+} from '../../shared/services/topics.service';
+import {combineLatest, Observable} from 'rxjs';
+import {finalize, flatMap, map, shareReplay, startWith, take} from 'rxjs/operators';
+import {ApplicationsService, UserApplicationInfo} from '../../shared/services/applications.service';
+import {EnvironmentsService, KafkaEnvironment} from '../../shared/services/environments.service';
+import {ToastService} from '../../shared/modules/toast/toast.service';
+import {TranslateService} from '@ngx-translate/core';
+import {NgbDateStruct, NgbModal} from '@ng-bootstrap/ng-bootstrap';
+import {CertificateService} from '../../shared/services/certificates.service';
 import * as moment from 'moment';
-import { ServerInfoService } from '../../shared/services/serverinfo.service';
+import {ServerInfoService} from '../../shared/services/serverinfo.service';
 
 @Component({
     selector: 'app-single-topic',
@@ -347,6 +353,7 @@ export class SingleTopicComponent implements OnInit {
             try {
                 const obj = JSON.parse(val);
                 return {
+                    partition: rec.partition,
                     offset: rec.offset,
                     key: rec.key,
                     value: JSON.stringify(obj, null, 4)

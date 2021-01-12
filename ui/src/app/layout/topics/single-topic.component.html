@@ -370,7 +370,7 @@
             <table class="table table-striped">
                 <thead>
                 <tr>
-                    <th>{{ 'Offset' | translate }}</th>
+                    <th>{{ 'Partition/Offset' | translate }}</th>
                     <th>{{ 'Key' | translate }}</th>
                     <th>{{ 'Value' | translate }}<a href="#" class="ml-4" (click)="formatDataValues()"
                                                     style="font-weight: bold;"><i class="fas fa-code"></i></a></th>
@@ -385,7 +385,7 @@
                 </tr>
                 <ng-container *ngIf="!topicDataLoading && (topicData | async)?.length">
                     <tr *ngFor="let row of topicData | async">
-                        <td>{{ row.offset }}</td>
+                        <td>{{ row.partition + '/' + row.offset }}</td>
                         <td>{{ row.key }}</td>
                         <td>
                             <pre>{{ row.value }}</pre>
