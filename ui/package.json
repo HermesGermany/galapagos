@@ -31,7 +31,7 @@
     "keycloak-angular": "~7.3.0",
     "keycloak-js": "^6.0.1",
     "moment": "^2.24.0",
-    "ngx-highlightjs": "^4.0.0",
+    "ngx-highlightjs": "^4.1.0",
     "rxjs": "6.6.3",
     "tslib": "^1.10.0",
     "yarn": "1.16.0",
