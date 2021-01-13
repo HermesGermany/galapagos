@@ -3,12 +3,12 @@
   "version": "0.0.1",
   "license": "Apache",
   "scripts": {
-      "ng": "ng",
-      "start": "ng serve --proxy-config proxy.conf.json",
-      "build": "ng build --prod --base-href /app/",
-      "build-from-maven": "npm install && ng build --prod --base-href /app/ --output-path ../target/classes/static/app",
-      "test": "ng test",
-      "lint": "ng lint"
+    "ng": "ng",
+    "start": "ng serve --proxy-config proxy.conf.json",
+    "build": "ng build --prod --base-href /app/",
+    "build-from-maven": "npm install && ng build --prod --base-href /app/ --output-path ../target/classes/static/app",
+    "test": "ng test",
+    "lint": "ng lint"
   },
   "private": true,
   "dependencies": {
@@ -31,7 +31,7 @@
     "keycloak-js": "^6.0.1",
     "moment": "^2.24.0",
     "ngx-highlightjs": "^4.0.0",
-    "ngx-translate-testing": "^5.0.0",
+    "ngx-translate-testing": "^3.0.0",
     "rxjs": "6.5.2",
     "tslib": "^1.9.0",
     "yarn": "1.16.0",
