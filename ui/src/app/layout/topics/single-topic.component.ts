@@ -1,23 +1,17 @@
-import {Component, OnInit, ViewEncapsulation} from '@angular/core';
-import {routerTransition} from '../../router.animations';
-import {ActivatedRoute, Router} from '@angular/router';
-import {
-    SchemaMetadata,
-    Topic,
-    TopicRecord,
-    TopicsService,
-    TopicSubscription
-} from '../../shared/services/topics.service';
-import {combineLatest, Observable} from 'rxjs';
-import {finalize, flatMap, map, shareReplay, startWith, take} from 'rxjs/operators';
-import {ApplicationsService, UserApplicationInfo} from '../../shared/services/applications.service';
-import {EnvironmentsService, KafkaEnvironment} from '../../shared/services/environments.service';
-import {ToastService} from '../../shared/modules/toast/toast.service';
-import {TranslateService} from '@ngx-translate/core';
-import {NgbDateStruct, NgbModal} from '@ng-bootstrap/ng-bootstrap';
-import {CertificateService} from '../../shared/services/certificates.service';
+import { Component, OnInit, ViewEncapsulation } from '@angular/core';
+import { routerTransition } from '../../router.animations';
+import { ActivatedRoute, Router } from '@angular/router';
+import { SchemaMetadata, Topic, TopicRecord, TopicsService, TopicSubscription } from '../../shared/services/topics.service';
+import { combineLatest, Observable } from 'rxjs';
+import { finalize, flatMap, map, shareReplay, startWith, take } from 'rxjs/operators';
+import { ApplicationsService, UserApplicationInfo } from '../../shared/services/applications.service';
+import { EnvironmentsService, KafkaEnvironment } from '../../shared/services/environments.service';
+import { ToastService } from '../../shared/modules/toast/toast.service';
+import { TranslateService } from '@ngx-translate/core';
+import { NgbDateStruct, NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { CertificateService } from '../../shared/services/certificates.service';
 import * as moment from 'moment';
-import {ServerInfoService} from '../../shared/services/serverinfo.service';
+import { ServerInfoService } from '../../shared/services/serverinfo.service';
 
 @Component({
     selector: 'app-single-topic',
@@ -145,7 +139,7 @@ export class SingleTopicComponent implements OnInit {
             map(value => value[0] && value[1] && !!value[1].find(app => value[0].ownerApplication.id === app.id))
         );
 
-        this.environmentsService.getCurrentEnvironment().subscribe({ next: env => (this.translateParams.environmentName = env.name) });
+        this.environmentsService.getCurrentEnvironment().subscribe({next: env => (this.translateParams.environmentName = env.name)});
 
 
         // another nice Observable construct :-)
@@ -155,7 +149,7 @@ export class SingleTopicComponent implements OnInit {
             .pipe(startWith(this.translateService.currentLang));
         this.deprecateTopicHtml = combineLatest([currentLang, this.serverInfoService.getUiConfig()])
             .pipe(flatMap(val => this.translateService.get('DEPRECATE_TOPIC_HTML',
-                { period: this.toPeriodText(val[1].minDeprecationTime) }).pipe(map(o => o.toString()))
+                {period: this.toPeriodText(val[1].minDeprecationTime)}).pipe(map(o => o.toString()))
             ));
         this.minDeprecationDate = this.serverInfoService.getUiConfig()
             .pipe(map(config => this.getValidDatesDeprecation(config.minDeprecationTime)));
@@ -272,12 +266,12 @@ export class SingleTopicComponent implements OnInit {
 
     openDeleteConfirmDlg(content: any) {
         this.topicNameConfirmText = '';
-        this.modalService.open(content, { ariaLabelledBy: 'modal-title', size: 'lg' });
+        this.modalService.open(content, {ariaLabelledBy: 'modal-title', size: 'lg'});
     }
 
     async openRejectConfirmDlg(subscription: TopicSubscription, content: any) {
         this.selectedSubscription = subscription;
-        this.modalService.open(content, { ariaLabelledBy: 'modal-title', size: 'lg' });
+        this.modalService.open(content, {ariaLabelledBy: 'modal-title', size: 'lg'});
     }
 
     async deleteTopic(): Promise<any> {
@@ -344,7 +338,7 @@ export class SingleTopicComponent implements OnInit {
                 this.topicDataLoading = false;
             });
 
-        this.modalService.open(content, { ariaLabelledBy: 'modal-title', size: 'lg', scrollable: true });
+        this.modalService.open(content, {ariaLabelledBy: 'modal-title', size: 'lg', scrollable: true});
     }
 
     formatDataValues() {
