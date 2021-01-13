@@ -8,8 +8,7 @@
       "build": "ng build --prod --base-href /app/",
       "build-from-maven": "npm install && ng build --prod --base-href /app/ --output-path ../target/classes/static/app",
       "test": "ng test",
-      "lint": "ng lint",
-      "e2e": "ng e2e"
+      "lint": "ng lint"
   },
   "private": true,
   "dependencies": {
