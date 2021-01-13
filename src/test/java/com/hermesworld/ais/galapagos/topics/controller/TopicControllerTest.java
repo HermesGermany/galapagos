@@ -23,7 +23,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -74,7 +73,7 @@ public class TopicControllerTest {
         ValidatingTopicServiceImpl validatingService = new ValidatingTopicServiceImpl(service, subscriptionService,
                 applicationsService, kafkaClusters, topicConfig);
 
-        UpdateTopicDto dto = new UpdateTopicDto("topic is now deprecated", LocalDate.of(2199, 2, 14),
+        UpdateTopicDto dto = new UpdateTopicDto(null, null,
                 "updated description goes here", true);
 
         TopicMetadata topic = new TopicMetadata();
@@ -98,7 +97,6 @@ public class TopicControllerTest {
         TopicMetadata savedTopic = topicRepository.getObject("topic-1").get();
 
         assertTrue(savedTopic.isDeprecated());
-        assertEquals(topic.getEolDate(), savedTopic.getEolDate());
     }
 
 }
