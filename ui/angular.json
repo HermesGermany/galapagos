@@ -27,6 +27,9 @@
               "src/styles/app.scss"
             ],
             "scripts": [
+            ],
+            "allowedCommonJsDependencies": [
+                "keycloak-js", "file-saver"
             ]
           },
           "configurations": {
