@@ -72,10 +72,10 @@ export class StagingComponent implements OnInit {
         this.staging = null;
         this.stagingResult = [];
         return this.environmentsService.prepareStaging(this.selectedApplication.id, this.selectedEnvironment).then(s => {
-                this.staging = s;
-                this.changes = s.changes.map(change => ({ change: change, selected: true }));
-            },
-            err => this.toasts.addHttpErrorToast('Could not calculate staging for this application', err));
+            this.staging = s;
+            this.changes = s.changes.map(change => ({ change: change, selected: true }));
+        },
+        err => this.toasts.addHttpErrorToast('Could not calculate staging for this application', err));
     }
 
     async performStaging(): Promise<any> {
@@ -112,27 +112,27 @@ export class StagingComponent implements OnInit {
         // TODO i18n
         const changeType = change.changeType;
         switch (changeType) {
-            case 'TOPIC_CREATED':
-                return 'Topic <code>' + change.topicMetadata.name + '</code> anlegen';
-            case 'TOPIC_SUBSCRIBED':
-                return 'Topic <code>' + change.subscriptionMetadata.topicName + '</code> abonnieren';
-            case 'TOPIC_UNSUBSCRIBED':
-                return 'Abonnement von Topic <code>' + change.subscriptionMetadata.topicName + '</code> kündigen';
-            case 'TOPIC_DELETED':
-                return 'Topic <code>' + change.topicName + '</code> löschen';
-            case 'TOPIC_DESCRIPTION_CHANGED':
-                return 'Beschreibung von Topic <code>' + change.topicName + '</code> aktualisieren';
-            case 'TOPIC_DEPRECATED':
-                return 'Topic <code>' + change.topicName + '</code> als deprecated markieren';
-            case 'TOPIC_UNDEPRECATED':
-                return 'Deprecated-Markierung von Topic <code>' + change.topicName + '</code> entfernen';
-            case 'TOPIC_SCHEMA_VERSION_PUBLISHED':
-                return 'Schema Version <code>' + change.schemaMetadata.schemaVersion
+        case 'TOPIC_CREATED':
+            return 'Topic <code>' + change.topicMetadata.name + '</code> anlegen';
+        case 'TOPIC_SUBSCRIBED':
+            return 'Topic <code>' + change.subscriptionMetadata.topicName + '</code> abonnieren';
+        case 'TOPIC_UNSUBSCRIBED':
+            return 'Abonnement von Topic <code>' + change.subscriptionMetadata.topicName + '</code> kündigen';
+        case 'TOPIC_DELETED':
+            return 'Topic <code>' + change.topicName + '</code> löschen';
+        case 'TOPIC_DESCRIPTION_CHANGED':
+            return 'Beschreibung von Topic <code>' + change.topicName + '</code> aktualisieren';
+        case 'TOPIC_DEPRECATED':
+            return 'Topic <code>' + change.topicName + '</code> als deprecated markieren';
+        case 'TOPIC_UNDEPRECATED':
+            return 'Deprecated-Markierung von Topic <code>' + change.topicName + '</code> entfernen';
+        case 'TOPIC_SCHEMA_VERSION_PUBLISHED':
+            return 'Schema Version <code>' + change.schemaMetadata.schemaVersion
                     + '</code> für Topic <code>' + change.topicName + '</code> veröffentlichen';
-            case 'TOPIC_SUBSCRIPTION_APPROVAL_REQUIRED_FLAG_UPDATED':
-                return 'Für Topic <code>' + change.topicMetadata.name + '</code> die Freigabe von Abonnements erforderlich machen';
-            case 'COMPOUND_CHANGE':
-                return this.stagingText(change.mainChange);
+        case 'TOPIC_SUBSCRIPTION_APPROVAL_REQUIRED_FLAG_UPDATED':
+            return 'Für Topic <code>' + change.topicMetadata.name + '</code> die Freigabe von Abonnements erforderlich machen';
+        case 'COMPOUND_CHANGE':
+            return this.stagingText(change.mainChange);
         }
         return 'Änderung vom Typ <code>' + changeType + '</code> durchführen';
     }

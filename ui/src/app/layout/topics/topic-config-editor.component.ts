@@ -36,8 +36,8 @@ export class TopicConfigEditorComponent implements OnInit, AfterViewChecked {
     ngOnInit() {
         this.environments = this.environmentsService.getEnvironments().pipe(flatMap(envs =>
             this.topicName.pipe(flatMap(topicName => this.topicsService.getEnvironmentsForTopic(topicName)))
-            .pipe(map(envIds => envIds.map(id => envs.find(e => e.id === id))))
-            )).pipe(shareReplay(1));
+                .pipe(map(envIds => envIds.map(id => envs.find(e => e.id === id))))
+        )).pipe(shareReplay(1));
 
         this.allConfigurationProperties = this.topicsService.getSupportedConfigProperties();
 
@@ -52,7 +52,7 @@ export class TopicConfigEditorComponent implements OnInit, AfterViewChecked {
     }
 
     ngAfterViewChecked() {
-      this.changeDetector.detectChanges();
+        this.changeDetector.detectChanges();
     }
 
     isDefaultConfig(envId: string, configName: string) {

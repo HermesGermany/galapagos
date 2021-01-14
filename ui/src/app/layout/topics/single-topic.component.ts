@@ -203,14 +203,14 @@ export class SingleTopicComponent implements OnInit {
 
         return this.topicService.subscribeToTopic(topic.name, environment.id, this.selectedApplication.id, this.subscriptionDescription)
             .then(() => {
-                    if (topic.subscriptionApprovalRequired) {
-                        this.toasts.addSuccessToast('Die Topic-Owner wurden über die Abonnement-Anfrage informiert');
-                    } else {
-                        this.toasts.addSuccessToast('Die Anwendung hat das Topic nun abonniert');
-                    }
-                    this.loadSubscribers(topic, environment.id);
-                },
-                err => this.toasts.addHttpErrorToast('Das Abonnement konnte nicht erstellt werden', err)
+                if (topic.subscriptionApprovalRequired) {
+                    this.toasts.addSuccessToast('Die Topic-Owner wurden über die Abonnement-Anfrage informiert');
+                } else {
+                    this.toasts.addSuccessToast('Die Anwendung hat das Topic nun abonniert');
+                }
+                this.loadSubscribers(topic, environment.id);
+            },
+            err => this.toasts.addHttpErrorToast('Das Abonnement konnte nicht erstellt werden', err)
             )
             .finally(() => this.subscriptionDescription = null);
     }

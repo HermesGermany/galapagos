@@ -42,9 +42,9 @@ export class SpinnerWhileDirective {
         };
 
         const result = observable.pipe(tap({
-                next: () => endSpin(),
-                error: () => endSpin()
-            })
+            next: () => endSpin(),
+            error: () => endSpin()
+        })
         );
         (observable as any).__spinnerWhileObservable = result;
         return result;

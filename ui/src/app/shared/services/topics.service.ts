@@ -150,7 +150,7 @@ export class TopicsService {
     }
 
     public getTopicNameSuggestion(topicType: TopicType, appInfo: UserApplicationInfo,
-                                  businessCapability: BusinessCapabilityInfo): Promise<string> {
+        businessCapability: BusinessCapabilityInfo): Promise<string> {
         // TODO this is server-side business logic...
         if (topicType !== 'INTERNAL' && !businessCapability) {
             return Promise.resolve('');
@@ -167,7 +167,7 @@ export class TopicsService {
     }
 
     public async createTopic(topicType: TopicType, appInfo: UserApplicationInfo, environmentId: string, topicName: string,
-                             description: string, subscriptionApprovalRequired: boolean, createParams: TopicCreateParams): Promise<any> {
+        description: string, subscriptionApprovalRequired: boolean, createParams: TopicCreateParams): Promise<any> {
         const body = JSON.stringify({
             name: topicName,
             topicType: topicType,
@@ -196,7 +196,7 @@ export class TopicsService {
             .pipe(map(envs => envs.find(env => env.id === environmentId)));
 
         const toTopicSubscription = (d: any, apps: ApplicationInfo[], userApps: UserApplicationInfo[],
-                                     env: KafkaEnvironment): TopicSubscription => ({
+            env: KafkaEnvironment): TopicSubscription => ({
             id: d.id as string,
             clientApplication: apps.find(a => a.id === d.clientApplicationId),
             canDelete: userApps.findIndex(a => a.id === d.clientApplicationId) > -1 && !env.stagingOnly,

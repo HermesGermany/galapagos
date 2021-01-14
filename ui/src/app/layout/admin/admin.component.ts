@@ -16,11 +16,11 @@ interface TranslatedApplicationOwnerRequest extends ApplicationOwnerRequest {
 // TODO I think this could be moved to applicationService
 const translateApps: (requests: ApplicationOwnerRequest[], apps: ApplicationInfo[]) => TranslatedApplicationOwnerRequest[] =
     (requests, apps) => {
-    const appMap = { };
-    apps.forEach(app => appMap[app.id] = app);
-    return requests.map(req => appMap[req.applicationId] ? { ...req, applicationName: appMap[req.applicationId].name || req.id,
-        applicationInfoUrl: appMap[req.applicationId].infoUrl } : req);
-};
+        const appMap = { };
+        apps.forEach(app => appMap[app.id] = app);
+        return requests.map(req => appMap[req.applicationId] ? { ...req, applicationName: appMap[req.applicationId].name || req.id,
+            applicationInfoUrl: appMap[req.applicationId].infoUrl } : req);
+    };
 
 const entityMap = {
     '&': '&amp;',
@@ -66,7 +66,7 @@ export class AdminComponent implements OnInit {
         return this.applicationsService.updateApplicationOwnerRequest(request.id, newStatus);
     }
 
-    onSort({column, direction}: SortEvent) {
+    onSort({ column, direction }: SortEvent) {
         // TODO
     }
 

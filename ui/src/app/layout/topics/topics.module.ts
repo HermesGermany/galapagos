@@ -13,7 +13,7 @@ import { HIGHLIGHT_OPTIONS, HighlightModule } from 'ngx-highlightjs';
 import { TopicConfigEditorComponent } from './topic-config-editor.component';
 
 export const getHighlightLanguages = () => ({
-        json: () => import('highlight.js/lib/languages/json')
+    json: () => import('highlight.js/lib/languages/json')
 });
 
 @NgModule({

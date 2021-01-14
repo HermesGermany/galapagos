@@ -74,6 +74,7 @@
                 "comma-dangle": "error",
                 "id-blacklist": "off",
                 "id-match": "off",
+                "indent": ["error", 4],
                 "no-trailing-spaces": [
                     "error",
                     {
@@ -81,6 +82,10 @@
                     }
                 ],
                 "no-underscore-dangle": "off",
+                "object-curly-spacing": [
+                    "error",
+                    "always"
+                ],
                 "object-shorthand": "off"
             }
         },

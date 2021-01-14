@@ -90,66 +90,66 @@ export class DashboardComponent implements OnInit {
         let topicLink: string;
 
         switch (change.changeType) {
-            case 'TOPIC_CREATED':
-                if (change.topicMetadata.type === 'INTERNAL') {
-                    return null;
-                }
-                topicName = change.topicMetadata.name;
-                topicLink = this.urlForRouterLink('/topics/' + topicName);
-                return this.translate.stream('CHANGELOG_TOPIC_CREATED_HTML', { topicName: topicName, topicLink: topicLink });
-            case 'TOPIC_DELETED':
-                if (change.internalTopic) {
-                    return null;
-                }
-                topicName = change.topicName;
-                return this.translate.stream('CHANGELOG_TOPIC_DELETED_HTML', { topicName: topicName });
-            case 'TOPIC_SCHEMA_VERSION_PUBLISHED':
-                topicName = change.topicName;
-                topicLink = this.urlForRouterLink('/topics/' + topicName);
-                return this.translate.stream('CHANGELOG_TOPIC_SCHEMA_VERSION_REGISTERED_HTML',
-                    { topicName: topicName, topicLink: topicLink });
-            case 'TOPIC_DESCRIPTION_CHANGED':
-                if (change.internalTopic) {
-                    return null;
-                }
-                topicName = change.topicName;
-                topicLink = this.urlForRouterLink('/topics/' + topicName);
-                return this.translate.stream('CHANGELOG_TOPIC_DESCRIPTION_CHANGE_HTML', { topicName: topicName, topicLink: topicLink });
-            case 'TOPIC_SUBSCRIBED':
-                topicName = change.subscriptionMetadata.topicName;
-                topicLink = this.urlForRouterLink('/topics/' + topicName);
-                return this.applicationInfo(change.subscriptionMetadata.clientApplicationId).pipe(
-                    flatMap(app => {
-                        if (!app) {
-                            return this.translate.stream('(unknown)').pipe(
-                                flatMap(s => this.translate.stream('CHANGELOG_TOPIC_SUBSCRIBED_HTML_NO_APP_LINK',
-                                    { topicName: topicName, topicLink: topicLink, appInfo: { name: s } })));
-                        }
-                        if (!app.infoUrl) {
-                            return this.translate.stream('CHANGELOG_TOPIC_SUBSCRIBED_HTML_NO_APP_LINK',
-                                { topicName: topicName, topicLink: topicLink, appInfo: app });
-                        }
+        case 'TOPIC_CREATED':
+            if (change.topicMetadata.type === 'INTERNAL') {
+                return null;
+            }
+            topicName = change.topicMetadata.name;
+            topicLink = this.urlForRouterLink('/topics/' + topicName);
+            return this.translate.stream('CHANGELOG_TOPIC_CREATED_HTML', { topicName: topicName, topicLink: topicLink });
+        case 'TOPIC_DELETED':
+            if (change.internalTopic) {
+                return null;
+            }
+            topicName = change.topicName;
+            return this.translate.stream('CHANGELOG_TOPIC_DELETED_HTML', { topicName: topicName });
+        case 'TOPIC_SCHEMA_VERSION_PUBLISHED':
+            topicName = change.topicName;
+            topicLink = this.urlForRouterLink('/topics/' + topicName);
+            return this.translate.stream('CHANGELOG_TOPIC_SCHEMA_VERSION_REGISTERED_HTML',
+                { topicName: topicName, topicLink: topicLink });
+        case 'TOPIC_DESCRIPTION_CHANGED':
+            if (change.internalTopic) {
+                return null;
+            }
+            topicName = change.topicName;
+            topicLink = this.urlForRouterLink('/topics/' + topicName);
+            return this.translate.stream('CHANGELOG_TOPIC_DESCRIPTION_CHANGE_HTML', { topicName: topicName, topicLink: topicLink });
+        case 'TOPIC_SUBSCRIBED':
+            topicName = change.subscriptionMetadata.topicName;
+            topicLink = this.urlForRouterLink('/topics/' + topicName);
+            return this.applicationInfo(change.subscriptionMetadata.clientApplicationId).pipe(
+                flatMap(app => {
+                    if (!app) {
+                        return this.translate.stream('(unknown)').pipe(
+                            flatMap(s => this.translate.stream('CHANGELOG_TOPIC_SUBSCRIBED_HTML_NO_APP_LINK',
+                                { topicName: topicName, topicLink: topicLink, appInfo: { name: s } })));
+                    }
+                    if (!app.infoUrl) {
+                        return this.translate.stream('CHANGELOG_TOPIC_SUBSCRIBED_HTML_NO_APP_LINK',
+                            { topicName: topicName, topicLink: topicLink, appInfo: app });
+                    }
 
-                        return this.translate.stream('CHANGELOG_TOPIC_SUBSCRIBED_HTML',
+                    return this.translate.stream('CHANGELOG_TOPIC_SUBSCRIBED_HTML',
+                        { topicName: topicName, topicLink: topicLink, appInfo: app });
+                }));
+        case 'TOPIC_UNSUBSCRIBED':
+            topicName = change.subscriptionMetadata.topicName;
+            topicLink = this.urlForRouterLink('/topics/' + topicName);
+            return this.applicationInfo(change.subscriptionMetadata.clientApplicationId).pipe(
+                flatMap(app => {
+                    if (!app) {
+                        return this.translate.stream('(unknown)').pipe(
+                            flatMap(s => this.translate.stream('CHANGELOG_TOPIC_UNSUBSCRIBED_HTML_NO_APP_LINK',
+                                { topicName: topicName, topicLink: topicLink, appInfo: { name: s } })));
+                    }
+                    if (!app.infoUrl) {
+                        return this.translate.stream('CHANGELOG_TOPIC_UNSUBSCRIBED_HTML_NO_APP_LINK',
                             { topicName: topicName, topicLink: topicLink, appInfo: app });
-                    }));
-            case 'TOPIC_UNSUBSCRIBED':
-                topicName = change.subscriptionMetadata.topicName;
-                topicLink = this.urlForRouterLink('/topics/' + topicName);
-                return this.applicationInfo(change.subscriptionMetadata.clientApplicationId).pipe(
-                    flatMap(app => {
-                        if (!app) {
-                            return this.translate.stream('(unknown)').pipe(
-                                flatMap(s => this.translate.stream('CHANGELOG_TOPIC_UNSUBSCRIBED_HTML_NO_APP_LINK',
-                                    { topicName: topicName, topicLink: topicLink, appInfo: { name: s } })));
-                        }
-                        if (!app.infoUrl) {
-                            return this.translate.stream('CHANGELOG_TOPIC_UNSUBSCRIBED_HTML_NO_APP_LINK',
-                                { topicName: topicName, topicLink: topicLink, appInfo: app });
-                        }
-                        return this.translate.stream('CHANGELOG_TOPIC_UNSUBSCRIBED_HTML',
-                            { topicName: topicName, topicLink: topicLink, appInfo: app });
-                    }));
+                    }
+                    return this.translate.stream('CHANGELOG_TOPIC_UNSUBSCRIBED_HTML',
+                        { topicName: topicName, topicLink: topicLink, appInfo: app });
+                }));
         }
         return null;
     }

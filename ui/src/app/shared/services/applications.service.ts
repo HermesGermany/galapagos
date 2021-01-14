@@ -129,7 +129,7 @@ export class ApplicationsService {
         const body = JSON.stringify({
             applicationId: applicationId,
             comments: comments || null
-         });
+        });
 
         return this.http.put('/api/me/requests', body, { headers: jsonHeader() }).toPromise().then(value => {
             this.userRequests.refresh();
