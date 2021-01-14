@@ -35,8 +35,7 @@ const keycloakService = new KeycloakService();
         ServerInfoService, {
             provide: KeycloakService,
             useValue: keycloakService
-        }],
-    entryComponents: [AppComponent]
+        }]
 })
 export class AppModule implements DoBootstrap {
 

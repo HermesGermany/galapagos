@@ -150,9 +150,10 @@
             , {{ 'Environment' | translate }}:
             <b>{{ certificateDlgData.environment?.name }}</b>
         </div>
-        <ngb-tabset [destroyOnHide]="false" (tabChange)="handleDlgTabChange($event)">
-            <ngb-tab id="new" [title]="'Generate new Certificate' | translate">
-                <ng-template ngbTabContent>
+        <ul ngbNav #nav="ngbNav" [destroyOnHide]="false" (navChange)="handleDlgTabChange($event)" class="nav-tabs">
+            <li [ngbNavItem]="'new'">
+                <a ngbNavLink>{{ 'Generate new Certificate' | translate }}</a>
+                <ng-template ngbNavContent>
                     <div class="alert alert-danger mb-4 mt-3" *ngIf="certificateDlgData.existingCertificate">
             <span
                 [innerHTML]="'CERTIFICATE_ALREADY_EXISTS_WARNING_HTML' | translate:{ env: certificateDlgData.environment?.name }"></span>
@@ -208,10 +209,10 @@
                         </form>
                     </div>
                 </ng-template>
-            </ngb-tab>
-            <ngb-tab id="extend" [title]="'Extend existing Certificate' | translate"
-                     [disabled]="!certificateDlgData.existingCertificate">
-                <ng-template ngbTabContent>
+            </li>
+            <li [ngbNavItem]="'extend'" [disabled]="!certificateDlgData.existingCertificate">
+                <a ngbNavLink>{{ 'Extend existing Certificate' | translate }}</a>
+                <ng-template ngbNavContent>
                     <ngb-alert class="mt-3" [type]="certificateDlgData.expiryWarningType" [dismissible]="false">
                         <span [innerHTML]="certificateDlgData.expiryWarningHtml | async"></span>
                     </ngb-alert>
@@ -230,8 +231,9 @@
                                   [placeholder]="'-----BEGIN CERTIFICATE REQUEST-----\n...\n-----END CERTIFICATE REQUEST-----'"></textarea>
                     </div>
                 </ng-template>
-            </ngb-tab>
-        </ngb-tabset>
+            </li>
+        </ul>
+        <div [ngbNavOutlet]="nav" class="mt-2"></div>
     </div>
     <div class="modal-footer">
         <button type="button" class="btn btn-warning" (click)="generateCertificate(); dlg.dismiss()"

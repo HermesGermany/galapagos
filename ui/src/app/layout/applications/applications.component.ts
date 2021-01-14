@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { routerTransition } from '../../router.animations';
-import { NgbModal, NgbTabChangeEvent } from '@ng-bootstrap/ng-bootstrap';
+import { NgbModal, NgbNavChangeEvent } from '@ng-bootstrap/ng-bootstrap';
 import {
     ApplicationInfo,
     ApplicationOwnerRequest,
@@ -195,7 +195,7 @@ export class ApplicationsComponent implements OnInit {
         });
     }
 
-    handleDlgTabChange(event: NgbTabChangeEvent) {
+    handleDlgTabChange(event: NgbNavChangeEvent) {
         this.activeTab = event.nextId;
     }
 
