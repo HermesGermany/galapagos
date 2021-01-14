@@ -196,20 +196,18 @@ export class TopicsService {
             .pipe(map(envs => envs.find(env => env.id === environmentId)));
 
         const toTopicSubscription = (d: any, apps: ApplicationInfo[], userApps: UserApplicationInfo[],
-                                     env: KafkaEnvironment): TopicSubscription => {
-            return {
-                id: <string>d.id,
-                clientApplication: apps.find(a => a.id === d.clientApplicationId),
-                canDelete: userApps.findIndex(a => a.id === d.clientApplicationId) > -1 && !env.stagingOnly,
-                state: <SubscriptionState>d.state
-            };
-        };
+                                     env: KafkaEnvironment): TopicSubscription => ({
+            id: d.id as string,
+            clientApplication: apps.find(a => a.id === d.clientApplicationId),
+            canDelete: userApps.findIndex(a => a.id === d.clientApplicationId) > -1 && !env.stagingOnly,
+            state: d.state as SubscriptionState
+        });
 
         // valsArray receives available applications in [0], user applications in [1], and environment in [2]
         return forkJoin([appsObs, userAppsObs, envObs]).pipe(concatMap(valsArray =>
             this.http.get('/api/topics/' + environmentId + '/' + topicName + '/subscriptions?includeNonApproved=true')
                 .pipe(map(val => {
-                    const data = <Array<any>>val;
+                    const data = val as Array<any>;
                     return data.filter(d => d.environmentId === environmentId)
                         .map(d => toTopicSubscription(d, valsArray[0], valsArray[1], valsArray[2])).filter(s => s.clientApplication);
                 }))
@@ -217,7 +215,7 @@ export class TopicsService {
     }
 
     public getTopicSchemas(topicName: string, environmentId: string): Promise<SchemaMetadata[]> {
-        return this.http.get('/api/schemas/' + environmentId + '/' + topicName).pipe(map(d => <SchemaMetadata[]>d))
+        return this.http.get('/api/schemas/' + environmentId + '/' + topicName).pipe(map(d => d as SchemaMetadata[]))
             .pipe(map(schemas => this.markLatest(schemas))).toPromise();
     }
 
@@ -262,7 +260,7 @@ export class TopicsService {
 
     public getTopicConfig(topicName: string, environmentId: string): Observable<TopicConfigValues> {
         return this.http.get('/api/topicconfigs/' + environmentId + '/' + topicName).pipe(map(vals =>
-            (<Array<any>>vals).reduce((pv, cv) => {
+            (vals as Array<any>).reduce((pv, cv) => {
                 pv[cv.name] = cv.value;
                 return pv;
             }, {})));
@@ -277,7 +275,7 @@ export class TopicsService {
     }
 
     public getEnvironmentsForTopic(topicName: string): Observable<string[]> {
-        return this.http.get('/api/util/environments-for-topic/' + topicName).pipe(map(v => <string[]>v));
+        return this.http.get('/api/util/environments-for-topic/' + topicName).pipe(map(v => v as string[]));
     }
 
     public getTopicCreateDefaults(): Observable<TopicCreateDefaults> {
@@ -290,12 +288,12 @@ export class TopicsService {
     }
 
     public getTopicData(topicName: string, environmentId: string): Promise<TopicRecord[]> {
-        return this.http.get('/api/util/peek-data/' + environmentId + '/' + topicName).pipe(map(d => <TopicRecord[]>d)).toPromise();
+        return this.http.get('/api/util/peek-data/' + environmentId + '/' + topicName).pipe(map(d => d as TopicRecord[])).toPromise();
     }
 
     private buildTopicsRefresher(environmentId: string): () => Observable<Topic[]> {
-        const toTopicArray = (values: [Object, ApplicationInfo[]]) => {
-            const arr: Array<any> = <Array<any>>values[0];
+        const toTopicArray = (values: [any, ApplicationInfo[]]) => {
+            const arr: Array<any> = values[0] as Array<any>;
             const apps = values[1];
 
             const result: Topic[] = arr.map(a => ({

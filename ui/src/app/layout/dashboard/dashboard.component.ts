@@ -78,7 +78,10 @@ export class DashboardComponent implements OnInit {
 
     private formatChanges(changes: ChangelogEntry[]): ChangelogEntry[] {
         return changes
-            .map(change => { change.change.html = this.changeHtml(change.change); return change; })
+            .map(change => {
+                change.change.html = this.changeHtml(change.change);
+                return change;
+            })
             .filter(change => change.change.html !== null).slice(0, 10);
     }
 

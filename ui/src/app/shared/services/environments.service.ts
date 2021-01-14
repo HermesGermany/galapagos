@@ -30,9 +30,9 @@ export interface EnvironmentServerInfo {
 
 export interface Change {
 
-    changeType: string;
-
     [propName: string]: any;
+
+    changeType: string;
 
     html?: Observable<string>; // for dashboard
 }
@@ -111,18 +111,18 @@ export class EnvironmentsService {
     }
 
     public getChangeLog(environmentId: string): Observable<ChangelogEntry[]> {
-        return this.http.get('/api/environments/' + environmentId + '/changelog?limit=100').pipe(map(d => <ChangelogEntry[]>d));
+        return this.http.get('/api/environments/' + environmentId + '/changelog?limit=100').pipe(map(d => d as ChangelogEntry[]));
     }
 
     public prepareStaging(applicationId: string, environment: KafkaEnvironment): Promise<Staging> {
         return this.http.get('/api/environments/' + environment.id + '/staging/' + applicationId)
-            .pipe(map(data => <Staging>data)).toPromise();
+            .pipe(map(data => data as Staging)).toPromise();
     }
 
     public performStaging(applicationId: string, environment: KafkaEnvironment, selectedChanges: Change[]): Promise<StagingResult[]> {
         const body = JSON.stringify(selectedChanges);
         return this.http.post('/api/environments/' + environment.id + '/staging/' + applicationId, body, { headers: jsonHeader() })
-            .pipe(map(data => <StagingResult[]>data)).toPromise();
+            .pipe(map(data => data as StagingResult[])).toPromise();
     }
 
     public getFrameworkConfigTemplate(environmentId: string, framework: string): Observable<string> {

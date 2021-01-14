@@ -53,14 +53,12 @@ export class SortController<T> {
     private doSort(data: T[], sortStack: SortStackEntry[]): T[] {
         // copy array to avoid potential side effects
         const sortedArray = [...data];
-        sortedArray.sort((a, b) => {
-            return sortStack.reduce((pv: number, cv: SortStackEntry) => {
+        sortedArray.sort((a, b) => sortStack.reduce((pv: number, cv: SortStackEntry) => {
                 if (pv !== 0) {
                     return pv;
                 }
                 return this.comparer(a, b, cv.column, cv.direction);
-            }, 0);
-        });
+            }, 0));
 
         return sortedArray;
     }

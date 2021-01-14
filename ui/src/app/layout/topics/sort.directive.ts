@@ -3,18 +3,18 @@
 import {Directive, EventEmitter, Input, Output, HostListener, HostBinding} from '@angular/core';
 
 export type SortDirection = 'asc' | 'desc' | '';
-const rotate: {[key: string]: SortDirection} = { 'asc': 'desc', 'desc': '', '': 'asc' };
+const rotate: {[key: string]: SortDirection} = { asc: 'desc', desc: '', '': 'asc' };
 
 export interface SortEvent {
   column: string;
   direction: SortDirection;
 }
 
-/* tslint:disable: directive-selector */
+/* eslint-disable @angular-eslint/directive-selector */
 @Directive({
   selector: 'th[sortable]'
 })
-/* tslint:enable: directive-selector */
+/* eslint-enable @angular-eslint/directive-selector */
 export class TableSortDirective {
 
   @Input() sortable: string;

@@ -14,12 +14,13 @@ interface TranslatedApplicationOwnerRequest extends ApplicationOwnerRequest {
 }
 
 // TODO I think this could be moved to applicationService
-function translateApps(requests: ApplicationOwnerRequest[], apps: ApplicationInfo[]): TranslatedApplicationOwnerRequest[] {
+const translateApps: (requests: ApplicationOwnerRequest[], apps: ApplicationInfo[]) => TranslatedApplicationOwnerRequest[] =
+    (requests, apps) => {
     const appMap = { };
     apps.forEach(app => appMap[app.id] = app);
     return requests.map(req => appMap[req.applicationId] ? { ...req, applicationName: appMap[req.applicationId].name || req.id,
         applicationInfoUrl: appMap[req.applicationId].infoUrl } : req);
-}
+};
 
 const entityMap = {
     '&': '&amp;',
@@ -67,7 +68,6 @@ export class AdminComponent implements OnInit {
 
     onSort({column, direction}: SortEvent) {
         // TODO
-        console.log("onSort ", column, ", ", direction);
     }
 
     lastChangeTitle(request: TranslatedApplicationOwnerRequest): string {

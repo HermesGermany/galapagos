@@ -21,7 +21,7 @@
                             <i class="fas fa-cogs mr-3"></i>{{ 'Generate Developer Certificate' | translate }}
                         </button>
                     </div>
-                    <ngb-alert type="info" *ngIf="!!(existingCertificateMessage | async)" [dismissible]="false">
+                    <ngb-alert type="info" *ngIf="existingCertificateMessage | async" [dismissible]="false">
                         <span [innerHTML]="existingCertificateMessage | async"></span>
                     </ngb-alert>
                 </div>

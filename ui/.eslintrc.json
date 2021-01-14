@@ -1,0 +1,97 @@
+{
+    "root": true,
+    "ignorePatterns": [
+        "projects/**/*",
+        "test.ts",
+        "*.d.ts"
+    ],
+    "overrides": [
+        {
+            "files": [
+                "*.ts"
+            ],
+            "parserOptions": {
+                "project": [
+                    "tsconfig.json"
+                ],
+                "createDefaultProgram": true
+            },
+            "extends": [
+                "plugin:@angular-eslint/ng-cli-compat",
+                "plugin:@angular-eslint/ng-cli-compat--formatting-add-on",
+                "plugin:@angular-eslint/template/process-inline-templates"
+            ],
+            "rules": {
+                "@angular-eslint/component-selector": [
+                    "error",
+                    {
+                        "type": "element",
+                        "prefix": "app",
+                        "style": "kebab-case"
+                    }
+                ],
+                "@angular-eslint/directive-selector": [
+                    "error",
+                    {
+                        "type": "attribute",
+                        "prefix": "app",
+                        "style": "camelCase"
+                    }
+                ],
+                "@typescript-eslint/consistent-type-definitions": "error",
+                "@typescript-eslint/dot-notation": "off",
+                "@typescript-eslint/explicit-member-accessibility": [
+                    "off",
+                    {
+                        "accessibility": "explicit"
+                    }
+                ],
+                "@typescript-eslint/naming-convention": [
+                    "error",
+                    { "selector": "default", "format": ["camelCase"] },
+                    { "selector": [ "class", "interface", "enum", "typeAlias", "typeParameter" ], "format": ["PascalCase"] },
+                    { "selector": "variable", "modifiers": ["const"], "format": ["camelCase", "UPPER_CASE"] },
+                    { "selector": ["classMethod", "classProperty" ], "modifiers": ["private"],
+                                "format": ["camelCase"],
+                                "leadingUnderscore": "allow"
+                    },
+                    {
+                        "selector": [
+                            "objectLiteralProperty"
+                        ],
+                        "format": null,
+                        "modifiers": ["requiresQuotes"]
+                    }
+                ],
+                "arrow-parens": [
+                    "error",
+                    "as-needed"
+                ],
+                "brace-style": [
+                    "error",
+                    "1tbs"
+                ],
+                "comma-dangle": "error",
+                "id-blacklist": "off",
+                "id-match": "off",
+                "no-trailing-spaces": [
+                    "error",
+                    {
+                        "skipBlankLines": true
+                    }
+                ],
+                "no-underscore-dangle": "off",
+                "object-shorthand": "off"
+            }
+        },
+        {
+            "files": [
+                "*.html"
+            ],
+            "extends": [
+                "plugin:@angular-eslint/template/recommended"
+            ],
+            "rules": {}
+        }
+    ]
+}

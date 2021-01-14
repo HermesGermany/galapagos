@@ -102,7 +102,10 @@ export class StagingComponent implements OnInit {
                 }
             },
             err => this.toasts.addHttpErrorToast('Could not perform staging for this application', err))
-            .finally(() => { this.performing = false; this.staging = null; });
+            .finally(() => {
+                this.performing = false;
+                this.staging = null;
+            });
     }
 
     stagingText(change: any) {

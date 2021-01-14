@@ -78,7 +78,7 @@ export class SingleTopicComponent implements OnInit {
 
     deprecateTopicHtml: Observable<string>;
 
-    minDeprecationDate: Observable<{ year: number, month: number, day: number }>;
+    minDeprecationDate: Observable<{ year: number; month: number; day: number }>;
 
     constructor(
         private route: ActivatedRoute,
@@ -114,7 +114,7 @@ export class SingleTopicComponent implements OnInit {
     }
 
     ngOnInit() {
-        this.topicName = this.route.params.pipe(map(params => <string>params['name'])).pipe(shareReplay(1));
+        this.topicName = this.route.params.pipe(map(params => params['name'] as string)).pipe(shareReplay(1));
         this.selectedEnvironment = this.environmentsService.getCurrentEnvironment();
 
         const listTopics = this.topicService.listTopics();
@@ -155,7 +155,7 @@ export class SingleTopicComponent implements OnInit {
             .pipe(map(config => this.getValidDatesDeprecation(config.minDeprecationTime)));
     }
 
-    getValidDatesDeprecation(date: { years: number; months: number; days: number; }) {
+    getValidDatesDeprecation(date: { years: number; months: number; days: number }) {
         const minDeprecationTime = moment().add(date.years, 'y')
             .add(date.months, 'month')
             .add(date.days, 'days').locale(this.translateService.currentLang);
@@ -251,19 +251,6 @@ export class SingleTopicComponent implements OnInit {
         );
     }
 
-    private async updateSubscription(sub: TopicSubscription, approve: boolean, successMessage: string, errorMessage: string) {
-        const topic = await this.topic.pipe(take(1)).toPromise();
-        const environment = await this.environmentsService.getCurrentEnvironment().pipe(take(1)).toPromise();
-
-        return this.topicService.updateTopicSubscription(environment.id, topic.name, sub.id, approve).then(
-            () => {
-                this.toasts.addSuccessToast(successMessage);
-                this.loadSubscribers(topic, environment.id);
-            },
-            err => this.toasts.addHttpErrorToast(errorMessage, err)
-        );
-    }
-
     openDeleteConfirmDlg(content: any) {
         this.topicNameConfirmText = '';
         this.modalService.open(content, { ariaLabelledBy: 'modal-title', size: 'lg' });
@@ -356,9 +343,7 @@ export class SingleTopicComponent implements OnInit {
             }
         };
 
-        this.topicData = this.topicData.then(data => {
-            return data.map(rec => tryFormatValue(rec));
-        });
+        this.topicData = this.topicData.then(data => data.map(rec => tryFormatValue(rec)));
 
         return false;
     }
@@ -374,6 +359,19 @@ export class SingleTopicComponent implements OnInit {
         } catch (e) {
             this.toasts.addHttpErrorToast('Could not check for application certificates', e);
         }
+    }
+
+    private async updateSubscription(sub: TopicSubscription, approve: boolean, successMessage: string, errorMessage: string) {
+        const topic = await this.topic.pipe(take(1)).toPromise();
+        const environment = await this.environmentsService.getCurrentEnvironment().pipe(take(1)).toPromise();
+
+        return this.topicService.updateTopicSubscription(environment.id, topic.name, sub.id, approve).then(
+            () => {
+                this.toasts.addSuccessToast(successMessage);
+                this.loadSubscribers(topic, environment.id);
+            },
+            err => this.toasts.addHttpErrorToast(errorMessage, err)
+        );
     }
 
     private loadSubscribers(topic: Topic, environmentId: string) {
@@ -421,9 +419,9 @@ export class SingleTopicComponent implements OnInit {
             .finally(() => (this.loadingSchemas = false));
     }
 
-    private toPeriodText(period: { years: number, months: number, days: number }): string {
+    private toPeriodText(period: { years: number; months: number; days: number }): string {
         const target = moment().add(period.years, 'y').add(period.months, 'month').add(period.days, 'days');
-        const oldThreshold = <number>moment.relativeTimeThreshold('d');
+        const oldThreshold = moment.relativeTimeThreshold('d') as number;
 
         // special treatment: If days set, avoid moment "rounding" to months
         // Note: this still produces wrong results for some values of "days"

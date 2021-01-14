@@ -12,11 +12,9 @@ import { SpinnerWhileModule } from '../../shared/modules/spinner-while/spinner-w
 import { HIGHLIGHT_OPTIONS, HighlightModule } from 'ngx-highlightjs';
 import { TopicConfigEditorComponent } from './topic-config-editor.component';
 
-export function getHighlightLanguages() {
-    return {
+export const getHighlightLanguages = () => ({
         json: () => import('highlight.js/lib/languages/json')
-    };
-}
+});
 
 @NgModule({
     imports: [CommonModule, TopicsRoutingModule, TranslateModule, FormsModule, NgbModule,
@@ -30,7 +28,7 @@ export function getHighlightLanguages() {
                 lineNumbers: true
             }
         }
-    ],
+    ]
 })
 export class TopicsModule {
 }

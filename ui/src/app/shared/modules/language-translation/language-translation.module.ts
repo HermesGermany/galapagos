@@ -15,10 +15,7 @@ import {
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 
 // ngx-translate - required for AOT compilation
-export function HttpLoaderFactory(http: HttpClient) {
-  // return new TranslateHttpLoader(http);
-  return new TranslateHttpLoader(http, './assets/i18n/', '.json');
-}
+export const httpLoaderFactory = (http: HttpClient) => new TranslateHttpLoader(http, './assets/i18n/', '.json');
 
 @NgModule({
   declarations: [],
@@ -26,19 +23,17 @@ export function HttpLoaderFactory(http: HttpClient) {
     TranslateModule.forRoot({
       loader: {
         provide: TranslateLoader,
-        useFactory: (HttpLoaderFactory),
+        useFactory: (httpLoaderFactory),
         deps: [HttpClient]
       }
     })
   ],
   exports: [
     TranslateModule
-  ],
+  ]
 })
 export class LanguageTranslationModule {
-  constructor(
-    private translate: TranslateService,
-  ) {
+  constructor(private translate: TranslateService) {
     // Gets Default language from browser if available, otherwise set English ad default
     this.translate.addLangs(['en', 'de']);
     this.translate.setDefaultLang('en');

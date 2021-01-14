@@ -135,7 +135,7 @@ export class ApplicationsService {
             this.userRequests.refresh();
             this.availableAppsExcl.refresh();
             this.availableAppsIncl.refresh();
-            return <ApplicationOwnerRequest>value;
+            return value as ApplicationOwnerRequest;
         });
     }
 

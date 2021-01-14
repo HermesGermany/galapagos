@@ -30,7 +30,7 @@ export class TopicConfigEditorComponent implements OnInit, AfterViewChecked {
     constructor(private environmentsService: EnvironmentsService, private topicsService: TopicsService,
         private toasts: ToastService, private translateService: TranslateService, private route: ActivatedRoute,
         private changeDetector: ChangeDetectorRef) {
-        this.topicName = this.route.params.pipe(map(params => <string>params['name'])).pipe(shareReplay(1));
+        this.topicName = this.route.params.pipe(map(params => params['name'] as string)).pipe(shareReplay(1));
     }
 
     ngOnInit() {
@@ -83,7 +83,7 @@ export class TopicConfigEditorComponent implements OnInit, AfterViewChecked {
         const successMsg = await this.translateService.get('TOPIC_CONFIG_UPDATE_SUCCESS').pipe(take(1)).toPromise();
         const errorMsg = await this.translateService.get('TOPIC_CONFIG_UPDATE_ERROR').pipe(take(1)).toPromise();
 
-        return result.then(() => this.toasts.addSuccessToast(successMsg), (err) => this.toasts.addHttpErrorToast(errorMsg, err));
+        return result.then(() => this.toasts.addSuccessToast(successMsg), err => this.toasts.addHttpErrorToast(errorMsg, err));
     }
 
 }

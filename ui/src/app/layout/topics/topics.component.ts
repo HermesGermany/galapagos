@@ -27,7 +27,7 @@ export class TopicsComponent implements OnInit {
 
     topics: Observable<Topic[]>;
 
-    loadingTopics: Observable<Boolean>;
+    loadingTopics: Observable<boolean>;
 
     private sortController = new SortController<Topic>(this.compareTopics);
 

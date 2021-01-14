@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "test-ng7": {
+    "galapagos": {
       "root": "",
       "sourceRoot": "src",
       "projectType": "application",
@@ -26,10 +26,10 @@
               "node_modules/@fortawesome/fontawesome-free/css/all.min.css",
               "src/styles/app.scss"
             ],
-            "scripts": [
-            ],
+            "scripts": [],
             "allowedCommonJsDependencies": [
-                "keycloak-js", "file-saver"
+              "keycloak-js",
+              "file-saver"
             ]
           },
           "configurations": {
@@ -66,18 +66,18 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "browserTarget": "test-ng7:build"
+            "browserTarget": "galapagos:build"
           },
           "configurations": {
             "production": {
-              "browserTarget": "test-ng7:build:production"
+              "browserTarget": "galapagos:build:production"
             }
           }
         },
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "test-ng7:build"
+            "browserTarget": "galapagos:build"
           }
         },
         "test": {
@@ -87,8 +87,7 @@
             "polyfills": "src/polyfills.ts",
             "tsConfig": "src/tsconfig.spec.json",
             "karmaConfig": "src/karma.conf.js",
-            "scripts": [
-            ],
+            "scripts": [],
             "styles": [
               "node_modules/@fortawesome/fontawesome-free/css/all.min.css",
               "src/styles/app.scss"
@@ -101,21 +100,18 @@
           }
         },
         "lint": {
-          "builder": "@angular-devkit/build-angular:tslint",
+          "builder": "@angular-eslint/builder:lint",
           "options": {
-            "tsConfig": [
-              "src/tsconfig.app.json",
-              "src/tsconfig.spec.json"
-            ],
-            "exclude": [
-              "**/node_modules/**"
+            "lintFilePatterns": [
+              "src/**/*.ts",
+              "src/**/*.html"
             ]
           }
         }
       }
-    },
+    }
   },
-  "defaultProject": "test-ng7",
+  "defaultProject": "galapagos",
   "schematics": {
     "@schematics/angular:component": {
       "prefix": "app",

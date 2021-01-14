@@ -46,7 +46,7 @@ export class UserSettingsComponent implements OnInit {
                 }
                 const expiresAt = moment(values[1].expiresAt).locale(values[0]).format('L LT');
                 return this.translate.get('EXISTING_DEVELOPER_CERTIFICATE_HTML', { expiresAt: expiresAt })
-                    .pipe(map(o => <string>o));
+                    .pipe(map(o => o as string));
         })).pipe(shareReplay());
     }
 

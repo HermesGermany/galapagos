@@ -1,6 +1,6 @@
 import { Directive, ElementRef, Renderer2 } from '@angular/core';
 import { Observable } from 'rxjs';
-import { catchError, map, tap } from 'rxjs/operators';
+import { tap } from 'rxjs/operators';
 
 interface SpinnerData {
     spinner: any;
@@ -15,6 +15,40 @@ interface SpinnerData {
 export class SpinnerWhileDirective {
 
     constructor(private elementRef: ElementRef, private renderer: Renderer2) { }
+
+    while(promise: Promise<any>): Promise<any> {
+        if (!promise) {
+            return Promise.resolve(null);
+        }
+        const spinnerData = this.buildSpinner(this.elementRef.nativeElement);
+
+        promise.finally(() => {
+            this.removeSpinner(spinnerData);
+        });
+
+        return promise;
+    }
+
+    untilNext<T>(observable: Observable<T>): Observable<T> {
+        if ((observable as any).__spinnerWhileObservable) {
+            return (observable as any).__spinnerWhileObservable;
+        }
+        const spinnerData = [ this.buildSpinner(this.elementRef.nativeElement) ];
+
+        const endSpin = () => {
+            if (spinnerData.length) {
+                this.removeSpinner(spinnerData.splice(0, 1)[0]);
+            }
+        };
+
+        const result = observable.pipe(tap({
+                next: () => endSpin(),
+                error: () => endSpin()
+            })
+        );
+        (observable as any).__spinnerWhileObservable = result;
+        return result;
+    }
 
     private buildSpinner(nativeElement: any): SpinnerData {
         const result = {
@@ -36,40 +70,6 @@ export class SpinnerWhileDirective {
         }
 
         this.renderer.appendChild(nativeElement, result.spinner);
-        return result;
-    }
-
-    while(promise: Promise<any>): Promise<any> {
-        if (!promise) {
-            return Promise.resolve(null);
-        }
-        const spinnerData = this.buildSpinner(this.elementRef.nativeElement);
-
-        promise.finally(() => {
-            this.removeSpinner(spinnerData);
-        });
-
-        return promise;
-    }
-
-    untilNext<T>(observable: Observable<T>): Observable<T> {
-        if ((<any>observable).__spinnerWhileObservable) {
-            return (<any>observable).__spinnerWhileObservable;
-        }
-        const spinnerData = [ this.buildSpinner(this.elementRef.nativeElement) ];
-
-        const endSpin = () => {
-            if (spinnerData.length) {
-                this.removeSpinner(spinnerData.splice(0, 1)[0]);
-            }
-        };
-
-        const result = observable.pipe(tap({
-                next: () => endSpin(),
-                error: () => endSpin()
-            })
-        );
-        (<any>observable).__spinnerWhileObservable = result;
         return result;
     }
 
