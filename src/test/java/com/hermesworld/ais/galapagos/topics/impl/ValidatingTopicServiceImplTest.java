@@ -25,171 +25,171 @@ import static org.mockito.Mockito.when;
 
 public class ValidatingTopicServiceImplTest {
 
-	private GalapagosTopicConfig topicConfig;
+    private GalapagosTopicConfig topicConfig;
 
-	@Before
-	public void init() {
-		topicConfig = mock(GalapagosTopicConfig.class);
-		when(topicConfig.getMinDeprecationTime()).thenReturn(Period.ofDays(10));
-	}
+    @Before
+    public void init() {
+        topicConfig = mock(GalapagosTopicConfig.class);
+        when(topicConfig.getMinDeprecationTime()).thenReturn(Period.ofDays(10));
+    }
 
-	@Test
-	public void testCannotDeleteSubscribedTopic() {
-		TopicService topicService = mock(TopicService.class);
-		SubscriptionService subscriptionService = mock(SubscriptionService.class);
-		KafkaClusters clusters = mock(KafkaClusters.class);
+    @Test
+    public void testCannotDeleteSubscribedTopic() {
+        TopicService topicService = mock(TopicService.class);
+        SubscriptionService subscriptionService = mock(SubscriptionService.class);
+        KafkaClusters clusters = mock(KafkaClusters.class);
 
-		TopicMetadata meta1 = new TopicMetadata();
-		meta1.setName("testtopic");
-		meta1.setOwnerApplicationId("1");
-		meta1.setType(TopicType.EVENTS);
+        TopicMetadata meta1 = new TopicMetadata();
+        meta1.setName("testtopic");
+        meta1.setOwnerApplicationId("1");
+        meta1.setType(TopicType.EVENTS);
 
-		SubscriptionMetadata subscription = new SubscriptionMetadata();
-		subscription.setId("99");
-		subscription.setTopicName("testtopic");
-		subscription.setClientApplicationId("2");
+        SubscriptionMetadata subscription = new SubscriptionMetadata();
+        subscription.setId("99");
+        subscription.setTopicName("testtopic");
+        subscription.setClientApplicationId("2");
 
-		when(topicService.getTopic("_env1", "testtopic")).thenReturn(Optional.of(meta1));
-		when(subscriptionService.getSubscriptionsForTopic("_env1", "testtopic", false))
-				.thenReturn(Collections.singletonList(subscription));
+        when(topicService.getTopic("_env1", "testtopic")).thenReturn(Optional.of(meta1));
+        when(subscriptionService.getSubscriptionsForTopic("_env1", "testtopic", false))
+                .thenReturn(Collections.singletonList(subscription));
 
-		ValidatingTopicServiceImpl service = new ValidatingTopicServiceImpl(topicService, subscriptionService,
-			mock(ApplicationsService.class), clusters, topicConfig);
+        ValidatingTopicServiceImpl service = new ValidatingTopicServiceImpl(topicService, subscriptionService,
+                mock(ApplicationsService.class), clusters, topicConfig);
 
-		assertFalse(service.canDeleteTopic("_env1", "testtopic"));
-	}
+        assertFalse(service.canDeleteTopic("_env1", "testtopic"));
+    }
 
-	@Test
-	public void testCannotDeleteStagedPublicTopic() {
-		TopicService topicService = mock(TopicService.class);
-		SubscriptionService subscriptionService = mock(SubscriptionService.class);
-		KafkaClusters clusters = mock(KafkaClusters.class);
+    @Test
+    public void testCannotDeleteStagedPublicTopic() {
+        TopicService topicService = mock(TopicService.class);
+        SubscriptionService subscriptionService = mock(SubscriptionService.class);
+        KafkaClusters clusters = mock(KafkaClusters.class);
 
-		TopicMetadata meta1 = new TopicMetadata();
-		meta1.setName("testtopic");
-		meta1.setOwnerApplicationId("1");
-		meta1.setType(TopicType.EVENTS);
-		TopicMetadata meta2 = new TopicMetadata(meta1);
+        TopicMetadata meta1 = new TopicMetadata();
+        meta1.setName("testtopic");
+        meta1.setOwnerApplicationId("1");
+        meta1.setType(TopicType.EVENTS);
+        TopicMetadata meta2 = new TopicMetadata(meta1);
 
-		when(topicService.getTopic("_env1", "testtopic")).thenReturn(Optional.of(meta1));
-		when(topicService.getTopic("_env2", "testtopic")).thenReturn(Optional.of(meta2));
-		when(clusters.getEnvironmentIds()).thenReturn(List.of("_env1", "_env2"));
+        when(topicService.getTopic("_env1", "testtopic")).thenReturn(Optional.of(meta1));
+        when(topicService.getTopic("_env2", "testtopic")).thenReturn(Optional.of(meta2));
+        when(clusters.getEnvironmentIds()).thenReturn(List.of("_env1", "_env2"));
 
-		ValidatingTopicServiceImpl service = new ValidatingTopicServiceImpl(topicService, subscriptionService,
-			mock(ApplicationsService.class), clusters, topicConfig);
+        ValidatingTopicServiceImpl service = new ValidatingTopicServiceImpl(topicService, subscriptionService,
+                mock(ApplicationsService.class), clusters, topicConfig);
 
-		assertFalse(service.canDeleteTopic("_env1", "testtopic"));
-		assertTrue(service.canDeleteTopic("_env2", "testtopic"));
-	}
+        assertFalse(service.canDeleteTopic("_env1", "testtopic"));
+        assertTrue(service.canDeleteTopic("_env2", "testtopic"));
+    }
 
-	@Test
-	public void canDeleteTopic_internal_positiv() {
+    @Test
+    public void canDeleteTopic_internal_positiv() {
 
-		TopicService topicService = mock(TopicService.class);
-		SubscriptionService subscriptionService = mock(SubscriptionService.class);
-		KafkaClusters clusters = mock(KafkaClusters.class);
+        TopicService topicService = mock(TopicService.class);
+        SubscriptionService subscriptionService = mock(SubscriptionService.class);
+        KafkaClusters clusters = mock(KafkaClusters.class);
 
-		TopicMetadata meta1 = new TopicMetadata();
-		meta1.setName("testtopic");
-		meta1.setOwnerApplicationId("1");
-		meta1.setType(TopicType.INTERNAL);
-		KafkaEnvironmentConfig envMeta = mock(KafkaEnvironmentConfig.class);
+        TopicMetadata meta1 = new TopicMetadata();
+        meta1.setName("testtopic");
+        meta1.setOwnerApplicationId("1");
+        meta1.setType(TopicType.INTERNAL);
+        KafkaEnvironmentConfig envMeta = mock(KafkaEnvironmentConfig.class);
 
-		when(envMeta.isStagingOnly()).thenReturn(false);
-		when(topicService.getTopic("_env1", "testtopic")).thenReturn(Optional.of(meta1));
-		when(clusters.getEnvironmentIds()).thenReturn(List.of("_env1"));
-		when(clusters.getEnvironmentMetadata("_env1")).thenReturn(Optional.of(envMeta));
+        when(envMeta.isStagingOnly()).thenReturn(false);
+        when(topicService.getTopic("_env1", "testtopic")).thenReturn(Optional.of(meta1));
+        when(clusters.getEnvironmentIds()).thenReturn(List.of("_env1"));
+        when(clusters.getEnvironmentMetadata("_env1")).thenReturn(Optional.of(envMeta));
 
-		ValidatingTopicServiceImpl service = new ValidatingTopicServiceImpl(topicService, subscriptionService,
-			mock(ApplicationsService.class), clusters, topicConfig);
+        ValidatingTopicServiceImpl service = new ValidatingTopicServiceImpl(topicService, subscriptionService,
+                mock(ApplicationsService.class), clusters, topicConfig);
 
-		assertTrue(service.canDeleteTopic("_env1", "testtopic"));
+        assertTrue(service.canDeleteTopic("_env1", "testtopic"));
 
-	}
+    }
 
-	@Test
-	public void canDeleteTopic_internal_negative() {
+    @Test
+    public void canDeleteTopic_internal_negative() {
 
-		TopicService topicService = mock(TopicService.class);
-		SubscriptionService subscriptionService = mock(SubscriptionService.class);
-		KafkaClusters clusters = mock(KafkaClusters.class);
+        TopicService topicService = mock(TopicService.class);
+        SubscriptionService subscriptionService = mock(SubscriptionService.class);
+        KafkaClusters clusters = mock(KafkaClusters.class);
 
-		TopicMetadata meta1 = new TopicMetadata();
-		meta1.setName("testtopic");
-		meta1.setOwnerApplicationId("1");
-		meta1.setType(TopicType.INTERNAL);
-		KafkaEnvironmentConfig envMeta = mock(KafkaEnvironmentConfig.class);
+        TopicMetadata meta1 = new TopicMetadata();
+        meta1.setName("testtopic");
+        meta1.setOwnerApplicationId("1");
+        meta1.setType(TopicType.INTERNAL);
+        KafkaEnvironmentConfig envMeta = mock(KafkaEnvironmentConfig.class);
 
-		when(envMeta.isStagingOnly()).thenReturn(true);
-		when(topicService.getTopic("_env1", "testtopic")).thenReturn(Optional.of(meta1));
-		when(clusters.getEnvironmentIds()).thenReturn(List.of("_env1"));
-		when(clusters.getEnvironmentMetadata("_env1")).thenReturn(Optional.of(envMeta));
+        when(envMeta.isStagingOnly()).thenReturn(true);
+        when(topicService.getTopic("_env1", "testtopic")).thenReturn(Optional.of(meta1));
+        when(clusters.getEnvironmentIds()).thenReturn(List.of("_env1"));
+        when(clusters.getEnvironmentMetadata("_env1")).thenReturn(Optional.of(envMeta));
 
-		ValidatingTopicServiceImpl service = new ValidatingTopicServiceImpl(topicService, subscriptionService,
-			mock(ApplicationsService.class), clusters, topicConfig);
+        ValidatingTopicServiceImpl service = new ValidatingTopicServiceImpl(topicService, subscriptionService,
+                mock(ApplicationsService.class), clusters, topicConfig);
 
-		assertFalse(service.canDeleteTopic("_env1", "testtopic"));
+        assertFalse(service.canDeleteTopic("_env1", "testtopic"));
 
-	}
+    }
 
-	@Test
-	public void canDeleteTopic_withSubscribersAndEolDatePast() {
+    @Test
+    public void canDeleteTopic_withSubscribersAndEolDatePast() {
 
-		TopicService topicService = mock(TopicService.class);
-		SubscriptionService subscriptionService = mock(SubscriptionService.class);
-		KafkaClusters clusters = mock(KafkaClusters.class);
+        TopicService topicService = mock(TopicService.class);
+        SubscriptionService subscriptionService = mock(SubscriptionService.class);
+        KafkaClusters clusters = mock(KafkaClusters.class);
 
-		TopicMetadata meta1 = new TopicMetadata();
-		meta1.setName("testtopic");
-		meta1.setOwnerApplicationId("1");
-		meta1.setDeprecated(true);
-		meta1.setDeprecationText("deprecated now");
-		meta1.setType(TopicType.EVENTS);
-		meta1.setEolDate(LocalDate.of(2020, 9, 10));
+        TopicMetadata meta1 = new TopicMetadata();
+        meta1.setName("testtopic");
+        meta1.setOwnerApplicationId("1");
+        meta1.setDeprecated(true);
+        meta1.setDeprecationText("deprecated now");
+        meta1.setType(TopicType.EVENTS);
+        meta1.setEolDate(LocalDate.of(2020, 9, 10));
 
-		SubscriptionMetadata subscription = new SubscriptionMetadata();
-		subscription.setId("99");
-		subscription.setTopicName("testtopic");
-		subscription.setClientApplicationId("2");
+        SubscriptionMetadata subscription = new SubscriptionMetadata();
+        subscription.setId("99");
+        subscription.setTopicName("testtopic");
+        subscription.setClientApplicationId("2");
 
-		when(subscriptionService.getSubscriptionsForTopic("_env1", "testtopic", false))
-			.thenReturn(Collections.singletonList(subscription));
-		when(topicService.getTopic("_env1", "testtopic")).thenReturn(Optional.of(meta1));
+        when(subscriptionService.getSubscriptionsForTopic("_env1", "testtopic", false))
+                .thenReturn(Collections.singletonList(subscription));
+        when(topicService.getTopic("_env1", "testtopic")).thenReturn(Optional.of(meta1));
 
-		ValidatingTopicServiceImpl service = new ValidatingTopicServiceImpl(topicService, subscriptionService,
-			mock(ApplicationsService.class), clusters, topicConfig);
+        ValidatingTopicServiceImpl service = new ValidatingTopicServiceImpl(topicService, subscriptionService,
+                mock(ApplicationsService.class), clusters, topicConfig);
 
-		assertTrue(service.canDeleteTopic("_env1", "testtopic"));
-	}
+        assertTrue(service.canDeleteTopic("_env1", "testtopic"));
+    }
 
-	@Test
-	public void canDeleteTopic_withSubscribersAndEolDateInFuture() {
+    @Test
+    public void canDeleteTopic_withSubscribersAndEolDateInFuture() {
 
-		TopicService topicService = mock(TopicService.class);
-		SubscriptionService subscriptionService = mock(SubscriptionService.class);
-		KafkaClusters clusters = mock(KafkaClusters.class);
+        TopicService topicService = mock(TopicService.class);
+        SubscriptionService subscriptionService = mock(SubscriptionService.class);
+        KafkaClusters clusters = mock(KafkaClusters.class);
 
-		TopicMetadata meta1 = new TopicMetadata();
-		meta1.setName("testtopic");
-		meta1.setOwnerApplicationId("1");
-		meta1.setDeprecated(true);
-		meta1.setDeprecationText("deprecated now");
-		meta1.setType(TopicType.EVENTS);
-		meta1.setEolDate(LocalDate.of(2999, 9, 10));
+        TopicMetadata meta1 = new TopicMetadata();
+        meta1.setName("testtopic");
+        meta1.setOwnerApplicationId("1");
+        meta1.setDeprecated(true);
+        meta1.setDeprecationText("deprecated now");
+        meta1.setType(TopicType.EVENTS);
+        meta1.setEolDate(LocalDate.of(2999, 9, 10));
 
-		SubscriptionMetadata subscription = new SubscriptionMetadata();
-		subscription.setId("99");
-		subscription.setTopicName("testtopic");
-		subscription.setClientApplicationId("2");
+        SubscriptionMetadata subscription = new SubscriptionMetadata();
+        subscription.setId("99");
+        subscription.setTopicName("testtopic");
+        subscription.setClientApplicationId("2");
 
-		when(subscriptionService.getSubscriptionsForTopic("_env1", "testtopic", false))
-			.thenReturn(Collections.singletonList(subscription));
-		when(topicService.getTopic("_env1", "testtopic")).thenReturn(Optional.of(meta1));
+        when(subscriptionService.getSubscriptionsForTopic("_env1", "testtopic", false))
+                .thenReturn(Collections.singletonList(subscription));
+        when(topicService.getTopic("_env1", "testtopic")).thenReturn(Optional.of(meta1));
 
-		ValidatingTopicServiceImpl service = new ValidatingTopicServiceImpl(topicService, subscriptionService,
-			mock(ApplicationsService.class), clusters, topicConfig);
+        ValidatingTopicServiceImpl service = new ValidatingTopicServiceImpl(topicService, subscriptionService,
+                mock(ApplicationsService.class), clusters, topicConfig);
 
-		assertFalse(service.canDeleteTopic("_env1", "testtopic"));
-	}
+        assertFalse(service.canDeleteTopic("_env1", "testtopic"));
+    }
 
 }

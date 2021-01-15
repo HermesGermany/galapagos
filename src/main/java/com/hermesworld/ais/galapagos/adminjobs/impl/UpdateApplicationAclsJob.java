@@ -25,7 +25,8 @@ import org.springframework.stereotype.Component;
  * to Galapagos Metadata - are present. It also <b>removes</b> superfluous ACLs from Kafka set for the applications
  * known to Galapagos (ACLs not belonging to one of the applications registered in Galapagos are not changed). <br>
  * This admin job is particularly useful if new rights have been added to Galapagos logic (e.g. for Transactional IDs)
- * or if, for some reason, the ACLs in Kafka have been modified / corrupted. <br><br>
+ * or if, for some reason, the ACLs in Kafka have been modified / corrupted. <br>
+ * <br>
  * The job has one required and one optional parameter:
  * <ul>
  * <li><code>--kafka.environment=<i>&lt;id></i> - The ID of the Kafka Environment to restore the application ACLs on, as
@@ -43,7 +44,7 @@ public class UpdateApplicationAclsJob extends SingleClusterAdminJob {
 
     @Autowired
     public UpdateApplicationAclsJob(KafkaClusters kafkaClusters, UpdateApplicationAclsListener aclUpdater,
-        ApplicationsService applicationsService) {
+            ApplicationsService applicationsService) {
         super(kafkaClusters);
         this.aclUpdater = aclUpdater;
         this.applicationsService = applicationsService;
@@ -57,7 +58,7 @@ public class UpdateApplicationAclsJob extends SingleClusterAdminJob {
     @Override
     public void runOnCluster(KafkaCluster cluster, ApplicationArguments allArguments) throws Exception {
         Map<String, KnownApplication> applications = applicationsService.getKnownApplications(false).stream()
-            .collect(Collectors.toMap(KnownApplication::getId, Function.identity()));
+                .collect(Collectors.toMap(KnownApplication::getId, Function.identity()));
 
         List<AclBinding> dryRunCreatedAcls = new ArrayList<>();
         List<AclBindingFilter> dryRunDeletedAcls = new ArrayList<>();
@@ -103,8 +104,8 @@ public class UpdateApplicationAclsJob extends SingleClusterAdminJob {
         System.out.println();
     }
 
-    private void updateApplicationAcl(KafkaCluster cluster,
-        ApplicationMetadata metadata) throws ExecutionException, InterruptedException {
+    private void updateApplicationAcl(KafkaCluster cluster, ApplicationMetadata metadata)
+            throws ExecutionException, InterruptedException {
         cluster.updateUserAcls(aclUpdater.getApplicationUser(metadata, cluster.getId())).get();
     }
 }

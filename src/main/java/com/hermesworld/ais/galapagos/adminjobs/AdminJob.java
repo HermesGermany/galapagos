@@ -17,8 +17,8 @@ import org.springframework.boot.ApplicationArguments;
  */
 public interface AdminJob {
 
-	String getJobName();
+    String getJobName();
 
-	void run(ApplicationArguments allArguments) throws Exception;
+    void run(ApplicationArguments allArguments) throws Exception;
 
 }

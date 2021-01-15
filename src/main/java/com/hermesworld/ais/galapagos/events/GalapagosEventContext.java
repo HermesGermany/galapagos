@@ -6,8 +6,8 @@ import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
 
 public interface GalapagosEventContext {
 
-	KafkaCluster getKafkaCluster();
+    KafkaCluster getKafkaCluster();
 
-	<T> Optional<T> getContextValue(String key);
+    <T> Optional<T> getContextValue(String key);
 
 }

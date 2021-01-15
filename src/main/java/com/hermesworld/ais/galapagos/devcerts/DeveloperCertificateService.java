@@ -6,8 +6,9 @@ import java.util.concurrent.CompletableFuture;
 
 public interface DeveloperCertificateService {
 
-	Optional<DevCertificateMetadata> getDeveloperCertificateOfCurrentUser(String environmentId);
+    Optional<DevCertificateMetadata> getDeveloperCertificateOfCurrentUser(String environmentId);
 
-	CompletableFuture<Void> createDeveloperCertificateForCurrentUser(String environmentId, OutputStream p12OutputStream);
+    CompletableFuture<Void> createDeveloperCertificateForCurrentUser(String environmentId,
+            OutputStream p12OutputStream);
 
 }

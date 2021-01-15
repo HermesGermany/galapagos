@@ -15,32 +15,33 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class EnvironmentsController {
 
-	private KafkaClusters kafkaEnvironments;
+    private KafkaClusters kafkaEnvironments;
 
-	@Autowired
-	public EnvironmentsController(KafkaClusters kafkaEnvironments) {
-		this.kafkaEnvironments = kafkaEnvironments;
-	}
+    @Autowired
+    public EnvironmentsController(KafkaClusters kafkaEnvironments) {
+        this.kafkaEnvironments = kafkaEnvironments;
+    }
 
-	@GetMapping(value = "/api/environments", produces = MediaType.APPLICATION_JSON_VALUE)
-	public List<KafkaEnvironmentDto> getEnvironments() {
-		return kafkaEnvironments.getEnvironmentsMetadata().stream().map(e -> toDto(e)).collect(Collectors.toList());
-	}
+    @GetMapping(value = "/api/environments", produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<KafkaEnvironmentDto> getEnvironments() {
+        return kafkaEnvironments.getEnvironmentsMetadata().stream().map(e -> toDto(e)).collect(Collectors.toList());
+    }
 
-	@GetMapping(value = "/api/environments/{environmentId}", produces = MediaType.APPLICATION_JSON_VALUE)
-	public List<KafkaEnvironmentLivenessDto> getEnvironmentLiveness(@PathVariable String environmentId) {
-		// TODO currently unsupported
-		return Collections.emptyList();
-	}
+    @GetMapping(value = "/api/environments/{environmentId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<KafkaEnvironmentLivenessDto> getEnvironmentLiveness(@PathVariable String environmentId) {
+        // TODO currently unsupported
+        return Collections.emptyList();
+    }
 
-	@GetMapping(value = "/api/environments/{environmentId}/kafkaVersion", produces = MediaType.APPLICATION_JSON_VALUE)
-	public String getKafkaVersions(@PathVariable String environmentId) throws Exception {
-		return kafkaEnvironments.getEnvironment(environmentId).get().getKafkaServerVersion().get();
-	}
+    @GetMapping(value = "/api/environments/{environmentId}/kafkaVersion", produces = MediaType.APPLICATION_JSON_VALUE)
+    public String getKafkaVersions(@PathVariable String environmentId) throws Exception {
+        return kafkaEnvironments.getEnvironment(environmentId).get().getKafkaServerVersion().get();
+    }
 
-	private KafkaEnvironmentDto toDto(KafkaEnvironmentConfig env) {
-		boolean production = env.getId().equals(kafkaEnvironments.getProductionEnvironmentId());
-		return new KafkaEnvironmentDto(env.getId(), env.getName(), env.getBootstrapServers(), production, env.isStagingOnly());
-	}
+    private KafkaEnvironmentDto toDto(KafkaEnvironmentConfig env) {
+        boolean production = env.getId().equals(kafkaEnvironments.getProductionEnvironmentId());
+        return new KafkaEnvironmentDto(env.getId(), env.getName(), env.getBootstrapServers(), production,
+                env.isStagingOnly());
+    }
 
 }

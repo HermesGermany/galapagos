@@ -20,104 +20,104 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class KnownApplicationImpl implements KnownApplication, HasKey, Comparable<KnownApplicationImpl> {
 
-	private String id;
+    private String id;
 
-	private String name;
+    private String name;
 
-	private List<String> aliases;
+    private List<String> aliases;
 
-	private String infoUrl;
+    private String infoUrl;
 
-	private List<BusinessCapabilityImpl> businessCapabilities;
+    private List<BusinessCapabilityImpl> businessCapabilities;
 
-	@JsonCreator
-	public KnownApplicationImpl(@JsonProperty(value = "id", required = true) String id,
-			@JsonProperty(value = "name", required = true) String name) {
-		if (id == null) {
-			throw new IllegalArgumentException("id must not be null");
-		}
-		if (name == null) {
-			throw new IllegalArgumentException("name must not be null");
-		}
-		this.id = id;
-		this.name = name;
-	}
+    @JsonCreator
+    public KnownApplicationImpl(@JsonProperty(value = "id", required = true) String id,
+            @JsonProperty(value = "name", required = true) String name) {
+        if (id == null) {
+            throw new IllegalArgumentException("id must not be null");
+        }
+        if (name == null) {
+            throw new IllegalArgumentException("name must not be null");
+        }
+        this.id = id;
+        this.name = name;
+    }
 
-	@Override
-	public String key() {
-		return id;
-	}
+    @Override
+    public String key() {
+        return id;
+    }
 
-	@Override
-	public String getId() {
-		return id;
-	}
+    @Override
+    public String getId() {
+        return id;
+    }
 
-	@Override
-	public String getName() {
-		return name;
-	}
+    @Override
+    public String getName() {
+        return name;
+    }
 
-	@Override
-	public Set<String> getAliases() {
-		return this.aliases == null ? Collections.emptySet() : new HashSet<>(this.aliases);
-	}
+    @Override
+    public Set<String> getAliases() {
+        return this.aliases == null ? Collections.emptySet() : new HashSet<>(this.aliases);
+    }
 
-	public void setAliases(List<String> aliases) {
-		this.aliases = aliases;
-	}
+    public void setAliases(List<String> aliases) {
+        this.aliases = aliases;
+    }
 
-	@Override
-	public URL getInfoUrl() {
-		try {
-			return this.infoUrl == null ? null : new URL(this.infoUrl);
-		}
-		catch (MalformedURLException e) {
-			log.warn("Invalid info URL found in galapagos.internal.known-applications topic: " + this.infoUrl, e);
-			return null;
-		}
-	}
+    @Override
+    public URL getInfoUrl() {
+        try {
+            return this.infoUrl == null ? null : new URL(this.infoUrl);
+        }
+        catch (MalformedURLException e) {
+            log.warn("Invalid info URL found in galapagos.internal.known-applications topic: " + this.infoUrl, e);
+            return null;
+        }
+    }
 
-	public void setInfoUrl(String infoUrl) {
-		this.infoUrl = infoUrl;
-	}
+    public void setInfoUrl(String infoUrl) {
+        this.infoUrl = infoUrl;
+    }
 
-	@Override
-	public List<BusinessCapability> getBusinessCapabilities() {
-		return this.businessCapabilities == null ? Collections.emptyList()
-				: this.businessCapabilities.stream().collect(Collectors.toList());
-	}
+    @Override
+    public List<BusinessCapability> getBusinessCapabilities() {
+        return this.businessCapabilities == null ? Collections.emptyList()
+                : this.businessCapabilities.stream().collect(Collectors.toList());
+    }
 
-	public void setBusinessCapabilities(List<BusinessCapabilityImpl> businessCapabilities) {
-		this.businessCapabilities = businessCapabilities;
-	}
+    public void setBusinessCapabilities(List<BusinessCapabilityImpl> businessCapabilities) {
+        this.businessCapabilities = businessCapabilities;
+    }
 
-	@Override
-	public int compareTo(KnownApplicationImpl o) {
-		if (o == null) {
-			return 1;
-		}
-		return name.compareToIgnoreCase(o.name);
-	}
+    @Override
+    public int compareTo(KnownApplicationImpl o) {
+        if (o == null) {
+            return 1;
+        }
+        return name.compareToIgnoreCase(o.name);
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (obj == null) {
-			return false;
-		}
-		if (obj == this) {
-			return true;
-		}
-		if (obj.getClass() != getClass()) {
-			return false;
-		}
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (obj == this) {
+            return true;
+        }
+        if (obj.getClass() != getClass()) {
+            return false;
+        }
 
-		return id.equals(((KnownApplicationImpl) obj).id);
-	}
+        return id.equals(((KnownApplicationImpl) obj).id);
+    }
 
-	@Override
-	public int hashCode() {
-		return id.hashCode();
-	}
+    @Override
+    public int hashCode() {
+        return id.hashCode();
+    }
 
 }

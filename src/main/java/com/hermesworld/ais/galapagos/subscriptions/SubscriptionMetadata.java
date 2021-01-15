@@ -26,46 +26,46 @@ import lombok.Setter;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SubscriptionMetadata implements HasKey {
 
-	@Getter
-	@Setter
-	private String id;
+    @Getter
+    @Setter
+    private String id;
 
-	@Getter
-	@Setter
-	private String clientApplicationId;
+    @Getter
+    @Setter
+    private String clientApplicationId;
 
-	@Getter
-	@Setter
-	private String topicName;
+    @Getter
+    @Setter
+    private String topicName;
 
-	/**
-	 * For backwards compatibility with old metadata, this defaults to APPROVED.
-	 */
-	@Setter
-	private SubscriptionState state = SubscriptionState.APPROVED;
+    /**
+     * For backwards compatibility with old metadata, this defaults to APPROVED.
+     */
+    @Setter
+    private SubscriptionState state = SubscriptionState.APPROVED;
 
-	@Getter
-	@Setter
-	private String description;
+    @Getter
+    @Setter
+    private String description;
 
-	public SubscriptionMetadata() {
-	}
+    public SubscriptionMetadata() {
+    }
 
-	public SubscriptionMetadata(SubscriptionMetadata original) {
-		id = original.id;
-		clientApplicationId = original.clientApplicationId;
-		topicName = original.topicName;
-		state = original.state;
-		description = original.description;
-	}
+    public SubscriptionMetadata(SubscriptionMetadata original) {
+        id = original.id;
+        clientApplicationId = original.clientApplicationId;
+        topicName = original.topicName;
+        state = original.state;
+        description = original.description;
+    }
 
-	@Override
-	public String key() {
-		return id;
-	}
+    @Override
+    public String key() {
+        return id;
+    }
 
-	public SubscriptionState getState() {
-		return state == null ? SubscriptionState.APPROVED : state;
-	}
+    public SubscriptionState getState() {
+        return state == null ? SubscriptionState.APPROVED : state;
+    }
 
 }

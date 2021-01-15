@@ -7,13 +7,13 @@ import lombok.Setter;
 @Setter
 public class BusinessCapabilityDto {
 
-	private String id;
+    private String id;
 
-	private String name;
+    private String name;
 
-	public BusinessCapabilityDto(String id, String name) {
-		this.id = id;
-		this.name = name;
-	}
+    public BusinessCapabilityDto(String id, String name) {
+        this.id = id;
+        this.name = name;
+    }
 
 }

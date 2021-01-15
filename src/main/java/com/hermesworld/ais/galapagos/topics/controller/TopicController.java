@@ -41,15 +41,17 @@ public class TopicController {
 
     private final TopicNameValidator nameValidator;
 
-    private static final Supplier<ResponseStatusException> badRequest = () -> new ResponseStatusException(HttpStatus.BAD_REQUEST);
+    private static final Supplier<ResponseStatusException> badRequest = () -> new ResponseStatusException(
+            HttpStatus.BAD_REQUEST);
 
-    private static final Supplier<ResponseStatusException> notFound = () -> new ResponseStatusException(HttpStatus.NOT_FOUND);
+    private static final Supplier<ResponseStatusException> notFound = () -> new ResponseStatusException(
+            HttpStatus.NOT_FOUND);
 
     private static final int PEEK_LIMIT = 100;
 
     @Autowired
     public TopicController(ValidatingTopicService topicService, KafkaClusters kafkaEnvironments,
-                           ApplicationsService applicationsService, TopicNameValidator nameValidator) {
+            ApplicationsService applicationsService, TopicNameValidator nameValidator) {
         this.topicService = topicService;
         this.kafkaEnvironments = kafkaEnvironments;
         this.applicationsService = applicationsService;
@@ -58,45 +60,50 @@ public class TopicController {
 
     @GetMapping(value = "/api/topics/{environmentId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public List<TopicDto> listTopics(@PathVariable String environmentId,
-                                     @RequestParam(required = false, defaultValue = "true") boolean includeInternal) {
+            @RequestParam(required = false, defaultValue = "true") boolean includeInternal) {
         kafkaEnvironments.getEnvironmentMetadata(environmentId).orElseThrow(notFound);
 
         List<String> userAppIds = !includeInternal ? Collections.emptyList()
-            : applicationsService.getUserApplications().stream().map(KnownApplication::getId).collect(Collectors.toList());
+                : applicationsService.getUserApplications().stream().map(KnownApplication::getId)
+                        .collect(Collectors.toList());
 
         return topicService.listTopics(environmentId).stream()
                 .filter(t -> t.getType() != TopicType.INTERNAL || userAppIds.contains(t.getOwnerApplicationId()))
-                .map(t -> toDto(environmentId, t, topicService.canDeleteTopic(environmentId, t.getName()))).collect(Collectors.toList());
+                .map(t -> toDto(environmentId, t, topicService.canDeleteTopic(environmentId, t.getName())))
+                .collect(Collectors.toList());
     }
 
     @GetMapping(value = "/api/topicconfigs/{environmentId}/{topicName:.+}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public List<TopicConfigEntryDto> getTopicConfig(@PathVariable String environmentId, @PathVariable String topicName) {
+    public List<TopicConfigEntryDto> getTopicConfig(@PathVariable String environmentId,
+            @PathVariable String topicName) {
         KafkaCluster cluster = kafkaEnvironments.getEnvironment(environmentId).orElseThrow(notFound);
         topicService.listTopics(environmentId).stream().filter(topic -> topicName.equals(topic.getName())).findAny()
                 .orElseThrow(notFound);
 
         try {
             return cluster.getTopicConfig(topicName)
-                .thenApply(set -> set.stream().map(this::toConfigEntryDto).collect(Collectors.toList())).get();
-        } catch (ExecutionException e) {
+                    .thenApply(set -> set.stream().map(this::toConfigEntryDto).collect(Collectors.toList())).get();
+        }
+        catch (ExecutionException e) {
             throw handleExecutionException(e);
-        } catch (InterruptedException e) {
+        }
+        catch (InterruptedException e) {
             return null;
         }
     }
 
     /**
-     * For now this endpoint only supports deprecation and undeprecation of topics. Changing the description of a Topic after its
-     * creation will come soon.
+     * For now this endpoint only supports deprecation and undeprecation of topics. Changing the description of a Topic
+     * after its creation will come soon.
      */
     @PostMapping(value = "/api/topics/{environmentId}/{topicName:.+}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public void updateTopic(@PathVariable String environmentId, @PathVariable String topicName,
-        @RequestBody UpdateTopicDto request) {
+            @RequestBody UpdateTopicDto request) {
 
         TopicMetadata topic = topicService.getTopic(environmentId, topicName).orElseThrow(notFound);
         if (applicationsService.getUserApplicationOwnerRequests().stream()
-            .noneMatch(req -> req.getState() == RequestState.APPROVED &&
-                topic.getOwnerApplicationId().equals(req.getApplicationId()))) {
+                .noneMatch(req -> req.getState() == RequestState.APPROVED
+                        && topic.getOwnerApplicationId().equals(req.getApplicationId()))) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
         if (!StringUtils.isEmpty(request.getDeprecationText())) {
@@ -105,31 +112,33 @@ public class TopicController {
             }
             try {
                 topicService.markTopicDeprecated(topicName, request.getDeprecationText(), request.getEolDate()).get();
-            } catch (ExecutionException e) {
+            }
+            catch (ExecutionException e) {
                 throw handleExecutionException(e);
-            } catch (InterruptedException e) {
+            }
+            catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
-        } else {
+        }
+        else {
             if (!topic.isDeprecated()) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot remove deprecation from a topic that was not deprecated");
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "Cannot remove deprecation from a topic that was not deprecated");
             }
             topicService.unmarkTopicDeprecated(topicName);
         }
     }
 
-    @PostMapping(value = "/api/topicconfigs/{environmentId}/{topicName:.+}", consumes = MediaType.APPLICATION_JSON_VALUE,
-        produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/api/topicconfigs/{environmentId}/{topicName:.+}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public void updateTopicConfig(@PathVariable String environmentId, @PathVariable String topicName,
-        @RequestBody List<UpdateTopicConfigEntryDto> configs) throws InterruptedException {
+            @RequestBody List<UpdateTopicConfigEntryDto> configs) throws InterruptedException {
         KafkaCluster cluster = kafkaEnvironments.getEnvironment(environmentId).orElseThrow(notFound);
-        TopicMetadata metadata = topicService.listTopics(environmentId).stream().filter(topic -> topicName.equals(topic.getName()))
-            .findAny()
-            .orElseThrow(notFound);
+        TopicMetadata metadata = topicService.listTopics(environmentId).stream()
+                .filter(topic -> topicName.equals(topic.getName())).findAny().orElseThrow(notFound);
 
         if (applicationsService.getUserApplicationOwnerRequests().stream()
-            .noneMatch(req -> req.getState() == RequestState.APPROVED &&
-                metadata.getOwnerApplicationId().equals(req.getApplicationId()))) {
+                .noneMatch(req -> req.getState() == RequestState.APPROVED
+                        && metadata.getOwnerApplicationId().equals(req.getApplicationId()))) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
 
@@ -141,14 +150,16 @@ public class TopicController {
 
         try {
             cluster.setTopicConfig(topicName,
-                configs.stream().collect(Collectors.toMap(UpdateTopicConfigEntryDto::getName, UpdateTopicConfigEntryDto::getValue))).get();
-        } catch (ExecutionException e) {
+                    configs.stream().collect(
+                            Collectors.toMap(UpdateTopicConfigEntryDto::getName, UpdateTopicConfigEntryDto::getValue)))
+                    .get();
+        }
+        catch (ExecutionException e) {
             throw handleExecutionException(e);
         }
     }
 
-    @PostMapping(value = "/api/util/topicname", consumes = MediaType.APPLICATION_JSON_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/api/util/topicname", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public TopicNameDto getTopicNameSuggestion(@RequestBody TopicNameSuggestionQueryDto query) {
         if (StringUtils.isEmpty(query.getApplicationId()) || StringUtils.isEmpty(query.getEnvironmentId())
                 || query.getTopicType() == null) {
@@ -156,12 +167,13 @@ public class TopicController {
         }
 
         // TODO should go into TopicService
-        KnownApplication app = applicationsService.getKnownApplication(query.getApplicationId()).orElseThrow(badRequest);
+        KnownApplication app = applicationsService.getKnownApplication(query.getApplicationId())
+                .orElseThrow(badRequest);
         BusinessCapability cap = app.getBusinessCapabilities().stream()
                 .filter(bc -> bc.getId().equals(query.getBusinessCapabilityId())).findFirst().orElse(null);
 
-        ApplicationMetadata metadata = applicationsService.getApplicationMetadata(query.getEnvironmentId(), query.getApplicationId())
-                .orElse(null);
+        ApplicationMetadata metadata = applicationsService
+                .getApplicationMetadata(query.getEnvironmentId(), query.getApplicationId()).orElse(null);
         if (metadata == null) {
             throw badRequest.get();
         }
@@ -174,8 +186,7 @@ public class TopicController {
         return new TopicNameDto(name);
     }
 
-    @PutMapping(value = "/api/topics/{environmentId}", consumes = MediaType.APPLICATION_JSON_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping(value = "/api/topics/{environmentId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public TopicDto createTopic(@PathVariable String environmentId, @RequestBody CreateTopicDto topicData) {
         if (!applicationsService.isUserAuthorizedFor(topicData.getOwnerApplicationId())) {
             // TODO Security Audit log?
@@ -197,19 +208,25 @@ public class TopicController {
         }
 
         try {
-            return toDto(environmentId, topicService.createTopic(environmentId, toMetadata(topicData), topicData.getPartitionCount(),
-                    Optional.ofNullable(topicData.getTopicConfig()).orElse(Collections.emptyMap())).get(), true);
-        } catch (ExecutionException e) {
+            return toDto(environmentId,
+                    topicService
+                            .createTopic(environmentId, toMetadata(topicData), topicData.getPartitionCount(),
+                                    Optional.ofNullable(topicData.getTopicConfig()).orElse(Collections.emptyMap()))
+                            .get(),
+                    true);
+        }
+        catch (ExecutionException e) {
             throw handleExecutionException(e);
-        } catch (InterruptedException e) {
+        }
+        catch (InterruptedException e) {
             return null;
         }
     }
 
     @DeleteMapping(value = "/api/topics/{environmentId}/{topicName:.+}")
     public ResponseEntity<Void> deleteTopic(@PathVariable String environmentId, @PathVariable String topicName) {
-        TopicMetadata metadata = topicService.listTopics(environmentId).stream().filter(topic -> topicName.equals(topic.getName()))
-                .findAny().orElseThrow(notFound);
+        TopicMetadata metadata = topicService.listTopics(environmentId).stream()
+                .filter(topic -> topicName.equals(topic.getName())).findAny().orElseThrow(notFound);
 
         kafkaEnvironments.getEnvironmentMetadata(environmentId).orElseThrow(notFound);
 
@@ -223,9 +240,11 @@ public class TopicController {
 
         try {
             topicService.deleteTopic(environmentId, topicName).get();
-        } catch (InterruptedException e) {
+        }
+        catch (InterruptedException e) {
             return null;
-        } catch (ExecutionException e) {
+        }
+        catch (ExecutionException e) {
             throw handleExecutionException(e);
         }
 
@@ -260,29 +279,31 @@ public class TopicController {
 
     @PutMapping(value = "/api/schemas/{environmentId}/{topicName:.+}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> addTopicSchemaVersion(@PathVariable String environmentId,
-        @PathVariable String topicName,
-        @RequestBody AddSchemaVersionDto schemaVersionDto) {
-        TopicMetadata topic = topicService.listTopics(environmentId).stream().filter(t -> topicName.equals(t.getName())).findAny()
-            .orElseThrow(notFound);
+            @PathVariable String topicName, @RequestBody AddSchemaVersionDto schemaVersionDto) {
+        TopicMetadata topic = topicService.listTopics(environmentId).stream().filter(t -> topicName.equals(t.getName()))
+                .findAny().orElseThrow(notFound);
         if (!applicationsService.isUserAuthorizedFor(topic.getOwnerApplicationId())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
 
         if (schemaVersionDto == null || StringUtils.isEmpty(schemaVersionDto.getJsonSchema())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "JSON Schema (jsonSchema property) is missing from request body");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "JSON Schema (jsonSchema property) is missing from request body");
         }
 
         try {
             SchemaMetadata metadata = topicService
-                .addTopicSchemaVersion(environmentId, topicName, schemaVersionDto.getJsonSchema())
-                .get();
+                    .addTopicSchemaVersion(environmentId, topicName, schemaVersionDto.getJsonSchema()).get();
 
             return ResponseEntity.created(new URI("/schema/" + metadata.getId())).build();
-        } catch (InterruptedException e) {
+        }
+        catch (InterruptedException e) {
             return null;
-        } catch (ExecutionException e) {
+        }
+        catch (ExecutionException e) {
             throw handleExecutionException(e);
-        } catch (URISyntaxException e) {
+        }
+        catch (URISyntaxException e) {
             // should not occur for /schema/ + UUID
             throw new RuntimeException(e);
         }
@@ -290,19 +311,21 @@ public class TopicController {
 
     @DeleteMapping(value = "/api/schemas/{environmentId}/{topicName:.+}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> deleteLatestTopicSchemaVersion(@PathVariable String environmentId,
-        @PathVariable String topicName) {
+            @PathVariable String topicName) {
 
-        TopicMetadata topic = topicService.listTopics(environmentId).stream().filter(t -> topicName.equals(t.getName())).findAny()
-            .orElseThrow(notFound);
+        TopicMetadata topic = topicService.listTopics(environmentId).stream().filter(t -> topicName.equals(t.getName()))
+                .findAny().orElseThrow(notFound);
         if (!applicationsService.isUserAuthorizedFor(topic.getOwnerApplicationId())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
 
         try {
             topicService.deleteLatestTopicSchemaVersion(environmentId, topicName).get();
-        } catch (InterruptedException e) {
+        }
+        catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-        } catch (ExecutionException e) {
+        }
+        catch (ExecutionException e) {
             throw handleExecutionException(e);
         }
 
@@ -312,19 +335,22 @@ public class TopicController {
     @GetMapping("/api/util/peek-data/{environmentId}/{topicName:.+}")
     public List<ConsumerRecordDto> peekTopicData(@PathVariable String environmentId, @PathVariable String topicName) {
         try {
-            return topicService.peekTopicData(environmentId, topicName, PEEK_LIMIT).get().stream().map(this::toRecordDto)
-                .collect(Collectors.toList());
-        } catch (InterruptedException e) {
+            return topicService.peekTopicData(environmentId, topicName, PEEK_LIMIT).get().stream()
+                    .map(this::toRecordDto).collect(Collectors.toList());
+        }
+        catch (InterruptedException e) {
             return Collections.emptyList();
-        } catch (ExecutionException e) {
+        }
+        catch (ExecutionException e) {
             throw handleExecutionException(e);
         }
     }
 
     private TopicDto toDto(String environmentId, TopicMetadata topic, boolean canDelete) {
-        return new TopicDto(topic.getName(), topic.getType().toString(), environmentId, topic.getDescription(), topic.getInfoUrl(),
-                topic.getOwnerApplicationId(), topic.isDeprecated(), topic.getDeprecationText(),
-                topic.getEolDate() == null ? null : topic.getEolDate().toString(), topic.isSubscriptionApprovalRequired(), canDelete);
+        return new TopicDto(topic.getName(), topic.getType().toString(), environmentId, topic.getDescription(),
+                topic.getInfoUrl(), topic.getOwnerApplicationId(), topic.isDeprecated(), topic.getDeprecationText(),
+                topic.getEolDate() == null ? null : topic.getEolDate().toString(),
+                topic.isSubscriptionApprovalRequired(), canDelete);
     }
 
     private TopicConfigEntryDto toConfigEntryDto(TopicConfigEntry configEntry) {
@@ -346,13 +372,14 @@ public class TopicController {
     private ConsumerRecordDto toRecordDto(ConsumerRecord<String, String> record) {
         Map<String, String> headers = StreamSupport.stream(record.headers().spliterator(), false)
                 .collect(Collectors.toMap(Header::key, h -> new String(h.value(), StandardCharsets.UTF_8)));
-        return new ConsumerRecordDto(record.key(), record.value(), record.offset(), record.timestamp(), record.partition(), headers);
+        return new ConsumerRecordDto(record.key(), record.value(), record.offset(), record.timestamp(),
+                record.partition(), headers);
     }
 
     private ResponseStatusException handleExecutionException(ExecutionException e) {
         Throwable t = e.getCause();
-        if (t instanceof IllegalArgumentException || t instanceof IllegalStateException || t instanceof InvalidTopicNameException
-                || t instanceof IncompatibleSchemaException) {
+        if (t instanceof IllegalArgumentException || t instanceof IllegalStateException
+                || t instanceof InvalidTopicNameException || t instanceof IncompatibleSchemaException) {
             return new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
         if (t instanceof KafkaException) {

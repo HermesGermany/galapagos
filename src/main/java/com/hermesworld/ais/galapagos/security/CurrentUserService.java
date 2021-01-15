@@ -4,12 +4,12 @@ import java.util.Optional;
 
 public interface CurrentUserService {
 
-	public Optional<String> getCurrentUserName();
+    public Optional<String> getCurrentUserName();
 
-	public Optional<AuditPrincipal> getCurrentPrincipal();
+    public Optional<AuditPrincipal> getCurrentPrincipal();
 
-	public Optional<String> getCurrentUserEmailAddress();
+    public Optional<String> getCurrentUserEmailAddress();
 
-	public boolean isAdmin();
+    public boolean isAdmin();
 
 }

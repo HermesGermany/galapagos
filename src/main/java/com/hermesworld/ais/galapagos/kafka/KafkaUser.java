@@ -6,8 +6,8 @@ import org.apache.kafka.common.acl.AclBinding;
 
 public interface KafkaUser {
 
-	String getKafkaUserName();
+    String getKafkaUserName();
 
-	Collection<AclBinding> getRequiredAclBindings();
+    Collection<AclBinding> getRequiredAclBindings();
 
 }

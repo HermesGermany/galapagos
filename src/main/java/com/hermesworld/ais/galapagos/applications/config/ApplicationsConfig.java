@@ -7,24 +7,24 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "galapagos.applications")
 public class ApplicationsConfig {
 
-	private String consumerGroupPrefix;
-	
-	private String topicPrefixFormat;
+    private String consumerGroupPrefix;
 
-	public String getConsumerGroupPrefix() {
-		return consumerGroupPrefix;
-	}
+    private String topicPrefixFormat;
 
-	public void setConsumerGroupPrefix(String consumerGroupPrefix) {
-		this.consumerGroupPrefix = consumerGroupPrefix;
-	}
+    public String getConsumerGroupPrefix() {
+        return consumerGroupPrefix;
+    }
 
-	public String getTopicPrefixFormat() {
-		return topicPrefixFormat;
-	}
+    public void setConsumerGroupPrefix(String consumerGroupPrefix) {
+        this.consumerGroupPrefix = consumerGroupPrefix;
+    }
 
-	public void setTopicPrefixFormat(String topicPrefixFormat) {
-		this.topicPrefixFormat = topicPrefixFormat;
-	}
+    public String getTopicPrefixFormat() {
+        return topicPrefixFormat;
+    }
+
+    public void setTopicPrefixFormat(String topicPrefixFormat) {
+        this.topicPrefixFormat = topicPrefixFormat;
+    }
 
 }

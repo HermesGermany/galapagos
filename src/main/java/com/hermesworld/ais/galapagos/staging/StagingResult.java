@@ -8,16 +8,16 @@ import lombok.Getter;
 @Getter
 public final class StagingResult {
 
-	private Change change;
+    private Change change;
 
-	private boolean stagingSuccessful;
+    private boolean stagingSuccessful;
 
-	private String errorMessage;
+    private String errorMessage;
 
-	public StagingResult(Change change, boolean stagingSuccessful, String errorMessage) {
-		this.change = change;
-		this.stagingSuccessful = stagingSuccessful;
-		this.errorMessage = errorMessage;
-	}
+    public StagingResult(Change change, boolean stagingSuccessful, String errorMessage) {
+        this.change = change;
+        this.stagingSuccessful = stagingSuccessful;
+        this.errorMessage = errorMessage;
+    }
 
 }

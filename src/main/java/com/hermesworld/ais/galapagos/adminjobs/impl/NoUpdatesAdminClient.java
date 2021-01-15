@@ -153,7 +153,7 @@ public abstract class NoUpdatesAdminClient extends AdminClient {
 
     @Override
     public AlterConfigsResult incrementalAlterConfigs(Map<ConfigResource, Collection<AlterConfigOp>> configs,
-        AlterConfigsOptions options) {
+            AlterConfigsOptions options) {
         throw new UnsupportedOperationException();
     }
 
@@ -164,7 +164,7 @@ public abstract class NoUpdatesAdminClient extends AdminClient {
 
     @Override
     public AlterReplicaLogDirsResult alterReplicaLogDirs(Map<TopicPartitionReplica, String> replicaAssignment,
-        AlterReplicaLogDirsOptions options) {
+            AlterReplicaLogDirsOptions options) {
         throw new UnsupportedOperationException();
     }
 
@@ -185,7 +185,7 @@ public abstract class NoUpdatesAdminClient extends AdminClient {
 
     @Override
     public DescribeReplicaLogDirsResult describeReplicaLogDirs(Collection<TopicPartitionReplica> replicas,
-        DescribeReplicaLogDirsOptions options) {
+            DescribeReplicaLogDirsOptions options) {
         return delegate.describeReplicaLogDirs(replicas, options);
     }
 
@@ -196,7 +196,7 @@ public abstract class NoUpdatesAdminClient extends AdminClient {
 
     @Override
     public CreatePartitionsResult createPartitions(Map<String, NewPartitions> newPartitions,
-        CreatePartitionsOptions options) {
+            CreatePartitionsOptions options) {
         throw new UnsupportedOperationException();
     }
 
@@ -207,7 +207,7 @@ public abstract class NoUpdatesAdminClient extends AdminClient {
 
     @Override
     public DeleteRecordsResult deleteRecords(Map<TopicPartition, RecordsToDelete> recordsToDelete,
-        DeleteRecordsOptions options) {
+            DeleteRecordsOptions options) {
         throw new UnsupportedOperationException();
     }
 
@@ -253,7 +253,7 @@ public abstract class NoUpdatesAdminClient extends AdminClient {
 
     @Override
     public DescribeConsumerGroupsResult describeConsumerGroups(Collection<String> groupIds,
-        DescribeConsumerGroupsOptions options) {
+            DescribeConsumerGroupsOptions options) {
         return delegate.describeConsumerGroups(groupIds, options);
     }
 
@@ -274,7 +274,7 @@ public abstract class NoUpdatesAdminClient extends AdminClient {
 
     @Override
     public ListConsumerGroupOffsetsResult listConsumerGroupOffsets(String groupId,
-        ListConsumerGroupOffsetsOptions options) {
+            ListConsumerGroupOffsetsOptions options) {
         return delegate.listConsumerGroupOffsets(groupId, options);
     }
 
@@ -285,7 +285,7 @@ public abstract class NoUpdatesAdminClient extends AdminClient {
 
     @Override
     public DeleteConsumerGroupsResult deleteConsumerGroups(Collection<String> groupIds,
-        DeleteConsumerGroupsOptions options) {
+            DeleteConsumerGroupsOptions options) {
         throw new UnsupportedOperationException();
     }
 
@@ -296,7 +296,7 @@ public abstract class NoUpdatesAdminClient extends AdminClient {
 
     @Override
     public DeleteConsumerGroupOffsetsResult deleteConsumerGroupOffsets(String groupId, Set<TopicPartition> partitions,
-        DeleteConsumerGroupOffsetsOptions options) {
+            DeleteConsumerGroupOffsetsOptions options) {
         throw new UnsupportedOperationException();
     }
 
@@ -314,7 +314,7 @@ public abstract class NoUpdatesAdminClient extends AdminClient {
     @Override
     @Deprecated
     public ElectPreferredLeadersResult electPreferredLeaders(Collection<TopicPartition> partitions,
-        ElectPreferredLeadersOptions options) {
+            ElectPreferredLeadersOptions options) {
         throw new UnsupportedOperationException();
     }
 
@@ -325,20 +325,20 @@ public abstract class NoUpdatesAdminClient extends AdminClient {
 
     @Override
     public ElectLeadersResult electLeaders(ElectionType electionType, Set<TopicPartition> partitions,
-        ElectLeadersOptions options) {
+            ElectLeadersOptions options) {
         throw new UnsupportedOperationException();
     }
 
     @Override
     public AlterPartitionReassignmentsResult alterPartitionReassignments(
-        Map<TopicPartition, Optional<NewPartitionReassignment>> reassignments) {
+            Map<TopicPartition, Optional<NewPartitionReassignment>> reassignments) {
         throw new UnsupportedOperationException();
     }
 
     @Override
     public AlterPartitionReassignmentsResult alterPartitionReassignments(
-        Map<TopicPartition, Optional<NewPartitionReassignment>> reassignments,
-        AlterPartitionReassignmentsOptions options) {
+            Map<TopicPartition, Optional<NewPartitionReassignment>> reassignments,
+            AlterPartitionReassignmentsOptions options) {
         throw new UnsupportedOperationException();
     }
 
@@ -348,14 +348,13 @@ public abstract class NoUpdatesAdminClient extends AdminClient {
     }
 
     @Override
-    public ListPartitionReassignmentsResult listPartitionReassignments(
-        Set<TopicPartition> partitions) {
+    public ListPartitionReassignmentsResult listPartitionReassignments(Set<TopicPartition> partitions) {
         return delegate.listPartitionReassignments(partitions);
     }
 
     @Override
     public ListPartitionReassignmentsResult listPartitionReassignments(Set<TopicPartition> partitions,
-        ListPartitionReassignmentsOptions options) {
+            ListPartitionReassignmentsOptions options) {
         return delegate.listPartitionReassignments(partitions, options);
     }
 
@@ -366,26 +365,25 @@ public abstract class NoUpdatesAdminClient extends AdminClient {
 
     @Override
     public ListPartitionReassignmentsResult listPartitionReassignments(Optional<Set<TopicPartition>> partitions,
-        ListPartitionReassignmentsOptions options) {
+            ListPartitionReassignmentsOptions options) {
         return delegate.listPartitionReassignments(partitions, options);
     }
 
     @Override
     public RemoveMembersFromConsumerGroupResult removeMembersFromConsumerGroup(String groupId,
-        RemoveMembersFromConsumerGroupOptions options) {
+            RemoveMembersFromConsumerGroupOptions options) {
         throw new UnsupportedOperationException();
     }
 
     @Override
     public AlterConsumerGroupOffsetsResult alterConsumerGroupOffsets(String groupId,
-        Map<TopicPartition, OffsetAndMetadata> offsets) {
+            Map<TopicPartition, OffsetAndMetadata> offsets) {
         throw new UnsupportedOperationException();
     }
 
     @Override
     public AlterConsumerGroupOffsetsResult alterConsumerGroupOffsets(String groupId,
-        Map<TopicPartition, OffsetAndMetadata> offsets,
-        AlterConsumerGroupOffsetsOptions options) {
+            Map<TopicPartition, OffsetAndMetadata> offsets, AlterConsumerGroupOffsetsOptions options) {
         throw new UnsupportedOperationException();
     }
 
@@ -396,7 +394,7 @@ public abstract class NoUpdatesAdminClient extends AdminClient {
 
     @Override
     public ListOffsetsResult listOffsets(Map<TopicPartition, OffsetSpec> topicPartitionOffsets,
-        ListOffsetsOptions options) {
+            ListOffsetsOptions options) {
         return delegate.listOffsets(topicPartitionOffsets, options);
     }
 

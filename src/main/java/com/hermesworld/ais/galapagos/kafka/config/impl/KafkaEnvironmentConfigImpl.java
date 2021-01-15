@@ -7,25 +7,25 @@ import org.springframework.core.io.Resource;
 import com.hermesworld.ais.galapagos.kafka.config.KafkaEnvironmentConfig;
 
 @Setter
-@Getter(onMethod=@__({@Override}))
+@Getter(onMethod = @__({ @Override }))
 public class KafkaEnvironmentConfigImpl implements KafkaEnvironmentConfig {
 
-	private String id;
+    private String id;
 
-	private String name;
+    private String name;
 
-	private String bootstrapServers;
+    private String bootstrapServers;
 
-	private Resource caCertificateFile;
+    private Resource caCertificateFile;
 
-	private Resource caKeyFile;
+    private Resource caKeyFile;
 
-	private String applicationCertificateValidity;
+    private String applicationCertificateValidity;
 
-	private String developerCertificateValidity;
+    private String developerCertificateValidity;
 
-	private String clientDn;
+    private String clientDn;
 
-	private boolean stagingOnly;
+    private boolean stagingOnly;
 
 }

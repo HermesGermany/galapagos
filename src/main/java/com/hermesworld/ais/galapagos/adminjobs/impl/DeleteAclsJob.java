@@ -31,53 +31,53 @@ import org.springframework.util.StringUtils;
 @Component
 public class DeleteAclsJob extends SingleClusterAdminJob {
 
-	@Autowired
-	public DeleteAclsJob(KafkaClusters kafkaClusters) {
-		super(kafkaClusters);
-	}
+    @Autowired
+    public DeleteAclsJob(KafkaClusters kafkaClusters) {
+        super(kafkaClusters);
+    }
 
-	@Override
-	public String getJobName() {
-		return "delete-acls";
-	}
+    @Override
+    public String getJobName() {
+        return "delete-acls";
+    }
 
-	@Override
-	public void runOnCluster(KafkaCluster cluster, ApplicationArguments allArguments) throws Exception {
-		String certificateDn = Optional.ofNullable(allArguments.getOptionValues("certificate.dn"))
-			.flatMap(ls -> ls.stream().findFirst()).orElse(null);
+    @Override
+    public void runOnCluster(KafkaCluster cluster, ApplicationArguments allArguments) throws Exception {
+        String certificateDn = Optional.ofNullable(allArguments.getOptionValues("certificate.dn"))
+                .flatMap(ls -> ls.stream().findFirst()).orElse(null);
 
-		if (StringUtils.isEmpty(certificateDn)) {
-			throw new IllegalArgumentException("Please provide --certificate.dn=<dn> for DN of certificate.");
-		}
+        if (StringUtils.isEmpty(certificateDn)) {
+            throw new IllegalArgumentException("Please provide --certificate.dn=<dn> for DN of certificate.");
+        }
 
-		cluster.removeUserAcls(new DummyKafkaUser(certificateDn)).get();
+        cluster.removeUserAcls(new DummyKafkaUser(certificateDn)).get();
 
-		System.out.println();
-		System.out.println("========================== Certificate ACLs DELETED ==========================");
-		System.out.println();
-		System.out
-			.println("All ACLs for certificate " + certificateDn + " have been deleted on Kafka Environment " + cluster.getId());
-		System.out.println();
-		System.out.println("==============================================================================");
-	}
+        System.out.println();
+        System.out.println("========================== Certificate ACLs DELETED ==========================");
+        System.out.println();
+        System.out.println("All ACLs for certificate " + certificateDn + " have been deleted on Kafka Environment "
+                + cluster.getId());
+        System.out.println();
+        System.out.println("==============================================================================");
+    }
 
-	private static class DummyKafkaUser implements KafkaUser {
+    private static class DummyKafkaUser implements KafkaUser {
 
-		private final String dn;
+        private final String dn;
 
-		public DummyKafkaUser(String dn) {
-			this.dn = dn;
-		}
+        public DummyKafkaUser(String dn) {
+            this.dn = dn;
+        }
 
-		@Override
-		public String getKafkaUserName() {
-			return "User:" + dn;
-		}
+        @Override
+        public String getKafkaUserName() {
+            return "User:" + dn;
+        }
 
-		@Override
-		public Collection<AclBinding> getRequiredAclBindings() {
-			return Collections.emptyList();
-		}
-	}
+        @Override
+        public Collection<AclBinding> getRequiredAclBindings() {
+            return Collections.emptyList();
+        }
+    }
 
 }

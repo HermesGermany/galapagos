@@ -25,33 +25,33 @@ import org.apache.kafka.common.acl.AclBinding;
  */
 public interface KafkaCluster {
 
-	String getId();
+    String getId();
 
-	CompletableFuture<Void> updateUserAcls(KafkaUser user);
+    CompletableFuture<Void> updateUserAcls(KafkaUser user);
 
-	CompletableFuture<Void> removeUserAcls(KafkaUser user);
+    CompletableFuture<Void> removeUserAcls(KafkaUser user);
 
-	CompletableFuture<Void> visitAcls(Function<AclBinding, Boolean> callback);
+    CompletableFuture<Void> visitAcls(Function<AclBinding, Boolean> callback);
 
-	<T extends HasKey> TopicBasedRepository<T> getRepository(String topicName, Class<T> valueClass);
+    <T extends HasKey> TopicBasedRepository<T> getRepository(String topicName, Class<T> valueClass);
 
-	Collection<TopicBasedRepository<?>> getRepositories();
+    Collection<TopicBasedRepository<?>> getRepositories();
 
-	CompletableFuture<Void> createTopic(String topicName, TopicCreateParams topicCreateParams);
+    CompletableFuture<Void> createTopic(String topicName, TopicCreateParams topicCreateParams);
 
-	CompletableFuture<Void> deleteTopic(String topicName);
+    CompletableFuture<Void> deleteTopic(String topicName);
 
-	CompletableFuture<Set<TopicConfigEntry>> getTopicConfig(String topicName);
+    CompletableFuture<Set<TopicConfigEntry>> getTopicConfig(String topicName);
 
-	CompletableFuture<Map<String, String>> getDefaultTopicConfig();
+    CompletableFuture<Map<String, String>> getDefaultTopicConfig();
 
-	CompletableFuture<Void> setTopicConfig(String topicName, Map<String, String> configValues);
+    CompletableFuture<Void> setTopicConfig(String topicName, Map<String, String> configValues);
 
-	CompletableFuture<Integer> getActiveBrokerCount();
+    CompletableFuture<Integer> getActiveBrokerCount();
 
-	CompletableFuture<TopicCreateParams> buildTopicCreateParams(String topicName);
+    CompletableFuture<TopicCreateParams> buildTopicCreateParams(String topicName);
 
-	CompletableFuture<List<ConsumerRecord<String, String>>> peekTopicData(String topicName, int limit);
-	
-	CompletableFuture<String> getKafkaServerVersion();
+    CompletableFuture<List<ConsumerRecord<String, String>>> peekTopicData(String topicName, int limit);
+
+    CompletableFuture<String> getKafkaServerVersion();
 }

@@ -7,8 +7,8 @@ import lombok.Setter;
 @Setter
 public class CertificateResponseDto {
 
-	private String fileName;
+    private String fileName;
 
-	private String fileContentsBase64;
+    private String fileContentsBase64;
 
 }

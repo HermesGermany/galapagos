@@ -9,9 +9,9 @@ import com.hermesworld.ais.galapagos.util.TimeService;
 @Component
 public class TimeServiceImpl implements TimeService {
 
-	@Override
-	public ZonedDateTime getTimestamp() {
-		return ZonedDateTime.now();
-	}
+    @Override
+    public ZonedDateTime getTimestamp() {
+        return ZonedDateTime.now();
+    }
 
 }

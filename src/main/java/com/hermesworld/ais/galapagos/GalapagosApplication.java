@@ -19,43 +19,43 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableScheduling
 public class GalapagosApplication implements ApplicationRunner {
 
-	private static final String ADMIN_JOB_OPTION_PREFIX = "galapagos.jobs.";
+    private static final String ADMIN_JOB_OPTION_PREFIX = "galapagos.jobs.";
 
-	@Autowired
-	private List<AdminJob> adminJobs;
+    @Autowired
+    private List<AdminJob> adminJobs;
 
-	@Autowired
-	private ApplicationContext applicationContext;
+    @Autowired
+    private ApplicationContext applicationContext;
 
-	public static void main(String[] args) {
-		Security.setProperty("crypto.policy", "unlimited");
-		Security.addProvider(new BouncyCastleProvider());
+    public static void main(String[] args) {
+        Security.setProperty("crypto.policy", "unlimited");
+        Security.addProvider(new BouncyCastleProvider());
 
-		SpringApplication.run(GalapagosApplication.class, args);
-	}
+        SpringApplication.run(GalapagosApplication.class, args);
+    }
 
-	@Override
-	public void run(ApplicationArguments args) throws Exception {
-		boolean exit = false;
-		for (String optionName : args.getOptionNames()) {
-			if (optionName.startsWith(ADMIN_JOB_OPTION_PREFIX)) {
-				String jobName = optionName.substring(ADMIN_JOB_OPTION_PREFIX.length());
-				AdminJob job = adminJobs.stream().filter(j -> jobName.equals(j.getJobName())).findFirst()
-						.orElseThrow(() -> new IllegalArgumentException("Unknown Galapagos Admin job type: " + optionName));
-				try {
-					job.run(args);
-					exit = true;
-				}
-				catch (Throwable t) {
-					t.printStackTrace();
-					SpringApplication.exit(applicationContext, () -> 1);
-				}
-			}
-		}
+    @Override
+    public void run(ApplicationArguments args) throws Exception {
+        boolean exit = false;
+        for (String optionName : args.getOptionNames()) {
+            if (optionName.startsWith(ADMIN_JOB_OPTION_PREFIX)) {
+                String jobName = optionName.substring(ADMIN_JOB_OPTION_PREFIX.length());
+                AdminJob job = adminJobs.stream().filter(j -> jobName.equals(j.getJobName())).findFirst().orElseThrow(
+                        () -> new IllegalArgumentException("Unknown Galapagos Admin job type: " + optionName));
+                try {
+                    job.run(args);
+                    exit = true;
+                }
+                catch (Throwable t) {
+                    t.printStackTrace();
+                    SpringApplication.exit(applicationContext, () -> 1);
+                }
+            }
+        }
 
-		if (exit) {
-			SpringApplication.exit(applicationContext, () -> 0);
-		}
-	}
+        if (exit) {
+            SpringApplication.exit(applicationContext, () -> 0);
+        }
+    }
 
 }

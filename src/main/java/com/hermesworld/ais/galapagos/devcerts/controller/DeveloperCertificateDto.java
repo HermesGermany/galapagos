@@ -7,13 +7,13 @@ import lombok.Getter;
 @Getter
 public class DeveloperCertificateDto {
 
-	private String fileName;
+    private String fileName;
 
-	private String fileContentsBase64;
+    private String fileContentsBase64;
 
-	public DeveloperCertificateDto(String fileName, String fileContentsBase64) {
-		this.fileName = fileName;
-		this.fileContentsBase64 = fileContentsBase64;
-	}
+    public DeveloperCertificateDto(String fileName, String fileContentsBase64) {
+        this.fileName = fileName;
+        this.fileContentsBase64 = fileContentsBase64;
+    }
 
 }

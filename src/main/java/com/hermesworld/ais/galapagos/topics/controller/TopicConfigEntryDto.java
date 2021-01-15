@@ -7,22 +7,22 @@ import lombok.Getter;
 @Getter
 public class TopicConfigEntryDto {
 
-	private String name;
+    private String name;
 
-	private String value;
+    private String value;
 
-	private boolean isDefault;
+    private boolean isDefault;
 
-	private boolean readOnly;
+    private boolean readOnly;
 
-	private boolean sensitive;
+    private boolean sensitive;
 
-	public TopicConfigEntryDto(String name, String value, boolean isDefault, boolean readOnly, boolean sensitive) {
-		this.name = name;
-		this.value = value;
-		this.isDefault = isDefault;
-		this.readOnly = readOnly;
-		this.sensitive = sensitive;
-	}
+    public TopicConfigEntryDto(String name, String value, boolean isDefault, boolean readOnly, boolean sensitive) {
+        this.name = name;
+        this.value = value;
+        this.isDefault = isDefault;
+        this.readOnly = readOnly;
+        this.sensitive = sensitive;
+    }
 
 }

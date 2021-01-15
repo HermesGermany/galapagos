@@ -8,11 +8,11 @@ import java.util.Map;
  */
 public interface EventContextSource {
 
-	/**
-	 * Builds and returns the map of context values provided by this context source.
-	 *
-	 * @return A (possibly empty) map of context values, never <code>null</code>.
-	 */
-	Map<String, Object> getContextValues();
+    /**
+     * Builds and returns the map of context values provided by this context source.
+     *
+     * @return A (possibly empty) map of context values, never <code>null</code>.
+     */
+    Map<String, Object> getContextValues();
 
 }
