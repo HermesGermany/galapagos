@@ -120,7 +120,7 @@ export class TopicsService {
     private supportedConfigs = new ReplayContainer<TopicConfigDescriptor[]>(() => this.http.get('/api/util/supported-kafka-configs'));
 
     private createDefaults = new ReplayContainer<TopicCreateDefaults>(() =>
-        this.http.post('/api/util/topic-create-defaults', JSON.stringify({}), {headers: jsonHeader()}));
+        this.http.post('/api/util/topic-create-defaults', JSON.stringify({}), { headers: jsonHeader() }));
 
     private defaultTopicConfigs: { [env: string]: ReplayContainer<TopicConfigValues> } = {};
 
@@ -142,12 +142,12 @@ export class TopicsService {
             deprecationText: deprecatedDescription,
             eolDate: eolDate
         });
-        return this.http.post('/api/topics/' + this.currentEnvironment.id + '/' + topicName, body, {headers: jsonHeader()})
+        return this.http.post('/api/topics/' + this.currentEnvironment.id + '/' + topicName, body, { headers: jsonHeader() })
             .toPromise().then(() => this.topicsList.refresh());
     }
 
     public unDeprecateTopic(topicName: string): Promise<any> {
-        return this.http.post('/api/topics/' + this.currentEnvironment.id + '/' + topicName, {}, {headers: jsonHeader()})
+        return this.http.post('/api/topics/' + this.currentEnvironment.id + '/' + topicName, {}, { headers: jsonHeader() })
             .toPromise().then(() => this.topicsList.refresh());
     }
 
@@ -165,7 +165,7 @@ export class TopicsService {
             businessCapabilityId: businessCapability ? businessCapability.id : null
         });
 
-        return this.http.post('/api/util/topicname', body, {headers: jsonHeader()}).pipe(map(data => data['name'])).toPromise();
+        return this.http.post('/api/util/topicname', body, { headers: jsonHeader() }).pipe(map(data => data['name'])).toPromise();
     }
 
     public async createTopic(topicType: TopicType, appInfo: UserApplicationInfo, environmentId: string, topicName: string,
@@ -179,7 +179,7 @@ export class TopicsService {
             ...createParams
         });
 
-        return this.http.put('/api/topics/' + environmentId, body, {headers: jsonHeader()}).toPromise()
+        return this.http.put('/api/topics/' + environmentId, body, { headers: jsonHeader() }).toPromise()
             .then(() => this.topicsList.refresh());
     }
 
@@ -226,11 +226,11 @@ export class TopicsService {
             jsonSchema: jsonSchema
         });
 
-        return this.http.put('/api/schemas/' + environmentId + '/' + topicName, body, {headers: jsonHeader()}).toPromise();
+        return this.http.put('/api/schemas/' + environmentId + '/' + topicName, body, { headers: jsonHeader() }).toPromise();
     }
 
     public deleteLatestSchema(topicName: string, environmentId: string): Promise<any> {
-        return this.http.delete('/api/schemas/' + environmentId + '/' + topicName, {headers: jsonHeader()}).toPromise();
+        return this.http.delete('/api/schemas/' + environmentId + '/' + topicName, { headers: jsonHeader() }).toPromise();
     }
 
     public subscribeToTopic(topicName: string, environmentId: string, applicationId: string, description: string): Promise<any> {
@@ -239,7 +239,7 @@ export class TopicsService {
             description: description
         });
 
-        return this.http.put('/api/applications/' + applicationId + '/subscriptions/' + environmentId, body, {headers: jsonHeader()})
+        return this.http.put('/api/applications/' + applicationId + '/subscriptions/' + environmentId, body, { headers: jsonHeader() })
             .pipe(take(1)).toPromise();
     }
 
@@ -253,7 +253,7 @@ export class TopicsService {
             newState: approved ? 'APPROVED' : 'REJECTED'
         });
         return this.http.post('/api/topics/' + environmentId + '/' + topicName + '/subscriptions/' + subscriptionId,
-            body, {headers: jsonHeader()}).toPromise();
+            body, { headers: jsonHeader() }).toPromise();
     }
 
     public getSupportedConfigProperties(): Observable<TopicConfigDescriptor[]> {
@@ -286,7 +286,7 @@ export class TopicsService {
 
     public async updateTopicConfig(topicName: string, environmentId: string, config: TopicUpdateConfigValue[]): Promise<any> {
         return this.http.post('/api/topicconfigs/' + environmentId + '/' + topicName,
-            JSON.stringify(config), {headers: jsonHeader()}).toPromise();
+            JSON.stringify(config), { headers: jsonHeader() }).toPromise();
     }
 
     public getTopicData(topicName: string, environmentId: string): Promise<TopicRecord[]> {
