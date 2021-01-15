@@ -139,7 +139,7 @@ export class SingleTopicComponent implements OnInit {
             map(value => value[0] && value[1] && !!value[1].find(app => value[0].ownerApplication.id === app.id))
         );
 
-        this.environmentsService.getCurrentEnvironment().subscribe({ next: env => (this.translateParams.environmentName = env.name) });
+        this.environmentsService.getCurrentEnvironment().subscribe({next: env => (this.translateParams.environmentName = env.name)});
 
 
         // another nice Observable construct :-)
@@ -149,7 +149,7 @@ export class SingleTopicComponent implements OnInit {
             .pipe(startWith(this.translateService.currentLang));
         this.deprecateTopicHtml = combineLatest([currentLang, this.serverInfoService.getUiConfig()])
             .pipe(flatMap(val => this.translateService.get('DEPRECATE_TOPIC_HTML',
-                { period: this.toPeriodText(val[1].minDeprecationTime) }).pipe(map(o => o.toString()))
+                {period: this.toPeriodText(val[1].minDeprecationTime)}).pipe(map(o => o.toString()))
             ));
         this.minDeprecationDate = this.serverInfoService.getUiConfig()
             .pipe(map(config => this.getValidDatesDeprecation(config.minDeprecationTime)));
@@ -266,12 +266,12 @@ export class SingleTopicComponent implements OnInit {
 
     openDeleteConfirmDlg(content: any) {
         this.topicNameConfirmText = '';
-        this.modalService.open(content, { ariaLabelledBy: 'modal-title', size: 'lg' });
+        this.modalService.open(content, {ariaLabelledBy: 'modal-title', size: 'lg'});
     }
 
     async openRejectConfirmDlg(subscription: TopicSubscription, content: any) {
         this.selectedSubscription = subscription;
-        this.modalService.open(content, { ariaLabelledBy: 'modal-title', size: 'lg' });
+        this.modalService.open(content, {ariaLabelledBy: 'modal-title', size: 'lg'});
     }
 
     async deleteTopic(): Promise<any> {
@@ -338,7 +338,7 @@ export class SingleTopicComponent implements OnInit {
                 this.topicDataLoading = false;
             });
 
-        this.modalService.open(content, { ariaLabelledBy: 'modal-title', size: 'lg', scrollable: true });
+        this.modalService.open(content, {ariaLabelledBy: 'modal-title', size: 'lg', scrollable: true});
     }
 
     formatDataValues() {
@@ -347,6 +347,7 @@ export class SingleTopicComponent implements OnInit {
             try {
                 const obj = JSON.parse(val);
                 return {
+                    partition: rec.partition,
                     offset: rec.offset,
                     key: rec.key,
                     value: JSON.stringify(obj, null, 4)
