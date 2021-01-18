@@ -32,7 +32,7 @@ export class UserSettingsComponent implements OnInit {
     ngOnInit() {
         this.devCertsEnabledEnvironments = combineLatest(
             [this.certificateService.getEnvironmentsWithDevCertSupport(),
-            this.environmentsService.getEnvironments()])
+                this.environmentsService.getEnvironments()])
             .pipe(map(value => value[1].filter(env => value[0].indexOf(env.id) > -1)));
 
         // wrap ngx-translate service EventEmitter into a useful replay observable
@@ -46,8 +46,8 @@ export class UserSettingsComponent implements OnInit {
                 }
                 const expiresAt = moment(values[1].expiresAt).locale(values[0]).format('L LT');
                 return this.translate.get('EXISTING_DEVELOPER_CERTIFICATE_HTML', { expiresAt: expiresAt })
-                    .pipe(map(o => <string>o));
-        })).pipe(shareReplay());
+                    .pipe(map(o => o as string));
+            })).pipe(shareReplay());
     }
 
     updateExistingCertificateMessage() {
@@ -59,7 +59,7 @@ export class UserSettingsComponent implements OnInit {
 
         this.certificateService.getDeveloperCertificateInfo(this.selectedEnvironment.id)
             .pipe(take(1)).toPromise().then(val => this.existingCertificateInfo.next(val),
-            err => { });
+                err => { });
     }
 
     async generateCertificate() {
@@ -70,6 +70,6 @@ export class UserSettingsComponent implements OnInit {
             () => this.toasts.addSuccessToast(successMsg),
             err => this.toasts.addHttpErrorToast(errorMsg, err)
         )
-        .then(() => this.updateExistingCertificateMessage());
+            .then(() => this.updateExistingCertificateMessage());
     }
 }

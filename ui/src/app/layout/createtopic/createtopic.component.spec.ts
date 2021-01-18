@@ -78,10 +78,10 @@ describe('CreateTopicComponent', () => {
         fixture.detectChanges();
 
         // there must be an anchor element with given href and text
-        const link: HTMLElement = <HTMLElement>Array.from(fixture.nativeElement.querySelectorAll('a')).find(
-            elem => elem['href'] === 'https://naming-convention.nosuch.domain/');
+        const link: HTMLElement = Array.from(fixture.nativeElement.querySelectorAll('a')).find(
+            elem => elem['href'] === 'https://naming-convention.nosuch.domain/') as HTMLElement;
 
-        const icon: HTMLElement = <HTMLElement>fixture.nativeElement.querySelector('.fa-info-circle');
+        const icon: HTMLElement = fixture.nativeElement.querySelector('.fa-info-circle') as HTMLElement;
 
         expect(link).toBeTruthy();
         expect(icon).toBeTruthy();

@@ -31,11 +31,11 @@ export class CertificateService {
 
     public getApplicationCertificates(applicationId: string): Promise<ApplicationCertificate[]> {
         return this.http.get('/api/certificates/' + applicationId).pipe(
-            map(val => <ApplicationCertificate[]>val)).pipe(take(1)).toPromise();
+            map(val => val as ApplicationCertificate[])).pipe(take(1)).toPromise();
     }
 
     public async requestAndDownloadApplicationCertificate(applicationId: string, environmentId: string, csrData: string,
-                                                          topicPrefix: string, extendCertificate: boolean): Promise<any> {
+        topicPrefix: string, extendCertificate: boolean): Promise<any> {
         let body = '';
         if (csrData) {
             body = JSON.stringify({
@@ -51,20 +51,20 @@ export class CertificateService {
         }
         return this.http.post('/api/certificates/' + applicationId + '/' + environmentId, body, { headers: jsonHeader() }).toPromise()
             .then(resp => {
-                const ra = <any>resp;
+                const ra = resp as any;
                 saveAs(this.base64ToBlob(ra.fileContentsBase64), ra.fileName);
             });
     }
 
     public async downloadDeveloperCertificate(environmentId: string): Promise<any> {
         return this.http.post('/api/me/certificates/' + environmentId, '').toPromise().then(resp => {
-            const ra = <any>resp;
+            const ra = resp as any;
             saveAs(this.base64ToBlob(ra.fileContentsBase64), ra.fileName);
         });
     }
 
     public getDeveloperCertificateInfo(environmentId: string): Observable<DeveloperCertificateInfo> {
-        return this.http.get('/api/me/certificates/' + environmentId).pipe(map(data => <DeveloperCertificateInfo>data));
+        return this.http.get('/api/me/certificates/' + environmentId).pipe(map(data => data as DeveloperCertificateInfo));
     }
 
     public getEnvironmentsWithDevCertSupport(): Observable<string[]> {
@@ -76,19 +76,19 @@ export class CertificateService {
         const byteArrays = [];
 
         for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
-          const slice = byteCharacters.slice(offset, offset + sliceSize);
+            const slice = byteCharacters.slice(offset, offset + sliceSize);
 
-          const byteNumbers = new Array(slice.length);
-          for (let i = 0; i < slice.length; i++) {
-            byteNumbers[i] = slice.charCodeAt(i);
-          }
+            const byteNumbers = new Array(slice.length);
+            for (let i = 0; i < slice.length; i++) {
+                byteNumbers[i] = slice.charCodeAt(i);
+            }
 
-          const byteArray = new Uint8Array(byteNumbers);
-          byteArrays.push(byteArray);
+            const byteArray = new Uint8Array(byteNumbers);
+            byteArrays.push(byteArray);
         }
 
-        return new Blob(byteArrays, {type: 'application/octet-stream'});
-      }
+        return new Blob(byteArrays, { type: 'application/octet-stream' });
+    }
 
 
 }

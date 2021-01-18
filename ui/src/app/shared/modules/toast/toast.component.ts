@@ -1,5 +1,6 @@
 /*
 Based on https://github.com/ng-bootstrap/ng-bootstrap/blob/ffcdad48aaafbcf97b15ae15b01c36436ab485ca/src/toast/toast.ts
+Mainly copied and customized for clean header styles according to toast type
 */
 
 import {
@@ -17,14 +18,14 @@ import {
     ViewEncapsulation,
     HostBinding,
     ViewChild,
-    ElementRef,
+    ElementRef
 } from '@angular/core';
 
 const TYPE_HEADER_CLASS_MAP = {
-    'info': 'bg-info text-white',
-    'success': 'bg-success text-white',
-    'danger': 'bg-danger text-white',
-    'warning': 'bg-warning text-dark'
+    info: 'bg-info text-white',
+    success: 'bg-success text-white',
+    danger: 'bg-danger text-white',
+    warning: 'bg-warning text-dark'
 };
 
 export interface ToastHideEvent {
@@ -60,7 +61,6 @@ export class GalapagosToastHeaderDirective {}
     styleUrls: ['./toast.scss']
 })
 export class GalapagosToastComponent implements AfterContentInit, OnChanges {
-    private _timeoutID;
 
     /**
      * Delay after which the toast will hide (ms).
@@ -102,7 +102,7 @@ export class GalapagosToastComponent implements AfterContentInit, OnChanges {
      * Additionally this output is purely informative. The toast won't disappear. It's up to the user to take care of
      * that.
      */
-    // tslint:disable-next-line: no-output-rename
+    // eslint-disable-next-line @angular-eslint/no-output-rename
     @Output('hide') hideOutput = new EventEmitter<ToastHideEvent>();
 
     @HostBinding('attr.role') role = 'alert';
@@ -114,6 +114,8 @@ export class GalapagosToastComponent implements AfterContentInit, OnChanges {
     @HostBinding('class.toast') classToast = true;
 
     @HostBinding('class.show') classShow = true;
+
+    private _timeoutID;
 
     constructor(@Attribute('aria-live') ariaLive: string) {
         this.ariaLive = ariaLive;

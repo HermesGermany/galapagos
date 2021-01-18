@@ -120,7 +120,7 @@ export class TopicsService {
     private supportedConfigs = new ReplayContainer<TopicConfigDescriptor[]>(() => this.http.get('/api/util/supported-kafka-configs'));
 
     private createDefaults = new ReplayContainer<TopicCreateDefaults>(() =>
-        this.http.post('/api/util/topic-create-defaults', JSON.stringify({}), {headers: jsonHeader()}));
+        this.http.post('/api/util/topic-create-defaults', JSON.stringify({}), { headers: jsonHeader() }));
 
     private defaultTopicConfigs: { [env: string]: ReplayContainer<TopicConfigValues> } = {};
 
@@ -142,12 +142,12 @@ export class TopicsService {
             deprecationText: deprecatedDescription,
             eolDate: eolDate
         });
-        return this.http.post('/api/topics/' + this.currentEnvironment.id + '/' + topicName, body, {headers: jsonHeader()})
+        return this.http.post('/api/topics/' + this.currentEnvironment.id + '/' + topicName, body, { headers: jsonHeader() })
             .toPromise().then(() => this.topicsList.refresh());
     }
 
     public unDeprecateTopic(topicName: string): Promise<any> {
-        return this.http.post('/api/topics/' + this.currentEnvironment.id + '/' + topicName, {}, {headers: jsonHeader()})
+        return this.http.post('/api/topics/' + this.currentEnvironment.id + '/' + topicName, {}, { headers: jsonHeader() })
             .toPromise().then(() => this.topicsList.refresh());
     }
 
@@ -162,7 +162,7 @@ export class TopicsService {
     }
 
     public getTopicNameSuggestion(topicType: TopicType, appInfo: UserApplicationInfo,
-                                  businessCapability: BusinessCapabilityInfo): Promise<string> {
+        businessCapability: BusinessCapabilityInfo): Promise<string> {
         // TODO this is server-side business logic...
         if (topicType !== 'INTERNAL' && !businessCapability) {
             return Promise.resolve('');
@@ -175,11 +175,11 @@ export class TopicsService {
             businessCapabilityId: businessCapability ? businessCapability.id : null
         });
 
-        return this.http.post('/api/util/topicname', body, {headers: jsonHeader()}).pipe(map(data => data['name'])).toPromise();
+        return this.http.post('/api/util/topicname', body, { headers: jsonHeader() }).pipe(map(data => data['name'])).toPromise();
     }
 
     public async createTopic(topicType: TopicType, appInfo: UserApplicationInfo, environmentId: string, topicName: string,
-                             description: string, subscriptionApprovalRequired: boolean, createParams: TopicCreateParams): Promise<any> {
+        description: string, subscriptionApprovalRequired: boolean, createParams: TopicCreateParams): Promise<any> {
         const body = JSON.stringify({
             name: topicName,
             topicType: topicType,
@@ -189,7 +189,7 @@ export class TopicsService {
             ...createParams
         });
 
-        return this.http.put('/api/topics/' + environmentId, body, {headers: jsonHeader()}).toPromise()
+        return this.http.put('/api/topics/' + environmentId, body, { headers: jsonHeader() }).toPromise()
             .then(() => this.topicsList.refresh());
     }
 
@@ -208,20 +208,18 @@ export class TopicsService {
             .pipe(map(envs => envs.find(env => env.id === environmentId)));
 
         const toTopicSubscription = (d: any, apps: ApplicationInfo[], userApps: UserApplicationInfo[],
-                                     env: KafkaEnvironment): TopicSubscription => {
-            return {
-                id: <string>d.id,
-                clientApplication: apps.find(a => a.id === d.clientApplicationId),
-                canDelete: userApps.findIndex(a => a.id === d.clientApplicationId) > -1 && !env.stagingOnly,
-                state: <SubscriptionState>d.state
-            };
-        };
+            env: KafkaEnvironment): TopicSubscription => ({
+            id: d.id as string,
+            clientApplication: apps.find(a => a.id === d.clientApplicationId),
+            canDelete: userApps.findIndex(a => a.id === d.clientApplicationId) > -1 && !env.stagingOnly,
+            state: d.state as SubscriptionState
+        });
 
         // valsArray receives available applications in [0], user applications in [1], and environment in [2]
         return forkJoin([appsObs, userAppsObs, envObs]).pipe(concatMap(valsArray =>
             this.http.get('/api/topics/' + environmentId + '/' + topicName + '/subscriptions?includeNonApproved=true')
                 .pipe(map(val => {
-                    const data = <Array<any>>val;
+                    const data = val as Array<any>;
                     return data.filter(d => d.environmentId === environmentId)
                         .map(d => toTopicSubscription(d, valsArray[0], valsArray[1], valsArray[2])).filter(s => s.clientApplication);
                 }))
@@ -229,7 +227,7 @@ export class TopicsService {
     }
 
     public getTopicSchemas(topicName: string, environmentId: string): Promise<SchemaMetadata[]> {
-        return this.http.get('/api/schemas/' + environmentId + '/' + topicName).pipe(map(d => <SchemaMetadata[]>d))
+        return this.http.get('/api/schemas/' + environmentId + '/' + topicName).pipe(map(d => d as SchemaMetadata[]))
             .pipe(map(schemas => this.markLatest(schemas))).toPromise();
     }
 
@@ -238,11 +236,11 @@ export class TopicsService {
             jsonSchema: jsonSchema
         });
 
-        return this.http.put('/api/schemas/' + environmentId + '/' + topicName, body, {headers: jsonHeader()}).toPromise();
+        return this.http.put('/api/schemas/' + environmentId + '/' + topicName, body, { headers: jsonHeader() }).toPromise();
     }
 
     public deleteLatestSchema(topicName: string, environmentId: string): Promise<any> {
-        return this.http.delete('/api/schemas/' + environmentId + '/' + topicName, {headers: jsonHeader()}).toPromise();
+        return this.http.delete('/api/schemas/' + environmentId + '/' + topicName, { headers: jsonHeader() }).toPromise();
     }
 
     public subscribeToTopic(topicName: string, environmentId: string, applicationId: string, description: string): Promise<any> {
@@ -251,7 +249,7 @@ export class TopicsService {
             description: description
         });
 
-        return this.http.put('/api/applications/' + applicationId + '/subscriptions/' + environmentId, body, {headers: jsonHeader()})
+        return this.http.put('/api/applications/' + applicationId + '/subscriptions/' + environmentId, body, { headers: jsonHeader() })
             .pipe(take(1)).toPromise();
     }
 
@@ -265,7 +263,7 @@ export class TopicsService {
             newState: approved ? 'APPROVED' : 'REJECTED'
         });
         return this.http.post('/api/topics/' + environmentId + '/' + topicName + '/subscriptions/' + subscriptionId,
-            body, {headers: jsonHeader()}).toPromise();
+            body, { headers: jsonHeader() }).toPromise();
     }
 
     public getSupportedConfigProperties(): Observable<TopicConfigDescriptor[]> {
@@ -274,7 +272,7 @@ export class TopicsService {
 
     public getTopicConfig(topicName: string, environmentId: string): Observable<TopicConfigValues> {
         return this.http.get('/api/topicconfigs/' + environmentId + '/' + topicName).pipe(map(vals =>
-            (<Array<any>>vals).reduce((pv, cv) => {
+            (vals as Array<any>).reduce((pv, cv) => {
                 pv[cv.name] = cv.value;
                 return pv;
             }, {})));
@@ -289,7 +287,7 @@ export class TopicsService {
     }
 
     public getEnvironmentsForTopic(topicName: string): Observable<string[]> {
-        return this.http.get('/api/util/environments-for-topic/' + topicName).pipe(map(v => <string[]>v));
+        return this.http.get('/api/util/environments-for-topic/' + topicName).pipe(map(v => v as string[]));
     }
 
     public getTopicCreateDefaults(): Observable<TopicCreateDefaults> {
@@ -298,16 +296,16 @@ export class TopicsService {
 
     public async updateTopicConfig(topicName: string, environmentId: string, config: TopicUpdateConfigValue[]): Promise<any> {
         return this.http.post('/api/topicconfigs/' + environmentId + '/' + topicName,
-            JSON.stringify(config), {headers: jsonHeader()}).toPromise();
+            JSON.stringify(config), { headers: jsonHeader() }).toPromise();
     }
 
     public getTopicData(topicName: string, environmentId: string): Promise<TopicRecord[]> {
-        return this.http.get('/api/util/peek-data/' + environmentId + '/' + topicName).pipe(map(d => <TopicRecord[]>d)).toPromise();
+        return this.http.get('/api/util/peek-data/' + environmentId + '/' + topicName).pipe(map(d => d as TopicRecord[])).toPromise();
     }
 
     private buildTopicsRefresher(environmentId: string): () => Observable<Topic[]> {
-        const toTopicArray = (values: [Object, ApplicationInfo[]]) => {
-            const arr: Array<any> = <Array<any>>values[0];
+        const toTopicArray = (values: [any, ApplicationInfo[]]) => {
+            const arr: Array<any> = values[0] as Array<any>;
             const apps = values[1];
 
             const result: Topic[] = arr.map(a => ({

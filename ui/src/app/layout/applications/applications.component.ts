@@ -50,7 +50,7 @@ export class ApplicationsComponent implements OnInit {
         applicationName: null,
         applicationId: null,
         environment: null,
-        existingCertificate: <ApplicationCertificate>null,
+        existingCertificate: null as ApplicationCertificate,
         csrData: null,
         topicPrefixes: [],
         selectedTopicPrefix: null,
@@ -107,15 +107,14 @@ export class ApplicationsComponent implements OnInit {
 
         this.userApplications = combineLatest([obsTopics, obsPlainUserApplications, this.environmentsService.getCurrentEnvironment()])
             .pipe(map(([topics, apps, env]) => {
-                const getOwningTopicsForApp = (appId: string): string[] => {
-                    return topics.filter(topic => topic.ownerApplication.id === appId && topic.topicType !== 'INTERNAL').map(t => t.name);
-                };
+                const getOwningTopicsForApp = (appId: string): string[] =>
+                    topics.filter(topic => topic.ownerApplication.id === appId && topic.topicType !== 'INTERNAL').map(t => t.name);
 
-                return <UserApplicationInfoWithTopics[]>apps.map(app => ({
+                return apps.map(app => ({
                     ...app, owningTopics: getOwningTopicsForApp(app.id),
                     usingTopics: this.applicationsService.getApplicationSubscriptions(app.id, env.id)
                         .pipe(map(subs => subs.map(s => s.topicName)))
-                }));
+                })) as UserApplicationInfoWithTopics[];
             })).pipe(shareReplay(1));
 
         this.environments = this.environmentsService.getEnvironments();

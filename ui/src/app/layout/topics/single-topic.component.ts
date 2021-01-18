@@ -1,7 +1,13 @@
 import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { routerTransition } from '../../router.animations';
 import { ActivatedRoute, Router } from '@angular/router';
-import { SchemaMetadata, Topic, TopicRecord, TopicsService, TopicSubscription } from '../../shared/services/topics.service';
+import {
+    SchemaMetadata,
+    Topic,
+    TopicRecord,
+    TopicsService,
+    TopicSubscription
+} from '../../shared/services/topics.service';
 import { combineLatest, Observable } from 'rxjs';
 import { finalize, flatMap, map, shareReplay, startWith, take } from 'rxjs/operators';
 import { ApplicationsService, UserApplicationInfo } from '../../shared/services/applications.service';
@@ -78,7 +84,7 @@ export class SingleTopicComponent implements OnInit {
 
     deprecateTopicHtml: Observable<string>;
 
-    minDeprecationDate: Observable<{ year: number, month: number, day: number }>;
+    minDeprecationDate: Observable<{ year: number; month: number; day: number }>;
 
     updatedTopicDescription: string;
 
@@ -116,7 +122,7 @@ export class SingleTopicComponent implements OnInit {
     }
 
     ngOnInit() {
-        this.topicName = this.route.params.pipe(map(params => <string>params['name'])).pipe(shareReplay(1));
+        this.topicName = this.route.params.pipe(map(params => params['name'] as string)).pipe(shareReplay(1));
         this.selectedEnvironment = this.environmentsService.getCurrentEnvironment();
 
         const listTopics = this.topicService.listTopics();
@@ -141,7 +147,7 @@ export class SingleTopicComponent implements OnInit {
             map(value => value[0] && value[1] && !!value[1].find(app => value[0].ownerApplication.id === app.id))
         );
 
-        this.environmentsService.getCurrentEnvironment().subscribe({next: env => (this.translateParams.environmentName = env.name)});
+        this.environmentsService.getCurrentEnvironment().subscribe({ next: env => (this.translateParams.environmentName = env.name) });
 
 
         // another nice Observable construct :-)
@@ -151,13 +157,13 @@ export class SingleTopicComponent implements OnInit {
             .pipe(startWith(this.translateService.currentLang));
         this.deprecateTopicHtml = combineLatest([currentLang, this.serverInfoService.getUiConfig()])
             .pipe(flatMap(val => this.translateService.get('DEPRECATE_TOPIC_HTML',
-                {period: this.toPeriodText(val[1].minDeprecationTime)}).pipe(map(o => o.toString()))
+                { period: this.toPeriodText(val[1].minDeprecationTime) }).pipe(map(o => o.toString()))
             ));
         this.minDeprecationDate = this.serverInfoService.getUiConfig()
             .pipe(map(config => this.getValidDatesDeprecation(config.minDeprecationTime)));
     }
 
-    getValidDatesDeprecation(date: { years: number; months: number; days: number; }) {
+    getValidDatesDeprecation(date: { years: number; months: number; days: number }) {
         const minDeprecationTime = moment().add(date.years, 'y')
             .add(date.months, 'month')
             .add(date.days, 'days').locale(this.translateService.currentLang);
@@ -213,14 +219,14 @@ export class SingleTopicComponent implements OnInit {
 
         return this.topicService.subscribeToTopic(topic.name, environment.id, this.selectedApplication.id, this.subscriptionDescription)
             .then(() => {
-                    if (topic.subscriptionApprovalRequired) {
-                        this.toasts.addSuccessToast('Die Topic-Owner wurden über die Abonnement-Anfrage informiert');
-                    } else {
-                        this.toasts.addSuccessToast('Die Anwendung hat das Topic nun abonniert');
-                    }
-                    this.loadSubscribers(topic, environment.id);
-                },
-                err => this.toasts.addHttpErrorToast('Das Abonnement konnte nicht erstellt werden', err)
+                if (topic.subscriptionApprovalRequired) {
+                    this.toasts.addSuccessToast('Die Topic-Owner wurden über die Abonnement-Anfrage informiert');
+                } else {
+                    this.toasts.addSuccessToast('Die Anwendung hat das Topic nun abonniert');
+                }
+                this.loadSubscribers(topic, environment.id);
+            },
+            err => this.toasts.addHttpErrorToast('Das Abonnement konnte nicht erstellt werden', err)
             )
             .finally(() => this.subscriptionDescription = null);
     }
@@ -261,33 +267,20 @@ export class SingleTopicComponent implements OnInit {
         );
     }
 
-    private async updateSubscription(sub: TopicSubscription, approve: boolean, successMessage: string, errorMessage: string) {
-        const topic = await this.topic.pipe(take(1)).toPromise();
-        const environment = await this.environmentsService.getCurrentEnvironment().pipe(take(1)).toPromise();
-
-        return this.topicService.updateTopicSubscription(environment.id, topic.name, sub.id, approve).then(
-            () => {
-                this.toasts.addSuccessToast(successMessage);
-                this.loadSubscribers(topic, environment.id);
-            },
-            err => this.toasts.addHttpErrorToast(errorMessage, err)
-        );
-    }
-
     openDeleteConfirmDlg(content: any) {
         this.topicNameConfirmText = '';
-        this.modalService.open(content, {ariaLabelledBy: 'modal-title', size: 'lg'});
+        this.modalService.open(content, { ariaLabelledBy: 'modal-title', size: 'lg' });
     }
 
     async openChangeDescDlg(content: any) {
         const topic = await this.topic.pipe(take(1)).toPromise();
         this.updatedTopicDescription = topic.description;
-        this.modalService.open(content, {ariaLabelledBy: 'modal-title', size: 'lg'});
+        this.modalService.open(content, { ariaLabelledBy: 'modal-title', size: 'lg' });
     }
 
     async openRejectConfirmDlg(subscription: TopicSubscription, content: any) {
         this.selectedSubscription = subscription;
-        this.modalService.open(content, {ariaLabelledBy: 'modal-title', size: 'lg'});
+        this.modalService.open(content, { ariaLabelledBy: 'modal-title', size: 'lg' });
     }
 
     async deleteTopic(): Promise<any> {
@@ -354,7 +347,7 @@ export class SingleTopicComponent implements OnInit {
                 this.topicDataLoading = false;
             });
 
-        this.modalService.open(content, {ariaLabelledBy: 'modal-title', size: 'lg', scrollable: true});
+        this.modalService.open(content, { ariaLabelledBy: 'modal-title', size: 'lg', scrollable: true });
     }
 
     formatDataValues() {
@@ -373,9 +366,7 @@ export class SingleTopicComponent implements OnInit {
             }
         };
 
-        this.topicData = this.topicData.then(data => {
-            return data.map(rec => tryFormatValue(rec));
-        });
+        this.topicData = this.topicData.then(data => data.map(rec => tryFormatValue(rec)));
 
         return false;
     }
@@ -391,6 +382,19 @@ export class SingleTopicComponent implements OnInit {
         } catch (e) {
             this.toasts.addHttpErrorToast('Could not check for application certificates', e);
         }
+    }
+
+    private async updateSubscription(sub: TopicSubscription, approve: boolean, successMessage: string, errorMessage: string) {
+        const topic = await this.topic.pipe(take(1)).toPromise();
+        const environment = await this.environmentsService.getCurrentEnvironment().pipe(take(1)).toPromise();
+
+        return this.topicService.updateTopicSubscription(environment.id, topic.name, sub.id, approve).then(
+            () => {
+                this.toasts.addSuccessToast(successMessage);
+                this.loadSubscribers(topic, environment.id);
+            },
+            err => this.toasts.addHttpErrorToast(errorMessage, err)
+        );
     }
 
     private loadSubscribers(topic: Topic, environmentId: string) {
@@ -438,9 +442,9 @@ export class SingleTopicComponent implements OnInit {
             .finally(() => (this.loadingSchemas = false));
     }
 
-    private toPeriodText(period: { years: number, months: number, days: number }): string {
+    private toPeriodText(period: { years: number; months: number; days: number }): string {
         const target = moment().add(period.years, 'y').add(period.months, 'month').add(period.days, 'days');
-        const oldThreshold = <number>moment.relativeTimeThreshold('d');
+        const oldThreshold = moment.relativeTimeThreshold('d') as number;
 
         // special treatment: If days set, avoid moment "rounding" to months
         // Note: this still produces wrong results for some values of "days"

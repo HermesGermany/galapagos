@@ -3,7 +3,7 @@
     <span *ngIf="(topic | async)?.deprecated" class="badge badge-danger ml-3 "
           style="vertical-align: text-top">DEPRECATED</span>
     <hr/>
-    <div *ngIf="!(loading | async)" class="mt-3">
+    <div *ngIf="(loading | async) === false" class="mt-3">
         <div *ngIf="topic | async">
             <div class="row">
                 <div class="col-md-12">
@@ -230,7 +230,7 @@
                                        *ngIf="(topic | async)?.subscriptionApprovalRequired">
                                 <span [innerHTML]="'SUBSCRIPTION_APPROVAL_REQUIRED_INFO_HTML' | translate"></span>
                             </ngb-alert>
-                            <div *ngIf="!(loadingApplications | async)">
+                            <div *ngIf="(loadingApplications | async) === false">
                                 <div class="form-group form-inline" *ngIf="(availableApplications | async)?.length">
                                     <label class="mr-3">{{ 'Subscribe for Application' | translate }}</label>
                                     <select class="form-control mr-3" name="appPicker" #appPicker
@@ -326,7 +326,7 @@
                 </div>
             </div>
         </div>
-        <div *ngIf="!(topic | async)">
+        <div *ngIf="(topic | async) === undefined">
             <p>{{ 'TOPIC_NOT_EXISTING_ON_ENVIRONMENT' | translate:translateParams }}</p>
         </div>
     </div>
