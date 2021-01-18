@@ -31,7 +31,7 @@
                                             *ngIf="(isOwnerOfTopic | async) && !(selectedEnvironment | async)?.stagingOnly"
                                             appSpinnerWhile
                                             #p="appSpinnerWhile"
-                                            (click)="(openDeleteConfirmDlg(updateTopicDescription))"
+                                            (click)="openChangeDescDlg(updateTopicDescription)"
                                             class="btn btn-primary btn-sm ml-3"><i class="fas fa-edit"></i>
                                             {{ 'Edit' | translate }}
                                         </button>
@@ -466,7 +466,7 @@
             <span aria-hidden="true">&times;</span>
         </button>
     </div>
-    <div class="modal-body">
+    <div class="modal-body" >
         <div class="mt-3">
             <textarea class="form-control" rows="5" cols="11" [(ngModel)]="updatedTopicDescription"></textarea></div>
     </div>

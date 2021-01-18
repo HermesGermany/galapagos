@@ -279,6 +279,12 @@ export class SingleTopicComponent implements OnInit {
         this.modalService.open(content, { ariaLabelledBy: 'modal-title', size: 'lg' });
     }
 
+    async openChangeDescDlg(content: any) {
+        const topic = await this.topic.pipe(take(1)).toPromise();
+        this.updatedTopicDescription = topic.description;
+        this.modalService.open(content, {ariaLabelledBy: 'modal-title', size: 'lg'});
+    }
+
     async openRejectConfirmDlg(subscription: TopicSubscription, content: any) {
         this.selectedSubscription = subscription;
         this.modalService.open(content, { ariaLabelledBy: 'modal-title', size: 'lg' });
