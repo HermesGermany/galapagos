@@ -1,7 +1,13 @@
 import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { routerTransition } from '../../router.animations';
 import { ActivatedRoute, Router } from '@angular/router';
-import { SchemaMetadata, Topic, TopicRecord, TopicsService, TopicSubscription } from '../../shared/services/topics.service';
+import {
+    SchemaMetadata,
+    Topic,
+    TopicRecord,
+    TopicsService,
+    TopicSubscription
+} from '../../shared/services/topics.service';
 import { combineLatest, Observable } from 'rxjs';
 import { finalize, flatMap, map, shareReplay, startWith, take } from 'rxjs/operators';
 import { ApplicationsService, UserApplicationInfo } from '../../shared/services/applications.service';
@@ -269,7 +275,7 @@ export class SingleTopicComponent implements OnInit {
     async openChangeDescDlg(content: any) {
         const topic = await this.topic.pipe(take(1)).toPromise();
         this.updatedTopicDescription = topic.description;
-        this.modalService.open(content, {ariaLabelledBy: 'modal-title', size: 'lg'});
+        this.modalService.open(content, { ariaLabelledBy: 'modal-title', size: 'lg' });
     }
 
     async openRejectConfirmDlg(subscription: TopicSubscription, content: any) {
