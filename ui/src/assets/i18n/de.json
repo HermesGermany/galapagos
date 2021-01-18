@@ -13,6 +13,8 @@
     "Topic Type": "Topic-Typ",
     "Deprecation Description": "Deprecation Hinweistext",
     "Description": "Beschreibung",
+    "Edit": "Bearbeiten",
+    "Save": "Speichern",
     "Business Capability": "Business Capability",
     "NO_APPS_FOR_CREATING_TOPIC": "Leider hast Du bisher keine Administrationsrechte für eine oder mehrere Anwendungen. Benutze bitte die Seite \"Meine Anwendungen\", um Rechte für eine Anwendung zu beantragen.",
     "Actions": "Aktionen",
