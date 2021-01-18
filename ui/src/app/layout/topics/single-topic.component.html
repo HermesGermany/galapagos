@@ -3,7 +3,7 @@
     <span *ngIf="(topic | async)?.deprecated" class="badge badge-danger ml-3 "
           style="vertical-align: text-top">DEPRECATED</span>
     <hr/>
-    <div *ngIf="!(loading | async)" class="mt-3">
+    <div *ngIf="(loading | async) === false" class="mt-3">
         <div *ngIf="topic | async">
             <div class="row">
                 <div class="col-md-12">
@@ -27,6 +27,14 @@
                                        <span class="deprecatedNote">Deprecated</span>
                                         <span class="deprecationText">{{(topic | async)?.deprecationText}}</span>
                                         </span>
+                                        <button
+                                            *ngIf="(isOwnerOfTopic | async) && !(selectedEnvironment | async)?.stagingOnly"
+                                            appSpinnerWhile
+                                            #p="appSpinnerWhile"
+                                            (click)="openChangeDescDlg(updateTopicDescription)"
+                                            class="btn btn-primary btn-sm ml-3"><i class="fas fa-edit"></i>
+                                            {{ 'Edit' | translate }}
+                                        </button>
                                     </td>
                                 </tr>
                                 <tr *ngIf="(topic | async)?.deprecated">
@@ -222,7 +230,7 @@
                                        *ngIf="(topic | async)?.subscriptionApprovalRequired">
                                 <span [innerHTML]="'SUBSCRIPTION_APPROVAL_REQUIRED_INFO_HTML' | translate"></span>
                             </ngb-alert>
-                            <div *ngIf="!(loadingApplications | async)">
+                            <div *ngIf="(loadingApplications | async) === false">
                                 <div class="form-group form-inline" *ngIf="(availableApplications | async)?.length">
                                     <label class="mr-3">{{ 'Subscribe for Application' | translate }}</label>
                                     <select class="form-control mr-3" name="appPicker" #appPicker
@@ -318,7 +326,7 @@
                 </div>
             </div>
         </div>
-        <div *ngIf="!(topic | async)">
+        <div *ngIf="(topic | async) === undefined">
             <p>{{ 'TOPIC_NOT_EXISTING_ON_ENVIRONMENT' | translate:translateParams }}</p>
         </div>
     </div>
@@ -445,6 +453,27 @@
         <button class="btn btn-danger" ngbAutofocus appSpinnerWhile #d="appSpinnerWhile"
                 (click)="d.while(deleteLatestSchema()).then(dlg.dismiss)"><i
             class="fas fa-trash mr-3"></i>{{ 'Delete Schema' | translate }}</button>
+        <button type="button" class="btn btn-success" (click)="dlg.dismiss()"><i
+            class="fas fa-times"></i>&nbsp;{{ 'Cancel' | translate }}
+        </button>
+    </div>
+</ng-template>
+
+<ng-template #updateTopicDescription let-dlg>
+    <div class="modal-header">
+        <h4 class="modal-title">{{ 'Edit' | translate }}</h4>
+        <button type="button" class="close" aria-label="Close" (click)="dlg.dismiss()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body" >
+        <div class="mt-3">
+            <textarea class="form-control" rows="5" cols="11" [(ngModel)]="updatedTopicDescription"></textarea></div>
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-warning" ngbAutofocus appSpinnerWhile #d="appSpinnerWhile"
+                (click)="d.while(updateTopicDesc()).then(dlg.dismiss)"><i
+            class="fas fa-save mr-3"></i>{{ 'Save' | translate }}</button>
         <button type="button" class="btn btn-success" (click)="dlg.dismiss()"><i
             class="fas fa-times"></i>&nbsp;{{ 'Cancel' | translate }}
         </button>

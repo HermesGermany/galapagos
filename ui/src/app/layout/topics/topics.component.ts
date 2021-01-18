@@ -27,7 +27,7 @@ export class TopicsComponent implements OnInit {
 
     topics: Observable<Topic[]>;
 
-    loadingTopics: Observable<Boolean>;
+    loadingTopics: Observable<boolean>;
 
     private sortController = new SortController<Topic>(this.compareTopics);
 
@@ -56,23 +56,23 @@ export class TopicsComponent implements OnInit {
     private compareTopics(a: Topic, b: Topic, column: string, direction: SortDirection) {
         const dirFactor = direction === SORT_ASC ? 1 : -1;
         switch (column) {
-            case 'name':
-                return a.name.localeCompare(b.name) * dirFactor;
-            case 'type':
-                return a.topicType.localeCompare(b.topicType) * dirFactor;
-            case 'ownerApplication':
-                const app1 = a.ownerApplication;
-                const app2 = b.ownerApplication;
-                if (!app1 && !app2) {
-                    return 0;
-                }
-                if (!app1) {
-                    return -1 * dirFactor;
-                }
-                if (!app2) {
-                    return dirFactor;
-                }
-                return app1.name.localeCompare(app2.name) * dirFactor;
+        case 'name':
+            return a.name.localeCompare(b.name) * dirFactor;
+        case 'type':
+            return a.topicType.localeCompare(b.topicType) * dirFactor;
+        case 'ownerApplication':
+            const app1 = a.ownerApplication;
+            const app2 = b.ownerApplication;
+            if (!app1 && !app2) {
+                return 0;
+            }
+            if (!app1) {
+                return -1 * dirFactor;
+            }
+            if (!app2) {
+                return dirFactor;
+            }
+            return app1.name.localeCompare(app2.name) * dirFactor;
         }
 
         return 0;

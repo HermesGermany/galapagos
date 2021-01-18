@@ -1,11 +1,5 @@
 package com.hermesworld.ais.galapagos.topics.service.impl;
 
-import java.nio.charset.StandardCharsets;
-import java.time.LocalDate;
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-
 import com.hermesworld.ais.galapagos.applications.ApplicationMetadata;
 import com.hermesworld.ais.galapagos.applications.ApplicationsService;
 import com.hermesworld.ais.galapagos.applications.KnownApplication;
@@ -21,17 +15,25 @@ import com.hermesworld.ais.galapagos.subscriptions.SubscriptionMetadata;
 import com.hermesworld.ais.galapagos.subscriptions.service.SubscriptionService;
 import com.hermesworld.ais.galapagos.topics.*;
 import com.hermesworld.ais.galapagos.topics.config.GalapagosTopicConfig;
+import com.hermesworld.ais.galapagos.topics.service.ValidatingTopicService;
 import com.hermesworld.ais.galapagos.util.FutureUtil;
 import org.json.JSONObject;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 import org.mockito.invocation.InvocationOnMock;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.util.StreamUtils;
+
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 public class TopicServiceImplTest {
 
@@ -53,6 +55,8 @@ public class TopicServiceImplTest {
     private TopicBasedRepositoryMock<TopicMetadata> topicRepository;
 
     private TopicBasedRepositoryMock<SchemaMetadata> schemaRepository;
+
+    private ValidatingTopicService topicService;
 
     @Before
     public void feedMocks() {
@@ -761,6 +765,26 @@ public class TopicServiceImplTest {
         service.unmarkTopicDeprecated("topic-1").get();
 
         assertFalse(service.getTopic("test", "topic-1").get().isDeprecated());
+    }
+
+    @Test
+    public void testChangeDescOfTopic() throws Exception {
+
+        TopicMetadata topic = new TopicMetadata();
+        topic.setName("topic-1");
+        topic.setDescription("this topic is not a nice one :(");
+        topic.setOwnerApplicationId("app-1");
+        topic.setType(TopicType.EVENTS);
+        topicRepository.save(topic).get();
+
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator,
+                userService, topicConfig, eventManager);
+
+        service.updateTopicDescription("test", "topic-1", "this topic is now a nice one :)");
+        TopicMetadata savedTopic = topicRepository.getObject("topic-1").get();
+
+        assertEquals("this topic is now a nice one :)", savedTopic.getDescription());
+
     }
 
     @Test

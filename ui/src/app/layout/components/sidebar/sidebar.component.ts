@@ -9,14 +9,14 @@ import { KeycloakService } from 'keycloak-angular';
     styleUrls: ['./sidebar.component.scss']
 })
 export class SidebarComponent implements OnInit {
+    @Output() collapsedEvent = new EventEmitter<boolean>();
+
     isActive: boolean;
     collapsed: boolean;
     showMenu: string;
     pushRightClass: string;
 
     isAdmin: boolean;
-
-    @Output() collapsedEvent = new EventEmitter<boolean>();
 
     constructor(private translate: TranslateService, public router: Router, private keycloakService: KeycloakService) {
         this.router.events.subscribe(val => {
