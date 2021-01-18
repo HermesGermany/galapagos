@@ -85,10 +85,6 @@ public class TopicController {
         }
     }
 
-    /**
-     * For now this endpoint only supports deprecation and undeprecation of topics. Changing the description of a Topic after its
-     * creation will come soon.
-     */
     @PostMapping(value = "/api/topics/{environmentId}/{topicName:.+}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public void updateTopic(@PathVariable String environmentId, @PathVariable String topicName,
         @RequestBody UpdateTopicDto request) {
@@ -99,6 +95,12 @@ public class TopicController {
                 topic.getOwnerApplicationId().equals(req.getApplicationId()))) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
+
+        if (request.isUpdateDescription()) {
+            topicService.updateTopicDescription(environmentId, topicName, request.getDescription());
+            return;
+        }
+
         if (!StringUtils.isEmpty(request.getDeprecationText())) {
             if (request.getEolDate() == null) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "eolDate must be set for Topic deprecation");
@@ -116,6 +118,7 @@ public class TopicController {
             }
             topicService.unmarkTopicDeprecated(topicName);
         }
+
     }
 
     @PostMapping(value = "/api/topicconfigs/{environmentId}/{topicName:.+}", consumes = MediaType.APPLICATION_JSON_VALUE,

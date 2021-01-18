@@ -151,6 +151,16 @@ export class TopicsService {
             .toPromise().then(() => this.topicsList.refresh());
     }
 
+    public updateTopicDescription(updatedTopicDescription: string, topicName: string): Promise<any> {
+        const body = JSON.stringify({
+            description: updatedTopicDescription,
+            updateDescription: true
+        });
+
+        return this.http.post('/api/topics/' + this.currentEnvironment.id + '/' + topicName, body, { headers: jsonHeader() })
+            .toPromise().then(() => this.topicsList.refresh());
+    }
+
     public getTopicNameSuggestion(topicType: TopicType, appInfo: UserApplicationInfo,
         businessCapability: BusinessCapabilityInfo): Promise<string> {
         // TODO this is server-side business logic...

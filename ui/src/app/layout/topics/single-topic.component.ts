@@ -80,6 +80,8 @@ export class SingleTopicComponent implements OnInit {
 
     minDeprecationDate: Observable<{ year: number; month: number; day: number }>;
 
+    updatedTopicDescription: string;
+
     constructor(
         private route: ActivatedRoute,
         private topicService: TopicsService,
@@ -193,6 +195,14 @@ export class SingleTopicComponent implements OnInit {
                 err => this.toasts.addHttpErrorToast('Deprecation-Markierung konnte nicht entfernt werden', err));
     }
 
+    async updateTopicDesc() {
+        const topic = await this.topic.pipe(take(1)).toPromise();
+        return this.topicService
+            .updateTopicDescription(this.updatedTopicDescription, topic.name)
+            .then(() => this.toasts.addSuccessToast('Beschreibung erfolgreich geändert'),
+                err => this.toasts.addHttpErrorToast('Beschreibung konnte nicht geändert werden', err));
+    }
+
     async subscribeToTopic(): Promise<any> {
         if (!this.selectedApplication) {
             return Promise.resolve();
@@ -254,6 +264,12 @@ export class SingleTopicComponent implements OnInit {
     openDeleteConfirmDlg(content: any) {
         this.topicNameConfirmText = '';
         this.modalService.open(content, { ariaLabelledBy: 'modal-title', size: 'lg' });
+    }
+
+    async openChangeDescDlg(content: any) {
+        const topic = await this.topic.pipe(take(1)).toPromise();
+        this.updatedTopicDescription = topic.description;
+        this.modalService.open(content, {ariaLabelledBy: 'modal-title', size: 'lg'});
     }
 
     async openRejectConfirmDlg(subscription: TopicSubscription, content: any) {
