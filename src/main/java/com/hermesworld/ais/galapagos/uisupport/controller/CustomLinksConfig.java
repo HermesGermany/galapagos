@@ -11,23 +11,24 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class CustomLinksConfig {
 
-	@Getter
-	private List<CustomLinkConfig> links = new ArrayList<>();
+    @Getter
+    private List<CustomLinkConfig> links = new ArrayList<>();
 
-	public void setLinks(List<CustomLinkConfig> links) {
-		checkElements(links);
-		this.links = links;
-	}
+    public void setLinks(List<CustomLinkConfig> links) {
+        checkElements(links);
+        this.links = links;
+    }
 
-	private void checkElements(List<CustomLinkConfig> links) throws RuntimeException {
+    private void checkElements(List<CustomLinkConfig> links) throws RuntimeException {
 
-		for (CustomLinkConfig customLinkConfig : links) {
-			if (customLinkConfig.getId() == null || customLinkConfig.getHref() == null || customLinkConfig.getLabel() == null
-					|| customLinkConfig.getLinkType() == null) {
-				throw new RuntimeException("A field of a custom link must not be empty. Please check application.properties.");
-			}
-		}
+        for (CustomLinkConfig customLinkConfig : links) {
+            if (customLinkConfig.getId() == null || customLinkConfig.getHref() == null
+                    || customLinkConfig.getLabel() == null || customLinkConfig.getLinkType() == null) {
+                throw new RuntimeException(
+                        "A field of a custom link must not be empty. Please check application.properties.");
+            }
+        }
 
-	}
+    }
 
 }

@@ -33,257 +33,269 @@ import org.apache.kafka.common.resource.ResourceType;
 
 public class ConnectedKafkaCluster implements KafkaCluster {
 
-	private String environmentId;
+    private String environmentId;
 
-	private AdminClient adminClient;
+    private AdminClient adminClient;
 
-	private KafkaRepositoryContainer repositoryContainer;
+    private KafkaRepositoryContainer repositoryContainer;
 
-	private Map<String, TopicBasedRepository<?>> repositories = new ConcurrentHashMap<>();
+    private Map<String, TopicBasedRepository<?>> repositories = new ConcurrentHashMap<>();
 
-	private KafkaConsumerFactory<String, String> kafkaConsumerFactory;
+    private KafkaConsumerFactory<String, String> kafkaConsumerFactory;
 
-	private KafkaFutureDecoupler futureDecoupler;
+    private KafkaFutureDecoupler futureDecoupler;
 
-	private static final long MAX_POLL_TIME = Duration.ofSeconds(10).toMillis();
+    private static final long MAX_POLL_TIME = Duration.ofSeconds(10).toMillis();
 
-	public ConnectedKafkaCluster(String environmentId, KafkaRepositoryContainer repositoryContainer,
-		AdminClient adminClient, KafkaConsumerFactory<String, String> kafkaConsumerFactory,
-		KafkaFutureDecoupler futureDecoupler) {
-		this.environmentId = environmentId;
-		this.adminClient = adminClient;
-		this.repositoryContainer = repositoryContainer;
-		this.kafkaConsumerFactory = kafkaConsumerFactory;
-		this.futureDecoupler = futureDecoupler;
-	}
+    public ConnectedKafkaCluster(String environmentId, KafkaRepositoryContainer repositoryContainer,
+            AdminClient adminClient, KafkaConsumerFactory<String, String> kafkaConsumerFactory,
+            KafkaFutureDecoupler futureDecoupler) {
+        this.environmentId = environmentId;
+        this.adminClient = adminClient;
+        this.repositoryContainer = repositoryContainer;
+        this.kafkaConsumerFactory = kafkaConsumerFactory;
+        this.futureDecoupler = futureDecoupler;
+    }
 
-	/**
-	 * Convenience function to enable wrapping of the contained AdminClient, e.g. to intercept update calls within a
-	 * "dry-run" operation.
-	 *
-	 * @param wrapperFn Function returning a new AdminClient object which should wrap the existing AdminClient (passed
-	 *                  to the function). It is also valid to return the AdminClient object passed to this function.
-	 */
-	public void wrapAdminClient(Function<AdminClient, AdminClient> wrapperFn) {
-		this.adminClient = wrapperFn.apply(this.adminClient);
-	}
+    /**
+     * Convenience function to enable wrapping of the contained AdminClient, e.g. to intercept update calls within a
+     * "dry-run" operation.
+     *
+     * @param wrapperFn Function returning a new AdminClient object which should wrap the existing AdminClient (passed
+     *                  to the function). It is also valid to return the AdminClient object passed to this function.
+     */
+    public void wrapAdminClient(Function<AdminClient, AdminClient> wrapperFn) {
+        this.adminClient = wrapperFn.apply(this.adminClient);
+    }
 
-	@Override
-	public String getId() {
-		return environmentId;
-	}
+    @Override
+    public String getId() {
+        return environmentId;
+    }
 
-	@Override
-	public CompletableFuture<Void> updateUserAcls(KafkaUser user) {
-		List<AclBinding> createAcls = new ArrayList<AclBinding>();
+    @Override
+    public CompletableFuture<Void> updateUserAcls(KafkaUser user) {
+        List<AclBinding> createAcls = new ArrayList<AclBinding>();
 
-		return getUserAcls(user.getKafkaUserName()).thenCompose(acls -> {
-			List<AclBinding> targetAcls = new ArrayList<>(user.getRequiredAclBindings());
-			List<AclBinding> deleteAcls = new ArrayList<>(acls);
-			createAcls.addAll(targetAcls);
-			createAcls.removeAll(acls);
-			deleteAcls.removeAll(targetAcls);
-			return deleteAcls.isEmpty() ? CompletableFuture.completedFuture(null)
-					: toCompletableFuture(
-							adminClient.deleteAcls(deleteAcls.stream().map(acl -> acl.toFilter()).collect(Collectors.toList())).all());
-		}).thenCompose(o -> createAcls.isEmpty() ? CompletableFuture.completedFuture(null)
-				: toCompletableFuture(adminClient.createAcls(createAcls).all()));
-	}
+        return getUserAcls(user.getKafkaUserName()).thenCompose(acls -> {
+            List<AclBinding> targetAcls = new ArrayList<>(user.getRequiredAclBindings());
+            List<AclBinding> deleteAcls = new ArrayList<>(acls);
+            createAcls.addAll(targetAcls);
+            createAcls.removeAll(acls);
+            deleteAcls.removeAll(targetAcls);
+            return deleteAcls.isEmpty() ? CompletableFuture.completedFuture(null)
+                    : toCompletableFuture(adminClient
+                            .deleteAcls(deleteAcls.stream().map(acl -> acl.toFilter()).collect(Collectors.toList()))
+                            .all());
+        }).thenCompose(o -> createAcls.isEmpty() ? CompletableFuture.completedFuture(null)
+                : toCompletableFuture(adminClient.createAcls(createAcls).all()));
+    }
 
-	@Override
-	public CompletableFuture<Void> removeUserAcls(KafkaUser user) {
-		return toCompletableFuture(
-				adminClient.deleteAcls(Collections.singletonList(userAclFilter(user.getKafkaUserName(), ResourceType.ANY))).all())
-						.thenApply(o -> null);
-	}
+    @Override
+    public CompletableFuture<Void> removeUserAcls(KafkaUser user) {
+        return toCompletableFuture(adminClient
+                .deleteAcls(Collections.singletonList(userAclFilter(user.getKafkaUserName(), ResourceType.ANY))).all())
+                        .thenApply(o -> null);
+    }
 
-	@Override
-	public CompletableFuture<Void> visitAcls(Function<AclBinding, Boolean> callback) {
-		return toCompletableFuture(adminClient.describeAcls(AclBindingFilter.ANY).values()).thenAccept(acls -> {
-			for (AclBinding acl : acls) {
-				if (!callback.apply(acl)) {
-					break;
-				}
-			}
-		});
-	}
+    @Override
+    public CompletableFuture<Void> visitAcls(Function<AclBinding, Boolean> callback) {
+        return toCompletableFuture(adminClient.describeAcls(AclBindingFilter.ANY).values()).thenAccept(acls -> {
+            for (AclBinding acl : acls) {
+                if (!callback.apply(acl)) {
+                    break;
+                }
+            }
+        });
+    }
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public <T extends HasKey> TopicBasedRepository<T> getRepository(String topicName, Class<T> valueClass) {
-		return (TopicBasedRepository<T>) repositories.computeIfAbsent(topicName,
-			s -> repositoryContainer.addRepository(topicName, valueClass));
-	}
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T extends HasKey> TopicBasedRepository<T> getRepository(String topicName, Class<T> valueClass) {
+        return (TopicBasedRepository<T>) repositories.computeIfAbsent(topicName,
+                s -> repositoryContainer.addRepository(topicName, valueClass));
+    }
 
-	@Override
-	public Collection<TopicBasedRepository<?>> getRepositories() {
-		return new HashSet<>(repositories.values());
-	}
+    @Override
+    public Collection<TopicBasedRepository<?>> getRepositories() {
+        return new HashSet<>(repositories.values());
+    }
 
-	@Override
-	public CompletableFuture<Void> createTopic(String topicName, TopicCreateParams topicCreateParams) {
-		List<ConfigEntry> configs = topicCreateParams.getTopicConfigs().entrySet().stream()
-			.map(entry -> new ConfigEntry(entry.getKey(), entry.getValue())).collect(Collectors.toList());
+    @Override
+    public CompletableFuture<Void> createTopic(String topicName, TopicCreateParams topicCreateParams) {
+        List<ConfigEntry> configs = topicCreateParams.getTopicConfigs().entrySet().stream()
+                .map(entry -> new ConfigEntry(entry.getKey(), entry.getValue())).collect(Collectors.toList());
 
-		ConfigResource res = new ConfigResource(Type.TOPIC, topicName);
-		Config config = new Config(configs);
+        ConfigResource res = new ConfigResource(Type.TOPIC, topicName);
+        Config config = new Config(configs);
 
-		return toCompletableFuture(this.adminClient
-			.createTopics(Collections.singleton(
-				new NewTopic(topicName, topicCreateParams.getNumberOfPartitions(), (short) topicCreateParams.getReplicationFactor())))
-			.all()).thenCompose(o -> toCompletableFuture(adminClient.alterConfigs(Collections.singletonMap(res, config)).all()));
-	}
+        return toCompletableFuture(
+                this.adminClient
+                        .createTopics(
+                                Collections.singleton(new NewTopic(topicName, topicCreateParams.getNumberOfPartitions(),
+                                        (short) topicCreateParams.getReplicationFactor())))
+                        .all()).thenCompose(
+                                o -> toCompletableFuture(
+                                        adminClient.alterConfigs(Collections.singletonMap(res, config)).all()));
+    }
 
-	@Override
-	public CompletableFuture<Void> deleteTopic(String topicName) {
-		AclBindingFilter aclFilter = new AclBindingFilter(
-				new ResourcePatternFilter(ResourceType.TOPIC, topicName, PatternType.LITERAL),
-				new AccessControlEntryFilter(null, null, AclOperation.ANY, AclPermissionType.ANY));
+    @Override
+    public CompletableFuture<Void> deleteTopic(String topicName) {
+        AclBindingFilter aclFilter = new AclBindingFilter(
+                new ResourcePatternFilter(ResourceType.TOPIC, topicName, PatternType.LITERAL),
+                new AccessControlEntryFilter(null, null, AclOperation.ANY, AclPermissionType.ANY));
 
-		KafkaFuture<Void> deleteTopicFuture = this.adminClient.deleteTopics(Collections.singleton(topicName)).all();
+        KafkaFuture<Void> deleteTopicFuture = this.adminClient.deleteTopics(Collections.singleton(topicName)).all();
 
-		return toCompletableFuture(deleteTopicFuture)
-				.thenCompose(o -> toCompletableFuture(adminClient.deleteAcls(Collections.singleton(aclFilter)).all()))
-				.thenApply(o -> null);
-	}
+        return toCompletableFuture(deleteTopicFuture)
+                .thenCompose(o -> toCompletableFuture(adminClient.deleteAcls(Collections.singleton(aclFilter)).all()))
+                .thenApply(o -> null);
+    }
 
-	@Override
-	public CompletableFuture<Set<TopicConfigEntry>> getTopicConfig(String topicName) {
-		ConfigResource cres = new ConfigResource(ConfigResource.Type.TOPIC, topicName);
+    @Override
+    public CompletableFuture<Set<TopicConfigEntry>> getTopicConfig(String topicName) {
+        ConfigResource cres = new ConfigResource(ConfigResource.Type.TOPIC, topicName);
 
-		return toCompletableFuture(adminClient.describeConfigs(Collections.singleton(cres)).all())
-				.thenApply(map -> map.getOrDefault(cres, new Config(Collections.emptyList())).entries().stream()
-						.map(entry -> new TopicConfigEntryImpl(entry)).collect(Collectors.toSet()));
-	}
+        return toCompletableFuture(adminClient.describeConfigs(Collections.singleton(cres)).all())
+                .thenApply(map -> map.getOrDefault(cres, new Config(Collections.emptyList())).entries().stream()
+                        .map(entry -> new TopicConfigEntryImpl(entry)).collect(Collectors.toSet()));
+    }
 
-	@Override
-	public CompletableFuture<Map<String, String>> getDefaultTopicConfig() {
-		return toCompletableFuture(adminClient.describeCluster().nodes()).thenCompose(nodes -> {
-			if (nodes.isEmpty()) {
-				return CompletableFuture.failedFuture(new KafkaException("No nodes in cluster"));
-			}
-			return toCompletableFuture(
-					adminClient
-							.describeConfigs(
-									Collections.singleton(new ConfigResource(ConfigResource.Type.BROKER, "" + nodes.iterator().next().id())))
-							.all());
-		}).thenApply(map -> KafkaTopicConfigHelper.getTopicDefaultValues(map.values().iterator().next()));
-	}
+    @Override
+    public CompletableFuture<Map<String, String>> getDefaultTopicConfig() {
+        return toCompletableFuture(adminClient.describeCluster().nodes()).thenCompose(nodes -> {
+            if (nodes.isEmpty()) {
+                return CompletableFuture.failedFuture(new KafkaException("No nodes in cluster"));
+            }
+            return toCompletableFuture(
+                    adminClient
+                            .describeConfigs(Collections.singleton(
+                                    new ConfigResource(ConfigResource.Type.BROKER, "" + nodes.iterator().next().id())))
+                            .all());
+        }).thenApply(map -> KafkaTopicConfigHelper.getTopicDefaultValues(map.values().iterator().next()));
+    }
 
-	@Override
-	public CompletableFuture<Void> setTopicConfig(String topicName, Map<String, String> configValues) {
-		Config config = new Config(
-				configValues.entrySet().stream().map(e -> new ConfigEntry(e.getKey(), e.getValue())).collect(Collectors.toSet()));
+    @Override
+    public CompletableFuture<Void> setTopicConfig(String topicName, Map<String, String> configValues) {
+        Config config = new Config(configValues.entrySet().stream().map(e -> new ConfigEntry(e.getKey(), e.getValue()))
+                .collect(Collectors.toSet()));
 
-		return toCompletableFuture(adminClient
-				.alterConfigs(Collections.singletonMap(new ConfigResource(ConfigResource.Type.TOPIC, topicName), config)).all());
-	}
+        return toCompletableFuture(adminClient
+                .alterConfigs(
+                        Collections.singletonMap(new ConfigResource(ConfigResource.Type.TOPIC, topicName), config))
+                .all());
+    }
 
-	@Override
-	public CompletableFuture<Integer> getActiveBrokerCount() {
-		return toCompletableFuture(adminClient.describeCluster().nodes()).thenApply(nodes -> nodes.size());
-	}
+    @Override
+    public CompletableFuture<Integer> getActiveBrokerCount() {
+        return toCompletableFuture(adminClient.describeCluster().nodes()).thenApply(nodes -> nodes.size());
+    }
 
-	@Override
-	public CompletableFuture<TopicCreateParams> buildTopicCreateParams(String topicName) {
-		return toCompletableFuture(adminClient.describeTopics(Collections.singleton(topicName)).all())
-				.thenCompose(map -> buildCreateTopicParams(map.get(topicName)));
-	}
+    @Override
+    public CompletableFuture<TopicCreateParams> buildTopicCreateParams(String topicName) {
+        return toCompletableFuture(adminClient.describeTopics(Collections.singleton(topicName)).all())
+                .thenCompose(map -> buildCreateTopicParams(map.get(topicName)));
+    }
 
-	@Override
-	public CompletableFuture<List<ConsumerRecord<String, String>>> peekTopicData(String topicName, int limit) {
-		CompletableFuture<List<ConsumerRecord<String, String>>> result = new CompletableFuture<>();
+    @Override
+    public CompletableFuture<List<ConsumerRecord<String, String>>> peekTopicData(String topicName, int limit) {
+        CompletableFuture<List<ConsumerRecord<String, String>>> result = new CompletableFuture<>();
 
-		long startTime = System.currentTimeMillis();
+        long startTime = System.currentTimeMillis();
 
-		Runnable r = () -> {
-			KafkaConsumer<String, String> consumer = kafkaConsumerFactory.newConsumer();
-			consumer.subscribe(Collections.singleton(topicName), new ConsumerRebalanceListener() {
-				@Override
-				public void onPartitionsRevoked(Collection<TopicPartition> partitions) {
-				}
+        Runnable r = () -> {
+            KafkaConsumer<String, String> consumer = kafkaConsumerFactory.newConsumer();
+            consumer.subscribe(Collections.singleton(topicName), new ConsumerRebalanceListener() {
+                @Override
+                public void onPartitionsRevoked(Collection<TopicPartition> partitions) {
+                }
 
-				// TODO do we really want to do this? This way, Galapagos could be mis-used as a continuous read tool
-				@Override
-				public void onPartitionsAssigned(Collection<TopicPartition> partitions) {
-					Map<TopicPartition, Long> endOffsets = consumer.endOffsets(partitions);
-					for (Map.Entry<TopicPartition, Long> offset : endOffsets.entrySet()) {
-						consumer.seek(offset.getKey(), Math.max(0, offset.getValue() - limit));
-					}
-				}
-			});
-			List<ConsumerRecord<String, String>> records = new ArrayList<>();
-			while (!Thread.interrupted() && records.size() < limit && System.currentTimeMillis() - startTime < MAX_POLL_TIME) {
-				try {
-					ConsumerRecords<String, String> polled = consumer.poll(Duration.ofSeconds(1));
-					polled.forEach(rec -> {
-						if (records.size() < limit) {
-							records.add(rec);
-						}
-					});
-				}
-				catch (InterruptException | WakeupException e) {
-					break;
-				}
-				catch (KafkaException e) {
-					result.completeExceptionally(e);
-					try {
-						consumer.close();
-					} catch (Throwable t) {
-					}
-					return;
-				}
-			}
-			try {
-				consumer.close();
-			} catch (Throwable t) {
-			}
-			result.complete(records);
-		};
+                // TODO do we really want to do this? This way, Galapagos could be mis-used as a continuous read tool
+                @Override
+                public void onPartitionsAssigned(Collection<TopicPartition> partitions) {
+                    Map<TopicPartition, Long> endOffsets = consumer.endOffsets(partitions);
+                    for (Map.Entry<TopicPartition, Long> offset : endOffsets.entrySet()) {
+                        consumer.seek(offset.getKey(), Math.max(0, offset.getValue() - limit));
+                    }
+                }
+            });
+            List<ConsumerRecord<String, String>> records = new ArrayList<>();
+            while (!Thread.interrupted() && records.size() < limit
+                    && System.currentTimeMillis() - startTime < MAX_POLL_TIME) {
+                try {
+                    ConsumerRecords<String, String> polled = consumer.poll(Duration.ofSeconds(1));
+                    polled.forEach(rec -> {
+                        if (records.size() < limit) {
+                            records.add(rec);
+                        }
+                    });
+                }
+                catch (InterruptException | WakeupException e) {
+                    break;
+                }
+                catch (KafkaException e) {
+                    result.completeExceptionally(e);
+                    try {
+                        consumer.close();
+                    }
+                    catch (Throwable t) {
+                    }
+                    return;
+                }
+            }
+            try {
+                consumer.close();
+            }
+            catch (Throwable t) {
+            }
+            result.complete(records);
+        };
 
-		new Thread(r).start();
-		return result;
-	}
+        new Thread(r).start();
+        return result;
+    }
 
-	private CompletableFuture<TopicCreateParams> buildCreateTopicParams(TopicDescription description) {
-		return getTopicConfig(description.name()).thenApply(configs -> {
-			TopicCreateParams params = new TopicCreateParams(description.partitions().size(),
-				description.partitions().get(0).replicas().size());
-			for (TopicConfigEntry config : configs) {
-				if (!config.isDefault() && !config.isSensitive()) {
-					params.setTopicConfig(config.getName(), config.getValue());
-				}
-			}
-			return params;
-		});
-	}
+    private CompletableFuture<TopicCreateParams> buildCreateTopicParams(TopicDescription description) {
+        return getTopicConfig(description.name()).thenApply(configs -> {
+            TopicCreateParams params = new TopicCreateParams(description.partitions().size(),
+                    description.partitions().get(0).replicas().size());
+            for (TopicConfigEntry config : configs) {
+                if (!config.isDefault() && !config.isSensitive()) {
+                    params.setTopicConfig(config.getName(), config.getValue());
+                }
+            }
+            return params;
+        });
+    }
 
-	private CompletableFuture<Collection<AclBinding>> getUserAcls(String username) {
-		return toCompletableFuture(adminClient.describeAcls(userAclFilter(username, ResourceType.ANY)).values());
-	}
+    private CompletableFuture<Collection<AclBinding>> getUserAcls(String username) {
+        return toCompletableFuture(adminClient.describeAcls(userAclFilter(username, ResourceType.ANY)).values());
+    }
 
-	private AclBindingFilter userAclFilter(String username, ResourceType resourceType) {
-		ResourcePatternFilter patternFilter = new ResourcePatternFilter(resourceType, null, PatternType.ANY);
-		AccessControlEntryFilter entryFilter = new AccessControlEntryFilter(username, null, AclOperation.ANY, AclPermissionType.ANY);
-		return new AclBindingFilter(patternFilter, entryFilter);
-	}
+    private AclBindingFilter userAclFilter(String username, ResourceType resourceType) {
+        ResourcePatternFilter patternFilter = new ResourcePatternFilter(resourceType, null, PatternType.ANY);
+        AccessControlEntryFilter entryFilter = new AccessControlEntryFilter(username, null, AclOperation.ANY,
+                AclPermissionType.ANY);
+        return new AclBindingFilter(patternFilter, entryFilter);
+    }
 
-	private <T> CompletableFuture<T> toCompletableFuture(KafkaFuture<T> kafkaFuture) {
-		return futureDecoupler.toCompletableFuture(kafkaFuture);
-	}
+    private <T> CompletableFuture<T> toCompletableFuture(KafkaFuture<T> kafkaFuture) {
+        return futureDecoupler.toCompletableFuture(kafkaFuture);
+    }
 
-	@Override
-	public CompletableFuture<String> getKafkaServerVersion() {
+    @Override
+    public CompletableFuture<String> getKafkaServerVersion() {
 
-	Function<String,String> toVersionString = s -> !s.contains("-") ? s : s.substring(0, s.indexOf('-'));
-		return toCompletableFuture(adminClient.describeCluster().nodes()).thenCompose(coll -> {
-			String nodeName = coll.iterator().next().idString();
+        Function<String, String> toVersionString = s -> !s.contains("-") ? s : s.substring(0, s.indexOf('-'));
+        return toCompletableFuture(adminClient.describeCluster().nodes()).thenCompose(coll -> {
+            String nodeName = coll.iterator().next().idString();
 
-			return toCompletableFuture(
-					adminClient.describeConfigs(Collections.singleton(new ConfigResource(Type.BROKER, nodeName))).all())
-							.thenApply(map -> map.values().stream().map(config -> config.get("inter.broker.protocol.version").value())
-									.findFirst().map(toVersionString).orElse("UNKNOWN_VERSION"));
-		});
-	}
+            return toCompletableFuture(
+                    adminClient.describeConfigs(Collections.singleton(new ConfigResource(Type.BROKER, nodeName))).all())
+                            .thenApply(map -> map.values().stream()
+                                    .map(config -> config.get("inter.broker.protocol.version").value()).findFirst()
+                                    .map(toVersionString).orElse("UNKNOWN_VERSION"));
+        });
+    }
 
 }

@@ -18,158 +18,162 @@ import org.springframework.stereotype.Component;
 @Component
 public class AuditEventsListener implements TopicEventsListener, ApplicationEventsListener {
 
-	private AuditEventRepository auditRepository;
+    private AuditEventRepository auditRepository;
 
-	private static final String APPLICATION_ID = "applicationId";
+    private static final String APPLICATION_ID = "applicationId";
 
-	private static final String ENVIRONMENT_ID = "environmentId";
+    private static final String ENVIRONMENT_ID = "environmentId";
 
-	private static final String NAME = "name";
+    private static final String NAME = "name";
 
-	@Autowired
-	public AuditEventsListener(AuditEventRepository auditRepository) {
-		this.auditRepository = auditRepository;
-	}
+    @Autowired
+    public AuditEventsListener(AuditEventRepository auditRepository) {
+        this.auditRepository = auditRepository;
+    }
 
-	@Override
-	public CompletableFuture<Void> handleTopicCreated(TopicCreatedEvent event) {
-		TopicMetadata topic = event.getMetadata();
-		TopicCreateParams params = event.getTopicCreateParams();
+    @Override
+    public CompletableFuture<Void> handleTopicCreated(TopicCreatedEvent event) {
+        TopicMetadata topic = event.getMetadata();
+        TopicCreateParams params = event.getTopicCreateParams();
 
-		Map<String, Object> auditData = new LinkedHashMap<>();
-		auditData.put(NAME, topic.getName());
-		auditData.put(ENVIRONMENT_ID, event.getContext().getKafkaCluster().getId());
-		auditData.put("description", topic.getDescription());
-		auditData.put("topicType", topic.getType());
-		auditData.put(APPLICATION_ID, topic.getOwnerApplicationId());
-		auditData.put("subscriptionApprovalRequired", topic.isSubscriptionApprovalRequired());
-		auditData.put("numPartitions", params.getNumberOfPartitions());
-		auditData.put("topicConfig", params.getTopicConfigs());
+        Map<String, Object> auditData = new LinkedHashMap<>();
+        auditData.put(NAME, topic.getName());
+        auditData.put(ENVIRONMENT_ID, event.getContext().getKafkaCluster().getId());
+        auditData.put("description", topic.getDescription());
+        auditData.put("topicType", topic.getType());
+        auditData.put(APPLICATION_ID, topic.getOwnerApplicationId());
+        auditData.put("subscriptionApprovalRequired", topic.isSubscriptionApprovalRequired());
+        auditData.put("numPartitions", params.getNumberOfPartitions());
+        auditData.put("topicConfig", params.getTopicConfigs());
 
-		auditRepository.add(new AuditEvent(getUserName(event), GalapagosAuditEventType.TOPIC_CREATED.name(), auditData));
+        auditRepository
+                .add(new AuditEvent(getUserName(event), GalapagosAuditEventType.TOPIC_CREATED.name(), auditData));
 
-		return FutureUtil.noop();
-	}
+        return FutureUtil.noop();
+    }
 
-	@Override
-	public CompletableFuture<Void> handleTopicDeleted(TopicEvent event) {
-		TopicMetadata topic = event.getMetadata();
+    @Override
+    public CompletableFuture<Void> handleTopicDeleted(TopicEvent event) {
+        TopicMetadata topic = event.getMetadata();
 
-		Map<String, Object> auditData = new LinkedHashMap<>();
-		auditData.put(NAME, topic.getName());
-		auditData.put(ENVIRONMENT_ID, event.getContext().getKafkaCluster().getId());
+        Map<String, Object> auditData = new LinkedHashMap<>();
+        auditData.put(NAME, topic.getName());
+        auditData.put(ENVIRONMENT_ID, event.getContext().getKafkaCluster().getId());
 
-		auditRepository.add(new AuditEvent(getUserName(event), GalapagosAuditEventType.TOPIC_DELETED.name(), auditData));
+        auditRepository
+                .add(new AuditEvent(getUserName(event), GalapagosAuditEventType.TOPIC_DELETED.name(), auditData));
 
-		return FutureUtil.noop();
-	}
+        return FutureUtil.noop();
+    }
 
-	@Override
-	public CompletableFuture<Void> handleTopicDeprecated(TopicEvent event) {
-		return handleTopicEvent(event, "TOPIC_DEPRECATED");
-	}
+    @Override
+    public CompletableFuture<Void> handleTopicDeprecated(TopicEvent event) {
+        return handleTopicEvent(event, "TOPIC_DEPRECATED");
+    }
 
-	@Override
-	public CompletableFuture<Void> handleTopicDescriptionChanged(TopicEvent event) {
-		return handleTopicEvent(event, "TOPIC_DESCRIPTION_CHANGED");
-	}
+    @Override
+    public CompletableFuture<Void> handleTopicDescriptionChanged(TopicEvent event) {
+        return handleTopicEvent(event, "TOPIC_DESCRIPTION_CHANGED");
+    }
 
-	@Override
-	public CompletableFuture<Void> handleTopicUndeprecated(TopicEvent event) {
-		return handleTopicEvent(event, "TOPIC_UNDEPRECATED");
-	}
+    @Override
+    public CompletableFuture<Void> handleTopicUndeprecated(TopicEvent event) {
+        return handleTopicEvent(event, "TOPIC_UNDEPRECATED");
+    }
 
-	@Override
-	public CompletableFuture<Void> handleTopicSchemaAdded(TopicSchemaAddedEvent event) {
-		TopicMetadata topic = event.getMetadata();
+    @Override
+    public CompletableFuture<Void> handleTopicSchemaAdded(TopicSchemaAddedEvent event) {
+        TopicMetadata topic = event.getMetadata();
 
-		Map<String, Object> auditData = new LinkedHashMap<>();
-		auditData.put(NAME, topic.getName());
-		auditData.put(ENVIRONMENT_ID, event.getContext().getKafkaCluster().getId());
-		auditData.put("schemaVersion", event.getNewSchema().getSchemaVersion());
-		auditData.put("jsonSchema", event.getNewSchema().getJsonSchema());
+        Map<String, Object> auditData = new LinkedHashMap<>();
+        auditData.put(NAME, topic.getName());
+        auditData.put(ENVIRONMENT_ID, event.getContext().getKafkaCluster().getId());
+        auditData.put("schemaVersion", event.getNewSchema().getSchemaVersion());
+        auditData.put("jsonSchema", event.getNewSchema().getJsonSchema());
 
-		auditRepository.add(new AuditEvent(getUserName(event), GalapagosAuditEventType.TOPIC_SCHEMA_ADDED.name(), auditData));
-		return FutureUtil.noop();
-	}
+        auditRepository
+                .add(new AuditEvent(getUserName(event), GalapagosAuditEventType.TOPIC_SCHEMA_ADDED.name(), auditData));
+        return FutureUtil.noop();
+    }
 
-	@Override
-	public CompletableFuture<Void> handleTopicSubscriptionApprovalRequiredFlagChanged(TopicEvent event) {
-		return handleTopicEvent(event, "TOPIC_SUBSCRIPTION_APPROVAL_REQUIRED_FLAG_CHANGED");
-	}
+    @Override
+    public CompletableFuture<Void> handleTopicSubscriptionApprovalRequiredFlagChanged(TopicEvent event) {
+        return handleTopicEvent(event, "TOPIC_SUBSCRIPTION_APPROVAL_REQUIRED_FLAG_CHANGED");
+    }
 
-	@Override
-	public CompletableFuture<Void> handleApplicationRegistered(ApplicationEvent event) {
-		Map<String, Object> auditData = new LinkedHashMap<>();
-		auditData.put(APPLICATION_ID, event.getMetadata().getApplicationId());
-		auditData.put(ENVIRONMENT_ID, event.getContext().getKafkaCluster().getId());
-		auditData.put("dn", event.getMetadata().getDn());
+    @Override
+    public CompletableFuture<Void> handleApplicationRegistered(ApplicationEvent event) {
+        Map<String, Object> auditData = new LinkedHashMap<>();
+        auditData.put(APPLICATION_ID, event.getMetadata().getApplicationId());
+        auditData.put(ENVIRONMENT_ID, event.getContext().getKafkaCluster().getId());
+        auditData.put("dn", event.getMetadata().getDn());
 
-		auditRepository
-				.add(new AuditEvent(getUserName(event), GalapagosAuditEventType.APPLICATION_CERTIFICATE_CREATED.name(), auditData));
-		return FutureUtil.noop();
-	}
+        auditRepository.add(new AuditEvent(getUserName(event),
+                GalapagosAuditEventType.APPLICATION_CERTIFICATE_CREATED.name(), auditData));
+        return FutureUtil.noop();
+    }
 
-	@Override
-	public CompletableFuture<Void> handleApplicationCertificateChanged(ApplicationCertificateChangedEvent event) {
-		return handleApplicationRegistered(event);
-	}
+    @Override
+    public CompletableFuture<Void> handleApplicationCertificateChanged(ApplicationCertificateChangedEvent event) {
+        return handleApplicationRegistered(event);
+    }
 
-	@Override
-	public CompletableFuture<Void> handleApplicationOwnerRequestCreated(ApplicationOwnerRequestEvent event) {
-		return handleApplicationOwnerRequest(event, GalapagosAuditEventType.APPLICATION_OWNER_REQUESTED, false);
-	}
+    @Override
+    public CompletableFuture<Void> handleApplicationOwnerRequestCreated(ApplicationOwnerRequestEvent event) {
+        return handleApplicationOwnerRequest(event, GalapagosAuditEventType.APPLICATION_OWNER_REQUESTED, false);
+    }
 
-	@Override
-	public CompletableFuture<Void> handleApplicationOwnerRequestUpdated(ApplicationOwnerRequestEvent event) {
-		return handleApplicationOwnerRequest(event, GalapagosAuditEventType.APPLICATION_OWNER_REQUEST_UPDATED, true);
-	}
+    @Override
+    public CompletableFuture<Void> handleApplicationOwnerRequestUpdated(ApplicationOwnerRequestEvent event) {
+        return handleApplicationOwnerRequest(event, GalapagosAuditEventType.APPLICATION_OWNER_REQUEST_UPDATED, true);
+    }
 
-	@Override
-	public CompletableFuture<Void> handleApplicationOwnerRequestCanceled(ApplicationOwnerRequestEvent event) {
-		return handleApplicationOwnerRequest(event, GalapagosAuditEventType.APPLICATION_OWNER_REQUEST_CANCELED, false);
-	}
+    @Override
+    public CompletableFuture<Void> handleApplicationOwnerRequestCanceled(ApplicationOwnerRequestEvent event) {
+        return handleApplicationOwnerRequest(event, GalapagosAuditEventType.APPLICATION_OWNER_REQUEST_CANCELED, false);
+    }
 
-	private CompletableFuture<Void> handleApplicationOwnerRequest(ApplicationOwnerRequestEvent event, GalapagosAuditEventType type,
-			boolean includeStatus) {
-		ApplicationOwnerRequest request = event.getRequest();
+    private CompletableFuture<Void> handleApplicationOwnerRequest(ApplicationOwnerRequestEvent event,
+            GalapagosAuditEventType type, boolean includeStatus) {
+        ApplicationOwnerRequest request = event.getRequest();
 
-		Map<String, Object> auditData = new LinkedHashMap<>();
-		auditData.put(APPLICATION_ID, request.getApplicationId());
-		auditData.put("requestingUser", request.getUserName());
-		if (includeStatus) {
-			auditData.put("newStatus", request.getState());
-		}
+        Map<String, Object> auditData = new LinkedHashMap<>();
+        auditData.put(APPLICATION_ID, request.getApplicationId());
+        auditData.put("requestingUser", request.getUserName());
+        if (includeStatus) {
+            auditData.put("newStatus", request.getState());
+        }
 
-		auditRepository.add(new AuditEvent(getUserName(event), type.name(), auditData));
+        auditRepository.add(new AuditEvent(getUserName(event), type.name(), auditData));
 
-		return FutureUtil.noop();
-	}
+        return FutureUtil.noop();
+    }
 
-	private CompletableFuture<Void> handleTopicEvent(TopicEvent event, String topicEventType) {
-		TopicMetadata topic = event.getMetadata();
+    private CompletableFuture<Void> handleTopicEvent(TopicEvent event, String topicEventType) {
+        TopicMetadata topic = event.getMetadata();
 
-		Map<String, Object> auditData = new LinkedHashMap<>();
-		auditData.put(NAME, topic.getName());
-		auditData.put(ENVIRONMENT_ID, event.getContext().getKafkaCluster().getId());
-		auditData.put("description", topic.getDescription());
-		auditData.put("topicType", topic.getType());
-		auditData.put(APPLICATION_ID, topic.getOwnerApplicationId());
-		auditData.put("subscriptionApprovalRequired", topic.isSubscriptionApprovalRequired());
-		auditData.put("deprecated", topic.isDeprecated());
-		auditData.put("deprecationText", topic.getDeprecationText());
-		if (topic.getEolDate() != null) {
-			auditData.put("endOfLife", topic.getEolDate().toString());
-		}
-		auditData.put("topicEventType", topicEventType);
+        Map<String, Object> auditData = new LinkedHashMap<>();
+        auditData.put(NAME, topic.getName());
+        auditData.put(ENVIRONMENT_ID, event.getContext().getKafkaCluster().getId());
+        auditData.put("description", topic.getDescription());
+        auditData.put("topicType", topic.getType());
+        auditData.put(APPLICATION_ID, topic.getOwnerApplicationId());
+        auditData.put("subscriptionApprovalRequired", topic.isSubscriptionApprovalRequired());
+        auditData.put("deprecated", topic.isDeprecated());
+        auditData.put("deprecationText", topic.getDeprecationText());
+        if (topic.getEolDate() != null) {
+            auditData.put("endOfLife", topic.getEolDate().toString());
+        }
+        auditData.put("topicEventType", topicEventType);
 
-		auditRepository.add(new AuditEvent(getUserName(event), GalapagosAuditEventType.TOPIC_UPDATED.name(), auditData));
+        auditRepository
+                .add(new AuditEvent(getUserName(event), GalapagosAuditEventType.TOPIC_UPDATED.name(), auditData));
 
-		return FutureUtil.noop();
-	}
+        return FutureUtil.noop();
+    }
 
-	private String getUserName(AbstractGalapagosEvent event) {
-		return event.getContext().getContextValue("username").map(Object::toString).orElse(null);
-	}
+    private String getUserName(AbstractGalapagosEvent event) {
+        return event.getContext().getContextValue("username").map(Object::toString).orElse(null);
+    }
 
 }

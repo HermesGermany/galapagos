@@ -13,11 +13,10 @@ import com.hermesworld.ais.galapagos.applications.KnownApplication;
  */
 public interface TopicNameValidator {
 
-	void validateTopicName(String topicName, TopicType topicType, KnownApplication ownerApplication,
-			ApplicationMetadata applicationMetadata)
-			throws InvalidTopicNameException;
+    void validateTopicName(String topicName, TopicType topicType, KnownApplication ownerApplication,
+            ApplicationMetadata applicationMetadata) throws InvalidTopicNameException;
 
-	String getTopicNameSuggestion(TopicType topicType, KnownApplication ownerApplication, ApplicationMetadata applicationMetadata,
-			BusinessCapability businessCapability);
+    String getTopicNameSuggestion(TopicType topicType, KnownApplication ownerApplication,
+            ApplicationMetadata applicationMetadata, BusinessCapability businessCapability);
 
 }

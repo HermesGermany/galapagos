@@ -5,10 +5,10 @@ import com.hermesworld.ais.galapagos.topics.service.TopicService;
 
 public interface ApplyChangeContext {
 
-	public String getTargetEnvironmentId();
+    public String getTargetEnvironmentId();
 
-	public TopicService getTopicService();
+    public TopicService getTopicService();
 
-	public SubscriptionService getSubscriptionService();
+    public SubscriptionService getSubscriptionService();
 
 }

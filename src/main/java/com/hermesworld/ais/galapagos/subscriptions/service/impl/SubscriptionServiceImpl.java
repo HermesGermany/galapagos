@@ -43,7 +43,7 @@ public class SubscriptionServiceImpl implements SubscriptionService, InitPerClus
 
     @Autowired
     public SubscriptionServiceImpl(KafkaClusters kafkaEnvironments, ApplicationsService applicationsService,
-        @Qualifier(value = "nonvalidating") TopicService topicService, GalapagosEventManager eventManager) {
+            @Qualifier(value = "nonvalidating") TopicService topicService, GalapagosEventManager eventManager) {
         this.kafkaEnvironments = kafkaEnvironments;
         this.applicationsService = applicationsService;
         this.topicService = topicService;
@@ -57,7 +57,7 @@ public class SubscriptionServiceImpl implements SubscriptionService, InitPerClus
 
     @Override
     public CompletableFuture<SubscriptionMetadata> addSubscription(String environmentId,
-        SubscriptionMetadata subscriptionMetadata) {
+            SubscriptionMetadata subscriptionMetadata) {
         KafkaCluster kafkaCluster = kafkaEnvironments.getEnvironment(environmentId).orElse(null);
         if (kafkaCluster == null) {
             return noSuchEnvironment(environmentId);
@@ -68,15 +68,16 @@ public class SubscriptionServiceImpl implements SubscriptionService, InitPerClus
             return noSuchTopic(environmentId, subscriptionMetadata.getTopicName());
         }
 
-        ApplicationMetadata application = applicationsService.getApplicationMetadata(environmentId,
-            subscriptionMetadata.getClientApplicationId()).orElse(null);
+        ApplicationMetadata application = applicationsService
+                .getApplicationMetadata(environmentId, subscriptionMetadata.getClientApplicationId()).orElse(null);
         if (application == null) {
             return CompletableFuture.failedFuture(new NoSuchElementException(
-                "Application not registered on this environment. Please create an application certificate first."));
+                    "Application not registered on this environment. Please create an application certificate first."));
         }
 
         if (topic.getType() == TopicType.INTERNAL) {
-            return CompletableFuture.failedFuture(new IllegalArgumentException("Cannot subscribe to application internal topics"));
+            return CompletableFuture
+                    .failedFuture(new IllegalArgumentException("Cannot subscribe to application internal topics"));
         }
 
         SubscriptionMetadata subscription = new SubscriptionMetadata();
@@ -88,13 +89,13 @@ public class SubscriptionServiceImpl implements SubscriptionService, InitPerClus
 
         GalapagosEventSink eventSink = eventManager.newEventSink(kafkaCluster);
 
-        return getRepository(kafkaCluster).save(subscription).thenCompose(o -> eventSink.handleSubscriptionCreated(subscription))
-            .thenApply(o -> subscription);
+        return getRepository(kafkaCluster).save(subscription)
+                .thenCompose(o -> eventSink.handleSubscriptionCreated(subscription)).thenApply(o -> subscription);
     }
 
     @Override
     public CompletableFuture<SubscriptionMetadata> addSubscription(String environmentId, String topicName,
-        String applicationId, String description) {
+            String applicationId, String description) {
         KafkaCluster kafkaCluster = kafkaEnvironments.getEnvironment(environmentId).orElse(null);
         if (kafkaCluster == null) {
             return noSuchEnvironment(environmentId);
@@ -109,7 +110,8 @@ public class SubscriptionServiceImpl implements SubscriptionService, InitPerClus
         subscription.setId(UUID.randomUUID().toString());
         subscription.setTopicName(topicName);
         subscription.setClientApplicationId(applicationId);
-        subscription.setState(topic.isSubscriptionApprovalRequired() ? SubscriptionState.PENDING : SubscriptionState.APPROVED);
+        subscription.setState(
+                topic.isSubscriptionApprovalRequired() ? SubscriptionState.PENDING : SubscriptionState.APPROVED);
         subscription.setDescription(description);
 
         return addSubscription(environmentId, subscription);
@@ -117,7 +119,7 @@ public class SubscriptionServiceImpl implements SubscriptionService, InitPerClus
 
     @Override
     public CompletableFuture<Void> updateSubscriptionState(String environmentId, String subscriptionId,
-        SubscriptionState newState) {
+            SubscriptionState newState) {
         return doWithClusterAndSubscription(environmentId, subscriptionId, (kafkaCluster, subscription) -> {
             SubscriptionState state = newState;
             if (state.equals(subscription.getState())) {
@@ -134,10 +136,10 @@ public class SubscriptionServiceImpl implements SubscriptionService, InitPerClus
             GalapagosEventSink eventSink = eventManager.newEventSink(kafkaCluster);
 
             // REJECTED and CANCELED subscriptions will instantly be deleted, to allow re-submission
-            return (state == SubscriptionState.REJECTED || state == SubscriptionState.CANCELED ?
-                getRepository(kafkaCluster).delete(subscription) :
-                getRepository(kafkaCluster).save(subscription))
-                .thenCompose(o -> eventSink.handleSubscriptionUpdated(subscription));
+            return (state == SubscriptionState.REJECTED || state == SubscriptionState.CANCELED
+                    ? getRepository(kafkaCluster).delete(subscription)
+                    : getRepository(kafkaCluster).save(subscription))
+                            .thenCompose(o -> eventSink.handleSubscriptionUpdated(subscription));
         });
     }
 
@@ -145,28 +147,32 @@ public class SubscriptionServiceImpl implements SubscriptionService, InitPerClus
     public CompletableFuture<Void> deleteSubscription(String environmentId, String subscriptionId) {
         return doWithClusterAndSubscription(environmentId, subscriptionId, (kafkaCluster, subscription) -> {
             GalapagosEventSink eventSink = eventManager.newEventSink(kafkaCluster);
-            return getRepository(kafkaCluster).delete(subscription).thenCompose(o -> eventSink.handleSubscriptionDeleted(subscription));
+            return getRepository(kafkaCluster).delete(subscription)
+                    .thenCompose(o -> eventSink.handleSubscriptionDeleted(subscription));
         });
     }
 
     @Override
     public List<SubscriptionMetadata> getSubscriptionsForTopic(String environmentId, String topicName,
-        boolean includeNonApproved) {
+            boolean includeNonApproved) {
         Predicate<SubscriptionMetadata> inclusionFilter = inclusionFilter(includeNonApproved);
 
-        return kafkaEnvironments.getEnvironment(environmentId).map(cluster -> getRepository(cluster).getObjects().stream()
-            .filter(s -> topicName.equals(s.getTopicName())).filter(inclusionFilter).collect(Collectors.toList()))
-            .orElse(Collections.emptyList());
+        return kafkaEnvironments.getEnvironment(environmentId)
+                .map(cluster -> getRepository(cluster).getObjects().stream()
+                        .filter(s -> topicName.equals(s.getTopicName())).filter(inclusionFilter)
+                        .collect(Collectors.toList()))
+                .orElse(Collections.emptyList());
     }
 
     @Override
     public List<SubscriptionMetadata> getSubscriptionsOfApplication(String environmentId, String applicationId,
-        boolean includeNonApproved) {
+            boolean includeNonApproved) {
         Predicate<SubscriptionMetadata> inclusionFilter = inclusionFilter(includeNonApproved);
-        return kafkaEnvironments
-            .getEnvironment(environmentId).map(cluster -> getRepository(cluster).getObjects().stream()
-                .filter(s -> applicationId.equals(s.getClientApplicationId())).filter(inclusionFilter).collect(Collectors.toList()))
-            .orElse(Collections.emptyList());
+        return kafkaEnvironments.getEnvironment(environmentId)
+                .map(cluster -> getRepository(cluster).getObjects().stream()
+                        .filter(s -> applicationId.equals(s.getClientApplicationId())).filter(inclusionFilter)
+                        .collect(Collectors.toList()))
+                .orElse(Collections.emptyList());
     }
 
     private TopicBasedRepository<SubscriptionMetadata> getRepository(KafkaCluster kafkaCluster) {
@@ -174,7 +180,7 @@ public class SubscriptionServiceImpl implements SubscriptionService, InitPerClus
     }
 
     private <T> CompletableFuture<T> doWithClusterAndSubscription(String environmentId, String subscriptionId,
-        BiFunction<KafkaCluster, SubscriptionMetadata, CompletableFuture<T>> task) {
+            BiFunction<KafkaCluster, SubscriptionMetadata, CompletableFuture<T>> task) {
         KafkaCluster kafkaCluster = kafkaEnvironments.getEnvironment(environmentId).orElse(null);
         if (kafkaCluster == null) {
             return noSuchEnvironment(environmentId);
@@ -189,12 +195,13 @@ public class SubscriptionServiceImpl implements SubscriptionService, InitPerClus
     }
 
     private static <T> CompletableFuture<T> noSuchEnvironment(String environmentId) {
-        return CompletableFuture.failedFuture(new NoSuchElementException("No environment with ID " + environmentId + " found."));
+        return CompletableFuture
+                .failedFuture(new NoSuchElementException("No environment with ID " + environmentId + " found."));
     }
 
     private static <T> CompletableFuture<T> noSuchTopic(String environmentId, String topicName) {
-        return CompletableFuture.failedFuture(
-            new NoSuchElementException("No topic with name " + topicName + " found on environment " + environmentId + "."));
+        return CompletableFuture.failedFuture(new NoSuchElementException(
+                "No topic with name " + topicName + " found on environment " + environmentId + "."));
     }
 
     private static Predicate<SubscriptionMetadata> inclusionFilter(boolean includeNonApproved) {

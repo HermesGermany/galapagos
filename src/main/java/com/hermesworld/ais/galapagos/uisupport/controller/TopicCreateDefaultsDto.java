@@ -11,10 +11,10 @@ import lombok.Setter;
 @Setter
 public class TopicCreateDefaultsDto {
 
-	private int defaultPartitionCount;
+    private int defaultPartitionCount;
 
-	private Map<String, String> defaultTopicConfigs;
+    private Map<String, String> defaultTopicConfigs;
 
-	private String topicNameSuggestion;
+    private String topicNameSuggestion;
 
 }

@@ -12,17 +12,18 @@ import com.hermesworld.ais.galapagos.kafka.config.KafkaEnvironmentConfig;
 
 public interface CertificateService {
 
-	CaManager buildCaManager(KafkaEnvironmentConfig environmentConfig, File certificatesWorkdir)
-			throws IOException, GeneralSecurityException, OperatorCreationException;
+    CaManager buildCaManager(KafkaEnvironmentConfig environmentConfig, File certificatesWorkdir)
+            throws IOException, GeneralSecurityException, OperatorCreationException;
 
-	void buildTrustStore(Map<String, CaManager> caManagers) throws IOException, GeneralSecurityException, PKCSException;
+    void buildTrustStore(Map<String, CaManager> caManagers) throws IOException, GeneralSecurityException, PKCSException;
 
-	/**
-	 * Returns the byte contents of a PKCS12 Keystore usable by clients as the Kafka Truststore. It contains all public CA
-	 * certificates of all configured Kafka environments. The password for this truststore is <code>"changeit"</code>.
-	 *
-	 * @return The byte contents of a PKCS12 keystore, never <code>null</code>.
-	 */
-	byte[] getTrustStorePkcs12();
+    /**
+     * Returns the byte contents of a PKCS12 Keystore usable by clients as the Kafka Truststore. It contains all public
+     * CA certificates of all configured Kafka environments. The password for this truststore is
+     * <code>"changeit"</code>.
+     *
+     * @return The byte contents of a PKCS12 keystore, never <code>null</code>.
+     */
+    byte[] getTrustStorePkcs12();
 
 }

@@ -21,7 +21,7 @@ public class MarkTopicApprovalRequiredJob implements AdminJob {
 
     @Autowired
     public MarkTopicApprovalRequiredJob(KafkaClusters kafkaClusters,
-        @Qualifier("nonvalidating") TopicService topicService) {
+            @Qualifier("nonvalidating") TopicService topicService) {
         this.kafkaClusters = kafkaClusters;
         this.topicService = topicService;
     }

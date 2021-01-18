@@ -100,8 +100,8 @@ public class TopicServiceImplTest {
             return FutureUtil.noop();
         });
 
-        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator, userService,
-                topicConfig, eventManager);
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator,
+                userService, topicConfig, eventManager);
 
         TopicMetadata topic1 = new TopicMetadata();
         topic1.setName("topic-1");
@@ -141,8 +141,8 @@ public class TopicServiceImplTest {
             return FutureUtil.noop();
         });
 
-        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator, userService,
-                topicConfig, eventManager);
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator,
+                userService, topicConfig, eventManager);
 
         TopicMetadata topic1 = new TopicMetadata();
         topic1.setName("topic-1");
@@ -169,8 +169,8 @@ public class TopicServiceImplTest {
             return FutureUtil.noop();
         });
 
-        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator, userService,
-                topicConfig, eventManager);
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator,
+                userService, topicConfig, eventManager);
 
         TopicMetadata topic1 = new TopicMetadata();
         topic1.setName("topic-1");
@@ -197,10 +197,11 @@ public class TopicServiceImplTest {
             return FutureUtil.noop();
         });
 
-        doThrow(new InvalidTopicNameException("Invalid!")).when(topicNameValidator).validateTopicName(any(), any(), any(), any());
+        doThrow(new InvalidTopicNameException("Invalid!")).when(topicNameValidator).validateTopicName(any(), any(),
+                any(), any());
 
-        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator, userService,
-                topicConfig, eventManager);
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator,
+                userService, topicConfig, eventManager);
 
         TopicMetadata topic1 = new TopicMetadata();
         topic1.setName("topic-1");
@@ -211,7 +212,8 @@ public class TopicServiceImplTest {
         try {
             service.createTopic("test", topic1, null, Map.of()).get();
             fail("Expected exception when creating topic for which name validation fails");
-        } catch (ExecutionException e) {
+        }
+        catch (ExecutionException e) {
             assertTrue(e.getCause() instanceof InvalidTopicNameException);
         }
 
@@ -285,7 +287,8 @@ public class TopicServiceImplTest {
         try {
             service.deleteLatestTopicSchemaVersion("test", "topic-1").get();
             fail("Exception expected, but none thrown");
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             assertTrue(e.getCause() instanceof IllegalStateException);
         }
 
@@ -320,14 +323,16 @@ public class TopicServiceImplTest {
         when(subscriptionService.getSubscriptionsForTopic("test", "topic-1", false))
                 .thenReturn(Collections.singletonList(subscription));
 
-        ValidatingTopicServiceImpl validatingService = new ValidatingTopicServiceImpl(service, subscriptionService, applicationsService, kafkaClusters, topicConfig);
+        ValidatingTopicServiceImpl validatingService = new ValidatingTopicServiceImpl(service, subscriptionService,
+                applicationsService, kafkaClusters, topicConfig);
 
         schemaRepository.save(schema).get();
 
         try {
             validatingService.deleteLatestTopicSchemaVersion("test", "topic-1").get();
             fail("Exception expected, but none thrown");
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             assertTrue(e.getCause() instanceof IllegalStateException);
         }
 
@@ -360,7 +365,8 @@ public class TopicServiceImplTest {
         try {
             service.addTopicSchemaVersion("test", "topic-1", newSchema).get();
             fail("addTopicSchemaVersion() should have failed because same schema should not be added again");
-        } catch (ExecutionException e) {
+        }
+        catch (ExecutionException e) {
             assertTrue(e.getCause() instanceof IllegalArgumentException);
         }
     }
@@ -391,7 +397,8 @@ public class TopicServiceImplTest {
         try {
             service.addTopicSchemaVersion("test", "topic-1", newSchema).get();
             fail("addTopicSchemaVersion() should have failed for incompatible schema");
-        } catch (ExecutionException e) {
+        }
+        catch (ExecutionException e) {
             assertTrue(e.getCause() instanceof IncompatibleSchemaException);
         }
     }
@@ -453,7 +460,8 @@ public class TopicServiceImplTest {
         try {
             service.addTopicSchemaVersion("test", schema1).get();
             fail("addTopicSchemaVersion() should have failed because version #2 and no version existing for topic");
-        } catch (ExecutionException e) {
+        }
+        catch (ExecutionException e) {
             assertTrue(e.getCause() instanceof IllegalArgumentException);
         }
     }
@@ -489,7 +497,8 @@ public class TopicServiceImplTest {
         try {
             service.addTopicSchemaVersion("test", schema2).get();
             fail("addTopicSchemaVersion() should have failed because version #3 and only version #1 existing for topic");
-        } catch (ExecutionException e) {
+        }
+        catch (ExecutionException e) {
             assertTrue(e.getCause() instanceof IllegalArgumentException);
         }
     }
@@ -509,15 +518,16 @@ public class TopicServiceImplTest {
         try {
             service.addTopicSchemaVersion("test", "topic-1", "{ \"title\": 17 }").get();
             fail("addTopicSchemaVersion() should have failed because JSON is no JSON schema");
-        } catch (ExecutionException e) {
+        }
+        catch (ExecutionException e) {
             assertTrue(e.getCause() instanceof IllegalArgumentException);
         }
     }
 
     @Test
     public void testAddSchemaVersion_invalidJson() throws Exception {
-        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator, userService,
-                topicConfig, eventManager);
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator,
+                userService, topicConfig, eventManager);
 
         TopicMetadata topic1 = new TopicMetadata();
         topic1.setName("topic-1");
@@ -529,39 +539,16 @@ public class TopicServiceImplTest {
         try {
             service.addTopicSchemaVersion("test", "topic-1", "{").get();
             fail("addTopicSchemaVersion() should have failed because no valid JSON");
-        } catch (ExecutionException e) {
+        }
+        catch (ExecutionException e) {
             assertTrue(e.getCause() instanceof IllegalArgumentException);
         }
     }
 
     @Test
     public void testAddSchemaVersion_DataObjectSimpleAtJSONSchema() throws Exception {
-        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator, userService,
-                topicConfig, eventManager);
-
-        TopicMetadata topic1 = new TopicMetadata();
-        topic1.setName("topic-1");
-        topic1.setOwnerApplicationId("app-1");
-        topic1.setType(TopicType.EVENTS);
-
-        String testJsonSchema = StreamUtils
-                .copyToString(new ClassPathResource("/schema-compatibility/dataObjectSimple.schema.json").getInputStream(),
-                        StandardCharsets.UTF_8);
-
-        topicRepository.save(topic1).get();
-
-        try {
-            service.addTopicSchemaVersion("test", "topic-1", testJsonSchema).get();
-            fail("addTopicSchemaVersion() should have failed because there is a Data-Object in JSON Schema");
-        } catch (ExecutionException e) {
-            assertTrue(e.getCause() instanceof IllegalArgumentException);
-        }
-    }
-
-    @Test
-    public void testAddSchemaVersion_DataObjectNestedAtJSONSchema() throws Exception {
-        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator, userService,
-                topicConfig, eventManager);
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator,
+                userService, topicConfig, eventManager);
 
         TopicMetadata topic1 = new TopicMetadata();
         topic1.setName("topic-1");
@@ -569,7 +556,33 @@ public class TopicServiceImplTest {
         topic1.setType(TopicType.EVENTS);
 
         String testJsonSchema = StreamUtils.copyToString(
-                new ClassPathResource("/schema-compatibility/dataObjectNested.schema.json").getInputStream(), StandardCharsets.UTF_8);
+                new ClassPathResource("/schema-compatibility/dataObjectSimple.schema.json").getInputStream(),
+                StandardCharsets.UTF_8);
+
+        topicRepository.save(topic1).get();
+
+        try {
+            service.addTopicSchemaVersion("test", "topic-1", testJsonSchema).get();
+            fail("addTopicSchemaVersion() should have failed because there is a Data-Object in JSON Schema");
+        }
+        catch (ExecutionException e) {
+            assertTrue(e.getCause() instanceof IllegalArgumentException);
+        }
+    }
+
+    @Test
+    public void testAddSchemaVersion_DataObjectNestedAtJSONSchema() throws Exception {
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator,
+                userService, topicConfig, eventManager);
+
+        TopicMetadata topic1 = new TopicMetadata();
+        topic1.setName("topic-1");
+        topic1.setOwnerApplicationId("app-1");
+        topic1.setType(TopicType.EVENTS);
+
+        String testJsonSchema = StreamUtils.copyToString(
+                new ClassPathResource("/schema-compatibility/dataObjectNested.schema.json").getInputStream(),
+                StandardCharsets.UTF_8);
 
         topicRepository.save(topic1).get();
 
@@ -578,8 +591,8 @@ public class TopicServiceImplTest {
 
     @Test
     public void testSetSubscriptionApprovalRequired_positive() throws Exception {
-        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator, userService,
-                topicConfig, eventManager);
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator,
+                userService, topicConfig, eventManager);
 
         TopicMetadata topic1 = new TopicMetadata();
         topic1.setName("topic-1");
@@ -609,8 +622,8 @@ public class TopicServiceImplTest {
 
     @Test
     public void testSetSubscriptionApprovalRequired_internalTopic() throws Exception {
-        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator, userService,
-                topicConfig, eventManager);
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator,
+                userService, topicConfig, eventManager);
 
         TopicMetadata topic1 = new TopicMetadata();
         topic1.setName("topic-1");
@@ -622,7 +635,8 @@ public class TopicServiceImplTest {
         try {
             service.setSubscriptionApprovalRequiredFlag("test", "topic-1", true).get();
             fail("Expected exception when trying to set subscriptionApprovalRequired flag on internal topic");
-        } catch (ExecutionException e) {
+        }
+        catch (ExecutionException e) {
             assertTrue(e.getCause() instanceof IllegalStateException);
         }
 
@@ -631,8 +645,8 @@ public class TopicServiceImplTest {
 
     @Test
     public void testSetSubscriptionApprovalRequired_noop() throws Exception {
-        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator, userService,
-                topicConfig, eventManager);
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator,
+                userService, topicConfig, eventManager);
 
         TopicMetadata topic1 = new TopicMetadata();
         topic1.setName("topic-1");
@@ -673,8 +687,8 @@ public class TopicServiceImplTest {
         topic.setType(TopicType.EVENTS);
         topicRepository2.save(topic).get();
 
-        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator, userService,
-                topicConfig, eventManager);
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator,
+                userService, topicConfig, eventManager);
 
         service.markTopicDeprecated("topic-1", "Because test", LocalDate.of(2020, 10, 1)).get();
 
@@ -710,13 +724,14 @@ public class TopicServiceImplTest {
         topic.setType(TopicType.EVENTS);
         topicRepository2.save(topic).get();
 
-        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator, userService,
-                topicConfig, eventManager);
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator,
+                userService, topicConfig, eventManager);
 
         try {
             service.markTopicDeprecated("topic-2", "Because test", LocalDate.of(2020, 10, 1)).get();
             fail("Exception expected when marking not existing topic as deprecated, but succeeded");
-        } catch (ExecutionException e) {
+        }
+        catch (ExecutionException e) {
             assertTrue(e.getCause() instanceof NoSuchElementException);
         }
     }
@@ -744,8 +759,8 @@ public class TopicServiceImplTest {
         topic.setType(TopicType.EVENTS);
         topicRepository.save(topic).get();
 
-        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator, userService,
-                topicConfig, eventManager);
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator,
+                userService, topicConfig, eventManager);
 
         service.unmarkTopicDeprecated("topic-1").get();
 
@@ -762,8 +777,8 @@ public class TopicServiceImplTest {
         topic.setType(TopicType.EVENTS);
         topicRepository.save(topic).get();
 
-        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator, userService,
-                topicConfig, eventManager);
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator,
+                userService, topicConfig, eventManager);
 
         service.updateTopicDescription("test", "topic-1", "this topic is now a nice one :)");
         TopicMetadata savedTopic = topicRepository.getObject("topic-1").get();
@@ -774,8 +789,8 @@ public class TopicServiceImplTest {
 
     @Test
     public void testAddSchemaVersion_DataObjectNestedAtJSONSchemaAndDataTopic() throws Exception {
-        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator, userService,
-                topicConfig, eventManager);
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator,
+                userService, topicConfig, eventManager);
 
         TopicMetadata topic1 = new TopicMetadata();
         topic1.setName("topic-1");
@@ -783,7 +798,8 @@ public class TopicServiceImplTest {
         topic1.setType(TopicType.DATA);
 
         String testJsonSchema = StreamUtils.copyToString(
-                new ClassPathResource("/schema-compatibility/dataObjectNested.schema.json").getInputStream(), StandardCharsets.UTF_8);
+                new ClassPathResource("/schema-compatibility/dataObjectNested.schema.json").getInputStream(),
+                StandardCharsets.UTF_8);
 
         topicRepository.save(topic1).get();
 

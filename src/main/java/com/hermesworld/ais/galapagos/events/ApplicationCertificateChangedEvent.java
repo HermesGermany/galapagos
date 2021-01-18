@@ -6,11 +6,12 @@ import lombok.Getter;
 @Getter
 public class ApplicationCertificateChangedEvent extends ApplicationEvent {
 
-	private String previousDn;
+    private String previousDn;
 
-	public ApplicationCertificateChangedEvent(GalapagosEventContext context, ApplicationMetadata metadata, String previousDn) {
-		super(context, metadata);
-		this.previousDn = previousDn;
-	}
+    public ApplicationCertificateChangedEvent(GalapagosEventContext context, ApplicationMetadata metadata,
+            String previousDn) {
+        super(context, metadata);
+        this.previousDn = previousDn;
+    }
 
 }

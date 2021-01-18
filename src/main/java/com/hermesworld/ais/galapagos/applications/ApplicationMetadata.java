@@ -14,31 +14,31 @@ import lombok.Setter;
 @JsonSerialize
 public class ApplicationMetadata implements HasKey {
 
-	private String applicationId;
+    private String applicationId;
 
-	private String dn;
+    private String dn;
 
-	// TODO should be Instant
-	private ZonedDateTime certificateExpiresAt;
+    // TODO should be Instant
+    private ZonedDateTime certificateExpiresAt;
 
-	private List<String> consumerGroupPrefixes;
+    private List<String> consumerGroupPrefixes;
 
-	private String topicPrefix;
+    private String topicPrefix;
 
-	public ApplicationMetadata() {
-	}
+    public ApplicationMetadata() {
+    }
 
-	public ApplicationMetadata(ApplicationMetadata original) {
-		this.applicationId = original.applicationId;
-		this.dn = original.dn;
-		this.certificateExpiresAt = original.certificateExpiresAt;
-		this.consumerGroupPrefixes = original.consumerGroupPrefixes;
-		this.topicPrefix = original.topicPrefix;
-	}
+    public ApplicationMetadata(ApplicationMetadata original) {
+        this.applicationId = original.applicationId;
+        this.dn = original.dn;
+        this.certificateExpiresAt = original.certificateExpiresAt;
+        this.consumerGroupPrefixes = original.consumerGroupPrefixes;
+        this.topicPrefix = original.topicPrefix;
+    }
 
-	@Override
-	public String key() {
-		return applicationId;
-	}
+    @Override
+    public String key() {
+        return applicationId;
+    }
 
 }

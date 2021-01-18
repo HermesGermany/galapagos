@@ -5,13 +5,13 @@ import lombok.Getter;
 @Getter
 public class KafkaConfigDescriptionDto {
 
-	private String configName;
+    private String configName;
 
-	private String configDescription;
+    private String configDescription;
 
-	public KafkaConfigDescriptionDto(String configName, String configDescription) {
-		this.configName = configName;
-		this.configDescription = configDescription;
-	}
+    public KafkaConfigDescriptionDto(String configName, String configDescription) {
+        this.configName = configName;
+        this.configDescription = configDescription;
+    }
 
 }

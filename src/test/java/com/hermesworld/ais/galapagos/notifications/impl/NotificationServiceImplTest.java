@@ -86,8 +86,9 @@ public class NotificationServiceImplTest {
         when(templateEngine.process(ArgumentMatchers.<String>any(), ArgumentMatchers.any())).thenReturn(htmlCode);
 
         ConcurrentTaskExecutor exec = new ConcurrentTaskExecutor(executor);
-        NotificationServiceImpl notificationServiceImpl = new NotificationServiceImpl(subscriptionService, applicationService,
-            topicService, mailSender, exec, templateEngine, testFromAddress, testAdminMailsRecipients);
+        NotificationServiceImpl notificationServiceImpl = new NotificationServiceImpl(subscriptionService,
+                applicationService, topicService, mailSender, exec, templateEngine, testFromAddress,
+                testAdminMailsRecipients);
 
         notificationServiceImpl.notifyAdmins(testNotificationParams).get();
     }
@@ -100,9 +101,11 @@ public class NotificationServiceImplTest {
         NotificationParams testNotificationParams = generateNotificationParams(TEST_USER, TEST_TOPIC);
 
         List<SubscriptionMetadata> subscriptionMetadatas = generateSubscriptionMetadatas(testApplicationId);
-        when(subscriptionService.getSubscriptionsForTopic(TEST_ENV, TEST_TOPIC, false)).thenReturn(subscriptionMetadatas);
+        when(subscriptionService.getSubscriptionsForTopic(TEST_ENV, TEST_TOPIC, false))
+                .thenReturn(subscriptionMetadatas);
 
-        List<ApplicationOwnerRequest> applicationOwnerRequests = generateApplicationOwnerRequests(testFromAddress, testApplicationId);
+        List<ApplicationOwnerRequest> applicationOwnerRequests = generateApplicationOwnerRequests(testFromAddress,
+                testApplicationId);
         when(applicationService.getAllApplicationOwnerRequests()).thenReturn(applicationOwnerRequests);
 
         String htmlCode = "<html><head><title>Testmail</title></head><body><p>Test</p></body></html>";
@@ -110,14 +113,14 @@ public class NotificationServiceImplTest {
 
         ConcurrentTaskExecutor exec = new ConcurrentTaskExecutor(executor);
 
-        NotificationServiceImpl notificationServiceImpl = new NotificationServiceImpl(subscriptionService, applicationService,
-            topicService, mailSender, exec, templateEngine, testFromAddress, testAdminMailsRecipients);
+        NotificationServiceImpl notificationServiceImpl = new NotificationServiceImpl(subscriptionService,
+                applicationService, topicService, mailSender, exec, templateEngine, testFromAddress,
+                testAdminMailsRecipients);
 
         notificationServiceImpl.notifySubscribers(TEST_ENV, TEST_TOPIC, testNotificationParams, TEST_USER).get();
 
         assertFalse(messageHolder.recipients.contains(testFromAddress));
     }
-
 
     @Test
     public void testNotifyApplicationTopicOwners_noSubmittedIncluded() throws Exception {
@@ -147,7 +150,8 @@ public class NotificationServiceImplTest {
         requestFail.setComments("This user will get no email");
         requestFail.setNotificationEmailAddress("no@mail.com");
 
-        when(applicationService.getAllApplicationOwnerRequests()).thenReturn(List.of(requestSucess1, requestSucess2, requestFail));
+        when(applicationService.getAllApplicationOwnerRequests())
+                .thenReturn(List.of(requestSucess1, requestSucess2, requestFail));
 
         String htmlCode = "<html><head><title>Testmail</title></head><body><p>Test</p></body></html>";
 
@@ -155,9 +159,9 @@ public class NotificationServiceImplTest {
 
         ConcurrentTaskExecutor exec = new ConcurrentTaskExecutor(executor);
 
-        NotificationServiceImpl notificationServiceImpl = new NotificationServiceImpl(subscriptionService, applicationService,
-            topicService, mailSender, exec, templateEngine, testFromAddress, testAdminMailsRecipients);
-
+        NotificationServiceImpl notificationServiceImpl = new NotificationServiceImpl(subscriptionService,
+                applicationService, topicService, mailSender, exec, templateEngine, testFromAddress,
+                testAdminMailsRecipients);
 
         notificationServiceImpl.notifyApplicationTopicOwners(applicationId, testNotificationParams).get();
         assertTrue(messageHolder.recipients.contains("foo@bar.com"));
@@ -199,7 +203,8 @@ public class NotificationServiceImplTest {
         sub.setTopicName("topic1");
         when(subscriptionService.getSubscriptionsForTopic(TEST_ENV, TEST_TOPIC, false)).thenReturn(List.of(sub));
 
-        when(applicationService.getAllApplicationOwnerRequests()).thenReturn(List.of(requestSucess1, requestSucess2, requestFail));
+        when(applicationService.getAllApplicationOwnerRequests())
+                .thenReturn(List.of(requestSucess1, requestSucess2, requestFail));
 
         String htmlCode = "<html><head><title>Testmail</title></head><body><p>Test</p></body></html>";
 
@@ -207,9 +212,9 @@ public class NotificationServiceImplTest {
 
         ConcurrentTaskExecutor exec = new ConcurrentTaskExecutor(executor);
 
-        NotificationServiceImpl notificationServiceImpl = new NotificationServiceImpl(subscriptionService, applicationService,
-            topicService, mailSender, exec, templateEngine, testFromAddress, testAdminMailsRecipients);
-
+        NotificationServiceImpl notificationServiceImpl = new NotificationServiceImpl(subscriptionService,
+                applicationService, topicService, mailSender, exec, templateEngine, testFromAddress,
+                testAdminMailsRecipients);
 
         notificationServiceImpl.notifySubscribers(TEST_ENV, TEST_TOPIC, testNotificationParams, TEST_USER).get();
 
@@ -242,14 +247,15 @@ public class NotificationServiceImplTest {
     }
 
     private List<ApplicationOwnerRequest> generateApplicationOwnerRequests(String notificationEmailAddress,
-        String applicationId) {
+            String applicationId) {
         List<ApplicationOwnerRequest> requests = new ArrayList<>();
 
-        ApplicationOwnerRequest applicationOwnerRequest = generateApplicationOwnerRequest(TEST_USER, notificationEmailAddress,
-            applicationId);
+        ApplicationOwnerRequest applicationOwnerRequest = generateApplicationOwnerRequest(TEST_USER,
+                notificationEmailAddress, applicationId);
         requests.add(applicationOwnerRequest);
 
-        ApplicationOwnerRequest applicationOwnerRequest2 = generateApplicationOwnerRequest("Alice", "abc@abc.de", "100");
+        ApplicationOwnerRequest applicationOwnerRequest2 = generateApplicationOwnerRequest("Alice", "abc@abc.de",
+                "100");
         requests.add(applicationOwnerRequest2);
 
         ApplicationOwnerRequest applicationOwnerRequest3 = generateApplicationOwnerRequest("Bob", "null@null.de", "");
@@ -259,7 +265,7 @@ public class NotificationServiceImplTest {
     }
 
     private ApplicationOwnerRequest generateApplicationOwnerRequest(String userName, String notificationEmailAddress,
-        String applicationId) {
+            String applicationId) {
         ZonedDateTime past = ZonedDateTime.of(LocalDateTime.of(2020, 6, 19, 10, 0), ZoneOffset.UTC);
         ZonedDateTime now = ZonedDateTime.of(LocalDateTime.of(2020, 6, 20, 10, 0), ZoneOffset.UTC);
         ApplicationOwnerRequest applicationOwnerRequest = new ApplicationOwnerRequest();
@@ -296,7 +302,8 @@ public class NotificationServiceImplTest {
                 Address[] addrs = inv.getArgument(1);
                 recipients.addAll(Arrays.stream(addrs).map(Address::toString).collect(Collectors.toList()));
                 return null;
-            }).when(mockMessage).setRecipients(ArgumentMatchers.<RecipientType>any(), ArgumentMatchers.<Address[]>any());
+            }).when(mockMessage).setRecipients(ArgumentMatchers.<RecipientType>any(),
+                    ArgumentMatchers.<Address[]>any());
         }
 
     }

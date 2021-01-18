@@ -9,25 +9,26 @@ import lombok.Getter;
 @Getter
 public class ConsumerRecordDto {
 
-	private String key;
+    private String key;
 
-	private String value;
+    private String value;
 
-	private long offset;
+    private long offset;
 
-	private long timestamp;
+    private long timestamp;
 
-	private int partition;
+    private int partition;
 
-	private Map<String, String> headers;
+    private Map<String, String> headers;
 
-	ConsumerRecordDto(String key, String value, long offset, long timestamp, int partition, Map<String, String> headers) {
-		this.key = key;
-		this.value = value;
-		this.offset = offset;
-		this.timestamp = timestamp;
-		this.partition = partition;
-		this.headers = headers;
-	}
+    ConsumerRecordDto(String key, String value, long offset, long timestamp, int partition,
+            Map<String, String> headers) {
+        this.key = key;
+        this.value = value;
+        this.offset = offset;
+        this.timestamp = timestamp;
+        this.partition = partition;
+        this.headers = headers;
+    }
 
 }

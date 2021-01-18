@@ -37,7 +37,8 @@ public class NotificationEventListenerTest {
 
         when(kafkaClusters.getProductionEnvironmentId()).thenReturn("prod");
 
-        listener = new NotificationEventListener(notificationService, applicationsService, topicService, userService, kafkaClusters);
+        listener = new NotificationEventListener(notificationService, applicationsService, topicService, userService,
+                kafkaClusters);
     }
 
     @Test

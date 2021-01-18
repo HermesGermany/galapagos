@@ -73,8 +73,7 @@ public class TopicControllerTest {
         ValidatingTopicServiceImpl validatingService = new ValidatingTopicServiceImpl(service, subscriptionService,
                 applicationsService, kafkaClusters, topicConfig);
 
-        UpdateTopicDto dto = new UpdateTopicDto(null, null,
-                "updated description goes here", true);
+        UpdateTopicDto dto = new UpdateTopicDto(null, null, "updated description goes here", true);
 
         TopicMetadata topic = new TopicMetadata();
         topic.setName("topic-1");
@@ -91,7 +90,8 @@ public class TopicControllerTest {
 
         when(applicationsService.getUserApplicationOwnerRequests()).thenReturn((List.of(req)));
 
-        TopicController controller = new TopicController(validatingService, kafkaClusters, applicationsService, topicNameValidator);
+        TopicController controller = new TopicController(validatingService, kafkaClusters, applicationsService,
+                topicNameValidator);
 
         controller.updateTopic("test", "topic-1", dto);
         TopicMetadata savedTopic = topicRepository.getObject("topic-1").get();

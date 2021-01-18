@@ -10,18 +10,18 @@ import lombok.Setter;
 @Setter
 public class QueryTopicCreateDefaultsDto {
 
-	private TopicType topicType;
+    private TopicType topicType;
 
-	private String applicationId;
+    private String applicationId;
 
-	private String environmentId;
+    private String environmentId;
 
-	private String businessCapabilityId;
+    private String businessCapabilityId;
 
-	private Integer expectedMessageCountPerDay;
+    private Integer expectedMessageCountPerDay;
 
-	private Long expectedAvgMessageSizeBytes;
+    private Long expectedAvgMessageSizeBytes;
 
-	private Long retentionTimeMs;
+    private Long retentionTimeMs;
 
 }

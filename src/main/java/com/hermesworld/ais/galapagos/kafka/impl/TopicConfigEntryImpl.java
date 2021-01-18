@@ -13,35 +13,35 @@ import com.hermesworld.ais.galapagos.kafka.TopicConfigEntry;
  */
 final class TopicConfigEntryImpl implements TopicConfigEntry {
 
-	private ConfigEntry entry;
+    private ConfigEntry entry;
 
-	public TopicConfigEntryImpl(ConfigEntry kafkaConfigEntry) {
-		this.entry = kafkaConfigEntry;
-	}
+    public TopicConfigEntryImpl(ConfigEntry kafkaConfigEntry) {
+        this.entry = kafkaConfigEntry;
+    }
 
-	@Override
-	public String getName() {
-		return entry.name();
-	}
+    @Override
+    public String getName() {
+        return entry.name();
+    }
 
-	@Override
-	public String getValue() {
-		return entry.value();
-	}
+    @Override
+    public String getValue() {
+        return entry.value();
+    }
 
-	@Override
-	public boolean isDefault() {
-		return entry.isDefault();
-	}
+    @Override
+    public boolean isDefault() {
+        return entry.isDefault();
+    }
 
-	@Override
-	public boolean isSensitive() {
-		return entry.isSensitive();
-	}
+    @Override
+    public boolean isSensitive() {
+        return entry.isSensitive();
+    }
 
-	@Override
-	public boolean isReadOnly() {
-		return entry.isReadOnly();
-	}
+    @Override
+    public boolean isReadOnly() {
+        return entry.isReadOnly();
+    }
 
 }

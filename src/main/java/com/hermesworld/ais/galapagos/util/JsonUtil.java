@@ -11,19 +11,19 @@ import com.hermesworld.ais.galapagos.changes.impl.ChangeDeserizalizer;
 
 public final class JsonUtil {
 
-	private JsonUtil() {
-	}
+    private JsonUtil() {
+    }
 
-	public static ObjectMapper newObjectMapper() {
-		ObjectMapper mapper = new ObjectMapper();
-		mapper.registerModule(new Jdk8Module()).registerModule(new JavaTimeModule());
-		mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+    public static ObjectMapper newObjectMapper() {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new Jdk8Module()).registerModule(new JavaTimeModule());
+        mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
 
-		SimpleModule module = new SimpleModule("change-deserializer", Version.unknownVersion());
-		module.addDeserializer(Change.class, new ChangeDeserizalizer());
-		mapper.registerModule(module);
+        SimpleModule module = new SimpleModule("change-deserializer", Version.unknownVersion());
+        module.addDeserializer(Change.class, new ChangeDeserizalizer());
+        mapper.registerModule(module);
 
-		return mapper;
-	}
+        return mapper;
+    }
 
 }

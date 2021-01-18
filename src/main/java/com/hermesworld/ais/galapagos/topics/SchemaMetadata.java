@@ -12,33 +12,33 @@ import lombok.Setter;
 @Setter
 public class SchemaMetadata implements HasKey {
 
-	private String id;
+    private String id;
 
-	private String topicName;
+    private String topicName;
 
-	private int schemaVersion;
+    private int schemaVersion;
 
-	private String jsonSchema;
+    private String jsonSchema;
 
-	private ZonedDateTime createdAt;
+    private ZonedDateTime createdAt;
 
-	private String createdBy;
+    private String createdBy;
 
-	public SchemaMetadata() {
-	}
+    public SchemaMetadata() {
+    }
 
-	public SchemaMetadata(SchemaMetadata original) {
-		this.id = original.id;
-		this.topicName = original.topicName;
-		this.schemaVersion = original.schemaVersion;
-		this.jsonSchema = original.jsonSchema;
-		this.createdAt = original.createdAt;
-		this.createdBy = original.createdBy;
-	}
+    public SchemaMetadata(SchemaMetadata original) {
+        this.id = original.id;
+        this.topicName = original.topicName;
+        this.schemaVersion = original.schemaVersion;
+        this.jsonSchema = original.jsonSchema;
+        this.createdAt = original.createdAt;
+        this.createdBy = original.createdBy;
+    }
 
-	@Override
-	public String key() {
-		return id;
-	}
+    @Override
+    public String key() {
+        return id;
+    }
 
 }

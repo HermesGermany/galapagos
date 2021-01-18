@@ -7,16 +7,16 @@ import lombok.Setter;
 @Setter
 public class ApplicationCertificateDto {
 
-	private String environmentId;
+    private String environmentId;
 
-	private String dn;
+    private String dn;
 
-	private String expiresAt;
+    private String expiresAt;
 
-	public ApplicationCertificateDto(String environmentId, String dn, String expiresAt) {
-		this.environmentId = environmentId;
-		this.dn = dn;
-		this.expiresAt = expiresAt;
-	}
+    public ApplicationCertificateDto(String environmentId, String dn, String expiresAt) {
+        this.environmentId = environmentId;
+        this.dn = dn;
+        this.expiresAt = expiresAt;
+    }
 
 }

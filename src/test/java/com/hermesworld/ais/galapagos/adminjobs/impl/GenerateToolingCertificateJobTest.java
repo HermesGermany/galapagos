@@ -33,110 +33,110 @@ import org.springframework.util.StreamUtils;
 
 public class GenerateToolingCertificateJobTest {
 
-	private KafkaClusters kafkaClusters;
+    private KafkaClusters kafkaClusters;
 
-	private ApplicationsConfig applicationsConfig;
+    private ApplicationsConfig applicationsConfig;
 
-	private KafkaEnvironmentsConfig kafkaConfig;
+    private KafkaEnvironmentsConfig kafkaConfig;
 
-	private UpdateApplicationAclsListener aclListener;
+    private UpdateApplicationAclsListener aclListener;
 
-	private final byte[] testData = {17, 12, 99, 42, 23};
+    private final byte[] testData = { 17, 12, 99, 42, 23 };
 
-	private final File testFile = new File("target/test.p12");
+    private final File testFile = new File("target/test.p12");
 
-	private ByteArrayOutputStream stdoutData;
+    private ByteArrayOutputStream stdoutData;
 
-	private PrintStream oldOut;
+    private PrintStream oldOut;
 
-	private static final String DATA_MARKER = "CERTIFICATE DATA: ";
+    private static final String DATA_MARKER = "CERTIFICATE DATA: ";
 
-	@Before
-	public void feedMocks() {
-		kafkaClusters = mock(KafkaClusters.class);
+    @Before
+    public void feedMocks() {
+        kafkaClusters = mock(KafkaClusters.class);
 
-		KafkaCluster testCluster = mock(KafkaCluster.class);
-		when(testCluster.getId()).thenReturn("test");
-		when(testCluster.updateUserAcls(any())).thenReturn(CompletableFuture.completedFuture(null));
-		when(kafkaClusters.getEnvironment("test")).thenReturn(Optional.of(testCluster));
-		KafkaEnvironmentConfig config = mock(KafkaEnvironmentConfig.class);
-		when(kafkaClusters.getEnvironmentMetadata("test")).thenReturn(Optional.of(config));
+        KafkaCluster testCluster = mock(KafkaCluster.class);
+        when(testCluster.getId()).thenReturn("test");
+        when(testCluster.updateUserAcls(any())).thenReturn(CompletableFuture.completedFuture(null));
+        when(kafkaClusters.getEnvironment("test")).thenReturn(Optional.of(testCluster));
+        KafkaEnvironmentConfig config = mock(KafkaEnvironmentConfig.class);
+        when(kafkaClusters.getEnvironmentMetadata("test")).thenReturn(Optional.of(config));
 
-		CaManager caMan = mock(CaManager.class);
-		when(kafkaClusters.getCaManager("test")).thenReturn(Optional.of(caMan));
+        CaManager caMan = mock(CaManager.class);
+        when(kafkaClusters.getCaManager("test")).thenReturn(Optional.of(caMan));
 
-		X509Certificate cert = mock(X509Certificate.class);
-		when(cert.getNotAfter()).thenReturn(new Date());
-		CertificateSignResult result = new CertificateSignResult(cert, "test", "cn=test", testData);
-		when(caMan.createToolingCertificateAndPrivateKey()).thenReturn(CompletableFuture.completedFuture(result));
+        X509Certificate cert = mock(X509Certificate.class);
+        when(cert.getNotAfter()).thenReturn(new Date());
+        CertificateSignResult result = new CertificateSignResult(cert, "test", "cn=test", testData);
+        when(caMan.createToolingCertificateAndPrivateKey()).thenReturn(CompletableFuture.completedFuture(result));
 
-		applicationsConfig = mock(ApplicationsConfig.class);
-		kafkaConfig = mock(KafkaEnvironmentsConfig.class);
-		when(kafkaConfig.getMetadataTopicsPrefix()).thenReturn("galapagos.testing.");
+        applicationsConfig = mock(ApplicationsConfig.class);
+        kafkaConfig = mock(KafkaEnvironmentsConfig.class);
+        when(kafkaConfig.getMetadataTopicsPrefix()).thenReturn("galapagos.testing.");
 
-		aclListener = new UpdateApplicationAclsListener(null, null, null) {
-			@Override
-			public KafkaUser getApplicationUser(ApplicationMetadata metadata, String environmentId) {
-				return null;
-			}
-		};
+        aclListener = new UpdateApplicationAclsListener(null, null, null) {
+            @Override
+            public KafkaUser getApplicationUser(ApplicationMetadata metadata, String environmentId) {
+                return null;
+            }
+        };
 
-		// redirect STDOUT to String
-		oldOut = System.out;
-		stdoutData = new ByteArrayOutputStream();
-		System.setOut(new PrintStream(stdoutData));
-	}
+        // redirect STDOUT to String
+        oldOut = System.out;
+        stdoutData = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(stdoutData));
+    }
 
-	@After
-	public void cleanup() {
-		//noinspection ResultOfMethodCallIgnored
-		testFile.delete();
-		System.setOut(oldOut);
-	}
+    @After
+    public void cleanup() {
+        // noinspection ResultOfMethodCallIgnored
+        testFile.delete();
+        System.setOut(oldOut);
+    }
 
-	@Test
-	public void testStandard() throws Exception {
-		GenerateToolingCertificateJob job = new GenerateToolingCertificateJob(kafkaClusters, applicationsConfig, kafkaConfig,
-			aclListener);
+    @Test
+    public void testStandard() throws Exception {
+        GenerateToolingCertificateJob job = new GenerateToolingCertificateJob(kafkaClusters, applicationsConfig,
+                kafkaConfig, aclListener);
 
-		ApplicationArguments args = mock(ApplicationArguments.class);
-		when(args.getOptionValues("output.filename")).thenReturn(Collections.singletonList(testFile.getPath()));
-		when(args.getOptionValues("kafka.environment")).thenReturn(Collections.singletonList("test"));
+        ApplicationArguments args = mock(ApplicationArguments.class);
+        when(args.getOptionValues("output.filename")).thenReturn(Collections.singletonList(testFile.getPath()));
+        when(args.getOptionValues("kafka.environment")).thenReturn(Collections.singletonList("test"));
 
-		job.run(args);
+        job.run(args);
 
-		FileInputStream fis = new FileInputStream(testFile);
-		byte[] readData = StreamUtils.copyToByteArray(fis);
-		assertArrayEquals(testData, readData);
+        FileInputStream fis = new FileInputStream(testFile);
+        byte[] readData = StreamUtils.copyToByteArray(fis);
+        assertArrayEquals(testData, readData);
 
-		// and no data on STDOUT
-		assertFalse(new String(stdoutData.toByteArray()).contains(DATA_MARKER));
-	}
+        // and no data on STDOUT
+        assertFalse(new String(stdoutData.toByteArray()).contains(DATA_MARKER));
+    }
 
-	@Test
-	public void testDataOnStdout() throws Exception {
-		GenerateToolingCertificateJob job = new GenerateToolingCertificateJob(kafkaClusters, applicationsConfig, kafkaConfig,
-				aclListener);
+    @Test
+    public void testDataOnStdout() throws Exception {
+        GenerateToolingCertificateJob job = new GenerateToolingCertificateJob(kafkaClusters, applicationsConfig,
+                kafkaConfig, aclListener);
 
-		ApplicationArguments args = mock(ApplicationArguments.class);
-		when(args.getOptionValues("kafka.environment")).thenReturn(Collections.singletonList("test"));
+        ApplicationArguments args = mock(ApplicationArguments.class);
+        when(args.getOptionValues("kafka.environment")).thenReturn(Collections.singletonList("test"));
 
-		job.run(args);
+        job.run(args);
 
-		// data must be on STDOUT
-		String stdout = new String(stdoutData.toByteArray());
-		assertTrue(stdout.contains(DATA_MARKER));
+        // data must be on STDOUT
+        String stdout = new String(stdoutData.toByteArray());
+        assertTrue(stdout.contains(DATA_MARKER));
 
-		String line = stdout.substring(stdout.indexOf(DATA_MARKER));
-		line = line.substring(DATA_MARKER.length(), line.indexOf('\n'));
+        String line = stdout.substring(stdout.indexOf(DATA_MARKER));
+        line = line.substring(DATA_MARKER.length(), line.indexOf('\n'));
 
-		// Windows hack
-		if (line.endsWith("\r")) {
-			line = line.substring(0, line.length() - 1);
-		}
+        // Windows hack
+        if (line.endsWith("\r")) {
+            line = line.substring(0, line.length() - 1);
+        }
 
-		byte[] readData = Base64.getDecoder().decode(line);
-		assertArrayEquals(testData, readData);
-	}
+        byte[] readData = Base64.getDecoder().decode(line);
+        assertArrayEquals(testData, readData);
+    }
 
 }

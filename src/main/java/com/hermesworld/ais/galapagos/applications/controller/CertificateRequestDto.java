@@ -7,12 +7,12 @@ import lombok.Setter;
 @Setter
 public class CertificateRequestDto {
 
-	private String csrData;
+    private String csrData;
 
-	private boolean generateKey;
+    private boolean generateKey;
 
-	private String topicPrefix;
+    private String topicPrefix;
 
-	private boolean extendCertificate;
+    private boolean extendCertificate;
 
 }

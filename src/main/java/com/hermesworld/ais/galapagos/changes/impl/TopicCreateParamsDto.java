@@ -14,30 +14,30 @@ import lombok.Setter;
 @Setter
 final class TopicCreateParamsDto {
 
-	private int numberOfPartitions;
+    private int numberOfPartitions;
 
-	private int replicationFactor;
+    private int replicationFactor;
 
-	private Map<String, Object> topicConfigs;
+    private Map<String, Object> topicConfigs;
 
-	public TopicCreateParamsDto() {
-	}
+    public TopicCreateParamsDto() {
+    }
 
-	public TopicCreateParamsDto(TopicCreateParams params) {
-		this.numberOfPartitions = params.getNumberOfPartitions();
-		this.replicationFactor = params.getReplicationFactor();
-		this.topicConfigs = params.getTopicConfigs().entrySet().stream()
-				.collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
-	}
+    public TopicCreateParamsDto(TopicCreateParams params) {
+        this.numberOfPartitions = params.getNumberOfPartitions();
+        this.replicationFactor = params.getReplicationFactor();
+        this.topicConfigs = params.getTopicConfigs().entrySet().stream()
+                .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+    }
 
-	public Map<String, String> topicConfigsAsStringMap() {
-		return topicConfigs == null ? Collections.emptyMap()
-				: topicConfigs.entrySet().stream()
-						.collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue() == null ? null : e.getValue().toString()));
-	}
+    public Map<String, String> topicConfigsAsStringMap() {
+        return topicConfigs == null ? Collections.emptyMap()
+                : topicConfigs.entrySet().stream().collect(
+                        Collectors.toMap(e -> e.getKey(), e -> e.getValue() == null ? null : e.getValue().toString()));
+    }
 
-	public TopicCreateParams toTopicCreateParams() {
-		return new TopicCreateParams(numberOfPartitions, replicationFactor, topicConfigsAsStringMap());
-	}
+    public TopicCreateParams toTopicCreateParams() {
+        return new TopicCreateParams(numberOfPartitions, replicationFactor, topicConfigsAsStringMap());
+    }
 
 }

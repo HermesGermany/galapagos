@@ -14,19 +14,19 @@ import org.springframework.context.annotation.Configuration;
 @Setter
 public class GalapagosTopicConfig {
 
-	@Value("topics")
-	private String namePrefix;
+    @Value("topics")
+    private String namePrefix;
 
-	@Value(".")
-	private String nameSeparator;
+    @Value(".")
+    private String nameSeparator;
 
-	@Value("100")
-	private int maxPartitionCount;
+    @Value("100")
+    private int maxPartitionCount;
 
-	@Value("6")
-	private int defaultPartitionCount;
+    @Value("6")
+    private int defaultPartitionCount;
 
-	@Value("P3M")
-	private Period minDeprecationTime;
+    @Value("P3M")
+    private Period minDeprecationTime;
 
 }

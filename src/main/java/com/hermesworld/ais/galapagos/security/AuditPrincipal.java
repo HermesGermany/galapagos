@@ -5,13 +5,13 @@ import lombok.Getter;
 @Getter
 public final class AuditPrincipal {
 
-	private String name;
+    private String name;
 
-	private String fullName;
+    private String fullName;
 
-	public AuditPrincipal(String name, String fullName) {
-		this.name = name;
-		this.fullName = fullName;
-	}
+    public AuditPrincipal(String name, String fullName) {
+        this.name = name;
+        this.fullName = fullName;
+    }
 
 }

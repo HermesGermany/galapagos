@@ -38,86 +38,89 @@ import org.springframework.util.StringUtils;
 @Component
 public class GenerateToolingCertificateJob extends SingleClusterAdminJob {
 
-	private final ApplicationsConfig applicationsConfig;
+    private final ApplicationsConfig applicationsConfig;
 
-	private final KafkaEnvironmentsConfig kafkaConfig;
+    private final KafkaEnvironmentsConfig kafkaConfig;
 
-	private final UpdateApplicationAclsListener aclUpdater;
+    private final UpdateApplicationAclsListener aclUpdater;
 
-	@Autowired
-	public GenerateToolingCertificateJob(KafkaClusters kafkaClusters, ApplicationsConfig applicationsConfig,
-		KafkaEnvironmentsConfig kafkaConfig, UpdateApplicationAclsListener aclUpdater) {
-		super(kafkaClusters);
-		this.applicationsConfig = applicationsConfig;
-		this.kafkaConfig = kafkaConfig;
-		this.aclUpdater = aclUpdater;
-	}
+    @Autowired
+    public GenerateToolingCertificateJob(KafkaClusters kafkaClusters, ApplicationsConfig applicationsConfig,
+            KafkaEnvironmentsConfig kafkaConfig, UpdateApplicationAclsListener aclUpdater) {
+        super(kafkaClusters);
+        this.applicationsConfig = applicationsConfig;
+        this.kafkaConfig = kafkaConfig;
+        this.aclUpdater = aclUpdater;
+    }
 
-	@Override
-	public String getJobName() {
-		return "generate-galapagos-tooling-certificate";
-	}
+    @Override
+    public String getJobName() {
+        return "generate-galapagos-tooling-certificate";
+    }
 
-	@Override
-	public void runOnCluster(KafkaCluster cluster, ApplicationArguments allArguments) throws Exception {
-		String outputFilename = Optional.ofNullable(allArguments.getOptionValues("output.filename"))
-			.flatMap(ls -> ls.stream().findFirst()).orElse(null);
+    @Override
+    public void runOnCluster(KafkaCluster cluster, ApplicationArguments allArguments) throws Exception {
+        String outputFilename = Optional.ofNullable(allArguments.getOptionValues("output.filename"))
+                .flatMap(ls -> ls.stream().findFirst()).orElse(null);
 
-		KafkaEnvironmentConfig metadata = kafkaClusters.getEnvironmentMetadata(cluster.getId()).orElseThrow();
+        KafkaEnvironmentConfig metadata = kafkaClusters.getEnvironmentMetadata(cluster.getId()).orElseThrow();
 
-		if (!StringUtils.isEmpty(outputFilename)) {
-			try {
-				new FileOutputStream(new File(outputFilename)).close();
-			} catch (IOException e) {
-				throw new IllegalArgumentException("Cannot write output file " + outputFilename);
-			}
-		}
+        if (!StringUtils.isEmpty(outputFilename)) {
+            try {
+                new FileOutputStream(new File(outputFilename)).close();
+            }
+            catch (IOException e) {
+                throw new IllegalArgumentException("Cannot write output file " + outputFilename);
+            }
+        }
 
-		CaManager caManager = kafkaClusters.getCaManager(cluster.getId()).orElseThrow();
+        CaManager caManager = kafkaClusters.getCaManager(cluster.getId()).orElseThrow();
 
-		CertificateSignResult result = caManager.createToolingCertificateAndPrivateKey().get();
+        CertificateSignResult result = caManager.createToolingCertificateAndPrivateKey().get();
 
-		// create pseudo ApplicationMetadata to get KafkaUser for ACL update
-		String consumerGroupPrefix = applicationsConfig.getConsumerGroupPrefix() + "galapagos";
-		ApplicationMetadata toolMetadata = new ApplicationMetadata();
-		toolMetadata.setApplicationId("__GALAPAGOS_TOOLING__");
-		toolMetadata.setConsumerGroupPrefixes(Collections.singletonList(consumerGroupPrefix));
-		toolMetadata.setTopicPrefix(kafkaConfig.getMetadataTopicsPrefix());
-		toolMetadata.setDn(result.getDn());
+        // create pseudo ApplicationMetadata to get KafkaUser for ACL update
+        String consumerGroupPrefix = applicationsConfig.getConsumerGroupPrefix() + "galapagos";
+        ApplicationMetadata toolMetadata = new ApplicationMetadata();
+        toolMetadata.setApplicationId("__GALAPAGOS_TOOLING__");
+        toolMetadata.setConsumerGroupPrefixes(Collections.singletonList(consumerGroupPrefix));
+        toolMetadata.setTopicPrefix(kafkaConfig.getMetadataTopicsPrefix());
+        toolMetadata.setDn(result.getDn());
 
-		cluster.updateUserAcls(aclUpdater.getApplicationUser(toolMetadata, cluster.getId())).get();
+        cluster.updateUserAcls(aclUpdater.getApplicationUser(toolMetadata, cluster.getId())).get();
 
-		if (!StringUtils.isEmpty(outputFilename)) {
-			try (FileOutputStream fos = new FileOutputStream(new File(outputFilename))) {
-				fos.write(result.getP12Data().orElseThrow());
-			}
-		} else {
-			String base64Data = Base64.getEncoder().encodeToString(result.getP12Data().orElseThrow());
-			System.out.println("CERTIFICATE DATA: " + base64Data);
-		}
+        if (!StringUtils.isEmpty(outputFilename)) {
+            try (FileOutputStream fos = new FileOutputStream(new File(outputFilename))) {
+                fos.write(result.getP12Data().orElseThrow());
+            }
+        }
+        else {
+            String base64Data = Base64.getEncoder().encodeToString(result.getP12Data().orElseThrow());
+            System.out.println("CERTIFICATE DATA: " + base64Data);
+        }
 
-		System.out.println();
-		System.out.println("==================== Galapagos Tooling Certificate CREATED ====================");
-		System.out.println();
-		if (!StringUtils.isEmpty(outputFilename)) {
-			System.out.println(
-					"You can now use the certificate in " + outputFilename + " for Galapagos external tooling on " + metadata.getName());
-		}
-		else {
-			System.out.println(
-					"You can now use the certificate (which is encoded above) for Galapagos external tooling on " + metadata.getName());
-		}
-		System.out.println();
-		System.out.println("Use bootstrap servers " + metadata.getBootstrapServers());
-		System.out.println("Use a consumer group ID starting with " + toolMetadata.getConsumerGroupPrefixes().get(0));
-		System.out.println("You can access (read & write) all topics starting with " + toolMetadata.getTopicPrefix());
-		System.out.println();
-		System.out.println();
-		System.out.println("The certificate expires at " + result.getCertificate().getNotAfter());
-		System.out.println();
-		System.out.println("To remove ACLs for this certificate, run Galapagos admin task galapagos.jobs.delete-acls");
-		System.out.println("with --certificate.dn=" + result.getDn() + " --kafka.environment=" + cluster.getId());
-		System.out.println();
-		System.out.println("==============================================================================");
-	}
+        System.out.println();
+        System.out.println("==================== Galapagos Tooling Certificate CREATED ====================");
+        System.out.println();
+        if (!StringUtils.isEmpty(outputFilename)) {
+            System.out.println("You can now use the certificate in " + outputFilename
+                    + " for Galapagos external tooling on " + metadata.getName());
+        }
+        else {
+            System.out.println(
+                    "You can now use the certificate (which is encoded above) for Galapagos external tooling on "
+                            + metadata.getName());
+        }
+        System.out.println();
+        System.out.println("Use bootstrap servers " + metadata.getBootstrapServers());
+        System.out.println("Use a consumer group ID starting with " + toolMetadata.getConsumerGroupPrefixes().get(0));
+        System.out.println("You can access (read & write) all topics starting with " + toolMetadata.getTopicPrefix());
+        System.out.println();
+        System.out.println();
+        System.out.println("The certificate expires at " + result.getCertificate().getNotAfter());
+        System.out.println();
+        System.out.println("To remove ACLs for this certificate, run Galapagos admin task galapagos.jobs.delete-acls");
+        System.out.println("with --certificate.dn=" + result.getDn() + " --kafka.environment=" + cluster.getId());
+        System.out.println();
+        System.out.println("==============================================================================");
+    }
 }

@@ -11,14 +11,14 @@ import lombok.Getter;
 @Getter
 public class DeveloperCertificateInfoDto {
 
-	private String dn;
+    private String dn;
 
-	@JsonFormat(shape = Shape.STRING)
-	private Instant expiresAt;
+    @JsonFormat(shape = Shape.STRING)
+    private Instant expiresAt;
 
-	public DeveloperCertificateInfoDto(String dn, Instant expiresAt) {
-		this.dn = dn;
-		this.expiresAt = expiresAt;
-	}
+    public DeveloperCertificateInfoDto(String dn, Instant expiresAt) {
+        this.dn = dn;
+        this.expiresAt = expiresAt;
+    }
 
 }

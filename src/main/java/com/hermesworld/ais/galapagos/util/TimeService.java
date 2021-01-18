@@ -12,6 +12,6 @@ import java.time.ZonedDateTime;
  */
 public interface TimeService {
 
-	ZonedDateTime getTimestamp();
+    ZonedDateTime getTimestamp();
 
 }

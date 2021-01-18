@@ -22,48 +22,49 @@ import org.springframework.web.server.ResponseStatusException;
 @Slf4j
 public class BackupController {
 
-	private KafkaClusters kafkaClusters;
+    private KafkaClusters kafkaClusters;
 
-	private final ObjectMapper objectMapper = JsonUtil.newObjectMapper();
+    private final ObjectMapper objectMapper = JsonUtil.newObjectMapper();
 
-	@Autowired
-	public BackupController(KafkaClusters kafkaClusters) {
-		this.kafkaClusters = kafkaClusters;
-	}
+    @Autowired
+    public BackupController(KafkaClusters kafkaClusters) {
+        this.kafkaClusters = kafkaClusters;
+    }
 
-	@GetMapping(value = "/api/admin/full-backup", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-	@Secured("ROLE_ADMIN")
-	public String createBackup() {
-		JSONObject result = new JSONObject();
+    @GetMapping(value = "/api/admin/full-backup", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @Secured("ROLE_ADMIN")
+    public String createBackup() {
+        JSONObject result = new JSONObject();
 
-		for (String id : kafkaClusters.getEnvironmentIds()) {
-			kafkaClusters.getEnvironment(id).ifPresent(env -> result.put(id, backupEnvironment(env)));
-		}
+        for (String id : kafkaClusters.getEnvironmentIds()) {
+            kafkaClusters.getEnvironment(id).ifPresent(env -> result.put(id, backupEnvironment(env)));
+        }
 
-		return result.toString();
-	}
+        return result.toString();
+    }
 
-	private JSONObject backupEnvironment(KafkaCluster cluster) {
-		JSONObject result = new JSONObject();
+    private JSONObject backupEnvironment(KafkaCluster cluster) {
+        JSONObject result = new JSONObject();
 
-		for (TopicBasedRepository backupTopic : cluster.getRepositories()) {
-			result.put(backupTopic.getTopicName(), backupTopicData(cluster.getRepository(backupTopic.getTopicName(), backupTopic.getValueClass())));
-		}
+        for (TopicBasedRepository backupTopic : cluster.getRepositories()) {
+            result.put(backupTopic.getTopicName(),
+                    backupTopicData(cluster.getRepository(backupTopic.getTopicName(), backupTopic.getValueClass())));
+        }
 
-		return result;
-	}
+        return result;
+    }
 
-	private JSONObject backupTopicData(TopicBasedRepository<? extends HasKey> repo) {
-		JSONObject result = new JSONObject();
-		for (HasKey obj : repo.getObjects()) {
-			try {
-				result.put(obj.key(), new JSONObject(objectMapper.writeValueAsString(obj)));
-			}
-			catch (JSONException | JsonProcessingException e) {
-				log.error("Could not serialize object for backup", e);
-				throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
-			}
-		}
-		return result;
-	}
+    private JSONObject backupTopicData(TopicBasedRepository<? extends HasKey> repo) {
+        JSONObject result = new JSONObject();
+        for (HasKey obj : repo.getObjects()) {
+            try {
+                result.put(obj.key(), new JSONObject(objectMapper.writeValueAsString(obj)));
+            }
+            catch (JSONException | JsonProcessingException e) {
+                log.error("Could not serialize object for backup", e);
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+            }
+        }
+        return result;
+    }
 }

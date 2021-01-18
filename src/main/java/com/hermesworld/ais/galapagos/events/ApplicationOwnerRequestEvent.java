@@ -6,11 +6,11 @@ import lombok.Getter;
 @Getter
 public class ApplicationOwnerRequestEvent extends AbstractGalapagosEvent {
 
-	private ApplicationOwnerRequest request;
+    private ApplicationOwnerRequest request;
 
-	public ApplicationOwnerRequestEvent(GalapagosEventContext context, ApplicationOwnerRequest request) {
-		super(context);
-		this.request = request;
-	}
+    public ApplicationOwnerRequestEvent(GalapagosEventContext context, ApplicationOwnerRequest request) {
+        super(context);
+        this.request = request;
+    }
 
 }

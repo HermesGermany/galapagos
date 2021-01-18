@@ -10,12 +10,12 @@ import lombok.Setter;
 @Setter
 final class CaData {
 
-	private X509Certificate caCertificate;
+    private X509Certificate caCertificate;
 
-	private PrivateKey caPrivateKey;
+    private PrivateKey caPrivateKey;
 
-	private long applicationCertificateValidity;
+    private long applicationCertificateValidity;
 
-	private long developerCertificateValidity;
+    private long developerCertificateValidity;
 
 }

@@ -19,38 +19,38 @@ import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 @SpringBootTest
 public class UISupportControllerTest {
 
-	@MockBean
-	private KafkaClusters kafkaClusters;
+    @MockBean
+    private KafkaClusters kafkaClusters;
 
-	@Autowired
-	private UISupportController testController;
+    @Autowired
+    private UISupportController testController;
 
-	@Test
-	public void testCustomLinks() {
-		List<CustomLinkConfig> links = testController.getCustomLinks();
-		assertNotNull(links);
+    @Test
+    public void testCustomLinks() {
+        List<CustomLinkConfig> links = testController.getCustomLinks();
+        assertNotNull(links);
 
-		for (int i = 0; i < links.size(); i++) {
-			assertNotNull(links.get(i).getId());
+        for (int i = 0; i < links.size(); i++) {
+            assertNotNull(links.get(i).getId());
 
-			assertNotNull(links.get(i).getHref());
-			assertFalse(links.get(i).getHref().isBlank());
+            assertNotNull(links.get(i).getHref());
+            assertFalse(links.get(i).getHref().isBlank());
 
-			assertNotNull(links.get(i).getLabel());
-			assertFalse(links.get(i).getLabel().isBlank());
+            assertNotNull(links.get(i).getLabel());
+            assertFalse(links.get(i).getLabel().isBlank());
 
-			assertNotNull(links.get(i).getLinkType());
+            assertNotNull(links.get(i).getLinkType());
 
-		}
-	}
+        }
+    }
 
-	@Test
-	public void testKafkaDoc() {
-		List<KafkaConfigDescriptionDto> result = new UISupportController(null, null, null, null, null, null)
-				.getSupportedKafkaConfigs();
-		assertNotNull(result);
-		assertTrue(result.size() > 10);
-		assertTrue(result.stream().filter(d -> d.getConfigDescription().length() > 20).count() > 10);
-	}
+    @Test
+    public void testKafkaDoc() {
+        List<KafkaConfigDescriptionDto> result = new UISupportController(null, null, null, null, null, null)
+                .getSupportedKafkaConfigs();
+        assertNotNull(result);
+        assertTrue(result.size() > 10);
+        assertTrue(result.stream().filter(d -> d.getConfigDescription().length() > 20).count() > 10);
+    }
 
 }

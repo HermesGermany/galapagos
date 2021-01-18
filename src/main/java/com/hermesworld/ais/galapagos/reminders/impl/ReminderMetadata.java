@@ -15,15 +15,15 @@ import lombok.Setter;
 @Setter
 public class ReminderMetadata implements HasKey {
 
-	private String reminderId;
+    private String reminderId;
 
-	private String applicationId;
+    private String applicationId;
 
-	private ReminderType reminderType;
+    private ReminderType reminderType;
 
-	@Override
-	public String key() {
-		return reminderId;
-	}
+    @Override
+    public String key() {
+        return reminderId;
+    }
 
 }

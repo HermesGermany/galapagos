@@ -4,6 +4,6 @@ import java.util.List;
 
 public interface ChangesService {
 
-	public List<ChangeData> getChangeLog(String environmentId);
+    public List<ChangeData> getChangeLog(String environmentId);
 
 }

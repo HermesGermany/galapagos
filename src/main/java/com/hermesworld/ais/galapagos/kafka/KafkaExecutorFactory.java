@@ -15,12 +15,13 @@ import java.util.concurrent.ExecutorService;
  */
 public interface KafkaExecutorFactory {
 
-	/**
-	 * Creates a new executor service for decoupling a single Kafka Task from the Kafka Thread. The executor is relatively
-	 * short-lived, and it is okay to provide only one Thread, as no parallel execution occurs on this executor.
-	 *
-	 * @return A new executor, never <code>null</code>.
-	 */
-	ExecutorService newExecutor();
+    /**
+     * Creates a new executor service for decoupling a single Kafka Task from the Kafka Thread. The executor is
+     * relatively short-lived, and it is okay to provide only one Thread, as no parallel execution occurs on this
+     * executor.
+     *
+     * @return A new executor, never <code>null</code>.
+     */
+    ExecutorService newExecutor();
 
 }

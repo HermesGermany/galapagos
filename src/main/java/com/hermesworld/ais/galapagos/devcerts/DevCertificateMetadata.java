@@ -14,16 +14,16 @@ import lombok.Setter;
 @Setter
 public class DevCertificateMetadata implements HasKey {
 
-	private String userName;
+    private String userName;
 
-	private String certificateDn;
+    private String certificateDn;
 
-	@JsonFormat(shape = Shape.STRING)
-	private Instant expiryDate;
+    @JsonFormat(shape = Shape.STRING)
+    private Instant expiryDate;
 
-	@Override
-	public String key() {
-		return userName;
-	}
+    @Override
+    public String key() {
+        return userName;
+    }
 
 }

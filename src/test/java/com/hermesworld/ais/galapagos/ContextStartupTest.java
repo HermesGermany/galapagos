@@ -20,23 +20,23 @@ import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 @SpringBootTest
 public class ContextStartupTest {
 
-	@Autowired
-	private ApplicationContext context;
+    @Autowired
+    private ApplicationContext context;
 
-	// mock the KafkaClusters implementation as we do not have a live Kafka server here
-	@MockBean
-	private KafkaClusters kafkaClusters;
+    // mock the KafkaClusters implementation as we do not have a live Kafka server here
+    @MockBean
+    private KafkaClusters kafkaClusters;
 
-	@BeforeClass
-	public static void setupSecurity() {
-		Security.setProperty("crypto.policy", "unlimited");
-		Security.addProvider(new BouncyCastleProvider());
-	}
+    @BeforeClass
+    public static void setupSecurity() {
+        Security.setProperty("crypto.policy", "unlimited");
+        Security.addProvider(new BouncyCastleProvider());
+    }
 
-	@Test
-	public void testStartupContext() {
-		assertNotNull(kafkaClusters);
-		assertNotNull(context);
-	}
+    @Test
+    public void testStartupContext() {
+        assertNotNull(kafkaClusters);
+        assertNotNull(context);
+    }
 
 }

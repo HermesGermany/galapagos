@@ -8,25 +8,25 @@ import com.hermesworld.ais.galapagos.applications.BusinessCapability;
 @JsonSerialize
 public class BusinessCapabilityImpl implements BusinessCapability {
 
-	private String id;
+    private String id;
 
-	private String name;
+    private String name;
 
-	@JsonCreator
-	public BusinessCapabilityImpl(@JsonProperty(value = "id", required = true) String id,
-			@JsonProperty(value = "name", required = true) String name) {
-		this.id = id;
-		this.name = name;
-	}
+    @JsonCreator
+    public BusinessCapabilityImpl(@JsonProperty(value = "id", required = true) String id,
+            @JsonProperty(value = "name", required = true) String name) {
+        this.id = id;
+        this.name = name;
+    }
 
-	@Override
-	public String getId() {
-		return id;
-	}
+    @Override
+    public String getId() {
+        return id;
+    }
 
-	@Override
-	public String getName() {
-		return name;
-	}
+    @Override
+    public String getName() {
+        return name;
+    }
 
 }

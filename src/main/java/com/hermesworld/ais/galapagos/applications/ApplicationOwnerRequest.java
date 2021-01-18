@@ -13,29 +13,29 @@ import lombok.Setter;
 @JsonSerialize
 public class ApplicationOwnerRequest implements HasKey {
 
-	private String id;
+    private String id;
 
-	private String applicationId;
+    private String applicationId;
 
-	private String userName;
+    private String userName;
 
-	private String comments;
+    private String comments;
 
-	@JsonFormat(shape = JsonFormat.Shape.STRING)
-	private ZonedDateTime createdAt;
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
+    private ZonedDateTime createdAt;
 
-	private String notificationEmailAddress;
+    private String notificationEmailAddress;
 
-	@JsonFormat(shape = JsonFormat.Shape.STRING)
-	private ZonedDateTime lastStatusChangeAt;
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
+    private ZonedDateTime lastStatusChangeAt;
 
-	private String lastStatusChangeBy;
+    private String lastStatusChangeBy;
 
-	private RequestState state;
+    private RequestState state;
 
-	@Override
-	public String key() {
-		return id;
-	}
+    @Override
+    public String key() {
+        return id;
+    }
 
 }

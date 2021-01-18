@@ -68,11 +68,14 @@ public class TopicServiceImplIntegrationTest {
 
     private final AtomicInteger threadNo = new AtomicInteger();
 
-    private final ExecutorService executorService = Executors.newCachedThreadPool(r -> new Thread(r, "inttest-" + threadNo.incrementAndGet()));
+    private final ExecutorService executorService = Executors
+            .newCachedThreadPool(r -> new Thread(r, "inttest-" + threadNo.incrementAndGet()));
 
-    private final TopicBasedRepositoryMock<TopicMetadata> topicRepository1 = new DecoupledTopicBasedRepositoryMock<>(executorService);
+    private final TopicBasedRepositoryMock<TopicMetadata> topicRepository1 = new DecoupledTopicBasedRepositoryMock<>(
+            executorService);
 
-    private final TopicBasedRepositoryMock<TopicMetadata> topicRepository2 = new DecoupledTopicBasedRepositoryMock<>(executorService);
+    private final TopicBasedRepositoryMock<TopicMetadata> topicRepository2 = new DecoupledTopicBasedRepositoryMock<>(
+            executorService);
 
     @Before
     public void feedMocks() {
@@ -85,8 +88,10 @@ public class TopicServiceImplIntegrationTest {
         when(cluster1.getRepository("topics", TopicMetadata.class)).thenReturn(topicRepository1);
         when(cluster2.getRepository("topics", TopicMetadata.class)).thenReturn(topicRepository2);
 
-        when(cluster1.getRepository("changelog", ChangeData.class)).thenReturn(new DecoupledTopicBasedRepositoryMock<>(executorService));
-        when(cluster2.getRepository("changelog", ChangeData.class)).thenReturn(new DecoupledTopicBasedRepositoryMock<>(executorService));
+        when(cluster1.getRepository("changelog", ChangeData.class))
+                .thenReturn(new DecoupledTopicBasedRepositoryMock<>(executorService));
+        when(cluster2.getRepository("changelog", ChangeData.class))
+                .thenReturn(new DecoupledTopicBasedRepositoryMock<>(executorService));
 
         when(clusters.getEnvironmentIds()).thenReturn(List.of("dev", "int"));
         when(clusters.getProductionEnvironmentId()).thenReturn("int");
@@ -120,7 +125,8 @@ public class TopicServiceImplIntegrationTest {
         topic.setType(TopicType.EVENTS);
         topicRepository2.save(topic).get();
 
-        TopicServiceImpl service = new TopicServiceImpl(clusters, applicationsService, nameValidator, currentUserService, topicSettings, eventManager);
+        TopicServiceImpl service = new TopicServiceImpl(clusters, applicationsService, nameValidator,
+                currentUserService, topicSettings, eventManager);
 
         SecurityContext securityContext = mock(SecurityContext.class);
         Authentication auth = mock(Authentication.class);
@@ -133,7 +139,8 @@ public class TopicServiceImplIntegrationTest {
         service.markTopicDeprecated("topic-1", "deprecated", LocalDate.of(2999, 1, 1)).get();
 
         assertEquals(2, eventListener.deprecationEvents.size());
-        assertEquals("testUser", eventListener.deprecationEvents.get(1).getContext().getContextValue("username").orElse(null));
+        assertEquals("testUser",
+                eventListener.deprecationEvents.get(1).getContext().getContextValue("username").orElse(null));
     }
 
     @Test
@@ -155,7 +162,8 @@ public class TopicServiceImplIntegrationTest {
         topic.setDeprecated(true);
         topicRepository2.save(topic).get();
 
-        TopicServiceImpl service = new TopicServiceImpl(clusters, applicationsService, nameValidator, currentUserService, topicSettings, eventManager);
+        TopicServiceImpl service = new TopicServiceImpl(clusters, applicationsService, nameValidator,
+                currentUserService, topicSettings, eventManager);
 
         SecurityContext securityContext = mock(SecurityContext.class);
         Authentication auth = mock(Authentication.class);
@@ -168,7 +176,8 @@ public class TopicServiceImplIntegrationTest {
         service.unmarkTopicDeprecated("topic-1").get();
 
         assertEquals(2, eventListener.undeprecationEvents.size());
-        assertEquals("testUser", eventListener.undeprecationEvents.get(1).getContext().getContextValue("username").orElse(null));
+        assertEquals("testUser",
+                eventListener.undeprecationEvents.get(1).getContext().getContextValue("username").orElse(null));
     }
 
     @Component
@@ -216,7 +225,6 @@ public class TopicServiceImplIntegrationTest {
         }
     }
 
-
     /**
      * A mock implementation for a TopicBasedRepository which behaves more like the original, Kafka-based one, in that
      * it completes each save operation asynchronously, on a new Thread.
@@ -236,7 +244,8 @@ public class TopicServiceImplIntegrationTest {
             return super.save(value).thenCompose(o -> CompletableFuture.runAsync(() -> {
                 try {
                     Thread.sleep(200);
-                } catch (InterruptedException e) {
+                }
+                catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 }
             }, executorService));

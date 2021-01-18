@@ -13,19 +13,19 @@ import com.hermesworld.ais.galapagos.util.FutureUtil;
 
 public class GalapagosEventManagerMock implements GalapagosEventManager {
 
-	private List<InvocationOnMock> sinkInvocations = new ArrayList<>();
+    private List<InvocationOnMock> sinkInvocations = new ArrayList<>();
 
-	@Override
-	public GalapagosEventSink newEventSink(KafkaCluster kafkaCluster) {
-		Answer<?> logCall = inv -> {
-			sinkInvocations.add(inv);
-			return FutureUtil.noop();
-		};
-		return mock(GalapagosEventSink.class, logCall);
-	}
+    @Override
+    public GalapagosEventSink newEventSink(KafkaCluster kafkaCluster) {
+        Answer<?> logCall = inv -> {
+            sinkInvocations.add(inv);
+            return FutureUtil.noop();
+        };
+        return mock(GalapagosEventSink.class, logCall);
+    }
 
-	public List<InvocationOnMock> getSinkInvocations() {
-		return sinkInvocations;
-	}
+    public List<InvocationOnMock> getSinkInvocations() {
+        return sinkInvocations;
+    }
 
 }

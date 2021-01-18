@@ -9,6 +9,6 @@ import lombok.Setter;
 @Setter
 public class UpdateApplicationOwnerRequestDto {
 
-	private RequestState newState;
+    private RequestState newState;
 
 }
