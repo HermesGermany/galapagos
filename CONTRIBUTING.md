@@ -25,6 +25,21 @@ Our colleagues at Hermes can also use the chat channel "galapagos" to contact us
 ## How to change code
 
 Fork the project in your account and create a branch with your fix or new feature: some-great-feature or some-issue-fix.
+
+Your branch should track the `next_minor` branch, **not** the `main` branch!
+We recommend to add the main galapagos repository as `upstream` remote:
+
+```bash
+git remote add upstream https://github.com/HermesGermany/galapagos.git
+git fetch upstream
+```
+
+Then, you can create your feature branch to track `upstream/next_minor`:
+
+```bash
+git checkout -b feature_my_cool_feature upstream/next_minor
+```
+
 Commit your changes in that branch, writing the code following the code style.
 
 * Edit or create tests which prove your fix or newly added functionality.
@@ -52,6 +67,8 @@ Example:
 Open a pull request, and reference the initial issue in the pull request message (e.g. Fixes #123456). 
 Write a good description and title, so everybody will know what is fixed/improved.
 
+Please make sure your Pull Request also selects `next_minor` as the target branch, **not** `main`!
+(Don't worry if you miss this; this can easily be changed afterwards by editing the Pull Request.)
 
 ### Wait for feedback
 
@@ -64,7 +81,4 @@ We will only accept pull requests that have zero failing checks.
 
 ### The merge
 
-Finally, your contributions will be merged.
-
-The merge will automatically publish a new snapshot version.
-A release version will be published manually by the [core team](#contact-the-galapagos-core-team) according to our roadmap.  
+Finally, your contributions will be merged. Currently, no snapshot builds are automatically deployed to the public, but we will perform a new release of Galapagos every three to four weeks. The next release will include your changes then.
