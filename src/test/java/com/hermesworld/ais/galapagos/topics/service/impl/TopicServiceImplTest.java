@@ -430,6 +430,7 @@ public class TopicServiceImplTest {
         schema2.setCreatedBy("testuser");
         schema2.setJsonSchema(buildJsonSchema(List.of("propA", "propB"), List.of("string", "string")));
         schema2.setSchemaVersion(2);
+        schema2.setChangeDescription("some nice description :)");
 
         SchemaMetadata newSchemaMetadata = service.addTopicSchemaVersion("test", schema2).get();
         assertEquals("9999", newSchemaMetadata.getId());
