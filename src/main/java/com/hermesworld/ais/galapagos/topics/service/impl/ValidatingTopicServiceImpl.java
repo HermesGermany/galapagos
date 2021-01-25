@@ -1,12 +1,5 @@
 package com.hermesworld.ais.galapagos.topics.service.impl;
 
-import java.time.LocalDate;
-import java.time.Period;
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
 import com.hermesworld.ais.galapagos.applications.ApplicationsService;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.kafka.TopicCreateParams;
@@ -25,6 +18,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDate;
+import java.time.Period;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @Primary
@@ -145,9 +145,10 @@ public class ValidatingTopicServiceImpl implements ValidatingTopicService {
 
     @Override
     public CompletableFuture<SchemaMetadata> addTopicSchemaVersion(String environmentId, String topicName,
-            String jsonSchema) {
+            String jsonSchema, String changeDescription) {
         return checkOnNonStaging(environmentId, "add JSON schemas", SchemaMetadata.class)
-                .orElseGet(() -> topicService.addTopicSchemaVersion(environmentId, topicName, jsonSchema));
+                .orElseGet(() -> topicService.addTopicSchemaVersion(environmentId, topicName, jsonSchema,
+                        changeDescription));
     }
 
     @Override

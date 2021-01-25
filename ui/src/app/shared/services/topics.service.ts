@@ -57,6 +57,8 @@ export interface SchemaMetadata {
 
     jsonSchema: string;
 
+    changeDescription: string;
+
     isLatest?: boolean;
 
 }
@@ -231,12 +233,13 @@ export class TopicsService {
             .pipe(map(schemas => this.markLatest(schemas))).toPromise();
     }
 
-    public addTopicSchema(topicName: string, environmentId: string, jsonSchema: string): Promise<any> {
+    public addTopicSchema(topicName: string, environmentId: string, jsonSchema: string, schemaChangeDescription?: string): Promise<any> {
         const body = JSON.stringify({
-            jsonSchema: jsonSchema
+            jsonSchema: jsonSchema,
+            changeDescription: schemaChangeDescription ? schemaChangeDescription : null
         });
 
-        return this.http.put('/api/schemas/' + environmentId + '/' + topicName, body, { headers: jsonHeader() }).toPromise();
+        return this.http.put('/api/schemas/' + environmentId + '/' + topicName, body, {headers: jsonHeader()}).toPromise();
     }
 
     public deleteLatestSchema(topicName: string, environmentId: string): Promise<any> {

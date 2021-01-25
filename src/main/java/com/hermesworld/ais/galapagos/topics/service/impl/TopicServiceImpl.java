@@ -1,11 +1,5 @@
 package com.hermesworld.ais.galapagos.topics.service.impl;
 
-import java.time.LocalDate;
-import java.time.ZonedDateTime;
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
-
 import com.hermesworld.ais.galapagos.applications.ApplicationMetadata;
 import com.hermesworld.ais.galapagos.applications.ApplicationsService;
 import com.hermesworld.ais.galapagos.applications.KnownApplication;
@@ -33,6 +27,12 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDate;
+import java.time.ZonedDateTime;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 @Service
 @Qualifier(value = "nonvalidating")
@@ -253,7 +253,7 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
 
     @Override
     public CompletableFuture<SchemaMetadata> addTopicSchemaVersion(String environmentId, String topicName,
-            String jsonSchema) {
+            String jsonSchema, String changeDescription) {
         String userName = userService.getCurrentUserName().orElse(null);
         if (userName == null) {
             return CompletableFuture.failedFuture(new IllegalStateException("No user currently logged in"));
@@ -275,6 +275,7 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
         newSchemaVersion.setCreatedBy(userName);
         newSchemaVersion.setCreatedAt(ZonedDateTime.now());
         newSchemaVersion.setJsonSchema(jsonSchema);
+        newSchemaVersion.setChangeDescription(changeDescription);
         newSchemaVersion.setSchemaVersion(nextVersionNo);
 
         return addTopicSchemaVersion(environmentId, newSchemaVersion);
@@ -387,6 +388,16 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
             catch (IncompatibleSchemaException e) {
                 return CompletableFuture.failedFuture(e);
             }
+        }
+
+        if (existingVersions.isEmpty() && schemaMetadata.getChangeDescription() != null) {
+            return CompletableFuture.failedFuture(
+                    new IllegalArgumentException("Cant have a change description for schema with version number #1."));
+        }
+
+        if (!existingVersions.isEmpty() && schemaMetadata.getChangeDescription() == null) {
+            return CompletableFuture.failedFuture(new IllegalArgumentException(
+                    "Change Description has to be set for schemas with version greater 1."));
         }
 
         // copy to be safe here

@@ -162,62 +162,9 @@
                     </div>
                 </div>
             </div>
-            <div class="row" *ngIf="(topic | async)?.topicType !== 'INTERNAL'">
-                <div class="col-md-12">
-                    <div class="card mb-3">
-                        <div class="card-header"><i class="fas fa-file-code mr-3"></i>{{ 'Schema' | translate }}</div>
-                        <div class="card-body">
-                            <div>
-                                <div class="form-group form-inline"
-                                     *ngIf="(topicSchemas | async)?.length && !editSchemaMode">
-                                    <label for="schemaVersion">{{ 'Schema Version' | translate }}</label>
-                                    <select class="form-control ml-3" id="schemaVersion" name="schemaVersion"
-                                            [(ngModel)]="selectedSchemaVersion">
-                                        <option *ngFor="let schema of topicSchemas | async"
-                                                [ngValue]="schema">{{ schema.schemaVersion }}{{ schema.isLatest ? ' ' + (currentText | async) : ''}}</option>
-                                    </select>
-                                    <button appSpinnerWhile
-                                            #p="appSpinnerWhile" (click)="(openDeleteConfirmDlg(deleteLatestSchemaDlg))"
-                                            class="btn btn-danger ml-3"
-                                            *ngIf="selectedSchemaVersion.isLatest && (topicSubscribers | async)?.length === 0">
-                                        <i class="fas fa-trash mr-3"></i>{{ 'Delete Schema' | translate }}
-                                    </button>
-                                </div>
-                                <button class="btn btn-success mb-3"
-                                        *ngIf="!(selectedEnvironment | async)?.stagingOnly && (isOwnerOfTopic | async) && !editSchemaMode"
-                                        (click)="startEditSchemaMode()"><i
-                                    class="fas fa-plus mr-3"></i>{{ 'Publish new schema version' | translate }}</button>
-                                <div class="schema-box scrollbar border mb-3"
-                                     *ngIf="selectedSchemaVersion && !editSchemaMode">
-                                    <pre><code [highlight]="selectedSchemaVersion.jsonSchema" [languages]="['json']"
-                                               [lineNumbers]="true"></code></pre>
-                                </div>
-                                <span *ngIf="selectedSchemaVersion && !editSchemaMode"> Schema URL: <code><a
-                                    [href]="schemaUrl(selectedSchemaVersion)">{{ schemaUrl(selectedSchemaVersion) }}</a></code></span>
-                                <div *ngIf="editSchemaMode">
-                                    <p *ngIf="(topic | async)?.topicType !== 'DATA'"
-                                       [innerHTML]="'EDIT_SCHEMA_DESCRIPTION' | translate"></p>
-                                    <p *ngIf="(topic | async)?.topicType !== 'DATA';else dataText"
-                                       [innerHTML]="'EDIT_SCHEMA_DESCRIPTION_TOPIC' | translate"></p>
-                                    <ng-template #dataText>
-                                        <p [innerHTML]="'EDIT_SCHEMA_DESCRIPTION_TOPIC_DATA' | translate"></p>
-                                    </ng-template>
-                                    <textarea class="form-control"
-                                              style="font-family: 'Courier New', Courier, monospace;" rows="30"
-                                              cols="110" name="newSchemaText" [(ngModel)]="newSchemaText"></textarea>
-                                    <button class="btn btn-success mt-3"
-                                            [disabled]="!newSchemaText || !newSchemaText.length" appSpinnerWhile
-                                            #p="appSpinnerWhile" (click)="p.while(publishNewSchema())"><i
-                                        class="fas fa-file-upload mr-3"></i>{{ 'Publish Schema' | translate }}</button>
-                                </div>
-                            </div>
-                            <div *ngIf="!(topicSchemas | async)?.length && !editSchemaMode">
-                                <i>{{ 'NO_SCHEMA_FOR_TOPIC' | translate }}</i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <app-schema-section [topic]="topic" [isOwnerOfTopic]="isOwnerOfTopic "
+                                [selectedEnvironment]="selectedEnvironment"
+                                [topicSubscribers]="topicSubscribers"></app-schema-section>
             <div class="row"
                  *ngIf="!(selectedEnvironment | async)?.stagingOnly && (topic | async)?.topicType !== 'INTERNAL'">
                 <div class="col-md-12">
@@ -431,28 +378,6 @@
         <button class="btn btn-danger" appSpinnerWhile #d="appSpinnerWhile"
                 (click)="d.while(rejectSubscription(selectedSubscription)).then(dlg.dismiss)"><i
             class="fas fa-ban mr-3"></i>{{ 'Cancel Subscription' | translate }}</button>
-        <button type="button" class="btn btn-success" (click)="dlg.dismiss()"><i
-            class="fas fa-times"></i>&nbsp;{{ 'Cancel' | translate }}
-        </button>
-    </div>
-</ng-template>
-
-<ng-template #deleteLatestSchemaDlg let-dlg>
-    <div class="modal-header">
-        <h4 class="modal-title">{{ 'Delete Schema' | translate }}</h4>
-        <button type="button" class="close" aria-label="Close" (click)="dlg.dismiss()">
-            <span aria-hidden="true">&times;</span>
-        </button>
-    </div>
-    <div class="modal-body">
-        <div class="mt-3">
-                <p>{{ 'DELETE_SCHEMA_DIALOG_QUESTION_TEXT' | translate }}</p>
-        </div>
-    </div>
-    <div class="modal-footer">
-        <button class="btn btn-danger" ngbAutofocus appSpinnerWhile #d="appSpinnerWhile"
-                (click)="d.while(deleteLatestSchema()).then(dlg.dismiss)"><i
-            class="fas fa-trash mr-3"></i>{{ 'Delete Schema' | translate }}</button>
         <button type="button" class="btn btn-success" (click)="dlg.dismiss()"><i
             class="fas fa-times"></i>&nbsp;{{ 'Cancel' | translate }}
         </button>
