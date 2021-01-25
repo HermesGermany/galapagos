@@ -239,7 +239,7 @@ export class TopicsService {
             changeDescription: schemaChangeDescription ? schemaChangeDescription : null
         });
 
-        return this.http.put('/api/schemas/' + environmentId + '/' + topicName, body, {headers: jsonHeader()}).toPromise();
+        return this.http.put('/api/schemas/' + environmentId + '/' + topicName, body, { headers: jsonHeader() }).toPromise();
     }
 
     public deleteLatestSchema(topicName: string, environmentId: string): Promise<any> {

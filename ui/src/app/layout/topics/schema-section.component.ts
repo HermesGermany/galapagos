@@ -94,7 +94,7 @@ export class SchemaSectionComponent implements OnInit {
     }
 
     openDeleteConfirmDlg(content: any) {
-        this.modalService.open(content, {ariaLabelledBy: 'modal-title', size: 'lg'});
+        this.modalService.open(content, { ariaLabelledBy: 'modal-title', size: 'lg' });
     }
 
     loadSchemas(topic: Topic, environmentId: string) {
