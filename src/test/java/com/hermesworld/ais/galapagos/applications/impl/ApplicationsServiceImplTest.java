@@ -1,5 +1,26 @@
 package com.hermesworld.ais.galapagos.applications.impl;
 
+import com.hermesworld.ais.galapagos.applications.ApplicationMetadata;
+import com.hermesworld.ais.galapagos.applications.ApplicationOwnerRequest;
+import com.hermesworld.ais.galapagos.applications.KnownApplication;
+import com.hermesworld.ais.galapagos.applications.RequestState;
+import com.hermesworld.ais.galapagos.certificates.CaManager;
+import com.hermesworld.ais.galapagos.certificates.CertificateSignResult;
+import com.hermesworld.ais.galapagos.events.GalapagosEventManager;
+import com.hermesworld.ais.galapagos.events.GalapagosEventManagerMock;
+import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
+import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
+import com.hermesworld.ais.galapagos.kafka.impl.TopicBasedRepositoryMock;
+import com.hermesworld.ais.galapagos.kafka.util.TopicBasedRepository;
+import com.hermesworld.ais.galapagos.naming.ApplicationPrefixes;
+import com.hermesworld.ais.galapagos.naming.NamingService;
+import com.hermesworld.ais.galapagos.security.CurrentUserService;
+import com.hermesworld.ais.galapagos.util.TimeService;
+import org.junit.Before;
+import org.junit.Test;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.util.StreamUtils;
+
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.cert.X509Certificate;
@@ -13,29 +34,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
-import com.hermesworld.ais.galapagos.applications.ApplicationMetadata;
-import com.hermesworld.ais.galapagos.applications.ApplicationOwnerRequest;
-import com.hermesworld.ais.galapagos.applications.KnownApplication;
-import com.hermesworld.ais.galapagos.applications.RequestState;
-import com.hermesworld.ais.galapagos.applications.config.ApplicationsConfig;
-import com.hermesworld.ais.galapagos.certificates.CaManager;
-import com.hermesworld.ais.galapagos.certificates.CertificateSignResult;
-import com.hermesworld.ais.galapagos.events.GalapagosEventManager;
-import com.hermesworld.ais.galapagos.events.GalapagosEventManagerMock;
-import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
-import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
-import com.hermesworld.ais.galapagos.kafka.impl.TopicBasedRepositoryMock;
-import com.hermesworld.ais.galapagos.kafka.util.TopicBasedRepository;
-import com.hermesworld.ais.galapagos.security.CurrentUserService;
-import com.hermesworld.ais.galapagos.util.TimeService;
 import static org.junit.Assert.*;
-import org.junit.Before;
-import org.junit.Test;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.util.StreamUtils;
 
 public class ApplicationsServiceImplTest {
 
@@ -99,7 +101,7 @@ public class ApplicationsServiceImplTest {
         daos.forEach(requestRepository::save);
 
         ApplicationsServiceImpl service = new ApplicationsServiceImpl(kafkaClusters, mock(CurrentUserService.class),
-                () -> now, new GalapagosEventManagerMock(), mock(ApplicationsConfig.class));
+                () -> now, mock(NamingService.class), new GalapagosEventManagerMock());
 
         service.removeOldRequests();
 
@@ -130,7 +132,7 @@ public class ApplicationsServiceImplTest {
         requestRepository.save(appOwnReq);
 
         ApplicationsServiceImpl applicationServiceImpl = new ApplicationsServiceImpl(kafkaClusters, currentUserService,
-                mock(TimeService.class), mock(GalapagosEventManager.class), mock(ApplicationsConfig.class));
+                mock(TimeService.class), mock(NamingService.class), mock(GalapagosEventManager.class));
         List<? extends KnownApplication> result = applicationServiceImpl.getKnownApplications(true);
 
         for (KnownApplication resultKnownApp : result) {
@@ -140,58 +142,79 @@ public class ApplicationsServiceImplTest {
         assertEquals("43", result.get(0).getId());
     }
 
-    /**
-     * Tests that, when I re-register an application on a given environment, but change the prefix for internal topics,
-     * this change is stored in the metadata.
-     */
     @Test
-    public void testRegisterApplication_changedTopicPrefix() throws Exception {
-        KnownApplicationImpl appl = new KnownApplicationImpl("app-1", "TestApp");
-        appl.setAliases(List.of("a1", "app1", "ta1"));
+    public void testReplaceCertificate_appChanges() throws Exception {
+        // Application changed e.g. in external Architecture system
+        KnownApplicationImpl app = new KnownApplicationImpl("quattro-1", "Quattro");
+        app.setAliases(List.of("q2"));
+        knownApplicationRepository.save(app).get();
 
-        knownApplicationRepository.save(appl);
+        // But is already registered with Alias Q1 and associated rights
+        ApplicationMetadata appl = new ApplicationMetadata();
+        appl.setApplicationId("quattro-1");
+        appl.setDn("CN=quattro,OU=certification_12345");
+        appl.setInternalTopicPrefixes(List.of("quattro.internal.", "q1.internal."));
+        appl.setConsumerGroupPrefixes(List.of("groups.quattro.", "groups.q1."));
+        appl.setTransactionIdPrefixes(List.of("quattro.internal.", "q1.internal."));
+        applicationMetadataRepository.save(appl).get();
 
-        CaManager caMan = mock(CaManager.class);
+        // The NamingService would return new rights
+        ApplicationPrefixes newPrefixes = mock(ApplicationPrefixes.class);
+        when(newPrefixes.combineWith(any())).thenCallRealMethod();
+        when(newPrefixes.getInternalTopicPrefixes()).thenReturn(List.of("quattro.internal.", "q2.internal."));
+        when(newPrefixes.getConsumerGroupPrefixes()).thenReturn(List.of("groups.quattro.", "groups.q2."));
+        when(newPrefixes.getTransactionIdPrefixes()).thenReturn(List.of("quattro.internal.", "q2.internal."));
+
+        NamingService namingService = mock(NamingService.class);
+        when(namingService.getAllowedPrefixes(any())).thenReturn(newPrefixes);
+
+        ApplicationsServiceImpl applicationServiceImpl = new ApplicationsServiceImpl(kafkaClusters,
+                mock(CurrentUserService.class), mock(TimeService.class), namingService,
+                new GalapagosEventManagerMock());
 
         X509Certificate cert = mock(X509Certificate.class);
         when(cert.getNotAfter()).thenReturn(new Date());
-
-        CertificateSignResult signResult = new CertificateSignResult(cert, "abc", "cn=testapp", new byte[0]);
-        when(caMan.createApplicationCertificateAndPrivateKey(any(), any()))
-                .thenReturn(CompletableFuture.completedFuture(signResult));
+        CaManager caMan = mock(CaManager.class);
         when(kafkaClusters.getCaManager("test")).thenReturn(Optional.of(caMan));
+        when(caMan.createApplicationCertificateAndPrivateKey(any(), any()))
+                .thenReturn(CompletableFuture.completedFuture(
+                        new CertificateSignResult(cert, null, "CN=quattro,OU=certification_12346", new byte[0])));
 
-        ApplicationsConfig config = new ApplicationsConfig();
-        config.setConsumerGroupPrefix("test.group.");
-        config.setTopicPrefixFormat("{0}.internal.");
+        applicationServiceImpl.createApplicationCertificateAndPrivateKey("test", "quattro-1",
+                new ByteArrayOutputStream());
 
-        ApplicationsServiceImpl service = new ApplicationsServiceImpl(kafkaClusters, mock(CurrentUserService.class),
-                mock(TimeService.class), new GalapagosEventManagerMock(), config);
+        appl = applicationMetadataRepository.getObject("quattro-1").get();
 
-        // first, create the application the usual way
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        ApplicationMetadata metadata = service
-                .createApplicationCertificateAndPrivateKey("test", "app-1", "testapp.internal.", baos).get();
+        assertEquals("CN=quattro,OU=certification_12346", appl.getDn());
 
-        assertEquals("app-1", metadata.getApplicationId());
-        assertEquals("testapp.internal.", metadata.getTopicPrefix());
-
-        // re-create application now with different topic prefix
-        metadata = service.createApplicationCertificateAndPrivateKey("test", "app-1", "a1.internal.", baos).get();
-        assertEquals("app-1", metadata.getApplicationId());
-        assertEquals("a1.internal.", metadata.getTopicPrefix());
-
-        // re-get application from repo to be sure
-        metadata = service.getApplicationMetadata("test", "app-1").get();
-        assertEquals("app-1", metadata.getApplicationId());
-        assertEquals("a1.internal.", metadata.getTopicPrefix());
+        assertTrue(appl.getInternalTopicPrefixes().contains("quattro.internal."));
+        assertTrue(appl.getInternalTopicPrefixes().contains("q1.internal."));
+        assertTrue(appl.getInternalTopicPrefixes().contains("q2.internal."));
+        assertTrue(appl.getTransactionIdPrefixes().contains("quattro.internal."));
+        assertTrue(appl.getTransactionIdPrefixes().contains("q1.internal."));
+        assertTrue(appl.getTransactionIdPrefixes().contains("q2.internal."));
+        assertTrue(appl.getConsumerGroupPrefixes().contains("groups.quattro."));
+        assertTrue(appl.getConsumerGroupPrefixes().contains("groups.q1."));
+        assertTrue(appl.getConsumerGroupPrefixes().contains("groups.q2."));
     }
 
     @Test
     public void testExtendCertificate() throws Exception {
-        ApplicationsConfig config = new ApplicationsConfig();
-        config.setConsumerGroupPrefix("test.group.");
-        config.setTopicPrefixFormat("{0}.internal.");
+        KnownApplicationImpl app = new KnownApplicationImpl("quattro-1", "Quattro");
+        knownApplicationRepository.save(app).get();
+
+        NamingService namingService = mock(NamingService.class);
+        ApplicationPrefixes prefixes = mock(ApplicationPrefixes.class);
+        when(namingService.getAllowedPrefixes(any())).then(inv -> {
+            KnownApplication appl = inv.getArgument(0);
+            assertEquals("quattro-1", appl.getId());
+            return prefixes;
+        });
+        when(prefixes.combineWith(any())).thenCallRealMethod();
+
+        when(prefixes.getInternalTopicPrefixes()).thenReturn(List.of("quattro.internal."));
+        when(prefixes.getConsumerGroupPrefixes()).thenReturn(List.of("test.group.quattro."));
+        when(prefixes.getTransactionIdPrefixes()).thenReturn(List.of("quattro.internal."));
 
         X509Certificate cert = mock(X509Certificate.class);
         when(cert.getNotAfter()).thenReturn(new Date());
@@ -202,24 +225,20 @@ public class ApplicationsServiceImplTest {
                 .completedFuture(new CertificateSignResult(cert, "", inv.getArgument(0), new byte[0])));
 
         ApplicationsServiceImpl service = new ApplicationsServiceImpl(kafkaClusters, mock(CurrentUserService.class),
-                mock(TimeService.class), new GalapagosEventManagerMock(), config);
+                mock(TimeService.class), namingService, new GalapagosEventManagerMock());
 
         String testCsrData = StreamUtils.copyToString(
                 new ClassPathResource("/certificates/test_quattroExtend.csr").getInputStream(), StandardCharsets.UTF_8);
 
-        KnownApplicationImpl app = new KnownApplicationImpl("quattro-1", "Quattro");
-        knownApplicationRepository.save(app).get();
-
         ApplicationMetadata appl = new ApplicationMetadata();
         appl.setApplicationId("quattro-1");
         appl.setDn("CN=quattro,OU=certification_12345");
-        appl.setTopicPrefix("quattro.internal.");
+        appl.setInternalTopicPrefixes(List.of("quattro.internal."));
         applicationMetadataRepository.save(appl).get();
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         ApplicationMetadata meta = service
-                .createApplicationCertificateFromCsr("test", "quattro-1", testCsrData, "quattro.internal.", true, baos)
-                .get();
+                .createApplicationCertificateFromCsr("test", "quattro-1", testCsrData, true, baos).get();
         assertEquals("CN=quattro,OU=certification_12345", meta.getDn());
         assertEquals("CN=quattro,OU=certification_12345",
                 applicationMetadataRepository.getObject("quattro-1").map(o -> o.getDn()).orElseThrow());

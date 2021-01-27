@@ -1,10 +1,5 @@
 package com.hermesworld.ais.galapagos.applications.impl;
 
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import com.hermesworld.ais.galapagos.applications.ApplicationMetadata;
 import com.hermesworld.ais.galapagos.applications.ApplicationsService;
 import com.hermesworld.ais.galapagos.events.*;
@@ -24,7 +19,11 @@ import org.apache.kafka.common.resource.ResourcePattern;
 import org.apache.kafka.common.resource.ResourceType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
+
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Component
 public class UpdateApplicationAclsListener
@@ -210,13 +209,11 @@ public class UpdateApplicationAclsListener
 
             result.addAll(metadata.getConsumerGroupPrefixes().stream()
                     .map(prefix -> prefixAcl(ResourceType.GROUP, prefix)).collect(Collectors.toList()));
-            if (!StringUtils.isEmpty(metadata.getTopicPrefix())) {
-                result.add(prefixAcl(ResourceType.TOPIC, metadata.getTopicPrefix()));
-                result.addAll(transactionAcls(metadata.getTopicPrefix()));
+            result.addAll(metadata.getInternalTopicPrefixes().stream()
+                    .map(prefix -> prefixAcl(ResourceType.TOPIC, prefix)).collect(Collectors.toList()));
 
-                // also allow usage of the topic prefix as consumer group prefix
-                result.add(prefixAcl(ResourceType.GROUP, metadata.getTopicPrefix()));
-            }
+            result.addAll(metadata.getTransactionIdPrefixes().stream()
+                    .flatMap(prefix -> transactionAcls(prefix).stream()).collect(Collectors.toList()));
 
             topicService.listTopics(environmentId).stream()
                     .filter(topic -> topic.getType() != TopicType.INTERNAL && id.equals(topic.getOwnerApplicationId()))

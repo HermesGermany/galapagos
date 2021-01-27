@@ -26,6 +26,11 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
+/**
+ * Wraps the real Topic Service to perform validations which should <b>not</b> be performed during Staging (e.g., if the
+ * current stage allows direct Topic creation, which would be a bad check during staging). For "normal" service clients,
+ * this should be the default Topic Service to use.
+ */
 @Service
 @Primary
 public class ValidatingTopicServiceImpl implements ValidatingTopicService {

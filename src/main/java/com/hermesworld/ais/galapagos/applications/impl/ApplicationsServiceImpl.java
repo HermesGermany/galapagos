@@ -1,20 +1,6 @@
 package com.hermesworld.ais.galapagos.applications.impl;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
-import java.text.MessageFormat;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.BiFunction;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
 import com.hermesworld.ais.galapagos.applications.*;
-import com.hermesworld.ais.galapagos.applications.config.ApplicationsConfig;
 import com.hermesworld.ais.galapagos.certificates.CaManager;
 import com.hermesworld.ais.galapagos.certificates.CertificateSignResult;
 import com.hermesworld.ais.galapagos.events.GalapagosEventManager;
@@ -23,13 +9,26 @@ import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.kafka.util.InitPerCluster;
 import com.hermesworld.ais.galapagos.kafka.util.TopicBasedRepository;
+import com.hermesworld.ais.galapagos.naming.ApplicationPrefixes;
+import com.hermesworld.ais.galapagos.naming.NamingService;
 import com.hermesworld.ais.galapagos.security.CurrentUserService;
-import com.hermesworld.ais.galapagos.util.CertificateUtil;
 import com.hermesworld.ais.galapagos.util.TimeService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -45,9 +44,7 @@ public class ApplicationsServiceImpl implements ApplicationsService, InitPerClus
 
     private final TimeService timeService;
 
-    private final String consumerGroupPrefix;
-
-    private final String topicPrefixFormat;
+    private final NamingService namingService;
 
     private final GalapagosEventManager eventManager;
 
@@ -62,16 +59,15 @@ public class ApplicationsServiceImpl implements ApplicationsService, InitPerClus
 
     @Autowired
     public ApplicationsServiceImpl(KafkaClusters kafkaClusters, CurrentUserService currentUserService,
-            TimeService timeService, GalapagosEventManager eventManager, ApplicationsConfig applicationsConfig) {
+            TimeService timeService, NamingService namingService, GalapagosEventManager eventManager) {
         this.kafkaClusters = kafkaClusters;
         this.knownApplicationsSource = kafkaClusters.getGlobalRepository(KNOWN_APPLICATIONS_TOPIC_NAME,
                 KnownApplicationImpl.class);
         this.requestsRepository = kafkaClusters.getGlobalRepository(REQUESTS_TOPIC_NAME, ApplicationOwnerRequest.class);
         this.currentUserService = currentUserService;
         this.timeService = timeService;
+        this.namingService = namingService;
         this.eventManager = eventManager;
-        this.consumerGroupPrefix = applicationsConfig.getConsumerGroupPrefix();
-        this.topicPrefixFormat = applicationsConfig.getTopicPrefixFormat();
     }
 
     @Override
@@ -102,22 +98,6 @@ public class ApplicationsServiceImpl implements ApplicationsService, InitPerClus
                 .flatMap(cluster -> getRepository(cluster).getObject(applicationId));
     }
 
-//	@Override
-//	public Optional<? extends RegisteredApplication> setKafkaGroupPrefix(RegisteredApplication application, String prefix) {
-//		Optional<RegisteredApplicationDao> op = registeredApplicationRepository.findById(application.getId());
-//		if (!op.isPresent()) {
-//			return Optional.empty();
-//		}
-//
-//		if (!getPotentialKafkaGroupPrefixes(application).contains(prefix)) {
-//			throw new IllegalArgumentException("Not a valid prefix for application " + application.getName());
-//		}
-//
-//		RegisteredApplicationDao dao = op.get();
-//		dao.setKafkaGroupPrefix(prefix);
-//		return Optional.of(toRegAppImpl(registeredApplicationRepository.save(dao)));
-//	}
-
     @Override
     public CompletableFuture<ApplicationOwnerRequest> submitApplicationOwnerRequest(String applicationId,
             String comments) {
@@ -126,7 +106,7 @@ public class ApplicationsServiceImpl implements ApplicationsService, InitPerClus
             return noUser();
         }
 
-        if (findKnownApplication(applicationId).isEmpty()) {
+        if (getKnownApplication(applicationId).isEmpty()) {
             return unknownApplication(applicationId);
         }
 
@@ -256,8 +236,7 @@ public class ApplicationsServiceImpl implements ApplicationsService, InitPerClus
 
     @Override
     public CompletableFuture<ApplicationMetadata> createApplicationCertificateFromCsr(String environmentId,
-            String applicationId, String csrData, String topicPrefix, boolean extendCertificate,
-            OutputStream outputStreamForCerFile) {
+            String applicationId, String csrData, boolean extendCertificate, OutputStream outputStreamForCerFile) {
 
         Function<CertificateSignResult, CompletableFuture<CertificateSignResult>> resultHandler = result -> {
             try {
@@ -276,18 +255,18 @@ public class ApplicationsServiceImpl implements ApplicationsService, InitPerClus
             }
             return registerApplication((caManager, appl) -> caManager
                     .extendApplicationCertificate(existing.getDn(), csrData).thenCompose(resultHandler), environmentId,
-                    applicationId, existing.getTopicPrefix());
+                    applicationId);
         }
         else {
             return registerApplication((caManager, appl) -> caManager
                     .createApplicationCertificateFromCsr(applicationId, csrData, appl.getName())
-                    .thenCompose(resultHandler), environmentId, applicationId, topicPrefix);
+                    .thenCompose(resultHandler), environmentId, applicationId);
         }
     }
 
     @Override
     public CompletableFuture<ApplicationMetadata> createApplicationCertificateAndPrivateKey(String environmentId,
-            String applicationId, String topicPrefix, OutputStream outputStreamForP12File) {
+            String applicationId, OutputStream outputStreamForP12File) {
         return registerApplication((caManager, appl) -> caManager
                 .createApplicationCertificateAndPrivateKey(applicationId, appl.getName()).thenCompose(result -> {
                     try {
@@ -297,8 +276,63 @@ public class ApplicationsServiceImpl implements ApplicationsService, InitPerClus
                         return CompletableFuture.failedFuture(e);
                     }
                     return CompletableFuture.completedFuture(result);
-                }), environmentId, applicationId, topicPrefix);
+                }), environmentId, applicationId);
     }
+
+    @Override
+    public CompletableFuture<ApplicationMetadata> resetApplicationPrefixes(String environmentId, String applicationId) {
+        KafkaCluster cluster = kafkaClusters.getEnvironment(environmentId).orElse(null);
+        if (cluster == null) {
+            return unknownEnvironment(environmentId);
+        }
+        KnownApplication app = getKnownApplication(applicationId).orElse(null);
+        if (app == null) {
+            return unknownApplication(applicationId);
+        }
+
+        return getApplicationMetadata(environmentId, applicationId).map(existing -> {
+            ApplicationMetadata newMetadata = new ApplicationMetadata(existing);
+            ApplicationPrefixes newPrefixes = namingService.getAllowedPrefixes(app);
+            newMetadata.setInternalTopicPrefixes(newPrefixes.getInternalTopicPrefixes());
+            newMetadata.setConsumerGroupPrefixes(newPrefixes.getConsumerGroupPrefixes());
+            newMetadata.setTransactionIdPrefixes(newPrefixes.getTransactionIdPrefixes());
+            return getRepository(cluster).save(newMetadata).thenApply(o -> newMetadata);
+        }).orElseGet(() -> CompletableFuture.failedFuture(new NoSuchElementException()));
+    }
+
+    /**
+     * "Migrates" ApplicationMetadata entries in the <code>galapagos.internal.application-metadata</code> topic. Entries
+     * having the property <code>topicPrefix</code> set will be re-written to that topic, where the value of that
+     * property will either be added to its <code>internalTopicPrefixes</code> array, or the array will be created,
+     * containing only that value. <br>
+     * Additionally, all internal topic prefixes (possibly that single one from the old field) are copied to
+     * <code>transactionIdPrefixes</code>, if that property is not set or empty for an application. <br>
+     * This method is called from the admin job "Update Application ACLs", which must be called after migration to
+     * Galapagos 1.8.0.
+     */
+    @SuppressWarnings({ "deprecation", "removal" })
+//    public void migrateApplicationMetadata(KafkaCluster cluster) {
+//        log.debug("Migrating application-metadata topic on " + cluster.getId() + "...");
+//
+//        TopicBasedRepository<ApplicationMetadata> repo = getRepository(cluster);
+//        List<CompletableFuture<Void>> saveFutures = repo.getObjects().stream()
+//                .filter(app -> app.getTopicPrefix() != null || app.getInternalTopicPrefixes() == null
+//                        || app.getInternalTopicPrefixes().isEmpty())
+//                .map(app -> repo.save(migrator.apply(app))).collect(Collectors.toList());
+//        try {
+//            CompletableFuture.allOf(saveFutures.toArray(new CompletableFuture[0])).get();
+//            if (!saveFutures.isEmpty()) {
+//                log.info("Migrated " + saveFutures.size() + " application-metadata record(s) on cluster "
+//                        + cluster.getId());
+//            }
+//        }
+//        catch (InterruptedException e) {
+//            Thread.currentThread().interrupt();
+//        }
+//        catch (ExecutionException e) {
+//            log.error("Migration of application metadata failed", e);
+//        }
+//    }
 
     private List<KnownApplication> internalGetKnownApplications() {
         return knownApplicationsSource.getObjects().stream().sorted().collect(Collectors.toList());
@@ -306,77 +340,57 @@ public class ApplicationsServiceImpl implements ApplicationsService, InitPerClus
 
     private CompletableFuture<ApplicationMetadata> registerApplication(
             BiFunction<CaManager, KnownApplication, CompletableFuture<CertificateSignResult>> signResultFutureFn,
-            String environmentId, String applicationId, String topicPrefix) {
+            String environmentId, String applicationId) {
         KnownApplication application = getKnownApplication(applicationId).orElse(null);
         if (application == null) {
             return unknownApplication(applicationId);
         }
         KafkaCluster kafkaCluster = kafkaClusters.getEnvironment(environmentId).orElse(null);
         if (kafkaCluster == null) {
-            return CompletableFuture
-                    .failedFuture(new NoSuchElementException("Unknown Kafka environment: " + environmentId));
+            return unknownEnvironment(environmentId);
         }
 
-        // FIXME cleanup all this topic name prefix logic here, in TopicService, and in the TopicNameValidator.
-        if (!calculatePotentialKafkaTopicPrefixes(application).contains(topicPrefix)) {
-            return CompletableFuture
-                    .failedFuture(new IllegalArgumentException("Invalid Topic Prefix for this application"));
-        }
+        ApplicationMetadata existing = getApplicationMetadata(environmentId, applicationId).orElse(null);
 
-        ApplicationMetadata metadata = getApplicationMetadata(environmentId, applicationId).orElse(null);
-
-        Set<String> groupPrefixes = calculatePotentialKafkaGroupPrefixes(application);
+        // currently, we additionally use ALL previously assigned prefixes here, so extending a certificate does not
+        // break running applications. In the future, supporting admin jobs could check for "orphaned" prefixes which
+        // then can be removed after responsible team's approval.
+        ApplicationPrefixes prefixes = namingService.getAllowedPrefixes(application)
+                .combineWith(existing == null ? ApplicationPrefixes.EMPTY : existing);
 
         GalapagosEventSink eventSink = eventManager.newEventSink(kafkaCluster);
 
         return signResultFutureFn.apply(kafkaClusters.getCaManager(environmentId).orElseThrow(), application)
-                .thenCompose(result -> updateApplicationMetadataFromCertificate(kafkaCluster, metadata, applicationId,
-                        topicPrefix, groupPrefixes, result))
-                .thenCompose(a -> eventSink.handleApplicationRegistered(a).thenApply(o -> a));
+                .thenCompose(result -> updateApplicationMetadataFromCertificate(kafkaCluster, existing, applicationId,
+                        prefixes, result))
+                .thenCompose(a -> {
+                    if (existing != null && !existing.getDn().equals(a.getDn())) {
+                        return eventSink.handleApplicationCertificateChanged(a, existing.getDn()).thenApply(o -> a);
+                    }
+                    else if (existing == null) {
+                        return eventSink.handleApplicationRegistered(a).thenApply(o -> a);
+                    }
+
+                    // no event for certificate extension yet
+                    return CompletableFuture.completedFuture(a);
+                });
     }
 
     private CompletableFuture<ApplicationMetadata> updateApplicationMetadataFromCertificate(KafkaCluster kafkaCluster,
-            ApplicationMetadata metadataOrNull, String applicationId, String topicPrefix,
-            Set<String> consumerGroupPrefixes, CertificateSignResult result) {
-        if (metadataOrNull != null) {
-            return updateApplicationCertificateInfo(kafkaCluster, applicationId, topicPrefix, consumerGroupPrefixes,
-                    result.getDn(), Instant.ofEpochMilli(result.getCertificate().getNotAfter().getTime()));
-        }
-        else {
-            ApplicationMetadata newMetadata = new ApplicationMetadata();
-            newMetadata.setApplicationId(applicationId);
-            newMetadata.setCertificateExpiresAt(ZonedDateTime
-                    .ofInstant(Instant.ofEpochMilli(result.getCertificate().getNotAfter().getTime()), ZoneId.of("Z")));
-            newMetadata.setDn(result.getDn());
+            ApplicationMetadata metadataOrNull, String applicationId, ApplicationPrefixes prefixes,
+            CertificateSignResult result) {
+        ApplicationMetadata newMetadata = metadataOrNull != null ? new ApplicationMetadata(metadataOrNull)
+                : new ApplicationMetadata();
 
-            newMetadata.setTopicPrefix(topicPrefix);
-            if (consumerGroupPrefixes != null) {
-                newMetadata.setConsumerGroupPrefixes(new ArrayList<>(consumerGroupPrefixes));
-            }
+        newMetadata.setApplicationId(applicationId);
+        newMetadata.setDn(result.getDn());
+        newMetadata.setCertificateExpiresAt(ZonedDateTime
+                .ofInstant(Instant.ofEpochMilli(result.getCertificate().getNotAfter().getTime()), ZoneId.of("Z")));
+        newMetadata.setInternalTopicPrefixes(prefixes.getInternalTopicPrefixes());
+        newMetadata.setConsumerGroupPrefixes(prefixes.getConsumerGroupPrefixes());
+        newMetadata.setTransactionIdPrefixes(prefixes.getTransactionIdPrefixes());
 
-            return getRepository(kafkaCluster).save(newMetadata).thenApply(o -> newMetadata);
-        }
-    }
-
-    private CompletableFuture<ApplicationMetadata> updateApplicationCertificateInfo(KafkaCluster kafkaCluster,
-            String applicationId, String topicPrefix, Set<String> groupPrefixes, String newDn, Instant newExpiresAt) {
-        ApplicationMetadata metadata = getRepository(kafkaCluster).getObject(applicationId).orElse(null);
-        if (metadata == null) {
-            return CompletableFuture.failedFuture(new NoSuchElementException(
-                    "Application " + applicationId + " has not been registered in this environment yet."));
-        }
-
-        ApplicationMetadata newMetadata = new ApplicationMetadata(metadata);
-        newMetadata.setDn(newDn);
-        newMetadata.setTopicPrefix(topicPrefix);
-        newMetadata.setConsumerGroupPrefixes(new ArrayList<>(groupPrefixes));
-        newMetadata.setCertificateExpiresAt(newExpiresAt.atZone(ZoneId.systemDefault()));
-
-        GalapagosEventSink eventSink = eventManager.newEventSink(kafkaCluster);
-
-        // in this case, FIRST update the ACLs (via event listeners), THEN (only if successful) save new metadata
-        return eventSink.handleApplicationCertificateChanged(newMetadata, metadata.getDn())
-                .thenCompose(o -> getRepository(kafkaCluster).save(newMetadata)).thenApply(o -> newMetadata);
+        return getRepository(kafkaCluster).save(newMetadata).thenApply(o -> newMetadata);
     }
 
     @Scheduled(initialDelay = 30000, fixedDelayString = "PT6H")
@@ -395,29 +409,6 @@ public class ApplicationsServiceImpl implements ApplicationsService, InitPerClus
                     + request.getApplicationId() + " because it rejects application access and is older than 30 days");
             getRequestsRepository().delete(request);
         }
-    }
-
-    private Optional<KnownApplication> findKnownApplication(String applicationId) {
-        return internalGetKnownApplications().stream().filter(app -> applicationId.equals(app.getId())).findFirst();
-    }
-
-    private Set<String> calculatePotentialKafkaGroupPrefixes(KnownApplication application) {
-        List<String> names = new ArrayList<>();
-
-        names.add(application.getName());
-        names.addAll(application.getAliases());
-        return names.stream().map(name -> consumerGroupPrefix + CertificateUtil.toAppCn(name).replace("_", "-") + ".")
-                .collect(Collectors.toSet());
-    }
-
-    private Set<String> calculatePotentialKafkaTopicPrefixes(KnownApplication application) {
-        List<String> names = new ArrayList<>();
-
-        names.add(application.getName());
-        names.addAll(application.getAliases());
-        return names.stream()
-                .map(name -> MessageFormat.format(topicPrefixFormat, CertificateUtil.toAppCn(name).replace("_", "-")))
-                .collect(Collectors.toSet());
     }
 
     private TopicBasedRepository<ApplicationMetadata> getRepository(KafkaCluster kafkaCluster) {
@@ -454,6 +445,11 @@ public class ApplicationsServiceImpl implements ApplicationsService, InitPerClus
 
     private static <T> CompletableFuture<T> unknownRequest(String requestId) {
         return CompletableFuture.failedFuture(new NoSuchElementException("Unknown request ID: " + requestId));
+    }
+
+    private static <T> CompletableFuture<T> unknownEnvironment(String environmentId) {
+        return CompletableFuture
+                .failedFuture(new NoSuchElementException("Unknown Kafka environment: " + environmentId));
     }
 
 }

@@ -1,11 +1,5 @@
 package com.hermesworld.ais.galapagos.topics.service.impl;
 
-import java.time.LocalDate;
-import java.time.ZonedDateTime;
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
-
 import com.hermesworld.ais.galapagos.applications.ApplicationMetadata;
 import com.hermesworld.ais.galapagos.applications.ApplicationsService;
 import com.hermesworld.ais.galapagos.applications.KnownApplication;
@@ -16,10 +10,14 @@ import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.kafka.TopicCreateParams;
 import com.hermesworld.ais.galapagos.kafka.util.InitPerCluster;
 import com.hermesworld.ais.galapagos.kafka.util.TopicBasedRepository;
+import com.hermesworld.ais.galapagos.naming.InvalidTopicNameException;
+import com.hermesworld.ais.galapagos.naming.NamingService;
 import com.hermesworld.ais.galapagos.schemas.IncompatibleSchemaException;
 import com.hermesworld.ais.galapagos.schemas.SchemaUtil;
 import com.hermesworld.ais.galapagos.security.CurrentUserService;
-import com.hermesworld.ais.galapagos.topics.*;
+import com.hermesworld.ais.galapagos.topics.SchemaMetadata;
+import com.hermesworld.ais.galapagos.topics.TopicMetadata;
+import com.hermesworld.ais.galapagos.topics.TopicType;
 import com.hermesworld.ais.galapagos.topics.config.GalapagosTopicConfig;
 import com.hermesworld.ais.galapagos.topics.service.TopicService;
 import com.hermesworld.ais.galapagos.util.FutureUtil;
@@ -34,6 +32,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.ZonedDateTime;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
+
 @Service
 @Qualifier(value = "nonvalidating")
 @Slf4j
@@ -41,7 +45,7 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
 
     private final KafkaClusters kafkaClusters;
 
-    private final TopicNameValidator nameValidator;
+    private final NamingService namingService;
 
     private final CurrentUserService userService;
 
@@ -62,11 +66,11 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
 
     @Autowired
     public TopicServiceImpl(KafkaClusters kafkaClusters, ApplicationsService applicationsService,
-            TopicNameValidator nameValidator, CurrentUserService userService, GalapagosTopicConfig topicSettings,
+            NamingService namingService, CurrentUserService userService, GalapagosTopicConfig topicSettings,
             GalapagosEventManager eventManager) {
         this.kafkaClusters = kafkaClusters;
         this.applicationsService = applicationsService;
-        this.nameValidator = nameValidator;
+        this.namingService = namingService;
         this.userService = userService;
         this.topicSettings = topicSettings;
         this.eventManager = eventManager;
@@ -106,7 +110,7 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
         }
 
         try {
-            nameValidator.validateTopicName(topic.getName(), topic.getType(), ownerApplication, metadata);
+            namingService.validateTopicName(topic.getName(), topic.getType(), ownerApplication);
         }
         catch (InvalidTopicNameException e) {
             return CompletableFuture.failedFuture(e);

@@ -1,18 +1,6 @@
 package com.hermesworld.ais.galapagos.adminjobs.impl;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.PrintStream;
-import java.security.cert.X509Certificate;
-import java.util.Base64;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-
 import com.hermesworld.ais.galapagos.applications.ApplicationMetadata;
-import com.hermesworld.ais.galapagos.applications.config.ApplicationsConfig;
 import com.hermesworld.ais.galapagos.applications.impl.UpdateApplicationAclsListener;
 import com.hermesworld.ais.galapagos.certificates.CaManager;
 import com.hermesworld.ais.galapagos.certificates.CertificateSignResult;
@@ -20,24 +8,32 @@ import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.kafka.KafkaUser;
 import com.hermesworld.ais.galapagos.kafka.config.KafkaEnvironmentConfig;
-import com.hermesworld.ais.galapagos.kafka.config.KafkaEnvironmentsConfig;
+import com.hermesworld.ais.galapagos.naming.ApplicationPrefixes;
+import com.hermesworld.ais.galapagos.naming.NamingService;
 import org.junit.After;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.util.StreamUtils;
+
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.PrintStream;
+import java.security.cert.X509Certificate;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import org.springframework.boot.ApplicationArguments;
-import org.springframework.util.StreamUtils;
 
 public class GenerateToolingCertificateJobTest {
 
     private KafkaClusters kafkaClusters;
 
-    private ApplicationsConfig applicationsConfig;
-
-    private KafkaEnvironmentsConfig kafkaConfig;
+    private NamingService namingService;
 
     private UpdateApplicationAclsListener aclListener;
 
@@ -70,9 +66,13 @@ public class GenerateToolingCertificateJobTest {
         CertificateSignResult result = new CertificateSignResult(cert, "test", "cn=test", testData);
         when(caMan.createToolingCertificateAndPrivateKey()).thenReturn(CompletableFuture.completedFuture(result));
 
-        applicationsConfig = mock(ApplicationsConfig.class);
-        kafkaConfig = mock(KafkaEnvironmentsConfig.class);
-        when(kafkaConfig.getMetadataTopicsPrefix()).thenReturn("galapagos.testing.");
+        namingService = mock(NamingService.class);
+
+        ApplicationPrefixes testPrefixes = mock(ApplicationPrefixes.class);
+        when(testPrefixes.getInternalTopicPrefixes()).thenReturn(List.of("test.galapagos.internal."));
+        when(testPrefixes.getTransactionIdPrefixes()).thenReturn(List.of("test.galapagos.internal."));
+        when(testPrefixes.getConsumerGroupPrefixes()).thenReturn(List.of("galapagos."));
+        when(namingService.getAllowedPrefixes(any())).thenReturn(testPrefixes);
 
         aclListener = new UpdateApplicationAclsListener(null, null, null) {
             @Override
@@ -96,8 +96,8 @@ public class GenerateToolingCertificateJobTest {
 
     @Test
     public void testStandard() throws Exception {
-        GenerateToolingCertificateJob job = new GenerateToolingCertificateJob(kafkaClusters, applicationsConfig,
-                kafkaConfig, aclListener);
+        GenerateToolingCertificateJob job = new GenerateToolingCertificateJob(kafkaClusters, aclListener,
+                namingService);
 
         ApplicationArguments args = mock(ApplicationArguments.class);
         when(args.getOptionValues("output.filename")).thenReturn(Collections.singletonList(testFile.getPath()));
@@ -110,13 +110,13 @@ public class GenerateToolingCertificateJobTest {
         assertArrayEquals(testData, readData);
 
         // and no data on STDOUT
-        assertFalse(new String(stdoutData.toByteArray()).contains(DATA_MARKER));
+        assertFalse(stdoutData.toString().contains(DATA_MARKER));
     }
 
     @Test
     public void testDataOnStdout() throws Exception {
-        GenerateToolingCertificateJob job = new GenerateToolingCertificateJob(kafkaClusters, applicationsConfig,
-                kafkaConfig, aclListener);
+        GenerateToolingCertificateJob job = new GenerateToolingCertificateJob(kafkaClusters, aclListener,
+                namingService);
 
         ApplicationArguments args = mock(ApplicationArguments.class);
         when(args.getOptionValues("kafka.environment")).thenReturn(Collections.singletonList("test"));
@@ -124,7 +124,7 @@ public class GenerateToolingCertificateJobTest {
         job.run(args);
 
         // data must be on STDOUT
-        String stdout = new String(stdoutData.toByteArray());
+        String stdout = stdoutData.toString();
         assertTrue(stdout.contains(DATA_MARKER));
 
         String line = stdout.substring(stdout.indexOf(DATA_MARKER));

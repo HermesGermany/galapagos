@@ -1,21 +1,16 @@
 package com.hermesworld.ais.galapagos.topics.controller;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.concurrent.ExecutionException;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
-
 import com.hermesworld.ais.galapagos.applications.*;
 import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.kafka.TopicConfigEntry;
 import com.hermesworld.ais.galapagos.kafka.config.KafkaEnvironmentConfig;
+import com.hermesworld.ais.galapagos.naming.InvalidTopicNameException;
+import com.hermesworld.ais.galapagos.naming.NamingService;
 import com.hermesworld.ais.galapagos.schemas.IncompatibleSchemaException;
-import com.hermesworld.ais.galapagos.topics.*;
+import com.hermesworld.ais.galapagos.topics.SchemaMetadata;
+import com.hermesworld.ais.galapagos.topics.TopicMetadata;
+import com.hermesworld.ais.galapagos.topics.TopicType;
 import com.hermesworld.ais.galapagos.topics.service.ValidatingTopicService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -29,6 +24,15 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.concurrent.ExecutionException;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
+
 @RestController
 @Slf4j
 public class TopicController {
@@ -39,7 +43,7 @@ public class TopicController {
 
     private final ApplicationsService applicationsService;
 
-    private final TopicNameValidator nameValidator;
+    private final NamingService namingService;
 
     private static final Supplier<ResponseStatusException> badRequest = () -> new ResponseStatusException(
             HttpStatus.BAD_REQUEST);
@@ -51,11 +55,11 @@ public class TopicController {
 
     @Autowired
     public TopicController(ValidatingTopicService topicService, KafkaClusters kafkaEnvironments,
-            ApplicationsService applicationsService, TopicNameValidator nameValidator) {
+            ApplicationsService applicationsService, NamingService namingService) {
         this.topicService = topicService;
         this.kafkaEnvironments = kafkaEnvironments;
         this.applicationsService = applicationsService;
-        this.nameValidator = nameValidator;
+        this.namingService = namingService;
     }
 
     @GetMapping(value = "/api/topics/{environmentId}", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -181,7 +185,7 @@ public class TopicController {
             throw badRequest.get();
         }
 
-        String name = nameValidator.getTopicNameSuggestion(query.getTopicType(), app, metadata, cap);
+        String name = namingService.getTopicNameSuggestion(query.getTopicType(), app, cap);
         if (name == null) {
             throw badRequest.get();
         }

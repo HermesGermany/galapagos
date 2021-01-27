@@ -1,25 +1,25 @@
 package com.hermesworld.ais.galapagos.adminjobs.impl;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.Base64;
-import java.util.Collections;
-import java.util.Optional;
-
 import com.hermesworld.ais.galapagos.applications.ApplicationMetadata;
-import com.hermesworld.ais.galapagos.applications.config.ApplicationsConfig;
+import com.hermesworld.ais.galapagos.applications.KnownApplication;
+import com.hermesworld.ais.galapagos.applications.impl.KnownApplicationImpl;
 import com.hermesworld.ais.galapagos.applications.impl.UpdateApplicationAclsListener;
 import com.hermesworld.ais.galapagos.certificates.CaManager;
 import com.hermesworld.ais.galapagos.certificates.CertificateSignResult;
 import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.kafka.config.KafkaEnvironmentConfig;
-import com.hermesworld.ais.galapagos.kafka.config.KafkaEnvironmentsConfig;
+import com.hermesworld.ais.galapagos.naming.ApplicationPrefixes;
+import com.hermesworld.ais.galapagos.naming.NamingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.Base64;
+import java.util.Optional;
 
 /**
  * Admin job to generate a "tooling" certificate for one of the Kafka Clusters configured for Galapagos. <br>
@@ -38,19 +38,16 @@ import org.springframework.util.StringUtils;
 @Component
 public class GenerateToolingCertificateJob extends SingleClusterAdminJob {
 
-    private final ApplicationsConfig applicationsConfig;
-
-    private final KafkaEnvironmentsConfig kafkaConfig;
-
     private final UpdateApplicationAclsListener aclUpdater;
 
+    private final NamingService namingService;
+
     @Autowired
-    public GenerateToolingCertificateJob(KafkaClusters kafkaClusters, ApplicationsConfig applicationsConfig,
-            KafkaEnvironmentsConfig kafkaConfig, UpdateApplicationAclsListener aclUpdater) {
+    public GenerateToolingCertificateJob(KafkaClusters kafkaClusters, UpdateApplicationAclsListener aclUpdater,
+            NamingService namingService) {
         super(kafkaClusters);
-        this.applicationsConfig = applicationsConfig;
-        this.kafkaConfig = kafkaConfig;
         this.aclUpdater = aclUpdater;
+        this.namingService = namingService;
     }
 
     @Override
@@ -67,7 +64,7 @@ public class GenerateToolingCertificateJob extends SingleClusterAdminJob {
 
         if (!StringUtils.isEmpty(outputFilename)) {
             try {
-                new FileOutputStream(new File(outputFilename)).close();
+                new FileOutputStream(outputFilename).close();
             }
             catch (IOException e) {
                 throw new IllegalArgumentException("Cannot write output file " + outputFilename);
@@ -78,18 +75,20 @@ public class GenerateToolingCertificateJob extends SingleClusterAdminJob {
 
         CertificateSignResult result = caManager.createToolingCertificateAndPrivateKey().get();
 
-        // create pseudo ApplicationMetadata to get KafkaUser for ACL update
-        String consumerGroupPrefix = applicationsConfig.getConsumerGroupPrefix() + "galapagos";
+        // create pseudo Application and ApplicationMetadata to get KafkaUser for ACL update
+        KnownApplication galapagosApp = new KnownApplicationImpl("galapagos", "Galapagos");
+        ApplicationPrefixes prefixes = namingService.getAllowedPrefixes(galapagosApp);
         ApplicationMetadata toolMetadata = new ApplicationMetadata();
         toolMetadata.setApplicationId("__GALAPAGOS_TOOLING__");
-        toolMetadata.setConsumerGroupPrefixes(Collections.singletonList(consumerGroupPrefix));
-        toolMetadata.setTopicPrefix(kafkaConfig.getMetadataTopicsPrefix());
+        toolMetadata.setInternalTopicPrefixes(prefixes.getInternalTopicPrefixes());
+        toolMetadata.setConsumerGroupPrefixes(prefixes.getConsumerGroupPrefixes());
+        toolMetadata.setTransactionIdPrefixes(prefixes.getTransactionIdPrefixes());
         toolMetadata.setDn(result.getDn());
 
         cluster.updateUserAcls(aclUpdater.getApplicationUser(toolMetadata, cluster.getId())).get();
 
         if (!StringUtils.isEmpty(outputFilename)) {
-            try (FileOutputStream fos = new FileOutputStream(new File(outputFilename))) {
+            try (FileOutputStream fos = new FileOutputStream(outputFilename)) {
                 fos.write(result.getP12Data().orElseThrow());
             }
         }
@@ -112,8 +111,12 @@ public class GenerateToolingCertificateJob extends SingleClusterAdminJob {
         }
         System.out.println();
         System.out.println("Use bootstrap servers " + metadata.getBootstrapServers());
-        System.out.println("Use a consumer group ID starting with " + toolMetadata.getConsumerGroupPrefixes().get(0));
-        System.out.println("You can access (read & write) all topics starting with " + toolMetadata.getTopicPrefix());
+        System.out.println();
+        System.out.println("The following Kafka prefixes can be used and accessed, using the certificate: ");
+        System.out.println();
+        System.out.println("Internal Topics: " + toolMetadata.getInternalTopicPrefixes().get(0) + "*");
+        System.out.println("Consumer Groups: " + toolMetadata.getConsumerGroupPrefixes().get(0) + "*");
+        System.out.println("Transactional IDs: " + toolMetadata.getTransactionIdPrefixes().get(0) + "*");
         System.out.println();
         System.out.println();
         System.out.println("The certificate expires at " + result.getCertificate().getNotAfter());

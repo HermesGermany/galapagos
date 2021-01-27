@@ -1,16 +1,10 @@
 package com.hermesworld.ais.galapagos.applications.controller;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.security.cert.CertificateException;
-import java.util.*;
-import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
-
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.hermesworld.ais.galapagos.applications.*;
 import com.hermesworld.ais.galapagos.changes.Change;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
+import com.hermesworld.ais.galapagos.naming.ApplicationPrefixes;
 import com.hermesworld.ais.galapagos.staging.Staging;
 import com.hermesworld.ais.galapagos.staging.StagingResult;
 import com.hermesworld.ais.galapagos.staging.StagingService;
@@ -25,15 +19,22 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.security.cert.CertificateException;
+import java.util.*;
+import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
+
 @RestController
 @Slf4j
 public class ApplicationsController {
 
-    private ApplicationsService applicationsService;
+    private final ApplicationsService applicationsService;
 
-    private StagingService stagingService;
+    private final StagingService stagingService;
 
-    private KafkaClusters kafkaClusters;
+    private final KafkaClusters kafkaClusters;
 
     @Autowired
     public ApplicationsController(ApplicationsService applicationsService, StagingService stagingService,
@@ -108,7 +109,7 @@ public class ApplicationsController {
     public void cancelApplicationOwnerRequest(@PathVariable String id) {
         try {
             Boolean b = applicationsService.cancelUserApplicationOwnerRequest(id).get();
-            if (!b.booleanValue()) {
+            if (!b) {
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND);
             }
         }
@@ -116,8 +117,16 @@ public class ApplicationsController {
             throw handleExecutionException(e, "Could not retrieve user's requests: ");
         }
         catch (InterruptedException e) {
-            return;
+            Thread.currentThread().interrupt();
         }
+    }
+
+    @GetMapping(value = "/api/environments/{environmentId}/prefixes/{applicationId}")
+    public ApplicationPrefixesDto getApplicationPrefixes(@PathVariable String environmentId,
+            @PathVariable String applicationId) {
+        return applicationsService.getApplicationMetadata(environmentId, applicationId)
+                .map(metadata -> toPrefixesDto(metadata))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 
     @GetMapping(value = "/api/certificates/{applicationId}")
@@ -141,12 +150,6 @@ public class ApplicationsController {
         kafkaClusters.getEnvironmentMetadata(environmentId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
-        String topicPrefix = request.getTopicPrefix();
-        if (StringUtils.isEmpty(topicPrefix)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "Please include a prefix for app internal topics (field topicPrefix)");
-        }
-
         if (!request.isGenerateKey()) {
             String csrData = request.getCsrData();
             if (StringUtils.isEmpty(csrData)) {
@@ -154,14 +157,14 @@ public class ApplicationsController {
                         "No CSR (csrData) present! Set generateKey to true if you want the server to generate a private key for you (not recommended).");
             }
 
-            return createCertificate(environmentId, applicationId, csrData, topicPrefix, request.isExtendCertificate());
+            return createCertificate(environmentId, applicationId, csrData, request.isExtendCertificate());
         }
         else {
             if (environmentId.equals(kafkaClusters.getProductionEnvironmentId())) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                         "You cannot get a server-side generated key for production environments.");
             }
-            return createCertificateAndKey(environmentId, applicationId, topicPrefix);
+            return createCertificateAndKey(environmentId, applicationId);
         }
     }
 
@@ -212,11 +215,11 @@ public class ApplicationsController {
     }
 
     private CertificateResponseDto createCertificate(String environmentId, String applicationId, String csrData,
-            String topicPrefix, boolean extendCertificate) {
+            boolean extendCertificate) {
         try {
             ByteArrayOutputStream cerOut = new ByteArrayOutputStream();
             ApplicationMetadata metadata = applicationsService.createApplicationCertificateFromCsr(environmentId,
-                    applicationId, csrData, topicPrefix, extendCertificate, cerOut).get();
+                    applicationId, csrData, extendCertificate, cerOut).get();
 
             CertificateResponseDto dto = new CertificateResponseDto();
             dto.setFileName(CertificateUtil.extractCn(metadata.getDn()) + "_" + environmentId + ".cer");
@@ -231,12 +234,11 @@ public class ApplicationsController {
         }
     }
 
-    private CertificateResponseDto createCertificateAndKey(String environmentId, String applicationId,
-            String topicPrefix) {
+    private CertificateResponseDto createCertificateAndKey(String environmentId, String applicationId) {
         try {
             ByteArrayOutputStream outP12 = new ByteArrayOutputStream();
             ApplicationMetadata metadata = applicationsService
-                    .createApplicationCertificateAndPrivateKey(environmentId, applicationId, topicPrefix, outP12).get();
+                    .createApplicationCertificateAndPrivateKey(environmentId, applicationId, outP12).get();
 
             CertificateResponseDto dto = new CertificateResponseDto();
             String cn = CertificateUtil.extractCn(metadata.getDn());
@@ -282,6 +284,11 @@ public class ApplicationsController {
     private List<BusinessCapabilityDto> toCapDtos(List<? extends BusinessCapability> caps) {
         return caps.stream().map(cap -> new BusinessCapabilityDto(cap.getId(), cap.getName()))
                 .collect(Collectors.toList());
+    }
+
+    private ApplicationPrefixesDto toPrefixesDto(ApplicationPrefixes prefixes) {
+        return new ApplicationPrefixesDto(prefixes.getInternalTopicPrefixes(), prefixes.getConsumerGroupPrefixes(),
+                prefixes.getTransactionIdPrefixes());
     }
 
 }
