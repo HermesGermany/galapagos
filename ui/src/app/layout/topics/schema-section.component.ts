@@ -1,9 +1,9 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
 import { SchemaMetadata, Topic, TopicsService, TopicSubscription } from '../../shared/services/topics.service';
 import { take } from 'rxjs/operators';
 import { EnvironmentsService, KafkaEnvironment } from '../../shared/services/environments.service';
 import { ToastService } from '../../shared/modules/toast/toast.service';
-import { combineLatest, Observable } from 'rxjs';
+import { Observable } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
@@ -12,15 +12,15 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
     templateUrl: './schema-section.component.html',
     styleUrls: ['./schema-section.component.scss']
 })
-export class SchemaSectionComponent implements OnInit {
+export class SchemaSectionComponent implements OnInit, OnChanges {
 
-    @Input() topic: Observable<Topic>;
+    @Input() topic: Topic;
 
-    @Input() topicSubscribers: Observable<TopicSubscription[]>;
+    @Input() topicSubscribers: TopicSubscription[];
 
-    @Input() selectedEnvironment: Observable<KafkaEnvironment>;
+    @Input() isOwnerOfTopic: boolean;
 
-    @Input() isOwnerOfTopic: Observable<boolean>;
+    selectedEnvironment: Observable<KafkaEnvironment>;
 
     topicSchemas: Promise<SchemaMetadata[]>;
 
@@ -48,13 +48,25 @@ export class SchemaSectionComponent implements OnInit {
     }
 
     ngOnInit(): void {
-        combineLatest([this.topic, this.environmentsService.getCurrentEnvironment()]).subscribe({
-            next: value => {
-                if (value[0]) {
-                    this.loadSchemas(value[0], value[1].id);
+        this.environmentsService.getCurrentEnvironment().subscribe({
+            next: env => {
+                if (this.topic && env) {
+                    this.loadSchemas(this.topic, env.id);
                 }
             }
         });
+
+        this.selectedEnvironment = this.environmentsService.getCurrentEnvironment();
+    }
+
+    async ngOnChanges(changes: SimpleChanges) {
+        if (changes.topic) {
+            const change = changes.topic;
+            if (change.currentValue) {
+                const env = await this.environmentsService.getCurrentEnvironment().toPromise();
+                this.loadSchemas(change.currentValue, env.id);
+            }
+        }
     }
 
     schemaUrl(schemaVersion: SchemaMetadata) {
@@ -67,7 +79,7 @@ export class SchemaSectionComponent implements OnInit {
     }
 
     async publishNewSchema(): Promise<any> {
-        const topic = await this.topic.pipe(take(1)).toPromise();
+        const topic = this.topic;
         const environment = await this.environmentsService.getCurrentEnvironment().pipe(take(1)).toPromise();
 
         return this.topicService.addTopicSchema(topic.name, environment.id, this.newSchemaText, this.schemaChangeDescription).then(
@@ -81,7 +93,7 @@ export class SchemaSectionComponent implements OnInit {
     }
 
     async deleteLatestSchema(): Promise<any> {
-        const topic = await this.topic.pipe(take(1)).toPromise();
+        const topic = this.topic;
         const environment = await this.environmentsService.getCurrentEnvironment().pipe(take(1)).toPromise();
 
         return this.topicService.deleteLatestSchema(topic.name, environment.id).then(
@@ -108,5 +120,6 @@ export class SchemaSectionComponent implements OnInit {
             })
             .finally(() => (this.loadingSchemas = false));
     }
+
 
 }

@@ -162,9 +162,8 @@
                     </div>
                 </div>
             </div>
-            <app-schema-section [topic]="topic" [isOwnerOfTopic]="isOwnerOfTopic "
-                                [selectedEnvironment]="selectedEnvironment"
-                                [topicSubscribers]="topicSubscribers"></app-schema-section>
+            <app-schema-section [topic]="topic | async" [isOwnerOfTopic]="isOwnerOfTopic | async"
+                                [topicSubscribers]="topicSubscribers | async"></app-schema-section>
             <div class="row"
                  *ngIf="!(selectedEnvironment | async)?.stagingOnly && (topic | async)?.topicType !== 'INTERNAL'">
                 <div class="col-md-12">
