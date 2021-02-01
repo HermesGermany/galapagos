@@ -1,11 +1,12 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { SchemaMetadata, Topic, TopicsService, TopicSubscription } from '../../shared/services/topics.service';
-import { take } from 'rxjs/operators';
+import { map, shareReplay, take } from 'rxjs/operators';
 import { EnvironmentsService, KafkaEnvironment } from '../../shared/services/environments.service';
 import { ToastService } from '../../shared/modules/toast/toast.service';
 import { combineLatest, Observable } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { ServerInfoService } from '../../shared/services/serverinfo.service';
 
 @Component({
     selector: 'app-schema-section',
@@ -36,12 +37,15 @@ export class SchemaSectionComponent implements OnInit {
 
     currentText: Observable<string>;
 
+    schemaDeleteWithSub: Observable<boolean>;
+
     constructor(
         private topicService: TopicsService,
         private environmentsService: EnvironmentsService,
         private translateService: TranslateService,
         private toasts: ToastService,
-        private modalService: NgbModal
+        private modalService: NgbModal,
+        private serverInfo: ServerInfoService
     ) {
         this.currentText = translateService.stream('(current)');
 
@@ -55,6 +59,8 @@ export class SchemaSectionComponent implements OnInit {
                 }
             }
         });
+        this.schemaDeleteWithSub = this.serverInfo.getServerInfo()
+            .pipe(map(info => info.toggles.schemaDeleteWithSub === 'true')).pipe(shareReplay(1));
     }
 
     schemaUrl(schemaVersion: SchemaMetadata) {

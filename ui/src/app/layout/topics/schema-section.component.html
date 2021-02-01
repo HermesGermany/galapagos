@@ -12,10 +12,11 @@
                             <option *ngFor="let schema of topicSchemas | async"
                                     [ngValue]="schema">{{ schema.schemaVersion }}{{ schema.isLatest ? ' ' + (currentText | async) : ''}}</option>
                         </select>
-                        <button appSpinnerWhile
+                        <button id="schemaDeleteButton"
+                                appSpinnerWhile
                                 #p="appSpinnerWhile" (click)="(openDeleteConfirmDlg(deleteLatestSchemaDlg))"
                                 class="btn btn-danger ml-3"
-                                *ngIf="selectedSchemaVersion.isLatest && (topicSubscribers | async)?.length === 0">
+                                *ngIf="selectedSchemaVersion.isLatest && !(selectedEnvironment | async)?.stagingOnly && (schemaDeleteWithSub | async)">
                             <i class="fas fa-trash mr-3"></i>{{ 'Delete Schema' | translate }}
                         </button>
                     </div>

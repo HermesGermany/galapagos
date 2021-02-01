@@ -15,7 +15,6 @@ import com.hermesworld.ais.galapagos.subscriptions.SubscriptionMetadata;
 import com.hermesworld.ais.galapagos.subscriptions.service.SubscriptionService;
 import com.hermesworld.ais.galapagos.topics.*;
 import com.hermesworld.ais.galapagos.topics.config.GalapagosTopicConfig;
-import com.hermesworld.ais.galapagos.topics.service.ValidatingTopicService;
 import com.hermesworld.ais.galapagos.util.FutureUtil;
 import org.json.JSONObject;
 import org.junit.Before;
@@ -55,8 +54,6 @@ public class TopicServiceImplTest {
     private TopicBasedRepositoryMock<TopicMetadata> topicRepository;
 
     private TopicBasedRepositoryMock<SchemaMetadata> schemaRepository;
-
-    private ValidatingTopicService topicService;
 
     @Before
     public void feedMocks() {
@@ -324,7 +321,7 @@ public class TopicServiceImplTest {
                 .thenReturn(Collections.singletonList(subscription));
 
         ValidatingTopicServiceImpl validatingService = new ValidatingTopicServiceImpl(service, subscriptionService,
-                applicationsService, kafkaClusters, topicConfig);
+                applicationsService, kafkaClusters, topicConfig, false);
 
         schemaRepository.save(schema).get();
 
@@ -869,6 +866,90 @@ public class TopicServiceImplTest {
         }
         catch (ExecutionException e) {
             assertTrue(e.getCause() instanceof IllegalArgumentException);
+        }
+
+    }
+
+    @Test
+    public void testDeleteSchemaWithSub_positive() throws Exception {
+
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator,
+                userService, topicConfig, eventManager);
+
+        TopicMetadata topic1 = new TopicMetadata();
+        topic1.setName("topic-1");
+        topic1.setOwnerApplicationId("app-1");
+        topic1.setType(TopicType.EVENTS);
+
+        topicRepository.save(topic1).get();
+
+        SchemaMetadata schema = new SchemaMetadata();
+        schema.setId("1234");
+        schema.setTopicName("topic-1");
+        schema.setCreatedBy("otheruser");
+        schema.setJsonSchema(buildJsonSchema(List.of("propA"), List.of("string")));
+        schema.setSchemaVersion(1);
+        schemaRepository.save(schema);
+
+        SubscriptionMetadata subscription = new SubscriptionMetadata();
+        subscription.setId("50");
+        subscription.setTopicName("topic-1");
+        subscription.setClientApplicationId("2");
+
+        SubscriptionService subscriptionService = mock(SubscriptionService.class);
+        when(subscriptionService.getSubscriptionsForTopic("test", "topic-1", false))
+                .thenReturn(Collections.singletonList(subscription));
+
+        ValidatingTopicServiceImpl validatingService = new ValidatingTopicServiceImpl(service, subscriptionService,
+                applicationsService, kafkaClusters, topicConfig, true);
+
+        validatingService.deleteLatestTopicSchemaVersion("test", "topic-1").get();
+
+        assertFalse(schemaRepository.getObject("1234").isPresent());
+
+    }
+
+    @Test
+    public void testDeleteSchemaWithSub_negative() throws Exception {
+
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator,
+                userService, topicConfig, eventManager);
+
+        TopicMetadata topic1 = new TopicMetadata();
+        topic1.setName("topic-1");
+        topic1.setOwnerApplicationId("app-1");
+        topic1.setType(TopicType.EVENTS);
+
+        topicRepository.save(topic1).get();
+
+        SchemaMetadata schema = new SchemaMetadata();
+        schema.setId("1234");
+        schema.setTopicName("topic-1");
+        schema.setCreatedBy("otheruser");
+        schema.setJsonSchema(buildJsonSchema(List.of("propA"), List.of("string")));
+        schema.setSchemaVersion(1);
+        schemaRepository.save(schema);
+
+        SubscriptionMetadata subscription = new SubscriptionMetadata();
+        subscription.setId("50");
+        subscription.setTopicName("topic-1");
+        subscription.setClientApplicationId("2");
+
+        SubscriptionService subscriptionService = mock(SubscriptionService.class);
+        when(subscriptionService.getSubscriptionsForTopic("test", "topic-1", false))
+                .thenReturn(Collections.singletonList(subscription));
+
+        ValidatingTopicServiceImpl validatingService = new ValidatingTopicServiceImpl(service, subscriptionService,
+                applicationsService, kafkaClusters, topicConfig, false);
+
+        assertTrue(schemaRepository.getObject("1234").isPresent());
+
+        try {
+            validatingService.deleteLatestTopicSchemaVersion("test", "topic-1").get();
+            fail("Exception expected when trying to delete schema with subscribers when schemaDeleteWithSub is set to false");
+        }
+        catch (Exception e) {
+            assertTrue(e.getCause() instanceof IllegalStateException);
         }
 
     }
