@@ -82,7 +82,6 @@
     "ENV_APP_WARNING": "Please create a certificate for the application and the environment under ",
     "REMAINING_CHARACTERS_TEXT": "{{characters}} remaining characters",
     "NO_APPLICATIONS_USER_INFO": "You are currently not a Topic Administrator for any application. Request this for an application in the next box.",
-    "APP_RIGHTS": "Application rights",
     "ACL_TITLE_TEXT": "ACL doctor",
     "ACL_SUBTITLE_TEXT": "ACL analysis for Kafka environment",
     "ACL_INFO_TEXT": "No ACL differences present, or they're still loading...",
@@ -92,9 +91,6 @@
     "recommended_TEXT": "(recommended)",
     "CSR_CODE_TEXT": "Please insert the Base64-encoded CSR here",
     "CERT_WITH_PRIVATE_KEY_HTML": "I would like to create a certificate and the private key <i>(insecure, recommended for test purposes only)</i>",
-    "CERT_PREFIX_LABEL_HTML": "Prefix for <b> internal</b> topics",
-    "CERT_PREFIX_INFO_TEXT": "Topics that begin with this prefix may be created and deleted independently by the application as required.",
-    "CERT_CONSUMER_GROUPS_INFO_HTML": "Consumer Groups for this application <b>must</b> start with one of the following strings:",
     "CSR_LABEL_HTML": "I am creating a <abbr title=\"Certificate Signing Request. This must have been created locally together with a private key.\">CSR</abbr> locally <i>(recommended)</i>",
     "CERT_BUTTON_TITLE": "Generate new client certificate for environment {{env}}",
     "SUBSCRIPTION_APPROVAL_REQUIRED_INFO_HTML": "This topic requires an <b>approval</b> of subscriptions by the Topic Owner. If you subscribe to this topic, the Topic Owners will be informed and asked for their approval. You will be informed about their approval by e-mail.",
@@ -106,5 +102,6 @@
     "EXTEND_CERTIFICATE_HTML": "If you already have an existing client certificate which is about to expire, you can create a new certificate with same identification but extended validity here. Note that you <b>must have the private key</b> which had previously been used to create the certificate.",
     "EXTEND_CERTIFICATE_COMMAND_HTML": "The following <code>openssl</code> command assumes that your private key is in file <code>{{ keyfile }}</code>. If your private key is in another file, please adjust the command accordingly.",
     "CERTIFICATE_EXPIRED_HTML": "The certificate for your application on this environment expired on <b>{{ expiryDate }}</b> ab. Please renew your certificate immediately!",
-    "CERTIFICATE_EXPIRY_HTML": "The certificate for your application on this environment will expire on <b>{{ expiryDate }}</b>."
+    "CERTIFICATE_EXPIRY_HTML": "The certificate for your application on this environment will expire on <b>{{ expiryDate }}</b>.",
+    "NO_CERTIFICATE_FOR_APP": "No client certificate has been created yet for this application on this environment."
 }
