@@ -108,7 +108,7 @@
     "Owned Topics": "Topic-Eigentümer",
     "Subscribed Topics": "Topic-Abonnent",
     "NO_APPLICATIONS_USER_INFO": "Du bist aktuell für keine Anwendung Topic-Administrator. Beantrage dies für eine Anwendung in der nächsten Box.",
-    "Request Application Topic Administrator Role": "Anfrage zum Topic der Anwendung als Administrator-Rolle",
+    "Request Application Topic Administrator Role": "Topic-Administrator-Rolle für Anwendung beantragen",
     "Select Application": "Anwendung auswählen",
     "Reason / comments (optional)": "Begründung / Kommentare (optional)",
     "Submit Request": "Anfrage einreichen",
@@ -163,5 +163,8 @@
     "Certificate Info": "Zertifikat",
     "Create / extend application certificate": "Zertifikat erstellen / verlängern",
     "NO_CERTIFICATE_FOR_APP": "Für diese Anwendung wurde noch kein Client-Zertifikat auf dieser Umgebung erstellt.",
-    "Create Certificate now": "Jetzt Zertifikat erstellen"
+    "Create Certificate now": "Jetzt Zertifikat erstellen",
+    "Certificate DN": "Zertifikats-DN",
+    "Expiry Date": "Ablaufdatum",
+    "APPLICATION_ENV_HINT_HTML": "Diese Informationen beziehen sich auf die aktuelle Umgebung <b>{{ environmentName }}</b>."
 }
