@@ -89,6 +89,10 @@ to e.g.
 Note that you may encounter problems with Kafka when running on "only" 1 GB of RAM. We observed multiple restarts
 (due to Out Of Memory) of the Kafka pods when using 1 GB memory as a limit.
 
+## Connect to the Kafkas from outside
+
+See [this discussion](https://github.com/HermesGermany/galapagos/discussions/5) for information and hints on this.
+
 ## Cleanup / Restart Demo Setup
 
 Use the `clear-demo.sh` script in the `demo` subfolder to delete all created namespaces from your Minikube. This may
