@@ -61,7 +61,7 @@
     "INITIAL_SCHEMA_TEXT": "If you already have a <a href='https://json-schema.org/'>JSON Schema</a> for this topic, you can paste it here. Please note that messages on the topic <b>must</b> adhere to the <a href='https://github.com/cloudevents/spec/blob/v1.0/spec.md'><b>CloudEvents</b></a> format, and that this schema only describes the <b>contents</b> of the <code>data</code> property!",
     "INITIAL_SCHEMA_TEXT_DATA_TOPIC": "If you already have a <a href='https://json-schema.org/'> JSON schema </a> for this topic, you can insert it here. Please note that the schema may only be changed <b> consumer-compatible </b> later. This usually means that new fields can be added without any problems (if <code> additionalProperties </code> is set to <code>true</code>), but are difficult to remove again.",
     "EDIT_SCHEMA_DESCRIPTION_TOPIC_DATA": "Insert the new JSON schema for this topic here. Please note that the schema must be <b>consumer-compatible</b> with the previous schema (if there already was a schema). Most of the time, this means that you can add fields, but probably not remove them.",
-    "Add Change Description": "Please explain the change in short",
+    "Add Change Description": "Please explain the change in short.",
     "CHANGELOG_TOPIC_CREATED_HTML": "has created Topic <b><a href='{{ topicLink }}'>{{ topicName }}</a></b>.",
     "CHANGELOG_TOPIC_DELETED_HTML": "has deleted Topic <b>{{ topicName }}</b>.",
     "CHANGELOG_TOPIC_DESCRIPTION_CHANGE_HTML": "has updated the description of Topic <b><a href='{{ topicLink }}'>{{ topicName }}</a></b>.",

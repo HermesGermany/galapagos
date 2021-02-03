@@ -20,7 +20,7 @@
     "Actions": "Aktionen",
     "Content": "Inhalte",
     "Delete Schema": "Schemaversion löschen",
-    "Add Change Description": "Bitte beschreibe die Änderungen im Schema kurz",
+    "Add Change Description": "Bitte beschreibe die Änderungen im Schema kurz.",
     "DELETE_SCHEMA_DIALOG_QUESTION_TEXT": "Soll diese Schemaversion wirklich gelöscht werden? Dies kann nicht rückgängig gemacht werden. Du müsstest die Schemaversion neu hochladen, um sie wieder herzustellen.",
     "Selected Kafka Environment": "Ausgewählte Kafka-Umgebung",
     "Framework Config Templates (click to expand)": "Framework Config Templates (zum Aufklappen klicken)",
