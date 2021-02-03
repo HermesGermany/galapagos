@@ -20,7 +20,8 @@
                         </button>
                     </div>
                     <p
-                        *ngIf=" (topicSchemas | async)?.length > 1 && !editSchemaMode && selectedSchemaVersion.schemaVersion != 1">
+                        *ngIf=" (topicSchemas | async)?.length > 1 && !editSchemaMode
+                        && selectedSchemaVersion.schemaVersion > 1 && selectedSchemaVersion.changeDescription">
                         {{ 'Schema Changes' | translate }}: {{selectedSchemaVersion.changeDescription}}</p>
                     <button class="btn btn-success mb-3"
                             *ngIf="!(selectedEnvironment | async)?.stagingOnly && isOwnerOfTopic && !editSchemaMode"
