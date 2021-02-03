@@ -9,4 +9,6 @@ public class AddSchemaVersionDto {
 
     private String jsonSchema;
 
+    private String changeDescription;
+
 }

@@ -1,11 +1,11 @@
 package com.hermesworld.ais.galapagos.topics;
 
-import java.time.ZonedDateTime;
-
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.hermesworld.ais.galapagos.util.HasKey;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.time.ZonedDateTime;
 
 @JsonSerialize
 @Getter
@@ -24,6 +24,8 @@ public class SchemaMetadata implements HasKey {
 
     private String createdBy;
 
+    private String changeDescription;
+
     public SchemaMetadata() {
     }
 
@@ -34,6 +36,7 @@ public class SchemaMetadata implements HasKey {
         this.jsonSchema = original.jsonSchema;
         this.createdAt = original.createdAt;
         this.createdBy = original.createdBy;
+        this.changeDescription = original.changeDescription;
     }
 
     @Override

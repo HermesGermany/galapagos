@@ -1,14 +1,5 @@
 package com.hermesworld.ais.galapagos.topics.controller;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.concurrent.ExecutionException;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
-
 import com.hermesworld.ais.galapagos.applications.*;
 import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
@@ -28,6 +19,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.concurrent.ExecutionException;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 @RestController
 @Slf4j
@@ -295,8 +295,8 @@ public class TopicController {
         }
 
         try {
-            SchemaMetadata metadata = topicService
-                    .addTopicSchemaVersion(environmentId, topicName, schemaVersionDto.getJsonSchema()).get();
+            SchemaMetadata metadata = topicService.addTopicSchemaVersion(environmentId, topicName,
+                    schemaVersionDto.getJsonSchema(), schemaVersionDto.getChangeDescription()).get();
 
             return ResponseEntity.created(new URI("/schema/" + metadata.getId())).build();
         }

@@ -1,14 +1,5 @@
 package com.hermesworld.ais.galapagos.notifications.impl;
 
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import javax.servlet.http.HttpServletRequest;
-
 import com.hermesworld.ais.galapagos.applications.ApplicationsService;
 import com.hermesworld.ais.galapagos.applications.KnownApplication;
 import com.hermesworld.ais.galapagos.applications.RequestState;
@@ -26,6 +17,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+
+import javax.servlet.http.HttpServletRequest;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * This is the central component listening for all types of events in Galapagos and notifying the relevant parties. Here
@@ -50,9 +50,9 @@ public class NotificationEventListener
     private final KafkaClusters kafkaClusters;
 
     // TODO externalize
-    private String unknownApp = "(unknown app)";
-    private String unknownUser = "(unknown user)";
-    private String unknownEnv = "(unknown environment)";
+    private final String unknownApp = "(unknown app)";
+    private final String unknownUser = "(unknown user)";
+    private final String unknownEnv = "(unknown environment)";
 
     private static final String HTTP_REQUEST_URL_KEY = NotificationEventListener.class.getName() + "_requestUrl";
 
@@ -163,7 +163,8 @@ public class NotificationEventListener
 
     @Override
     public CompletableFuture<Void> handleTopicSchemaAdded(TopicSchemaAddedEvent event) {
-        return handleTopicChange(event, "ein neues JSON-Schema veröffentlicht");
+        return handleTopicChange(event,
+                "ein neues JSON-Schema veröffentlicht (" + event.getNewSchema().getChangeDescription() + ")");
     }
 
     @Override
@@ -235,7 +236,6 @@ public class NotificationEventListener
         params.addVariable("galapagos_topic_url",
                 buildUIUrl(event, "/topics/" + topicName + "?environment=" + environmentId));
         params.addVariable("environment_name", environmentName);
-
         return notificationService.notifySubscribers(environmentId, topicName, params, userName);
     }
 

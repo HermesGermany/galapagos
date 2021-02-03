@@ -1,13 +1,7 @@
 import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { routerTransition } from '../../router.animations';
 import { ActivatedRoute, Router } from '@angular/router';
-import {
-    SchemaMetadata,
-    Topic,
-    TopicRecord,
-    TopicsService,
-    TopicSubscription
-} from '../../shared/services/topics.service';
+import { Topic, TopicRecord, TopicsService, TopicSubscription } from '../../shared/services/topics.service';
 import { combineLatest, Observable } from 'rxjs';
 import { finalize, flatMap, map, shareReplay, startWith, take } from 'rxjs/operators';
 import { ApplicationsService, UserApplicationInfo } from '../../shared/services/applications.service';
@@ -18,6 +12,7 @@ import { NgbDateStruct, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { CertificateService } from '../../shared/services/certificates.service';
 import * as moment from 'moment';
 import { ServerInfoService } from '../../shared/services/serverinfo.service';
+import { SchemaSectionComponent } from './schema-section.component';
 
 @Component({
     selector: 'app-single-topic',
@@ -52,21 +47,9 @@ export class SingleTopicComponent implements OnInit {
 
     selectedEnvironment: Observable<KafkaEnvironment>;
 
-    topicSchemas: Promise<SchemaMetadata[]>;
-
-    selectedSchemaVersion: SchemaMetadata;
-
-    loadingSchemas: boolean;
-
     translateParams: any = {};
 
-    currentText: Observable<string>;
-
     isOwnerOfTopic: Observable<boolean>;
-
-    editSchemaMode = false;
-
-    newSchemaText = '';
 
     topicNameConfirmText = '';
 
@@ -98,9 +81,9 @@ export class SingleTopicComponent implements OnInit {
         private toasts: ToastService,
         private router: Router,
         private translateService: TranslateService,
-        private modalService: NgbModal
+        private modalService: NgbModal,
+        private schemaSection: SchemaSectionComponent
     ) {
-        this.currentText = translateService.stream('(current)');
 
         route.queryParamMap.subscribe({
             next: params => {
@@ -137,7 +120,6 @@ export class SingleTopicComponent implements OnInit {
             next: value => {
                 if (value[0]) {
                     this.loadSubscribers(value[0], value[1].id);
-                    this.loadSchemas(value[0], value[1].id);
                     this.translateParams.topicName = value[0].name;
                 }
             }
@@ -296,42 +278,6 @@ export class SingleTopicComponent implements OnInit {
         );
     }
 
-    schemaUrl(schemaVersion: SchemaMetadata) {
-        return window.location.origin + '/schema/' + schemaVersion.id;
-    }
-
-    startEditSchemaMode() {
-        this.editSchemaMode = true;
-        this.newSchemaText = '';
-    }
-
-    async publishNewSchema(): Promise<any> {
-        const topic = await this.topic.pipe(take(1)).toPromise();
-        const environment = await this.environmentsService.getCurrentEnvironment().pipe(take(1)).toPromise();
-
-        return this.topicService.addTopicSchema(topic.name, environment.id, this.newSchemaText).then(
-            () => {
-                this.editSchemaMode = false;
-                this.toasts.addSuccessToast('Das Schema wurde erfolgreich veröffentlicht.');
-                this.loadSchemas(topic, environment.id);
-            },
-            err => this.toasts.addHttpErrorToast('Das Schema konnte nicht veröffentlicht werden', err)
-        );
-    }
-
-    async deleteLatestSchema(): Promise<any> {
-        const topic = await this.topic.pipe(take(1)).toPromise();
-        const environment = await this.environmentsService.getCurrentEnvironment().pipe(take(1)).toPromise();
-
-        return this.topicService.deleteLatestSchema(topic.name, environment.id).then(
-            () => {
-                this.toasts.addSuccessToast('Das Schema wurde erfolgreich gelöscht.');
-                this.loadSchemas(topic, environment.id);
-            },
-            err => this.toasts.addHttpErrorToast('Das Schema konnte nicht gelöscht werden', err)
-        );
-    }
-
     async openDataDlg(content: any) {
         const topic = await this.topic.pipe(take(1)).toPromise();
         const environment = await this.environmentsService.getCurrentEnvironment().pipe(take(1)).toPromise();
@@ -428,18 +374,6 @@ export class SingleTopicComponent implements OnInit {
                         )
                     );
             });
-    }
-
-    private loadSchemas(topic: Topic, environmentId: string) {
-        this.loadingSchemas = true;
-        this.topicSchemas = this.topicService
-            .getTopicSchemas(topic.name, environmentId)
-            .then(schemas => schemas.reverse())
-            .then(schemas => {
-                this.selectedSchemaVersion = schemas.length ? schemas[0] : null;
-                return schemas;
-            })
-            .finally(() => (this.loadingSchemas = false));
     }
 
     private toPeriodText(period: { years: number; months: number; days: number }): string {
