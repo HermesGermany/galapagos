@@ -63,7 +63,7 @@ export class SchemaSectionComponent implements OnInit, OnChanges {
         if (changes.topic) {
             const change = changes.topic;
             if (change.currentValue) {
-                const env = await this.environmentsService.getCurrentEnvironment().toPromise();
+                const env = await this.environmentsService.getCurrentEnvironment().pipe(take(1)).toPromise();
                 this.loadSchemas(change.currentValue, env.id);
             }
         }
