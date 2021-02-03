@@ -57,6 +57,7 @@ export class SchemaSectionComponent implements OnInit {
                 if (value[0]) {
                     this.loadSchemas(value[0], value[1].id);
                 }
+
             }
         });
         this.schemaDeleteWithSub = this.serverInfo.getServerInfo()
@@ -111,8 +112,7 @@ export class SchemaSectionComponent implements OnInit {
             .then(schemas => {
                 this.selectedSchemaVersion = schemas.length ? schemas[0] : null;
                 return schemas;
-            })
-            .finally(() => (this.loadingSchemas = false));
+            }).finally(() => (this.loadingSchemas = false));
     }
 
 }

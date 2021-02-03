@@ -1,4 +1,4 @@
-import { ComponentFixture, fakeAsync, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { SchemaSectionComponent } from './schema-section.component';
 import { RouterModule } from '@angular/router';
 import { Topic, TopicsService } from '../../shared/services/topics.service';
@@ -92,7 +92,7 @@ describe('SchemaSectionComponent', () => {
         expect(component).toBeTruthy();
     });
 
-    it('should show delete schema button if toggle is set to true and we are on dev stage', (fakeAsync(() => {
+    it('should show delete schema button if toggle is set to true and we are on dev stage', (() => {
         const topicsService = fixture.debugElement.injector.get(TopicsService);
         const environmentsService = fixture.debugElement.injector.get(EnvironmentsService);
         const serverInfoService = fixture.debugElement.injector.get(ServerInfoService);
@@ -103,7 +103,7 @@ describe('SchemaSectionComponent', () => {
             jsonSchema: '{}',
             isLatest: false
         }, {
-            id: '1234',
+            id: '123',
             topicName: 'myTopic',
             schemaVersion: 2,
             jsonSchema: '{"e","f"}',
@@ -131,7 +131,8 @@ describe('SchemaSectionComponent', () => {
         component.editSchemaMode = false;
         const debugElement = fixture.debugElement;
 
-        component.loadSchemas(topic, 'devtest');
+        topicsService.getTopicSchemas(topic.name, 'devtest').then();
+        component.ngOnInit();
 
         fixture.detectChanges();
         expect(serviceSpy).toHaveBeenCalled();
@@ -139,7 +140,7 @@ describe('SchemaSectionComponent', () => {
         expect(serverInfoSpy).toHaveBeenCalled();
         expect(debugElement.query(By.css('#schemaDeleteButton'))).toBeDefined();
 
-    })));
+    }));
 
     it('should not show delete schema button if toggle is set to false and we are on prod stage', (() => {
         const topicsService = fixture.debugElement.injector.get(TopicsService);
@@ -154,8 +155,8 @@ describe('SchemaSectionComponent', () => {
         }]));
         const envSpy: jasmine.Spy = spyOn(environmentsService, 'getCurrentEnvironment')
             .and.returnValue(of({
-                id: 'devtest',
-                name: 'devtest',
+                id: 'prod',
+                name: 'prod',
                 bootstrapServers: 'myBootstrapServers',
                 production: true,
                 stagingOnly: true

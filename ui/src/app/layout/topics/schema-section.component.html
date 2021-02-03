@@ -16,7 +16,7 @@
                                 appSpinnerWhile
                                 #p="appSpinnerWhile" (click)="(openDeleteConfirmDlg(deleteLatestSchemaDlg))"
                                 class="btn btn-danger ml-3"
-                                *ngIf="selectedSchemaVersion.isLatest && !(selectedEnvironment | async)?.stagingOnly && (schemaDeleteWithSub | async)">
+                                *ngIf="selectedSchemaVersion.isLatest && (!(selectedEnvironment | async)?.stagingOnly || (schemaDeleteWithSub | async))">
                             <i class="fas fa-trash mr-3"></i>{{ 'Delete Schema' | translate }}
                         </button>
                     </div>
