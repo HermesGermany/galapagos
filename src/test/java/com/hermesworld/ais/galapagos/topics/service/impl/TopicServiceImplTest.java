@@ -8,6 +8,7 @@ import com.hermesworld.ais.galapagos.events.GalapagosEventManagerMock;
 import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.kafka.TopicCreateParams;
+import com.hermesworld.ais.galapagos.kafka.config.KafkaEnvironmentConfig;
 import com.hermesworld.ais.galapagos.kafka.impl.TopicBasedRepositoryMock;
 import com.hermesworld.ais.galapagos.schemas.IncompatibleSchemaException;
 import com.hermesworld.ais.galapagos.security.CurrentUserService;
@@ -950,6 +951,63 @@ public class TopicServiceImplTest {
         try {
             validatingService.deleteLatestTopicSchemaVersion("test", "topic-1").get();
             fail("Exception expected when trying to delete schema with subscribers when schemaDeleteWithSub is set to false");
+        }
+        catch (Exception e) {
+            assertTrue(e.getCause() instanceof IllegalStateException);
+        }
+
+    }
+
+    @Test
+    public void testDeleteLatestSchemaVersionStagedSchemaDeleteSub_negative() throws Exception {
+
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator,
+                userService, topicConfig, eventManager);
+        SubscriptionService subscriptionService = mock(SubscriptionService.class);
+
+        ValidatingTopicServiceImpl validatingService = new ValidatingTopicServiceImpl(service, subscriptionService,
+                applicationsService, kafkaClusters, topicConfig, true);
+
+        KafkaCluster prodCluster = mock(KafkaCluster.class);
+        when(kafkaClusters.getEnvironment("prod")).thenReturn(Optional.of(prodCluster));
+        when(kafkaClusters.getEnvironmentIds()).thenReturn(List.of("test", "prod"));
+
+        KafkaEnvironmentConfig config = mock(KafkaEnvironmentConfig.class);
+        when(config.isStagingOnly()).thenReturn(true);
+        when(kafkaClusters.getEnvironmentMetadata("prod")).thenReturn(Optional.of(config));
+
+        TopicBasedRepositoryMock<TopicMetadata> prodTopicRepository = new TopicBasedRepositoryMock<>();
+        TopicBasedRepositoryMock<SchemaMetadata> prodSchemaRepository = new TopicBasedRepositoryMock<>();
+        when(prodCluster.getRepository("topics", TopicMetadata.class)).thenReturn(prodTopicRepository);
+        when(prodCluster.getRepository("schemas", SchemaMetadata.class)).thenReturn(prodSchemaRepository);
+
+        TopicMetadata topic1 = new TopicMetadata();
+        topic1.setName("topic-1");
+        topic1.setOwnerApplicationId("app-1");
+        topic1.setType(TopicType.EVENTS);
+
+        SubscriptionMetadata subscription = new SubscriptionMetadata();
+        subscription.setId("50");
+        subscription.setTopicName("topic-1");
+        subscription.setClientApplicationId("2");
+
+        when(subscriptionService.getSubscriptionsForTopic("prod", "topic-1", false))
+                .thenReturn(Collections.singletonList(subscription));
+
+        prodTopicRepository.save(topic1).get();
+
+        SchemaMetadata schema = new SchemaMetadata();
+        schema.setId("1234");
+        schema.setTopicName("topic-1");
+        schema.setCreatedBy("otheruser");
+        schema.setJsonSchema(buildJsonSchema(List.of("propA"), List.of("string")));
+        schema.setSchemaVersion(1);
+
+        prodSchemaRepository.save(schema).get();
+
+        try {
+            validatingService.deleteLatestTopicSchemaVersion("prod", "topic-1").get();
+            fail("Exception expected, but none thrown");
         }
         catch (Exception e) {
             assertTrue(e.getCause() instanceof IllegalStateException);
