@@ -6,7 +6,6 @@ import com.hermesworld.ais.galapagos.events.TopicEvent;
 import com.hermesworld.ais.galapagos.events.TopicSchemaAddedEvent;
 import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
-import com.hermesworld.ais.galapagos.kafka.impl.TopicBasedRepositoryMock;
 import com.hermesworld.ais.galapagos.notifications.NotificationParams;
 import com.hermesworld.ais.galapagos.notifications.NotificationService;
 import com.hermesworld.ais.galapagos.security.CurrentUserService;
@@ -19,8 +18,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -54,11 +51,10 @@ public class NotificationEventListenerTest {
                 kafkaClusters);
 
         context = mock(GalapagosEventContext.class);
-        MockCluster cluster = new MockCluster("test");
-        when(context.getKafkaCluster()).thenReturn(cluster.getCluster());
-        KafkaClusters clusters = mock(KafkaClusters.class);
 
-        when(clusters.getEnvironment("test")).thenReturn(Optional.of(cluster.getCluster()));
+        KafkaCluster kafkaCluster = mock(KafkaCluster.class);
+        when(kafkaCluster.getId()).thenReturn("test");
+        when(context.getKafkaCluster()).thenReturn(kafkaCluster);
     }
 
     @Test
@@ -132,21 +128,4 @@ public class NotificationEventListenerTest {
         return new TopicEvent(context, metadata);
     }
 
-    private static class MockCluster {
-
-        private final KafkaCluster cluster;
-
-        private final Map<String, TopicBasedRepositoryMock<?>> repositories = new HashMap<>();
-
-        public MockCluster(String id) {
-            cluster = mock(KafkaCluster.class);
-            when(cluster.getId()).thenReturn(id);
-            when(cluster.getRepository(any(), any())).then(
-                    inv -> repositories.computeIfAbsent(inv.getArgument(0), key -> new TopicBasedRepositoryMock<>()));
-        }
-
-        public KafkaCluster getCluster() {
-            return cluster;
-        }
-    }
 }

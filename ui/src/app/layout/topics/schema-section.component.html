@@ -1,4 +1,4 @@
-<div class="row" *ngIf="(topic | async)?.topicType !== 'INTERNAL'">
+<div class="row" *ngIf="topic.topicType !== 'INTERNAL'">
     <div class="col-md-12">
         <div class="card mb-3">
             <div class="card-header"><i class="fas fa-file-code mr-3"></i>{{ 'Schema' | translate }}</div>
@@ -12,19 +12,19 @@
                             <option *ngFor="let schema of topicSchemas | async"
                                     [ngValue]="schema">{{ schema.schemaVersion }}{{ schema.isLatest ? ' ' + (currentText | async) : ''}}</option>
                         </select>
-                        <button id="schemaDeleteButton"
-                                appSpinnerWhile
+                        <button appSpinnerWhile
                                 #p="appSpinnerWhile" (click)="(openDeleteConfirmDlg(deleteLatestSchemaDlg))"
                                 class="btn btn-danger ml-3"
-                                *ngIf="selectedSchemaVersion.isLatest && (!(selectedEnvironment | async)?.stagingOnly || (schemaDeleteWithSub | async))">
+                                *ngIf="selectedSchemaVersion.isLatest && !(selectedEnvironment | async)?.stagingOnly && (schemaDeleteWithSub | async)">
                             <i class="fas fa-trash mr-3"></i>{{ 'Delete Schema' | translate }}
                         </button>
                     </div>
                     <p
-                        *ngIf=" (topicSchemas | async)?.length > 1 && !editSchemaMode && selectedSchemaVersion.schemaVersion != 1">
+                        *ngIf=" (topicSchemas | async)?.length > 1 && !editSchemaMode
+                        && selectedSchemaVersion.schemaVersion > 1 && selectedSchemaVersion.changeDescription">
                         {{ 'Schema Changes' | translate }}: {{selectedSchemaVersion.changeDescription}}</p>
                     <button class="btn btn-success mb-3"
-                            *ngIf="!(selectedEnvironment | async)?.stagingOnly && (isOwnerOfTopic | async) && !editSchemaMode"
+                            *ngIf="!(selectedEnvironment | async)?.stagingOnly && isOwnerOfTopic && !editSchemaMode"
                             (click)="startEditSchemaMode()"><i
                         class="fas fa-plus mr-3"></i>{{ 'Publish new schema version' | translate }}</button>
                     <div class="schema-box scrollbar border mb-3"
@@ -35,9 +35,9 @@
                     <span *ngIf="selectedSchemaVersion && !editSchemaMode"> Schema URL: <code><a
                         [href]="schemaUrl(selectedSchemaVersion)">{{ schemaUrl(selectedSchemaVersion) }}</a></code></span>
                     <div *ngIf="editSchemaMode">
-                        <p *ngIf="(topic | async)?.topicType !== 'DATA'"
+                        <p *ngIf="topic.topicType !== 'DATA'"
                            [innerHTML]="'EDIT_SCHEMA_DESCRIPTION' | translate"></p>
-                        <p *ngIf="(topic | async)?.topicType !== 'DATA';else dataText"
+                        <p *ngIf="topic.topicType !== 'DATA';else dataText"
                            [innerHTML]="'EDIT_SCHEMA_DESCRIPTION_TOPIC' | translate"></p>
                         <ng-template #dataText>
                             <p [innerHTML]="'EDIT_SCHEMA_DESCRIPTION_TOPIC_DATA' | translate"></p>

@@ -175,7 +175,7 @@ describe('SchemaSectionComponent', () => {
                 name: 'prod',
                 bootstrapServers: 'myBootstrapServers',
                 production: true,
-                stagingOnly: false
+                stagingOnly: true
             }));
 
         const serverInfoSpy: jasmine.Spy = spyOn(serverInfoService, 'getServerInfo').and.returnValue(of({
