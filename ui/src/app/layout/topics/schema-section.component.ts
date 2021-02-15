@@ -128,5 +128,4 @@ export class SchemaSectionComponent implements OnInit, OnChanges {
             .finally(() => (this.loadingSchemas = false));
     }
 
-
 }

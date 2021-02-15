@@ -47,7 +47,7 @@ public class ValidatingTopicServiceImpl implements ValidatingTopicService {
     public ValidatingTopicServiceImpl(@Qualifier(value = "nonvalidating") TopicService topicService,
             SubscriptionService subscriptionService, ApplicationsService applicationsService,
             KafkaClusters kafkaClusters, GalapagosTopicConfig topicConfig,
-            @Value("${info.toggles.schemaDeleteWithSub:true}") boolean schemaDeleteWithSub) {
+            @Value("${info.toggles.schemaDeleteWithSub:false}") boolean schemaDeleteWithSub) {
         this.topicService = topicService;
         this.subscriptionService = subscriptionService;
         this.applicationsService = applicationsService;
@@ -106,7 +106,7 @@ public class ValidatingTopicServiceImpl implements ValidatingTopicService {
                     .failedFuture(new IllegalStateException("Schemas of subscribed Topics cannot be deleted!"));
         }
 
-        return checkOnNonStaging(environmentId, "Delete latest schema", topicName)
+        return checkDeleteSchemaWithSub(environmentId, "Delete latest schema", topicName)
                 .orElseGet(() -> topicService.deleteLatestTopicSchemaVersion(environmentId, topicName));
     }
 
@@ -166,8 +166,9 @@ public class ValidatingTopicServiceImpl implements ValidatingTopicService {
         return checkOnNonStaging(environmentId, action, Void.class);
     }
 
-    private Optional<CompletableFuture<Void>> checkOnNonStaging(String environmentId, String action, String topicName) {
-        boolean hasSubs = subscriptionService.getSubscriptionsForTopic(environmentId, topicName, false).size() > 0;
+    private Optional<CompletableFuture<Void>> checkDeleteSchemaWithSub(String environmentId, String action,
+            String topicName) {
+        boolean hasSubs = !subscriptionService.getSubscriptionsForTopic(environmentId, topicName, false).isEmpty();
         if (kafkaClusters.getEnvironmentMetadata(environmentId).map(envConfig -> envConfig.isStagingOnly() && hasSubs)
                 .orElse(false)) {
             return Optional.of(CompletableFuture.failedFuture(new IllegalStateException("You may only " + action
@@ -179,7 +180,6 @@ public class ValidatingTopicServiceImpl implements ValidatingTopicService {
 
     private <T> Optional<CompletableFuture<T>> checkOnNonStaging(String environmentId, String action,
             Class<T> resultClass) {
-
         if (kafkaClusters.getEnvironmentMetadata(environmentId).map(KafkaEnvironmentConfig::isStagingOnly)
                 .orElse(false)) {
             return Optional.of(CompletableFuture.failedFuture(new IllegalStateException("You may only " + action

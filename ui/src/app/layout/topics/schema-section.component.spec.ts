@@ -87,7 +87,7 @@ describe('SchemaSectionComponent', () => {
 
                 deletable: false
             };
-            component.topic = of(topic);
+            component.topic = topic;
             fixture.detectChanges();
         });
 
@@ -146,7 +146,9 @@ describe('SchemaSectionComponent', () => {
         const debugElement = fixture.debugElement;
 
         component.ngOnInit();
+        component.topicSubscribers = [];
         fixture.detectChanges();
+
         setTimeout(() => {
             fixture.detectChanges();
             expect(serviceSpy).toHaveBeenCalled();
@@ -165,10 +167,22 @@ describe('SchemaSectionComponent', () => {
         const serviceSpy: jasmine.Spy = spyOn(topicsService, 'getTopicSchemas').and.returnValue(Promise.resolve([{
             id: '123',
             topicName: 'myTopic',
-            schemaVersion: 1,
+            createdBy: 'someUser',
+            createdAt: 'someTime',
+            schemaVersion: 2,
             jsonSchema: '{}',
             isLatest: true
+        }, {
+            id: '1234',
+            topicName: 'myTopic',
+            createdBy: 'someUser2',
+            createdAt: 'someTime2',
+            schemaVersion: 1,
+            jsonSchema: '{"e":"f"}',
+            changeDescription: 'a change',
+            isLatest: false
         }]));
+
         const envSpy: jasmine.Spy = spyOn(environmentsService, 'getCurrentEnvironment')
             .and.returnValue(of({
                 id: 'prod',
@@ -201,6 +215,7 @@ describe('SchemaSectionComponent', () => {
         const debugElement = fixture.debugElement;
 
         component.ngOnInit();
+
         fixture.detectChanges();
         setTimeout(() => {
             fixture.detectChanges();
@@ -208,6 +223,63 @@ describe('SchemaSectionComponent', () => {
             expect(envSpy).toHaveBeenCalled();
             expect(serverInfoSpy).toHaveBeenCalled();
             expect(debugElement.query(By.css('#schemaDeleteButton'))).toBeNull();
+            done();
+        }, 2000);
+
+    }));
+
+    it('should show button if toggle is set to false and we are on dev stage and there are no subscribers', ((done: DoneFn) => {
+        const topicsService = fixture.debugElement.injector.get(TopicsService);
+        const environmentsService = fixture.debugElement.injector.get(EnvironmentsService);
+        const serverInfoService = fixture.debugElement.injector.get(ServerInfoService);
+        const serviceSpy: jasmine.Spy = spyOn(topicsService, 'getTopicSchemas').and.returnValue(Promise.resolve([{
+            id: '123',
+            topicName: 'myTopic',
+            schemaVersion: 1,
+            jsonSchema: '{}',
+            isLatest: true
+        }]));
+        const envSpy: jasmine.Spy = spyOn(environmentsService, 'getCurrentEnvironment')
+            .and.returnValue(of({
+                id: 'devtest',
+                name: 'devtest',
+                bootstrapServers: 'myBootstrapServers',
+                production: false,
+                stagingOnly: false
+            }));
+
+        const serverInfoSpy: jasmine.Spy = spyOn(serverInfoService, 'getServerInfo').and.returnValue(of({
+            app: {
+                version: 'local-dev'
+            },
+            toggles: {
+                subscriptionApproval: 'false',
+                schemaDeleteWithSub: 'false'
+            }
+
+        }));
+
+        component.selectedEnvironment = of({
+            id: 'devtest',
+            name: 'devtest',
+            bootstrapServers: 'myBootstrapServers',
+            production: false,
+            stagingOnly: false
+        });
+
+        component.topicSubscribers = [];
+
+        component.editSchemaMode = false;
+        const debugElement = fixture.debugElement;
+
+        component.ngOnInit();
+        fixture.detectChanges();
+        setTimeout(() => {
+            fixture.detectChanges();
+            expect(serviceSpy).toHaveBeenCalled();
+            expect(envSpy).toHaveBeenCalled();
+            expect(serverInfoSpy).toHaveBeenCalled();
+            expect(debugElement.query(By.css('#schemaDeleteButton'))).toBeTruthy();
             done();
         }, 2000);
 
