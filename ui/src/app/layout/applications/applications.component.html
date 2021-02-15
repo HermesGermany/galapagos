@@ -36,10 +36,11 @@
                                 </td>
                                 <td>
                                     <span *ngFor="let env of environments | async">
-                                        <button type="button" class="btn mr-2" [class.btn-warning]="!env.production"
-                                            [class.btn-danger]="env.production"
-                                            [title]=" 'CERT_BUTTON_TITLE' | translate:{ env: env.name }"
-                                            (click)="openCertDlg(app, env, certDlg)">
+                                        <button [id]="env.production ? 'prodButton' : 'devButton'" type="button"
+                                                class="btn mr-2" [class.btn-warning]="!env.production"
+                                                [class.btn-danger]="env.production"
+                                                [title]=" 'CERT_BUTTON_TITLE' | translate:{ env: env.name }"
+                                                (click)="openCertDlg(app, env, certDlg)">
                                             <i class="fas fa-award"></i>&nbsp;{{ env.name }}
                                         </button></span>
                                 </td>
@@ -163,7 +164,7 @@
                             <fieldset class="form-group">
                                 <div class="radio">
                                     <label>
-                                        <input type="radio" name="hasCsr" value="hasCsr"
+                                        <input id="csrRadio" type="radio" name="hasCsr" value="hasCsr"
                                                [(ngModel)]="certificateCreationType" #hasCsr/>&nbsp;<span
                                         [innerHTML]=" 'CSR_LABEL_HTML' | translate"></span>
                                     </label>
@@ -182,7 +183,7 @@
                                 </div>
                                 <div class="radio">
                                     <label>
-                                        <input type="radio" value="noCsr" name="hasCsr"
+                                        <input id="noCsrRadio" type="radio" value="noCsr" name="noCsr"
                                                [(ngModel)]="certificateCreationType"
                                                [disabled]="certificateDlgData.environment?.production"/>&nbsp;<span
                                         [innerHTML]="'CERT_WITH_PRIVATE_KEY_HTML' | translate"></span>
@@ -236,7 +237,7 @@
         <div [ngbNavOutlet]="nav" class="mt-2"></div>
     </div>
     <div class="modal-footer">
-        <button type="button" class="btn btn-warning" (click)="generateCertificate(); dlg.dismiss()"
+        <button id="certButton" type="button" class="btn btn-warning" (click)="generateCertificate(); dlg.dismiss()"
                 [disabled]="activeTab === 'new' ? (certificateCreationType === 'hasCsr' && !certificateDlgData.csrData) : !certificateDlgData.csrData">
             <i class="fas fa-cogs"></i>&nbsp;{{ 'Generate Client Certificate' | translate }}
         </button>
