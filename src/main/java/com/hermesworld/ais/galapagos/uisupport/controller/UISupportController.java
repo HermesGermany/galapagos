@@ -1,18 +1,5 @@
 package com.hermesworld.ais.galapagos.uisupport.controller;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.security.cert.CertificateException;
-import java.time.Period;
-import java.util.*;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-
-import com.hermesworld.ais.galapagos.applications.ApplicationMetadata;
 import com.hermesworld.ais.galapagos.applications.ApplicationsService;
 import com.hermesworld.ais.galapagos.applications.BusinessCapability;
 import com.hermesworld.ais.galapagos.applications.KnownApplication;
@@ -20,7 +7,7 @@ import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.kafka.config.KafkaEnvironmentConfig;
 import com.hermesworld.ais.galapagos.kafka.util.KafkaTopicConfigHelper;
-import com.hermesworld.ais.galapagos.topics.TopicNameValidator;
+import com.hermesworld.ais.galapagos.naming.NamingService;
 import com.hermesworld.ais.galapagos.topics.config.GalapagosTopicConfig;
 import com.hermesworld.ais.galapagos.topics.service.TopicService;
 import lombok.extern.slf4j.Slf4j;
@@ -32,6 +19,18 @@ import org.springframework.util.StreamUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.security.cert.CertificateException;
+import java.time.Period;
+import java.util.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * Crossfunctional controller for calculating sensible defaults and other useful values mainly for use in UIs. <br>
@@ -51,7 +50,7 @@ public class UISupportController {
 
     private KafkaClusters kafkaClusters;
 
-    private final TopicNameValidator topicNameValidator;
+    private final NamingService namingService;
 
     private final GalapagosTopicConfig topicConfig;
 
@@ -73,12 +72,12 @@ public class UISupportController {
 
     @Autowired
     public UISupportController(ApplicationsService applicationsService, TopicService topicService,
-            KafkaClusters kafkaClusters, TopicNameValidator topicNameValidator, GalapagosTopicConfig topicConfig,
+            KafkaClusters kafkaClusters, NamingService namingService, GalapagosTopicConfig topicConfig,
             CustomLinksConfig customLinksConfig) {
         this.applicationsService = applicationsService;
         this.topicService = topicService;
         this.kafkaClusters = kafkaClusters;
-        this.topicNameValidator = topicNameValidator;
+        this.namingService = namingService;
         this.topicConfig = topicConfig;
         this.customLinksConfig = customLinksConfig;
     }
@@ -192,10 +191,7 @@ public class UISupportController {
         BusinessCapability cap = app.getBusinessCapabilities().stream()
                 .filter(bc -> bc.getId().equals(query.getBusinessCapabilityId())).findFirst().orElse(null);
 
-        ApplicationMetadata metadata = applicationsService
-                .getApplicationMetadata(query.getEnvironmentId(), query.getApplicationId()).orElseThrow(badRequest);
-
-        String name = topicNameValidator.getTopicNameSuggestion(query.getTopicType(), app, metadata, cap);
+        String name = namingService.getTopicNameSuggestion(query.getTopicType(), app, cap);
         if (name == null) {
             throw badRequest.get();
         }

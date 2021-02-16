@@ -1,5 +1,12 @@
 package com.hermesworld.ais.galapagos.topics.service.impl;
 
+import java.time.LocalDate;
+import java.time.Period;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
 import com.hermesworld.ais.galapagos.applications.ApplicationsService;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.kafka.TopicCreateParams;
@@ -20,13 +27,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
-import java.time.Period;
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
+/**
+ * Wraps the real Topic Service to perform validations which should <b>not</b> be performed during Staging (e.g., if the
+ * current stage allows direct Topic creation, which would be a bad check during staging). For "normal" service clients,
+ * this should be the default Topic Service to use.
+ */
 @Service
 @Primary
 public class ValidatingTopicServiceImpl implements ValidatingTopicService {

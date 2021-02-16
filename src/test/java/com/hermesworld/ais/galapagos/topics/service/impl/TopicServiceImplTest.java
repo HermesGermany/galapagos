@@ -10,11 +10,15 @@ import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.kafka.TopicCreateParams;
 import com.hermesworld.ais.galapagos.kafka.config.KafkaEnvironmentConfig;
 import com.hermesworld.ais.galapagos.kafka.impl.TopicBasedRepositoryMock;
+import com.hermesworld.ais.galapagos.naming.InvalidTopicNameException;
+import com.hermesworld.ais.galapagos.naming.NamingService;
 import com.hermesworld.ais.galapagos.schemas.IncompatibleSchemaException;
 import com.hermesworld.ais.galapagos.security.CurrentUserService;
 import com.hermesworld.ais.galapagos.subscriptions.SubscriptionMetadata;
 import com.hermesworld.ais.galapagos.subscriptions.service.SubscriptionService;
-import com.hermesworld.ais.galapagos.topics.*;
+import com.hermesworld.ais.galapagos.topics.SchemaMetadata;
+import com.hermesworld.ais.galapagos.topics.TopicMetadata;
+import com.hermesworld.ais.galapagos.topics.TopicType;
 import com.hermesworld.ais.galapagos.topics.config.GalapagosTopicConfig;
 import com.hermesworld.ais.galapagos.topics.service.ValidatingTopicService;
 import com.hermesworld.ais.galapagos.util.FutureUtil;
@@ -43,7 +47,7 @@ public class TopicServiceImplTest {
 
     private ApplicationsService applicationsService;
 
-    private TopicNameValidator topicNameValidator;
+    private NamingService namingService;
 
     private CurrentUserService userService;
 
@@ -63,7 +67,7 @@ public class TopicServiceImplTest {
     public void feedMocks() {
         kafkaClusters = mock(KafkaClusters.class);
         applicationsService = mock(ApplicationsService.class);
-        topicNameValidator = mock(TopicNameValidator.class);
+        namingService = mock(NamingService.class);
         userService = mock(CurrentUserService.class);
         topicConfig = mock(GalapagosTopicConfig.class);
         eventManager = new GalapagosEventManagerMock();
@@ -101,8 +105,8 @@ public class TopicServiceImplTest {
             return FutureUtil.noop();
         });
 
-        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator,
-                userService, topicConfig, eventManager);
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
+                topicConfig, eventManager);
 
         TopicMetadata topic1 = new TopicMetadata();
         topic1.setName("topic-1");
@@ -142,8 +146,8 @@ public class TopicServiceImplTest {
             return FutureUtil.noop();
         });
 
-        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator,
-                userService, topicConfig, eventManager);
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
+                topicConfig, eventManager);
 
         TopicMetadata topic1 = new TopicMetadata();
         topic1.setName("topic-1");
@@ -170,8 +174,8 @@ public class TopicServiceImplTest {
             return FutureUtil.noop();
         });
 
-        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator,
-                userService, topicConfig, eventManager);
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
+                topicConfig, eventManager);
 
         TopicMetadata topic1 = new TopicMetadata();
         topic1.setName("topic-1");
@@ -198,11 +202,10 @@ public class TopicServiceImplTest {
             return FutureUtil.noop();
         });
 
-        doThrow(new InvalidTopicNameException("Invalid!")).when(topicNameValidator).validateTopicName(any(), any(),
-                any(), any());
+        doThrow(new InvalidTopicNameException("Invalid!")).when(namingService).validateTopicName(any(), any(), any());
 
-        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator,
-                userService, topicConfig, eventManager);
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
+                topicConfig, eventManager);
 
         TopicMetadata topic1 = new TopicMetadata();
         topic1.setName("topic-1");
@@ -223,8 +226,8 @@ public class TopicServiceImplTest {
 
     @Test
     public void testDeleteLatestSchemaVersion() throws Exception {
-        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator,
-                userService, topicConfig, eventManager);
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
+                topicConfig, eventManager);
 
         TopicMetadata topic1 = new TopicMetadata();
         topic1.setName("topic-1");
@@ -256,8 +259,8 @@ public class TopicServiceImplTest {
 
     @Test
     public void testDeleteLatestSchemaVersionStaged_negative() throws Exception {
-        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator,
-                userService, topicConfig, eventManager);
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
+                topicConfig, eventManager);
         KafkaCluster prodCluster = mock(KafkaCluster.class);
         when(kafkaClusters.getEnvironment("prod")).thenReturn(Optional.of(prodCluster));
         when(kafkaClusters.getEnvironmentIds()).thenReturn(List.of("test", "prod"));
@@ -298,8 +301,8 @@ public class TopicServiceImplTest {
 
     @Test
     public void testDeleteLatestSchemaVersionWithSubscriber_negative() throws Exception {
-        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator,
-                userService, topicConfig, eventManager);
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
+                topicConfig, eventManager);
 
         TopicMetadata topic1 = new TopicMetadata();
         topic1.setName("topic-1");
@@ -342,8 +345,8 @@ public class TopicServiceImplTest {
 
     @Test
     public void testAddSchemaVersion_sameSchema() throws Exception {
-        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator,
-                userService, topicConfig, eventManager);
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
+                topicConfig, eventManager);
 
         TopicMetadata topic1 = new TopicMetadata();
         topic1.setName("topic-1");
@@ -374,8 +377,8 @@ public class TopicServiceImplTest {
 
     @Test
     public void testAddSchemaVersion_incompatibleSchema() throws Exception {
-        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator,
-                userService, topicConfig, eventManager);
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
+                topicConfig, eventManager);
 
         TopicMetadata topic1 = new TopicMetadata();
         topic1.setName("topic-1");
@@ -406,8 +409,8 @@ public class TopicServiceImplTest {
 
     @Test
     public void testAddSchemaVersion_withMetadata() throws Exception {
-        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator,
-                userService, topicConfig, eventManager);
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
+                topicConfig, eventManager);
 
         TopicMetadata topic1 = new TopicMetadata();
         topic1.setName("topic-1");
@@ -442,8 +445,8 @@ public class TopicServiceImplTest {
 
     @Test
     public void testAddSchemaVersion_withMetadata_illegalVersionNo_empty() throws Exception {
-        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator,
-                userService, topicConfig, eventManager);
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
+                topicConfig, eventManager);
 
         TopicMetadata topic1 = new TopicMetadata();
         topic1.setName("topic-1");
@@ -470,8 +473,8 @@ public class TopicServiceImplTest {
 
     @Test
     public void testAddSchemaVersion_withMetadata_illegalVersionNo_notMatching() throws Exception {
-        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator,
-                userService, topicConfig, eventManager);
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
+                topicConfig, eventManager);
 
         TopicMetadata topic1 = new TopicMetadata();
         topic1.setName("topic-1");
@@ -507,8 +510,8 @@ public class TopicServiceImplTest {
 
     @Test
     public void testAddSchemaVersion_invalidSchema() throws Exception {
-        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator,
-                userService, topicConfig, eventManager);
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
+                topicConfig, eventManager);
 
         TopicMetadata topic1 = new TopicMetadata();
         topic1.setName("topic-1");
@@ -528,8 +531,8 @@ public class TopicServiceImplTest {
 
     @Test
     public void testAddSchemaVersion_invalidJson() throws Exception {
-        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator,
-                userService, topicConfig, eventManager);
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
+                topicConfig, eventManager);
 
         TopicMetadata topic1 = new TopicMetadata();
         topic1.setName("topic-1");
@@ -549,8 +552,8 @@ public class TopicServiceImplTest {
 
     @Test
     public void testAddSchemaVersion_DataObjectSimpleAtJSONSchema() throws Exception {
-        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator,
-                userService, topicConfig, eventManager);
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
+                topicConfig, eventManager);
 
         TopicMetadata topic1 = new TopicMetadata();
         topic1.setName("topic-1");
@@ -574,8 +577,8 @@ public class TopicServiceImplTest {
 
     @Test
     public void testAddSchemaVersion_DataObjectNestedAtJSONSchema() throws Exception {
-        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator,
-                userService, topicConfig, eventManager);
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
+                topicConfig, eventManager);
 
         TopicMetadata topic1 = new TopicMetadata();
         topic1.setName("topic-1");
@@ -593,8 +596,8 @@ public class TopicServiceImplTest {
 
     @Test
     public void testSetSubscriptionApprovalRequired_positive() throws Exception {
-        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator,
-                userService, topicConfig, eventManager);
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
+                topicConfig, eventManager);
 
         TopicMetadata topic1 = new TopicMetadata();
         topic1.setName("topic-1");
@@ -624,8 +627,8 @@ public class TopicServiceImplTest {
 
     @Test
     public void testSetSubscriptionApprovalRequired_internalTopic() throws Exception {
-        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator,
-                userService, topicConfig, eventManager);
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
+                topicConfig, eventManager);
 
         TopicMetadata topic1 = new TopicMetadata();
         topic1.setName("topic-1");
@@ -647,8 +650,8 @@ public class TopicServiceImplTest {
 
     @Test
     public void testSetSubscriptionApprovalRequired_noop() throws Exception {
-        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator,
-                userService, topicConfig, eventManager);
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
+                topicConfig, eventManager);
 
         TopicMetadata topic1 = new TopicMetadata();
         topic1.setName("topic-1");
@@ -689,8 +692,8 @@ public class TopicServiceImplTest {
         topic.setType(TopicType.EVENTS);
         topicRepository2.save(topic).get();
 
-        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator,
-                userService, topicConfig, eventManager);
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
+                topicConfig, eventManager);
 
         service.markTopicDeprecated("topic-1", "Because test", LocalDate.of(2020, 10, 1)).get();
 
@@ -726,8 +729,8 @@ public class TopicServiceImplTest {
         topic.setType(TopicType.EVENTS);
         topicRepository2.save(topic).get();
 
-        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator,
-                userService, topicConfig, eventManager);
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
+                topicConfig, eventManager);
 
         try {
             service.markTopicDeprecated("topic-2", "Because test", LocalDate.of(2020, 10, 1)).get();
@@ -761,8 +764,8 @@ public class TopicServiceImplTest {
         topic.setType(TopicType.EVENTS);
         topicRepository.save(topic).get();
 
-        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator,
-                userService, topicConfig, eventManager);
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
+                topicConfig, eventManager);
 
         service.unmarkTopicDeprecated("topic-1").get();
 
@@ -779,10 +782,10 @@ public class TopicServiceImplTest {
         topic.setType(TopicType.EVENTS);
         topicRepository.save(topic).get();
 
-        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator,
-                userService, topicConfig, eventManager);
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
+                topicConfig, eventManager);
 
-        service.updateTopicDescription("test", "topic-1", "this topic is now a nice one :)");
+        service.updateTopicDescription("test", "topic-1", "this topic is now a nice one :)").get();
         TopicMetadata savedTopic = topicRepository.getObject("topic-1").get();
 
         assertEquals("this topic is now a nice one :)", savedTopic.getDescription());
@@ -791,8 +794,8 @@ public class TopicServiceImplTest {
 
     @Test
     public void testAddSchemaVersion_DataObjectNestedAtJSONSchemaAndDataTopic() throws Exception {
-        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator,
-                userService, topicConfig, eventManager);
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
+                topicConfig, eventManager);
 
         TopicMetadata topic1 = new TopicMetadata();
         topic1.setName("topic-1");
@@ -810,8 +813,8 @@ public class TopicServiceImplTest {
 
     @Test
     public void testAddSchemaVersion_WithChangeDesc() throws Exception {
-        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator,
-                userService, topicConfig, eventManager);
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
+                topicConfig, eventManager);
 
         TopicMetadata topic1 = new TopicMetadata();
         topic1.setName("topic-1");
@@ -846,8 +849,8 @@ public class TopicServiceImplTest {
 
     @Test
     public void testAddSchemaVersion_WithChangeDesc_negative() throws Exception {
-        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator,
-                userService, topicConfig, eventManager);
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
+                topicConfig, eventManager);
 
         TopicMetadata topic1 = new TopicMetadata();
         topic1.setName("topic-1");
@@ -871,14 +874,12 @@ public class TopicServiceImplTest {
         catch (ExecutionException e) {
             assertTrue(e.getCause() instanceof IllegalArgumentException);
         }
-
     }
 
     @Test
     public void testDeleteSchemaWithSub_positive() throws Exception {
-
-        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator,
-                userService, topicConfig, eventManager);
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
+                topicConfig, eventManager);
 
         TopicMetadata topic1 = new TopicMetadata();
         topic1.setName("topic-1");
@@ -893,7 +894,7 @@ public class TopicServiceImplTest {
         schema.setCreatedBy("otheruser");
         schema.setJsonSchema(buildJsonSchema(List.of("propA"), List.of("string")));
         schema.setSchemaVersion(1);
-        schemaRepository.save(schema);
+        schemaRepository.save(schema).get();
 
         SubscriptionMetadata subscription = new SubscriptionMetadata();
         subscription.setId("50");
@@ -910,14 +911,12 @@ public class TopicServiceImplTest {
         validatingService.deleteLatestTopicSchemaVersion("test", "topic-1").get();
 
         assertFalse(schemaRepository.getObject("1234").isPresent());
-
     }
 
     @Test
     public void testDeleteSchemaWithSub_negative() throws Exception {
-
-        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator,
-                userService, topicConfig, eventManager);
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
+                topicConfig, eventManager);
 
         TopicMetadata topic1 = new TopicMetadata();
         topic1.setName("topic-1");
@@ -932,7 +931,7 @@ public class TopicServiceImplTest {
         schema.setCreatedBy("otheruser");
         schema.setJsonSchema(buildJsonSchema(List.of("propA"), List.of("string")));
         schema.setSchemaVersion(1);
-        schemaRepository.save(schema);
+        schemaRepository.save(schema).get();
 
         SubscriptionMetadata subscription = new SubscriptionMetadata();
         subscription.setId("50");
@@ -955,14 +954,12 @@ public class TopicServiceImplTest {
         catch (Exception e) {
             assertTrue(e.getCause() instanceof IllegalStateException);
         }
-
     }
 
     @Test
     public void testDeleteLatestSchemaVersionStagedSchemaDeleteSub_negative() throws Exception {
-
-        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator,
-                userService, topicConfig, eventManager);
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
+                topicConfig, eventManager);
         SubscriptionService subscriptionService = mock(SubscriptionService.class);
 
         ValidatingTopicServiceImpl validatingService = new ValidatingTopicServiceImpl(service, subscriptionService,
@@ -1012,7 +1009,6 @@ public class TopicServiceImplTest {
         catch (Exception e) {
             assertTrue(e.getCause() instanceof IllegalStateException);
         }
-
     }
 
     private static String buildJsonSchema(List<String> propertyNames, List<String> propertyTypes) {

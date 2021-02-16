@@ -3,7 +3,7 @@ import { routerTransition } from '../../router.animations';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Topic, TopicRecord, TopicsService, TopicSubscription } from '../../shared/services/topics.service';
 import { combineLatest, Observable } from 'rxjs';
-import { finalize, flatMap, map, shareReplay, startWith, take } from 'rxjs/operators';
+import { finalize, map, mergeMap, shareReplay, startWith, take } from 'rxjs/operators';
 import { ApplicationsService, UserApplicationInfo } from '../../shared/services/applications.service';
 import { EnvironmentsService, KafkaEnvironment } from '../../shared/services/environments.service';
 import { ToastService } from '../../shared/modules/toast/toast.service';
@@ -138,7 +138,7 @@ export class SingleTopicComponent implements OnInit {
         const currentLang = this.translateService.onLangChange.pipe(map(evt => evt.lang))
             .pipe(startWith(this.translateService.currentLang));
         this.deprecateTopicHtml = combineLatest([currentLang, this.serverInfoService.getUiConfig()])
-            .pipe(flatMap(val => this.translateService.get('DEPRECATE_TOPIC_HTML',
+            .pipe(mergeMap(val => this.translateService.get('DEPRECATE_TOPIC_HTML',
                 { period: this.toPeriodText(val[1].minDeprecationTime) }).pipe(map(o => o.toString()))
             ));
         this.minDeprecationDate = this.serverInfoService.getUiConfig()
@@ -322,7 +322,7 @@ export class SingleTopicComponent implements OnInit {
             return;
         }
         try {
-            const certificates = await this.certificateService.getApplicationCertificates(this.selectedApplication.id);
+            const certificates = await this.certificateService.getApplicationCertificatesPromise(this.selectedApplication.id);
             const env = await this.selectedEnvironment.pipe(take(1)).toPromise();
             this.showRegistrationWarning = !certificates.find(c => c.environmentId === env.id);
         } catch (e) {

@@ -22,44 +22,72 @@ export interface DeveloperCertificateInfo {
     expiresAt: string;
 }
 
+const base64ToBlob = (b64Data: string, sliceSize: number = 512) => {
+    const byteCharacters = atob(b64Data);
+    const byteArrays = [];
+
+    for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+        const slice = byteCharacters.slice(offset, offset + sliceSize);
+
+        const byteNumbers = new Array(slice.length);
+        for (let i = 0; i < slice.length; i++) {
+            byteNumbers[i] = slice.charCodeAt(i);
+        }
+
+        const byteArray = new Uint8Array(byteNumbers);
+        byteArrays.push(byteArray);
+    }
+
+    return new Blob(byteArrays, { type: 'application/octet-stream' });
+};
+
 @Injectable()
 export class CertificateService {
 
     private envsWithDevCertSupport = new ReplayContainer<string[]>(() => this.http.get('/api/util/supported-devcert-environments'));
 
-    constructor(private http: HttpClient) { }
+    private appCertificates: { [appId: string]: ReplayContainer<ApplicationCertificate[]> } = {};
 
-    public getApplicationCertificates(applicationId: string): Promise<ApplicationCertificate[]> {
-        return this.http.get('/api/certificates/' + applicationId).pipe(
-            map(val => val as ApplicationCertificate[])).pipe(take(1)).toPromise();
+    constructor(private http: HttpClient) {
+    }
+
+    public getApplicationCertificates(applicationId: string): ReplayContainer<ApplicationCertificate[]> {
+        if (this.appCertificates[applicationId]) {
+            return this.appCertificates[applicationId];
+        }
+
+        return this.appCertificates[applicationId] = new ReplayContainer<ApplicationCertificate[]>(() =>
+            this.http.get('/api/certificates/' + applicationId).pipe(map(val => val as ApplicationCertificate[])));
+    }
+
+    public getApplicationCertificatesPromise(applicationId: string): Promise<ApplicationCertificate[]> {
+        return this.getApplicationCertificates(applicationId).getObservable().pipe(take(1)).toPromise();
     }
 
     public async requestAndDownloadApplicationCertificate(applicationId: string, environmentId: string, csrData: string,
-        topicPrefix: string, extendCertificate: boolean): Promise<any> {
-        let body = '';
+        extendCertificate: boolean): Promise<any> {
+        let body;
         if (csrData) {
             body = JSON.stringify({
                 csrData: csrData,
-                topicPrefix: topicPrefix,
                 extendCertificate: extendCertificate
             });
         } else {
             body = JSON.stringify({
-                generateKey: true,
-                topicPrefix: topicPrefix
+                generateKey: true
             });
         }
         return this.http.post('/api/certificates/' + applicationId + '/' + environmentId, body, { headers: jsonHeader() }).toPromise()
             .then(resp => {
                 const ra = resp as any;
-                saveAs(this.base64ToBlob(ra.fileContentsBase64), ra.fileName);
+                saveAs(base64ToBlob(ra.fileContentsBase64), ra.fileName);
             });
     }
 
     public async downloadDeveloperCertificate(environmentId: string): Promise<any> {
         return this.http.post('/api/me/certificates/' + environmentId, '').toPromise().then(resp => {
             const ra = resp as any;
-            saveAs(this.base64ToBlob(ra.fileContentsBase64), ra.fileName);
+            saveAs(base64ToBlob(ra.fileContentsBase64), ra.fileName);
         });
     }
 
@@ -70,25 +98,5 @@ export class CertificateService {
     public getEnvironmentsWithDevCertSupport(): Observable<string[]> {
         return this.envsWithDevCertSupport.getObservable();
     }
-
-    private base64ToBlob(b64Data: string, sliceSize: number = 512) {
-        const byteCharacters = atob(b64Data);
-        const byteArrays = [];
-
-        for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
-            const slice = byteCharacters.slice(offset, offset + sliceSize);
-
-            const byteNumbers = new Array(slice.length);
-            for (let i = 0; i < slice.length; i++) {
-                byteNumbers[i] = slice.charCodeAt(i);
-            }
-
-            const byteArray = new Uint8Array(byteNumbers);
-            byteArrays.push(byteArray);
-        }
-
-        return new Blob(byteArrays, { type: 'application/octet-stream' });
-    }
-
 
 }

@@ -2,12 +2,12 @@ package com.hermesworld.ais.galapagos.applications.impl;
 
 import com.hermesworld.ais.galapagos.applications.ApplicationOwnerRequest;
 import com.hermesworld.ais.galapagos.applications.RequestState;
-import com.hermesworld.ais.galapagos.applications.config.ApplicationsConfig;
 import com.hermesworld.ais.galapagos.events.GalapagosEventManager;
 import com.hermesworld.ais.galapagos.events.GalapagosEventSink;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.kafka.impl.ConnectedKafkaClusters;
 import com.hermesworld.ais.galapagos.kafka.impl.TopicBasedRepositoryMock;
+import com.hermesworld.ais.galapagos.naming.NamingService;
 import com.hermesworld.ais.galapagos.security.CurrentUserService;
 import com.hermesworld.ais.galapagos.util.TimeService;
 import org.junit.Before;
@@ -33,13 +33,13 @@ public class ApplicationsServiceRequestStatesImplTest {
     private static final String testUserName = "Alice";
     private static final String testAppId = "1";
 
-    private GalapagosEventManager eventManager = mock(GalapagosEventManager.class);
+    private final GalapagosEventManager eventManager = mock(GalapagosEventManager.class);
 
     private KafkaClusters kafkaEnvironments;
 
     private CurrentUserService currentUserService;
 
-    private TopicBasedRepositoryMock<ApplicationOwnerRequest> repository = new TopicBasedRepositoryMock<>();
+    private final TopicBasedRepositoryMock<ApplicationOwnerRequest> repository = new TopicBasedRepositoryMock<>();
 
     @Before
     public void feedCommonMocks() {
@@ -62,7 +62,7 @@ public class ApplicationsServiceRequestStatesImplTest {
     @Test
     public void testFromNothingToSubmitted() throws Exception {
         ApplicationsServiceImpl applicationServiceImpl = new ApplicationsServiceImpl(kafkaEnvironments,
-                currentUserService, mock(TimeService.class), eventManager, mock(ApplicationsConfig.class));
+                currentUserService, mock(TimeService.class), mock(NamingService.class), eventManager);
         applicationServiceImpl.submitApplicationOwnerRequest(testAppId, "Moin, bin neu hier.");
 
         List<ApplicationOwnerRequest> savedRequests = repository.getObjects().stream().collect(Collectors.toList());
@@ -79,7 +79,7 @@ public class ApplicationsServiceRequestStatesImplTest {
         repository.save(applicationOwnerRequest);
 
         ApplicationsServiceImpl applicationServiceImpl = new ApplicationsServiceImpl(kafkaEnvironments,
-                currentUserService, mock(TimeService.class), eventManager, new ApplicationsConfig());
+                currentUserService, mock(TimeService.class), mock(NamingService.class), eventManager);
         try {
             ApplicationOwnerRequest appOwnReq = applicationServiceImpl
                     .submitApplicationOwnerRequest(applicationOwnerRequest.getApplicationId(), "").get();
@@ -99,7 +99,7 @@ public class ApplicationsServiceRequestStatesImplTest {
         repository.save(applicationOwnerRequest);
 
         ApplicationsServiceImpl appsServImpl = new ApplicationsServiceImpl(kafkaEnvironments, currentUserService,
-                mock(TimeService.class), eventManager, mock(ApplicationsConfig.class));
+                mock(TimeService.class), mock(NamingService.class), eventManager);
         appsServImpl.updateApplicationOwnerRequest(applicationOwnerRequest.getId(), RequestState.REJECTED);
 
         List<ApplicationOwnerRequest> savedRequests = repository.getObjects().stream().collect(Collectors.toList());
@@ -116,7 +116,7 @@ public class ApplicationsServiceRequestStatesImplTest {
         repository.save(applicationOwnerRequest);
 
         ApplicationsServiceImpl applicationServiceImpl = new ApplicationsServiceImpl(kafkaEnvironments,
-                currentUserService, mock(TimeService.class), eventManager, mock(ApplicationsConfig.class));
+                currentUserService, mock(TimeService.class), mock(NamingService.class), eventManager);
         applicationServiceImpl.cancelUserApplicationOwnerRequest(applicationOwnerRequest.getId());
 
         assertTrue(repository.getObject(applicationOwnerRequest.getId()).isEmpty());
@@ -129,7 +129,7 @@ public class ApplicationsServiceRequestStatesImplTest {
         repository.save(applicationOwnerRequest);
 
         ApplicationsServiceImpl appsServImpl = new ApplicationsServiceImpl(kafkaEnvironments, currentUserService,
-                mock(TimeService.class), eventManager, mock(ApplicationsConfig.class));
+                mock(TimeService.class), mock(NamingService.class), eventManager);
         appsServImpl.updateApplicationOwnerRequest(applicationOwnerRequest.getId(), RequestState.APPROVED);
 
         List<ApplicationOwnerRequest> savedRequests = repository.getObjects().stream().collect(Collectors.toList());
@@ -146,7 +146,7 @@ public class ApplicationsServiceRequestStatesImplTest {
         repository.save(applicationOwnerRequest);
 
         ApplicationsServiceImpl applicationServiceImpl = new ApplicationsServiceImpl(kafkaEnvironments,
-                currentUserService, mock(TimeService.class), eventManager, mock(ApplicationsConfig.class));
+                currentUserService, mock(TimeService.class), mock(NamingService.class), eventManager);
         try {
             ApplicationOwnerRequest appOwnReq = applicationServiceImpl
                     .submitApplicationOwnerRequest(applicationOwnerRequest.getApplicationId(), "").get();
@@ -166,7 +166,7 @@ public class ApplicationsServiceRequestStatesImplTest {
         repository.save(applicationOwnerRequest);
 
         ApplicationsServiceImpl applicationServiceImpl = new ApplicationsServiceImpl(kafkaEnvironments,
-                currentUserService, mock(TimeService.class), eventManager, mock(ApplicationsConfig.class));
+                currentUserService, mock(TimeService.class), mock(NamingService.class), eventManager);
         applicationServiceImpl.cancelUserApplicationOwnerRequest(applicationOwnerRequest.getId());
 
         List<ApplicationOwnerRequest> savedRequests = repository.getObjects().stream().collect(Collectors.toList());
@@ -183,7 +183,7 @@ public class ApplicationsServiceRequestStatesImplTest {
         repository.save(applicationOwnerRequest);
 
         ApplicationsServiceImpl appsServImpl = new ApplicationsServiceImpl(kafkaEnvironments, currentUserService,
-                mock(TimeService.class), eventManager, mock(ApplicationsConfig.class));
+                mock(TimeService.class), mock(NamingService.class), eventManager);
         appsServImpl.updateApplicationOwnerRequest(applicationOwnerRequest.getId(), RequestState.REVOKED);
 
         List<ApplicationOwnerRequest> savedRequests = repository.getObjects().stream().collect(Collectors.toList());
@@ -200,7 +200,7 @@ public class ApplicationsServiceRequestStatesImplTest {
         repository.save(applicationOwnerRequest);
 
         ApplicationsServiceImpl applicationServiceImpl = new ApplicationsServiceImpl(kafkaEnvironments,
-                currentUserService, mock(TimeService.class), eventManager, mock(ApplicationsConfig.class));
+                currentUserService, mock(TimeService.class), mock(NamingService.class), eventManager);
         applicationServiceImpl.submitApplicationOwnerRequest(applicationOwnerRequest.getApplicationId(), "");
 
         List<ApplicationOwnerRequest> savedRequests = repository.getObjects().stream().collect(Collectors.toList());
@@ -217,7 +217,7 @@ public class ApplicationsServiceRequestStatesImplTest {
         repository.save(applicationOwnerRequest);
 
         ApplicationsServiceImpl appsServImpl = new ApplicationsServiceImpl(kafkaEnvironments, currentUserService,
-                mock(TimeService.class), eventManager, mock(ApplicationsConfig.class));
+                mock(TimeService.class), mock(NamingService.class), eventManager);
         appsServImpl.updateApplicationOwnerRequest(applicationOwnerRequest.getId(), RequestState.APPROVED);
 
         List<ApplicationOwnerRequest> savedRequests = repository.getObjects().stream().collect(Collectors.toList());
@@ -234,7 +234,7 @@ public class ApplicationsServiceRequestStatesImplTest {
         repository.save(applicationOwnerRequest);
 
         ApplicationsServiceImpl applicationServiceImpl = new ApplicationsServiceImpl(kafkaEnvironments,
-                currentUserService, mock(TimeService.class), eventManager, mock(ApplicationsConfig.class));
+                currentUserService, mock(TimeService.class), mock(NamingService.class), eventManager);
         applicationServiceImpl.submitApplicationOwnerRequest(applicationOwnerRequest.getApplicationId(), "");
 
         List<ApplicationOwnerRequest> savedRequests = repository.getObjects().stream().collect(Collectors.toList());
@@ -251,7 +251,7 @@ public class ApplicationsServiceRequestStatesImplTest {
         repository.save(applicationOwnerRequest);
 
         ApplicationsServiceImpl appsServImpl = new ApplicationsServiceImpl(kafkaEnvironments, currentUserService,
-                mock(TimeService.class), eventManager, mock(ApplicationsConfig.class));
+                mock(TimeService.class), mock(NamingService.class), eventManager);
         appsServImpl.updateApplicationOwnerRequest(applicationOwnerRequest.getId(), RequestState.APPROVED);
 
         List<ApplicationOwnerRequest> savedRequests = repository.getObjects().stream().collect(Collectors.toList());
@@ -268,7 +268,7 @@ public class ApplicationsServiceRequestStatesImplTest {
         repository.save(applicationOwnerRequest);
 
         ApplicationsServiceImpl applicationServiceImpl = new ApplicationsServiceImpl(kafkaEnvironments,
-                currentUserService, mock(TimeService.class), eventManager, mock(ApplicationsConfig.class));
+                currentUserService, mock(TimeService.class), mock(NamingService.class), eventManager);
         applicationServiceImpl.submitApplicationOwnerRequest(applicationOwnerRequest.getApplicationId(), "");
 
         List<ApplicationOwnerRequest> savedRequests = repository.getObjects().stream().collect(Collectors.toList());
@@ -285,7 +285,7 @@ public class ApplicationsServiceRequestStatesImplTest {
         repository.save(applicationOwnerRequest);
 
         ApplicationsServiceImpl appsServImpl = new ApplicationsServiceImpl(kafkaEnvironments, currentUserService,
-                mock(TimeService.class), eventManager, mock(ApplicationsConfig.class));
+                mock(TimeService.class), mock(NamingService.class), eventManager);
         try {
             appsServImpl.cancelUserApplicationOwnerRequest(applicationOwnerRequest.getId()).get();
         }
@@ -301,7 +301,7 @@ public class ApplicationsServiceRequestStatesImplTest {
         repository.save(applicationOwnerRequest);
 
         ApplicationsServiceImpl appsServImpl = new ApplicationsServiceImpl(kafkaEnvironments, currentUserService,
-                mock(TimeService.class), eventManager, mock(ApplicationsConfig.class));
+                mock(TimeService.class), mock(NamingService.class), eventManager);
         try {
             appsServImpl.cancelUserApplicationOwnerRequest(applicationOwnerRequest.getId()).get();
         }
@@ -317,7 +317,7 @@ public class ApplicationsServiceRequestStatesImplTest {
         repository.save(applicationOwnerRequest);
 
         ApplicationsServiceImpl appsServImpl = new ApplicationsServiceImpl(kafkaEnvironments, currentUserService,
-                mock(TimeService.class), eventManager, mock(ApplicationsConfig.class));
+                mock(TimeService.class), mock(NamingService.class), eventManager);
         try {
             appsServImpl.cancelUserApplicationOwnerRequest(applicationOwnerRequest.getId()).get();
         }

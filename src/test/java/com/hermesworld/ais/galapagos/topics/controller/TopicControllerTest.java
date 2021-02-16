@@ -7,10 +7,10 @@ import com.hermesworld.ais.galapagos.events.GalapagosEventManagerMock;
 import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.kafka.impl.TopicBasedRepositoryMock;
+import com.hermesworld.ais.galapagos.naming.NamingService;
 import com.hermesworld.ais.galapagos.security.CurrentUserService;
 import com.hermesworld.ais.galapagos.subscriptions.service.SubscriptionService;
 import com.hermesworld.ais.galapagos.topics.TopicMetadata;
-import com.hermesworld.ais.galapagos.topics.TopicNameValidator;
 import com.hermesworld.ais.galapagos.topics.TopicType;
 import com.hermesworld.ais.galapagos.topics.config.GalapagosTopicConfig;
 import com.hermesworld.ais.galapagos.topics.service.impl.TopicServiceImpl;
@@ -34,7 +34,7 @@ public class TopicControllerTest {
 
     private ApplicationsService applicationsService;
 
-    private TopicNameValidator topicNameValidator;
+    private NamingService namingService;
 
     private CurrentUserService userService;
 
@@ -50,7 +50,7 @@ public class TopicControllerTest {
     public void feedMocks() {
         kafkaClusters = mock(KafkaClusters.class);
         applicationsService = mock(ApplicationsService.class);
-        topicNameValidator = mock(TopicNameValidator.class);
+        namingService = mock(NamingService.class);
         userService = mock(CurrentUserService.class);
         topicConfig = mock(GalapagosTopicConfig.class);
         eventManager = new GalapagosEventManagerMock();
@@ -68,8 +68,8 @@ public class TopicControllerTest {
 
         SubscriptionService subscriptionService = mock(SubscriptionService.class);
 
-        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator,
-                userService, topicConfig, eventManager);
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
+                topicConfig, eventManager);
         ValidatingTopicServiceImpl validatingService = new ValidatingTopicServiceImpl(service, subscriptionService,
                 applicationsService, kafkaClusters, topicConfig, false);
 
@@ -91,7 +91,7 @@ public class TopicControllerTest {
         when(applicationsService.getUserApplicationOwnerRequests()).thenReturn((List.of(req)));
 
         TopicController controller = new TopicController(validatingService, kafkaClusters, applicationsService,
-                topicNameValidator);
+                namingService);
 
         controller.updateTopic("test", "topic-1", dto);
         TopicMetadata savedTopic = topicRepository.getObject("topic-1").get();

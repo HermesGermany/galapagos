@@ -1,9 +1,5 @@
 package com.hermesworld.ais.galapagos.applications.impl;
 
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-
 import com.hermesworld.ais.galapagos.applications.ApplicationMetadata;
 import com.hermesworld.ais.galapagos.applications.ApplicationsService;
 import com.hermesworld.ais.galapagos.events.ApplicationEvent;
@@ -23,8 +19,13 @@ import org.apache.kafka.common.acl.AclOperation;
 import org.apache.kafka.common.acl.AclPermissionType;
 import org.apache.kafka.common.resource.PatternType;
 import org.apache.kafka.common.resource.ResourceType;
-import static org.junit.Assert.*;
 import org.junit.Test;
+
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -62,7 +63,8 @@ public class UpdateApplicationAclsListenerTest {
         metadata.setApplicationId("app01");
         metadata.setDn("CN=testapp");
         metadata.setConsumerGroupPrefixes(List.of("group.myapp.", "group2.myapp."));
-        metadata.setTopicPrefix("de.myapp.");
+        metadata.setInternalTopicPrefixes(List.of("de.myapp.", "de.myapp2."));
+        metadata.setTransactionIdPrefixes(List.of("de.myapp."));
 
         GalapagosEventContext context = mock(GalapagosEventContext.class);
         when(context.getKafkaCluster()).thenReturn(cluster);
@@ -87,21 +89,23 @@ public class UpdateApplicationAclsListenerTest {
                                 && b.entry().operation() == AclOperation.DESCRIBE_CONFIGS)
                         .findAny().orElse(null));
 
-        // three ACL for groups and one for topic prefix must have been created
+        // two ACL for groups and two for topic prefixes must have been created
         assertNotNull(createdAcls.stream()
                 .filter(binding -> binding.pattern().resourceType() == ResourceType.TOPIC
                         && binding.pattern().patternType() == PatternType.PREFIXED
-                        && binding.pattern().name().equals("de.myapp."))
+                        && binding.pattern().name().equals("de.myapp.")
+                        && binding.entry().operation().equals(AclOperation.ALL))
+                .findAny().orElse(null));
+        assertNotNull(createdAcls.stream()
+                .filter(binding -> binding.pattern().resourceType() == ResourceType.TOPIC
+                        && binding.pattern().patternType() == PatternType.PREFIXED
+                        && binding.pattern().name().equals("de.myapp2.")
+                        && binding.entry().operation().equals(AclOperation.ALL))
                 .findAny().orElse(null));
         assertNotNull(createdAcls.stream()
                 .filter(binding -> binding.pattern().resourceType() == ResourceType.GROUP
                         && binding.pattern().patternType() == PatternType.PREFIXED
                         && binding.pattern().name().equals("group.myapp."))
-                .findAny().orElse(null));
-        assertNotNull(createdAcls.stream()
-                .filter(binding -> binding.pattern().resourceType() == ResourceType.GROUP
-                        && binding.pattern().patternType() == PatternType.PREFIXED
-                        && binding.pattern().name().equals("de.myapp."))
                 .findAny().orElse(null));
         assertNotNull(createdAcls.stream()
                 .filter(binding -> binding.pattern().resourceType() == ResourceType.GROUP

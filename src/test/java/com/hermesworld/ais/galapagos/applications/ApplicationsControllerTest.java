@@ -1,19 +1,5 @@
 package com.hermesworld.ais.galapagos.applications;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-
-import org.junit.Test;
-
 import com.hermesworld.ais.galapagos.applications.controller.ApplicationsController;
 import com.hermesworld.ais.galapagos.applications.controller.CertificateRequestDto;
 import com.hermesworld.ais.galapagos.applications.controller.CertificateResponseDto;
@@ -30,14 +16,23 @@ import com.hermesworld.ais.galapagos.topics.TopicMetadata;
 import com.hermesworld.ais.galapagos.topics.TopicType;
 import com.hermesworld.ais.galapagos.topics.service.TopicService;
 import com.hermesworld.ais.galapagos.util.JsonUtil;
+import org.junit.Test;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 public class ApplicationsControllerTest {
 
-    private ApplicationsService applicationsService = mock(ApplicationsService.class);
+    private final ApplicationsService applicationsService = mock(ApplicationsService.class);
 
-    private StagingService stagingService = mock(StagingService.class);
+    private final StagingService stagingService = mock(StagingService.class);
 
-    private KafkaClusters kafkaClusters = mock(KafkaClusters.class);
+    private final KafkaClusters kafkaClusters = mock(KafkaClusters.class);
 
     @Test
     public void testUpdateApplicationCertificateDependentOnStageName() {
@@ -47,7 +42,6 @@ public class ApplicationsControllerTest {
         String environmentId = "devtest";
         CertificateRequestDto certificateRequestDto = new CertificateRequestDto();
         certificateRequestDto.setGenerateKey(true);
-        certificateRequestDto.setTopicPrefix("galapagos.internal.");
 
         KnownApplication knownApp = mock(KnownApplication.class);
         KafkaEnvironmentConfig kafkaEnvironmentConfig = mock(KafkaEnvironmentConfig.class);
@@ -59,7 +53,7 @@ public class ApplicationsControllerTest {
         when(applicationsService.getKnownApplication(any())).thenReturn(Optional.of(knownApp));
         when(applicationsService.isUserAuthorizedFor(any())).thenReturn(true);
         when(kafkaClusters.getEnvironmentMetadata(environmentId)).thenReturn(Optional.of(kafkaEnvironmentConfig));
-        when(applicationsService.createApplicationCertificateAndPrivateKey(any(), any(), any(), any()))
+        when(applicationsService.createApplicationCertificateAndPrivateKey(any(), any(), any()))
                 .thenReturn(CompletableFuture.completedFuture(applicationMetadata));
 
         // Act
@@ -103,7 +97,7 @@ public class ApplicationsControllerTest {
         ApplicationMetadata appMetadata = new ApplicationMetadata();
         appMetadata.setApplicationId("app-1");
         appMetadata.setDn("cn=app1");
-        appMetadata.setTopicPrefix("app1.internal.");
+        appMetadata.setInternalTopicPrefixes(List.of("app1.internal."));
 
         when(topicService.listTopics("dev")).thenReturn(List.of(topic1, topic2));
         when(topicService.getTopicSchemaVersions("dev", "app1.internal.topic-2")).thenReturn(List.of(schema1));
