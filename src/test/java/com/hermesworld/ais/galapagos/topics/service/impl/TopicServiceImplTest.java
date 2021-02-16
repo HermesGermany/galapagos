@@ -785,7 +785,7 @@ public class TopicServiceImplTest {
         TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
                 topicConfig, eventManager);
 
-        service.updateTopicDescription("test", "topic-1", "this topic is now a nice one :)");
+        service.updateTopicDescription("test", "topic-1", "this topic is now a nice one :)").get();
         TopicMetadata savedTopic = topicRepository.getObject("topic-1").get();
 
         assertEquals("this topic is now a nice one :)", savedTopic.getDescription());
@@ -813,8 +813,8 @@ public class TopicServiceImplTest {
 
     @Test
     public void testAddSchemaVersion_WithChangeDesc() throws Exception {
-        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator,
-                userService, topicConfig, eventManager);
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
+                topicConfig, eventManager);
 
         TopicMetadata topic1 = new TopicMetadata();
         topic1.setName("topic-1");
@@ -849,8 +849,8 @@ public class TopicServiceImplTest {
 
     @Test
     public void testAddSchemaVersion_WithChangeDesc_negative() throws Exception {
-        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator,
-                userService, topicConfig, eventManager);
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
+                topicConfig, eventManager);
 
         TopicMetadata topic1 = new TopicMetadata();
         topic1.setName("topic-1");
@@ -874,14 +874,12 @@ public class TopicServiceImplTest {
         catch (ExecutionException e) {
             assertTrue(e.getCause() instanceof IllegalArgumentException);
         }
-
     }
 
     @Test
     public void testDeleteSchemaWithSub_positive() throws Exception {
-
-        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator,
-                userService, topicConfig, eventManager);
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
+                topicConfig, eventManager);
 
         TopicMetadata topic1 = new TopicMetadata();
         topic1.setName("topic-1");
@@ -896,7 +894,7 @@ public class TopicServiceImplTest {
         schema.setCreatedBy("otheruser");
         schema.setJsonSchema(buildJsonSchema(List.of("propA"), List.of("string")));
         schema.setSchemaVersion(1);
-        schemaRepository.save(schema);
+        schemaRepository.save(schema).get();
 
         SubscriptionMetadata subscription = new SubscriptionMetadata();
         subscription.setId("50");
@@ -913,14 +911,12 @@ public class TopicServiceImplTest {
         validatingService.deleteLatestTopicSchemaVersion("test", "topic-1").get();
 
         assertFalse(schemaRepository.getObject("1234").isPresent());
-
     }
 
     @Test
     public void testDeleteSchemaWithSub_negative() throws Exception {
-
-        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator,
-                userService, topicConfig, eventManager);
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
+                topicConfig, eventManager);
 
         TopicMetadata topic1 = new TopicMetadata();
         topic1.setName("topic-1");
@@ -935,7 +931,7 @@ public class TopicServiceImplTest {
         schema.setCreatedBy("otheruser");
         schema.setJsonSchema(buildJsonSchema(List.of("propA"), List.of("string")));
         schema.setSchemaVersion(1);
-        schemaRepository.save(schema);
+        schemaRepository.save(schema).get();
 
         SubscriptionMetadata subscription = new SubscriptionMetadata();
         subscription.setId("50");
@@ -958,14 +954,12 @@ public class TopicServiceImplTest {
         catch (Exception e) {
             assertTrue(e.getCause() instanceof IllegalStateException);
         }
-
     }
 
     @Test
     public void testDeleteLatestSchemaVersionStagedSchemaDeleteSub_negative() throws Exception {
-
-        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator,
-                userService, topicConfig, eventManager);
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
+                topicConfig, eventManager);
         SubscriptionService subscriptionService = mock(SubscriptionService.class);
 
         ValidatingTopicServiceImpl validatingService = new ValidatingTopicServiceImpl(service, subscriptionService,
@@ -1015,7 +1009,6 @@ public class TopicServiceImplTest {
         catch (Exception e) {
             assertTrue(e.getCause() instanceof IllegalStateException);
         }
-
     }
 
     private static String buildJsonSchema(List<String> propertyNames, List<String> propertyTypes) {
