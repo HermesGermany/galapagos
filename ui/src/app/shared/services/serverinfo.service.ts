@@ -11,6 +11,8 @@ export interface AppInfo {
 
 export interface TogglesInfo {
     subscriptionApproval: string;
+
+    schemaDeleteWithSub: string;
 }
 
 export interface ServerInfo {

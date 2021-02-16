@@ -16,6 +16,7 @@ import com.hermesworld.ais.galapagos.topics.service.ValidatingTopicService;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
@@ -40,15 +41,19 @@ public class ValidatingTopicServiceImpl implements ValidatingTopicService {
 
     private final GalapagosTopicConfig topicConfig;
 
+    private final boolean schemaDeleteWithSub;
+
     @Autowired
     public ValidatingTopicServiceImpl(@Qualifier(value = "nonvalidating") TopicService topicService,
             SubscriptionService subscriptionService, ApplicationsService applicationsService,
-            KafkaClusters kafkaClusters, GalapagosTopicConfig topicConfig) {
+            KafkaClusters kafkaClusters, GalapagosTopicConfig topicConfig,
+            @Value("${info.toggles.schemaDeleteWithSub:false}") boolean schemaDeleteWithSub) {
         this.topicService = topicService;
         this.subscriptionService = subscriptionService;
         this.applicationsService = applicationsService;
         this.kafkaClusters = kafkaClusters;
         this.topicConfig = topicConfig;
+        this.schemaDeleteWithSub = schemaDeleteWithSub;
     }
 
     @Override
@@ -96,11 +101,16 @@ public class ValidatingTopicServiceImpl implements ValidatingTopicService {
         }
 
         if (!subscriptionService.getSubscriptionsForTopic(environmentId, topicName, false).isEmpty()) {
-            return CompletableFuture
-                    .failedFuture(new IllegalStateException("Schemas of subscribed Topics cannot be deleted!"));
+            if (!this.schemaDeleteWithSub) {
+                return CompletableFuture
+                        .failedFuture(new IllegalStateException("Schemas of subscribed Topics cannot be deleted!"));
+            }
+            return checkOnNonStaging(environmentId, "Delete latest schema")
+                    .orElseGet(() -> topicService.deleteLatestTopicSchemaVersion(environmentId, topicName));
         }
-
-        return topicService.deleteLatestTopicSchemaVersion(environmentId, topicName);
+        else {
+            return topicService.deleteLatestTopicSchemaVersion(environmentId, topicName);
+        }
     }
 
     @Override
