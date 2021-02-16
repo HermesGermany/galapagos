@@ -1,16 +1,16 @@
 package com.hermesworld.ais.galapagos.topics.service;
 
+import com.hermesworld.ais.galapagos.kafka.TopicCreateParams;
+import com.hermesworld.ais.galapagos.topics.SchemaMetadata;
+import com.hermesworld.ais.galapagos.topics.TopicMetadata;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+
+import javax.annotation.CheckReturnValue;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import javax.annotation.CheckReturnValue;
-
-import com.hermesworld.ais.galapagos.kafka.TopicCreateParams;
-import com.hermesworld.ais.galapagos.topics.SchemaMetadata;
-import com.hermesworld.ais.galapagos.topics.TopicMetadata;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
 
 public interface TopicService {
 
@@ -87,7 +87,8 @@ public interface TopicService {
     Optional<SchemaMetadata> getSchemaById(String environmentId, String schemaId);
 
     @CheckReturnValue
-    CompletableFuture<SchemaMetadata> addTopicSchemaVersion(String environmentId, String topicName, String jsonSchema);
+    CompletableFuture<SchemaMetadata> addTopicSchemaVersion(String environmentId, String topicName, String jsonSchema,
+            String changeDescription);
 
     @CheckReturnValue
     CompletableFuture<Void> deleteLatestTopicSchemaVersion(String environmentId, String topicName);

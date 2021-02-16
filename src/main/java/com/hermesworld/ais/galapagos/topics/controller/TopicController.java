@@ -299,8 +299,8 @@ public class TopicController {
         }
 
         try {
-            SchemaMetadata metadata = topicService
-                    .addTopicSchemaVersion(environmentId, topicName, schemaVersionDto.getJsonSchema()).get();
+            SchemaMetadata metadata = topicService.addTopicSchemaVersion(environmentId, topicName,
+                    schemaVersionDto.getJsonSchema(), schemaVersionDto.getChangeDescription()).get();
 
             return ResponseEntity.created(new URI("/schema/" + metadata.getId())).build();
         }

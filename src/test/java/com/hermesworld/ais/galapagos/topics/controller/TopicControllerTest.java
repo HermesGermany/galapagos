@@ -71,7 +71,7 @@ public class TopicControllerTest {
         TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
                 topicConfig, eventManager);
         ValidatingTopicServiceImpl validatingService = new ValidatingTopicServiceImpl(service, subscriptionService,
-                applicationsService, kafkaClusters, topicConfig);
+                applicationsService, kafkaClusters, topicConfig, false);
 
         UpdateTopicDto dto = new UpdateTopicDto(null, null, "updated description goes here", true);
 

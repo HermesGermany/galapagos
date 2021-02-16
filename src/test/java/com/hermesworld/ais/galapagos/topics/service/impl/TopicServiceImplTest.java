@@ -8,6 +8,7 @@ import com.hermesworld.ais.galapagos.events.GalapagosEventManagerMock;
 import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.kafka.TopicCreateParams;
+import com.hermesworld.ais.galapagos.kafka.config.KafkaEnvironmentConfig;
 import com.hermesworld.ais.galapagos.kafka.impl.TopicBasedRepositoryMock;
 import com.hermesworld.ais.galapagos.naming.InvalidTopicNameException;
 import com.hermesworld.ais.galapagos.naming.NamingService;
@@ -327,7 +328,7 @@ public class TopicServiceImplTest {
                 .thenReturn(Collections.singletonList(subscription));
 
         ValidatingTopicServiceImpl validatingService = new ValidatingTopicServiceImpl(service, subscriptionService,
-                applicationsService, kafkaClusters, topicConfig);
+                applicationsService, kafkaClusters, topicConfig, false);
 
         schemaRepository.save(schema).get();
 
@@ -366,7 +367,7 @@ public class TopicServiceImplTest {
         String newSchema = buildJsonSchema(List.of("propA"), List.of("string"));
 
         try {
-            service.addTopicSchemaVersion("test", "topic-1", newSchema).get();
+            service.addTopicSchemaVersion("test", "topic-1", newSchema, null).get();
             fail("addTopicSchemaVersion() should have failed because same schema should not be added again");
         }
         catch (ExecutionException e) {
@@ -398,7 +399,7 @@ public class TopicServiceImplTest {
         String newSchema = buildJsonSchema(List.of("propB"), List.of("integer"));
 
         try {
-            service.addTopicSchemaVersion("test", "topic-1", newSchema).get();
+            service.addTopicSchemaVersion("test", "topic-1", newSchema, null).get();
             fail("addTopicSchemaVersion() should have failed for incompatible schema");
         }
         catch (ExecutionException e) {
@@ -433,6 +434,7 @@ public class TopicServiceImplTest {
         schema2.setCreatedBy("testuser");
         schema2.setJsonSchema(buildJsonSchema(List.of("propA", "propB"), List.of("string", "string")));
         schema2.setSchemaVersion(2);
+        schema2.setChangeDescription("some nice description :)");
 
         SchemaMetadata newSchemaMetadata = service.addTopicSchemaVersion("test", schema2).get();
         assertEquals("9999", newSchemaMetadata.getId());
@@ -519,7 +521,7 @@ public class TopicServiceImplTest {
         topicRepository.save(topic1).get();
 
         try {
-            service.addTopicSchemaVersion("test", "topic-1", "{ \"title\": 17 }").get();
+            service.addTopicSchemaVersion("test", "topic-1", "{ \"title\": 17 }", null).get();
             fail("addTopicSchemaVersion() should have failed because JSON is no JSON schema");
         }
         catch (ExecutionException e) {
@@ -540,7 +542,7 @@ public class TopicServiceImplTest {
         topicRepository.save(topic1).get();
 
         try {
-            service.addTopicSchemaVersion("test", "topic-1", "{").get();
+            service.addTopicSchemaVersion("test", "topic-1", "{", null).get();
             fail("addTopicSchemaVersion() should have failed because no valid JSON");
         }
         catch (ExecutionException e) {
@@ -565,7 +567,7 @@ public class TopicServiceImplTest {
         topicRepository.save(topic1).get();
 
         try {
-            service.addTopicSchemaVersion("test", "topic-1", testJsonSchema).get();
+            service.addTopicSchemaVersion("test", "topic-1", testJsonSchema, null).get();
             fail("addTopicSchemaVersion() should have failed because there is a Data-Object in JSON Schema");
         }
         catch (ExecutionException e) {
@@ -589,7 +591,7 @@ public class TopicServiceImplTest {
 
         topicRepository.save(topic1).get();
 
-        service.addTopicSchemaVersion("test", "topic-1", testJsonSchema).get();
+        service.addTopicSchemaVersion("test", "topic-1", testJsonSchema, null).get();
     }
 
     @Test
@@ -806,7 +808,214 @@ public class TopicServiceImplTest {
 
         topicRepository.save(topic1).get();
 
-        service.addTopicSchemaVersion("test", "topic-1", testJsonSchema).get();
+        service.addTopicSchemaVersion("test", "topic-1", testJsonSchema, null).get();
+    }
+
+    @Test
+    public void testAddSchemaVersion_WithChangeDesc() throws Exception {
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator,
+                userService, topicConfig, eventManager);
+
+        TopicMetadata topic1 = new TopicMetadata();
+        topic1.setName("topic-1");
+        topic1.setOwnerApplicationId("app-1");
+        topic1.setType(TopicType.DATA);
+
+        topicRepository.save(topic1).get();
+
+        SchemaMetadata schema1 = new SchemaMetadata();
+        schema1.setId("1234");
+        schema1.setTopicName("topic-1");
+        schema1.setCreatedBy("otheruser");
+        schema1.setJsonSchema(buildJsonSchema(List.of("propA"), List.of("string")));
+        schema1.setSchemaVersion(1);
+        schemaRepository.save(schema1).get();
+
+        SchemaMetadata newSchema = new SchemaMetadata();
+        newSchema.setId("9999");
+        newSchema.setTopicName("topic-1");
+        newSchema.setCreatedBy("testuser");
+        newSchema.setJsonSchema(buildJsonSchema(List.of("propA", "propB"), List.of("string", "string")));
+        newSchema.setSchemaVersion(2);
+        newSchema.setChangeDescription("Added new schema which is better");
+
+        service.addTopicSchemaVersion("test", newSchema).get();
+
+        String changedDesc = schemaRepository.getObject("9999").get().getChangeDescription();
+
+        assertEquals("Added new schema which is better", changedDesc);
+
+    }
+
+    @Test
+    public void testAddSchemaVersion_WithChangeDesc_negative() throws Exception {
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator,
+                userService, topicConfig, eventManager);
+
+        TopicMetadata topic1 = new TopicMetadata();
+        topic1.setName("topic-1");
+        topic1.setOwnerApplicationId("app-1");
+        topic1.setType(TopicType.DATA);
+
+        topicRepository.save(topic1).get();
+
+        SchemaMetadata newSchema = new SchemaMetadata();
+        newSchema.setId("9999");
+        newSchema.setTopicName("topic-1");
+        newSchema.setCreatedBy("testuser");
+        newSchema.setJsonSchema(buildJsonSchema(List.of("propA", "propB"), List.of("string", "string")));
+        newSchema.setSchemaVersion(1);
+        newSchema.setChangeDescription("Added new schema which is better");
+
+        try {
+            service.addTopicSchemaVersion("test", newSchema).get();
+            fail("Exception expected when adding change description for first published schema");
+        }
+        catch (ExecutionException e) {
+            assertTrue(e.getCause() instanceof IllegalArgumentException);
+        }
+
+    }
+
+    @Test
+    public void testDeleteSchemaWithSub_positive() throws Exception {
+
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator,
+                userService, topicConfig, eventManager);
+
+        TopicMetadata topic1 = new TopicMetadata();
+        topic1.setName("topic-1");
+        topic1.setOwnerApplicationId("app-1");
+        topic1.setType(TopicType.EVENTS);
+
+        topicRepository.save(topic1).get();
+
+        SchemaMetadata schema = new SchemaMetadata();
+        schema.setId("1234");
+        schema.setTopicName("topic-1");
+        schema.setCreatedBy("otheruser");
+        schema.setJsonSchema(buildJsonSchema(List.of("propA"), List.of("string")));
+        schema.setSchemaVersion(1);
+        schemaRepository.save(schema);
+
+        SubscriptionMetadata subscription = new SubscriptionMetadata();
+        subscription.setId("50");
+        subscription.setTopicName("topic-1");
+        subscription.setClientApplicationId("2");
+
+        SubscriptionService subscriptionService = mock(SubscriptionService.class);
+        when(subscriptionService.getSubscriptionsForTopic("test", "topic-1", false))
+                .thenReturn(Collections.singletonList(subscription));
+
+        ValidatingTopicServiceImpl validatingService = new ValidatingTopicServiceImpl(service, subscriptionService,
+                applicationsService, kafkaClusters, topicConfig, true);
+
+        validatingService.deleteLatestTopicSchemaVersion("test", "topic-1").get();
+
+        assertFalse(schemaRepository.getObject("1234").isPresent());
+
+    }
+
+    @Test
+    public void testDeleteSchemaWithSub_negative() throws Exception {
+
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator,
+                userService, topicConfig, eventManager);
+
+        TopicMetadata topic1 = new TopicMetadata();
+        topic1.setName("topic-1");
+        topic1.setOwnerApplicationId("app-1");
+        topic1.setType(TopicType.EVENTS);
+
+        topicRepository.save(topic1).get();
+
+        SchemaMetadata schema = new SchemaMetadata();
+        schema.setId("1234");
+        schema.setTopicName("topic-1");
+        schema.setCreatedBy("otheruser");
+        schema.setJsonSchema(buildJsonSchema(List.of("propA"), List.of("string")));
+        schema.setSchemaVersion(1);
+        schemaRepository.save(schema);
+
+        SubscriptionMetadata subscription = new SubscriptionMetadata();
+        subscription.setId("50");
+        subscription.setTopicName("topic-1");
+        subscription.setClientApplicationId("2");
+
+        SubscriptionService subscriptionService = mock(SubscriptionService.class);
+        when(subscriptionService.getSubscriptionsForTopic("test", "topic-1", false))
+                .thenReturn(Collections.singletonList(subscription));
+
+        ValidatingTopicServiceImpl validatingService = new ValidatingTopicServiceImpl(service, subscriptionService,
+                applicationsService, kafkaClusters, topicConfig, false);
+
+        assertTrue(schemaRepository.getObject("1234").isPresent());
+
+        try {
+            validatingService.deleteLatestTopicSchemaVersion("test", "topic-1").get();
+            fail("Exception expected when trying to delete schema with subscribers when schemaDeleteWithSub is set to false");
+        }
+        catch (Exception e) {
+            assertTrue(e.getCause() instanceof IllegalStateException);
+        }
+
+    }
+
+    @Test
+    public void testDeleteLatestSchemaVersionStagedSchemaDeleteSub_negative() throws Exception {
+
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, topicNameValidator,
+                userService, topicConfig, eventManager);
+        SubscriptionService subscriptionService = mock(SubscriptionService.class);
+
+        ValidatingTopicServiceImpl validatingService = new ValidatingTopicServiceImpl(service, subscriptionService,
+                applicationsService, kafkaClusters, topicConfig, true);
+
+        KafkaCluster prodCluster = mock(KafkaCluster.class);
+        when(kafkaClusters.getEnvironment("prod")).thenReturn(Optional.of(prodCluster));
+        when(kafkaClusters.getEnvironmentIds()).thenReturn(List.of("test", "prod"));
+
+        KafkaEnvironmentConfig config = mock(KafkaEnvironmentConfig.class);
+        when(config.isStagingOnly()).thenReturn(true);
+        when(kafkaClusters.getEnvironmentMetadata("prod")).thenReturn(Optional.of(config));
+
+        TopicBasedRepositoryMock<TopicMetadata> prodTopicRepository = new TopicBasedRepositoryMock<>();
+        TopicBasedRepositoryMock<SchemaMetadata> prodSchemaRepository = new TopicBasedRepositoryMock<>();
+        when(prodCluster.getRepository("topics", TopicMetadata.class)).thenReturn(prodTopicRepository);
+        when(prodCluster.getRepository("schemas", SchemaMetadata.class)).thenReturn(prodSchemaRepository);
+
+        TopicMetadata topic1 = new TopicMetadata();
+        topic1.setName("topic-1");
+        topic1.setOwnerApplicationId("app-1");
+        topic1.setType(TopicType.EVENTS);
+
+        SubscriptionMetadata subscription = new SubscriptionMetadata();
+        subscription.setId("50");
+        subscription.setTopicName("topic-1");
+        subscription.setClientApplicationId("2");
+
+        when(subscriptionService.getSubscriptionsForTopic("prod", "topic-1", false))
+                .thenReturn(Collections.singletonList(subscription));
+
+        prodTopicRepository.save(topic1).get();
+
+        SchemaMetadata schema = new SchemaMetadata();
+        schema.setId("1234");
+        schema.setTopicName("topic-1");
+        schema.setCreatedBy("otheruser");
+        schema.setJsonSchema(buildJsonSchema(List.of("propA"), List.of("string")));
+        schema.setSchemaVersion(1);
+
+        prodSchemaRepository.save(schema).get();
+
+        try {
+            validatingService.deleteLatestTopicSchemaVersion("prod", "topic-1").get();
+            fail("Exception expected, but none thrown");
+        }
+        catch (Exception e) {
+            assertTrue(e.getCause() instanceof IllegalStateException);
+        }
+
     }
 
     private static String buildJsonSchema(List<String> propertyNames, List<String> propertyTypes) {
