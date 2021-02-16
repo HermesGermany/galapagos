@@ -100,14 +100,17 @@ public class ValidatingTopicServiceImpl implements ValidatingTopicService {
                     "No topic with name " + topicName + " found on environment " + environmentId + "."));
         }
 
-        if (!subscriptionService.getSubscriptionsForTopic(environmentId, topicName, false).isEmpty()
-                && !this.schemaDeleteWithSub) {
-            return CompletableFuture
-                    .failedFuture(new IllegalStateException("Schemas of subscribed Topics cannot be deleted!"));
+        if (!subscriptionService.getSubscriptionsForTopic(environmentId, topicName, false).isEmpty()) {
+            if (!this.schemaDeleteWithSub) {
+                return CompletableFuture
+                        .failedFuture(new IllegalStateException("Schemas of subscribed Topics cannot be deleted!"));
+            }
+            return checkOnNonStaging(environmentId, "Delete latest schema")
+                    .orElseGet(() -> topicService.deleteLatestTopicSchemaVersion(environmentId, topicName));
         }
-
-        return checkDeleteSchemaWithSub(environmentId, "Delete latest schema", topicName)
-                .orElseGet(() -> topicService.deleteLatestTopicSchemaVersion(environmentId, topicName));
+        else {
+            return topicService.deleteLatestTopicSchemaVersion(environmentId, topicName);
+        }
     }
 
     @Override
@@ -164,18 +167,6 @@ public class ValidatingTopicServiceImpl implements ValidatingTopicService {
 
     private Optional<CompletableFuture<Void>> checkOnNonStaging(String environmentId, String action) {
         return checkOnNonStaging(environmentId, action, Void.class);
-    }
-
-    private Optional<CompletableFuture<Void>> checkDeleteSchemaWithSub(String environmentId, String action,
-            String topicName) {
-        boolean hasSubs = !subscriptionService.getSubscriptionsForTopic(environmentId, topicName, false).isEmpty();
-        if (kafkaClusters.getEnvironmentMetadata(environmentId).map(envConfig -> envConfig.isStagingOnly() && hasSubs)
-                .orElse(false)) {
-            return Optional.of(CompletableFuture.failedFuture(new IllegalStateException("You may only " + action
-                    + " on non-staging-only environments if the topic has subscribers. Use Staging to apply such a change on this environment.")));
-        }
-        return Optional.empty();
-
     }
 
     private <T> Optional<CompletableFuture<T>> checkOnNonStaging(String environmentId, String action,
