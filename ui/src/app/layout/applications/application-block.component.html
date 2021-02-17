@@ -82,7 +82,7 @@
                                 <td>
                                     <ul>
                                         <li *ngFor="let prefix of internalTopicPrefixes | async">
-                                            <code>{{ prefix }}</code>
+                                            <code id="internalTopicPrefix">{{ prefix }}</code>
                                         </li>
                                     </ul>
                                 </td>
@@ -92,7 +92,7 @@
                                 <td>
                                     <ul>
                                         <li *ngFor="let prefix of consumerGroupPrefixes | async">
-                                            <code>{{ prefix }}</code>
+                                            <code id="consumerGroupPrefix">{{ prefix }}</code>
                                         </li>
                                     </ul>
                                 </td>
@@ -102,7 +102,7 @@
                                 <td>
                                     <ul>
                                         <li *ngFor="let prefix of transactionIdPrefixes | async">
-                                            <code>{{ prefix }}</code>
+                                            <code id="transactionIdPrefix">{{ prefix }}</code>
                                         </li>
                                     </ul>
                                 </td>
