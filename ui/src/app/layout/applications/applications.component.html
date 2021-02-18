@@ -103,6 +103,7 @@
     </div>
     <div class="modal-body">
         <div class="alert alert-info mb-3">
+            <!--suppress TypeScriptUnresolvedVariable -->
             {{ 'Application' | translate }}: {{ certificateDlgData.applicationName }}
             , {{ 'Environment' | translate }}:
             <b>{{ certificateDlgData.environment?.name }}</b>
@@ -141,7 +142,6 @@
                                 <div class="radio">
                                     <label>
                                         <!--suppress TypeScriptUnresolvedVariable -->
-                                        <input type="radio" value="noCsr" name="hasCsr"
                                         <input id="noCsrRadio" type="radio" value="noCsr" name="noCsr"
                                                [(ngModel)]="certificateCreationType"
                                                [disabled]="certificateDlgData.environment?.production"/>&nbsp;<span
