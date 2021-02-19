@@ -4,9 +4,9 @@
 
 When first opening Galapagos, you need to authenticate yourself. You will see 
 a small window asking you for your keycloak credentials. Here you can enter 
- a valid combination of username and password. 
- 
-![](.galapagos_user_guide_images/login-window.png)
+a valid combination of username and password. 
+
+![](.galapagos_user_guide_images/login.png)
 
 After successfully entering your username and password, you will be redirected to
 Galapagos and landed on the start screen.
