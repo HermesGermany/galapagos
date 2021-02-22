@@ -37,7 +37,7 @@ On the dashboard (see screenshot above) you will find the following elements:
   
   ![](.galapagos_user_guide_images/config-template.png)
   
-  Please note that you also need a client certificate to establish a connection! Information on this can
+  Please note that you also need a client certificate to establish a successful connection! Information on this can
   be found below in the section "Receive a client certificate".
 
 ## Search Topics
@@ -50,7 +50,7 @@ On the dashboard (see screenshot above) you will find the following elements:
   You can sort the topics here and search (filter) names, descriptions and owning applications. To sort, click on the double arrows
   next to the column headings. To filter, enter a search text in the text box above.
 
-  If you are "Topic Administrator" for one or more applications (see next section), you can create internal topics of these 
+  If you are already "Topic Administrator" for one or more applications (see next section), you can create internal topics of these 
   applications visible with the checkmark "Show internal topics of my applications". 
   
   To view details about a topic, click on the topic name. Here
@@ -63,7 +63,7 @@ On the dashboard (see screenshot above) you will find the following elements:
    on the left. Here you can make a request to become a topic administrator of an application. Then select an application 
    in the "Request" section. Optionally enter a comment why you should get this right (e.g. "Developer in Team XYZ"). The comment 
    makes it easier for the Galapagos admins to check whether to grant the Topic Administrator role or not. Then click on "Submit Request". 
-   Your request will be saved, and the Galapagos admins will be informed via e-mail.
+   Your request will be saved, and the Galapagos admins will receive an email to review and approve the request.
    
    ![](.galapagos_user_guide_images/AOR.png)
    
@@ -96,7 +96,7 @@ On the dashboard (see screenshot above) you will find the following elements:
      You can use it as a client certificate for your Kafka client via the Kafka properties `ssl.keystore.location`,
      `ssl.keystore.password` and `ssl.key.password`.
      
-   When choosing the CSR variant, Galapagos returns an openssl command that you can execute on your
+   When choosing the CSR variant, Galapagos gives you a finished openssl command that you can execute on your
    command line or Git Bash (choose which type of command line you are using)! A key file (.key) is created (
    you need write access to the current directory in your terminal!) and the CSR is output on the command line. You can
    copy and paste this into Galapagos: 
@@ -134,7 +134,8 @@ winpty openssl pkcs12 -export -out myapp.p12 -inkey myapp.key -in myapp.cer
 winpty openssl pkcs12 -in <myclientkeystore.p12> -nocerts -nodes -out <myprivatekey.key>
 ```
 
-   You will then be asked for the password for your P12 keystore on the command line.
+   You will then be asked for the password for your P12 keystore on the command line, so don't forget
+   the winpty (under Windows), otherwise the openssl process will hang! 
    
    Otherwise you can proceed as described above. Execute the command that Galapagos lists for you and
    copy the CSR to Galapagos into the text box. You will now receive a certificate that contains the
@@ -160,8 +161,8 @@ winpty openssl pkcs12 -in <myclientkeystore.p12> -nocerts -nodes -out <myprivate
    at the topics during production, for example. There are tools for this, but of course these also require a client
    certificate (and the trust store) for the connection to connect to Kafka. 
    
-   Therefore, you can get a developer certificate with Galapagos. This grants the same rights as the
-   Topic Administrator role, but is limited in time. 
+   Therefore, you can get a developer certificate with Galapagos. This basically grants you the same rights as the
+   applications of which you are the Topic Administrator ("My Applications"), but are always very limited in time.  
    Currently the times are 90 days on DEV / 
    , 30 days on INT and 10 days on PROD. Then you have to create a new
    certificate again - there is no extension.   
