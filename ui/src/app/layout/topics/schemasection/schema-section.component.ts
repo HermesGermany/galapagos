@@ -1,12 +1,12 @@
 import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
-import { SchemaMetadata, Topic, TopicsService, TopicSubscription } from '../../shared/services/topics.service';
+import { SchemaMetadata, Topic, TopicsService, TopicSubscription } from '../../../shared/services/topics.service';
 import { map, shareReplay, take } from 'rxjs/operators';
-import { EnvironmentsService, KafkaEnvironment } from '../../shared/services/environments.service';
-import { ToastService } from '../../shared/modules/toast/toast.service';
+import { EnvironmentsService, KafkaEnvironment } from '../../../shared/services/environments.service';
+import { ToastService } from '../../../shared/modules/toast/toast.service';
 import { Observable } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
-import { ServerInfoService } from '../../shared/services/serverinfo.service';
+import { ServerInfoService } from '../../../shared/services/serverinfo.service';
 
 @Component({
     selector: 'app-schema-section',

@@ -9,29 +9,3 @@
     color: darkolivegreen;
 }
 
-.deprecated {
-    text-decoration: line-through;
-    text-decoration-color: #000000;
-}
-
-.deprecatedNote {
-    font-weight: bold;
-    font-style: italic;
-    margin-left: 10px;
-}
-
-.deprecationText {
-    font-style: italic;
-    margin-left: 10px;
-}
-
-.bg-hermes-deprecation {
-    color: #000000;
-    background-color: #c0c0c0;
-}
-
-.scrollbar {
-    overflow: auto;
-    width: 100%;
-    max-height: 300px;
-}

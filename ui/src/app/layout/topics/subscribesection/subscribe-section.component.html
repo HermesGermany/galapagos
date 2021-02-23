@@ -1,0 +1,54 @@
+<div class="row"
+     *ngIf="!selectedEnvironment?.stagingOnly && topic?.topicType !== 'INTERNAL'">
+    <div class="col-md-12">
+        <div class="card mb-3">
+            <div class="card-header bg-hermes text-white"><i
+                class="fas fa-rss mr-3"></i>{{ 'Subscribe' | translate }}</div>
+            <div class="card-body">
+                <p>{{ 'SUBSCRIBE_INFO_TEXT' | translate }}</p>
+                <ngb-alert type="info" [dismissible]="false"
+                           *ngIf="topic?.subscriptionApprovalRequired">
+                    <span [innerHTML]="'SUBSCRIPTION_APPROVAL_REQUIRED_INFO_HTML' | translate"></span>
+                </ngb-alert>
+                <div *ngIf="loadingApplications  === false">
+                    <div class="form-group form-inline" *ngIf="availableApplications?.length">
+                        <label class="mr-3">{{ 'Subscribe for Application' | translate }}</label>
+                        <select class="form-control mr-3" name="appPicker" #appPicker
+                                [(ngModel)]="selectedApplication"
+                                (change)="checkApplicationCertificate()">
+                            <option *ngFor="let app of availableApplications"
+                                    [ngValue]="app">{{ app.name }} </option>
+                        </select>
+                    </div>
+                    <div class="form-group" *ngIf="availableApplications?.length">
+                        <label>{{ 'SUBSCRIPTION_DESCRIPTION_LABEL' | translate }}</label>
+                        <textarea class="form-control" rows="2" cols="80" name="subscriptionDescription"
+                                  [(ngModel)]="subscriptionDescription"></textarea>
+                        <br>
+                        <button
+                            class="btn btn-success"
+                            appSpinnerWhile
+                            #s="appSpinnerWhile"
+                            (click)="s.while(subscribeToTopic())"
+                            [disabled]="!selectedApplication || showRegistrationWarning">
+                            <i class="fas fa-signature mr-3"></i>{{ 'Subscribe' | translate }}
+                        </button>
+                    </div>
+                    <ngb-alert
+                        *ngIf="selectedEnvironment && selectedApplication && showRegistrationWarning"
+                        type="warning" [dismissible]="false">
+                        {{ 'ENV_APP_WARNING' | translate }}
+                        <a class="ml" routerLink="/applications">{{"My Applications"|translate}}</a>
+                    </ngb-alert>
+                    <ngb-alert *ngIf="!availableApplications?.length" type="warning"
+                               [dismissible]="false">
+                        {{ 'NO_APPS_FOR_SUBSCRIPTION' | translate }}
+                    </ngb-alert>
+                </div>
+                <div *ngIf="loadingApplications">
+                    <i class="fas fa-sync fa-spin mr-4"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

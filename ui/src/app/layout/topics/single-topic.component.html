@@ -8,398 +8,45 @@
             <div class="row">
                 <div class="col-md-12">
                     <div class="card mb-3">
-                        <div class="card-header bg-hermes text-white"><i
-                            class="fas fa-info mr-3"></i>{{ 'General' | translate }}</div>
-                        <div class="card-body table-responsive">
-                            <table class="table">
-                                <tr>
-                                    <th scope="row">{{ 'Topic Name' | translate }}</th>
-                                    <td>{{ (topic | async)?.name }}</td>
-                                </tr>
-                                <tr>
-                                    <th scope="row">{{ 'Topic Type' | translate }}</th>
-                                    <td>{{ (topic | async)?.topicType }}</td>
-                                </tr>
-                                <tr>
-                                    <th scope="row">{{ 'Description' | translate }}</th>
-                                    <td>{{ (topic | async)?.description }}
-                                        <span *ngIf="(topic | async)?.deprecated">
-                                       <span class="deprecatedNote">Deprecated</span>
-                                        <span class="deprecationText">{{(topic | async)?.deprecationText}}</span>
-                                        </span>
-                                        <button
-                                            *ngIf="(isOwnerOfTopic | async) && !(selectedEnvironment | async)?.stagingOnly"
-                                            appSpinnerWhile
-                                            #p="appSpinnerWhile"
-                                            (click)="openChangeDescDlg(updateTopicDescription)"
-                                            class="btn btn-primary btn-sm ml-3"><i class="fas fa-edit"></i>
-                                            {{ 'Edit' | translate }}
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr *ngIf="(topic | async)?.deprecated">
-                                    <th scope="row">{{ 'Usable until' | translate }}</th>
-                                    <td class="text-danger">{{ getEolDateForCurrentLang((topic | async)?.eolDate) }}
-                                        <button *ngIf="isOwnerOfTopic | async" class="btn btn-sm btn-danger ml-4"
-                                                appSpinnerWhile
-                                                #del="appSpinnerWhile"
-                                                (click)="del.while(handleUnDeprecationRequest())"><i
-                                            class="fas fa-times mr-2"></i>{{ 'UNMARK_DEPRECATION' | translate }}
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th scope="row">{{ 'Owning Application' | translate }}</th>
-                                    <td>
-                                        <a *ngIf="(topic | async)?.ownerApplication?.infoUrl; else infoUrlText"
-                                           [href]="(topic | async)?.ownerApplication?.infoUrl"
-                                           target="_blank">{{ (topic | async)?.ownerApplication?.name }}</a>
-                                        <ng-template #infoUrlText>
-                                            <span>{{ (topic | async)?.ownerApplication?.name }}</span>
-                                        </ng-template>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th scope="row">{{ 'Subscribers' | translate }}</th>
-                                    <td *ngIf="!loadingSubscribers">
-                                        <ul *ngIf="(topicSubscribers | async)?.length">
-                                            <li *ngFor="let sub of approvedTopicSubscribers | async">
-                                                <a *ngIf="sub.clientApplication.infoUrl; else infoUrlTextSub"
-                                                   [href]="sub.clientApplication.infoUrl"
-                                                   target="_blank">{{ sub.clientApplication.name }}</a>
-                                                <ng-template #infoUrlTextSub>
-                                                    <span>{{ sub.clientApplication.name }}</span>
-                                                </ng-template>
+                        <app-topic-metadata-table [topic]="topic | async" [isOwnerOfTopic]="isOwnerOfTopic | async"
+                                                  [topicName]="topicName | async"
+                                                  [topicSubscribers]="topicSubscribers | async"
+                                                  [approvedTopicSubscribers]="approvedTopicSubscribers | async"
+                                                  [pendingTopicSubscribers]="pendingTopicSubscribers | async"
+                                                  (onSubsChange)="refreshChildData()">
+                        </app-topic-metadata-table>
 
-                                                <span
-                                                    *ngIf="sub.canDelete"
-                                                    class="ml-3">
-                                                    <button
-                                                        class="btn btn-sm btn-danger"
-                                                        appSpinnerWhile
-                                                        #del="appSpinnerWhile"
-                                                        (click)="del.while(unsubscribe(sub))"
-                                                    >
-                                                        <i class="fas fa-eraser mr-1"></i>{{ 'Unsubscribe' | translate }}
-                                                    </button>
-                                                </span>
-                                                <span
-                                                    *ngIf="(isOwnerOfTopic | async) && (topic | async)?.subscriptionApprovalRequired"
-                                                    class="ml-3">
-                                                    <button
-                                                        class="btn btn-sm btn-danger"
-                                                        (click)="openRejectConfirmDlg(sub, rejectConfirmDlg)"
-                                                    >
-                                                        <i class="fas fa-ban mr-1"></i>
-                                                        <span
-                                                            *ngIf="sub.state === 'APPROVED'">{{ 'Cancel' | translate }}</span>
-                                                        <span
-                                                            *ngIf="sub.state !== 'APPROVED'">{{ 'Reject' | translate }}</span>
-                                                    </button>
-                                                </span>
-                                            </li>
-                                            <li *ngFor="let sub of pendingTopicSubscribers | async">
-                                                <a *ngIf="sub.clientApplication.infoUrl; else infoUrlText"
-                                                   [href]="sub.clientApplication.infoUrl"
-                                                   target="_blank">
-                                                    <i>{{ sub.clientApplication.name }}</i></a>
-                                                <ng-template #infoUrlText>
-                                                    <span><i>{{ sub.clientApplication.name }}</i></span>
-                                                </ng-template>
-                                                <i>&nbsp;{{ '(Pending Approval)' | translate }}</i>
-                                                <span *ngIf="isOwnerOfTopic | async" class="ml-3">
-                                                    <button
-                                                        class="btn btn-sm btn-success"
-                                                        appSpinnerWhile
-                                                        #approve="appSpinnerWhile"
-                                                        (click)="approve.while(approveSubscription(sub))"
-                                                    >
-                                                        <i class="fas fa-check mr-1"></i>{{ 'Approve' | translate }}
-                                                    </button>&nbsp;
-                                                    <button
-                                                        class="btn btn-sm btn-danger"
-                                                        appSpinnerWhile
-                                                        #rej2="appSpinnerWhile"
-                                                        (click)="rej2.while(rejectSubscription(sub))"
-                                                    >
-                                                        <i class="fas fa-ban mr-1"></i>{{ 'Reject' | translate }}
-                                                    </button>
-                                                </span>
-                                                <span
-                                                    *ngIf="sub.canDelete"
-                                                    class="ml-3">
-                                                    <button
-                                                        class="btn btn-sm btn-danger"
-                                                        appSpinnerWhile
-                                                        #del2="appSpinnerWhile"
-                                                        (click)="del2.while(unsubscribe(sub))"
-                                                    >
-                                                        <i class="fas fa-eraser mr-1"></i>{{ 'Unsubscribe' | translate }}
-                                                    </button>
-                                                </span>
-                                            </li>
-                                        </ul>
-                                        <span *ngIf="!(topicSubscribers | async)?.length"
-                                        ><i>{{ 'None' | translate }}</i></span
-                                        >
-                                    </td>
-                                    <td *ngIf="loadingSubscribers">
-                                        <i class="fas fa-sync fa-spin mr-4"></i>
-                                    </td>
-                                </tr>
-                                <tr *ngIf="(topic | async)?.topicType !== 'INTERNAL'">
-                                    <th scope="row">{{ 'Data' | translate }}</th>
-                                    <td>
-                                        <button type="button" class="btn btn-primary btn-sm"
-                                                (click)="openDataDlg(dataDlg)">
-                                            <i class="fas fa-table mr-3"></i>
-                                            {{ 'Show Topic Data' | translate }}
-                                        </button>
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <app-schema-section [topic]="topic | async" [isOwnerOfTopic]="isOwnerOfTopic | async"
-                                [topicSubscribers]="topicSubscribers | async"></app-schema-section>
-            <div class="row"
-                 *ngIf="!(selectedEnvironment | async)?.stagingOnly && (topic | async)?.topicType !== 'INTERNAL'">
-                <div class="col-md-12">
-                    <div class="card mb-3">
-                        <div class="card-header bg-hermes text-white"><i
-                            class="fas fa-rss mr-3"></i>{{ 'Subscribe' | translate }}</div>
-                        <div class="card-body">
-                            <p>{{ 'SUBSCRIBE_INFO_TEXT' | translate }}</p>
-                            <ngb-alert type="info" [dismissible]="false"
-                                       *ngIf="(topic | async)?.subscriptionApprovalRequired">
-                                <span [innerHTML]="'SUBSCRIPTION_APPROVAL_REQUIRED_INFO_HTML' | translate"></span>
-                            </ngb-alert>
-                            <div *ngIf="(loadingApplications | async) === false">
-                                <div class="form-group form-inline" *ngIf="(availableApplications | async)?.length">
-                                    <label class="mr-3">{{ 'Subscribe for Application' | translate }}</label>
-                                    <select class="form-control mr-3" name="appPicker" #appPicker
-                                            [(ngModel)]="selectedApplication"
-                                            (change)="checkApplicationCertificate()">
-                                        <option *ngFor="let app of availableApplications | async"
-                                                [ngValue]="app">{{ app.name }} </option>
-                                    </select>
-                                </div>
-                                <div class="form-group" *ngIf="(availableApplications | async)?.length">
-                                    <label>{{ 'SUBSCRIPTION_DESCRIPTION_LABEL' | translate }}</label>
-                                    <textarea class="form-control" rows="2" cols="80" name="subscriptionDescription"
-                                              [(ngModel)]="subscriptionDescription"></textarea>
-                                    <br>
-                                    <button
-                                        class="btn btn-success"
-                                        appSpinnerWhile
-                                        #s="appSpinnerWhile"
-                                        (click)="s.while(subscribeToTopic())"
-                                        [disabled]="!selectedApplication || showRegistrationWarning">
-                                        <i class="fas fa-signature mr-3"></i>{{ 'Subscribe' | translate }}
-                                    </button>
-                                </div>
-                                <ngb-alert
-                                    *ngIf="selectedEnvironment && selectedApplication && showRegistrationWarning"
-                                        type="warning" [dismissible]="false">
-                                        {{ 'ENV_APP_WARNING' | translate }}
-                                        <a class="ml" routerLink="/applications">{{"My Applications"|translate}}</a>
-                                    </ngb-alert>
-                                <ngb-alert *ngIf="!(availableApplications | async)?.length" type="warning"
-                                           [dismissible]="false">
-                                    {{ 'NO_APPS_FOR_SUBSCRIPTION' | translate }}
-                                </ngb-alert>
-                            </div>
-                            <div *ngIf="loadingApplications | async">
-                                <i class="fas fa-sync fa-spin mr-4"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div
-                *ngIf="(topic | async)?.topicType !== 'INTERNAL' && (isOwnerOfTopic | async) && !(selectedEnvironment | async)?.stagingOnly"
-                class="card mb-3">
-                <div class="card-header bg-hermes-deprecation"><i
-                    class="fas fa-ghost mr-3"></i>{{ 'Deprecation' | translate }}</div>
-                <div class="card-body">
-                    <p id="deprecationHtml" [innerHTML]="deprecateTopicHtml | async"></p>
-                    <ngb-alert type="danger" [dismissible]="false"><span
-                        [innerHTML]="'DEPRECATE_ALL_STAGES_ALERT_HTML' | translate"></span>
-                    </ngb-alert>
-                    <div class="form-group">
-                        <label>{{ 'Deprecation Description' | translate }}</label>
-                        <textarea class="form-control" rows="2"
-                                  [(ngModel)]="deprecatedDescription"></textarea><br>
-                        <label>{{ 'PICK_DEPRECATE_DATE' | translate }}</label><br>
-                        <form class="form-inline">
-                            <div class="form-group">
-                                <div class="input-group">
-                                    <input class="form-control" [(ngModel)]="eolDate" ngbDatepicker
-                                           [minDate]="minDeprecationDate | async"
-                                           name="eolDate" #p="ngbDatepicker">
-                                    <div class="input-group-append">
-                                        <button class="fas fa-calendar-alt" (click)="p.toggle()"
-                                                type="button"></button>
-                                    </div>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                    <button [disabled]="!(eolDate && deprecatedDescription)" appSpinnerWhile #d="appSpinnerWhile"
-                            class="btn btn-warning"
-                            (click)="d.while(handleDeprecationRequest())"><i
-                        class="fas fa-ghost mr-3"></i>{{ 'Deprecate Topic Label' | translate }}</button>
-                </div>
-            </div>
-            <div class="row" *ngIf="isOwnerOfTopic | async">
-                <div class="col-md-12">
-                    <div class="card mb-3">
-                        <div class="card-header bg-danger text-white"><i
-                            class="fas fa-exclamation-triangle mr-3"></i>{{ 'Danger Zone' | translate }}</div>
-                        <div class="card-body">
-                            <p>{{ 'TOPIC_CONFIG_TEXT' | translate }}</p>
-                            <button class="btn btn-warning" [routerLink]="'/topics/' + (topicName | async) + '/config'">
-                                <i class="fas fa-wrench mr-3"></i>{{ 'Advanced Configuration' | translate }}</button>
-                            <hr>
-                            <p>{{ 'DELETE_TOPIC_TEXT' | translate }}</p>
-                            <button class="btn btn-danger" (click)="openDeleteConfirmDlg(deleteDlg)"
-                                    [disabled]="!((topic | async)?.deletable)"><i
-                                class="fas fa-times mr-3"></i>{{ 'Delete Topic' | translate }}</button>
-                        </div>
+                        <app-schema-section [topic]="topic | async" [isOwnerOfTopic]="isOwnerOfTopic | async"
+                                            [topicSubscribers]="topicSubscribers | async"
+                        ></app-schema-section>
+
+                        <app-subscription-section [topic]="topic | async" [isOwnerOfTopic]="isOwnerOfTopic | async"
+                                                  [selectedEnvironment]="selectedEnvironment | async"
+                                                  [availableApplications]="availableApplications | async"
+                                                  [loadingApplications]="loadingApplications | async"
+                                                  (onAppChange)="refreshChildData()">
+                        </app-subscription-section>
+
+                        <app-deprecation-component [topic]="topic | async" [isOwnerOfTopic]="isOwnerOfTopic | async">
+
+                        </app-deprecation-component>
+
+                        <app-delete-topic-component [topic]="topic | async"
+                                                    [isOwnerOfTopic]="isOwnerOfTopic | async"
+                                                    [topicName]="topicName | async"
+                                                    [translateParams]="translateParams">
+                        </app-delete-topic-component>
                     </div>
                 </div>
             </div>
         </div>
+
         <div *ngIf="(topic | async) === undefined">
             <p>{{ 'TOPIC_NOT_EXISTING_ON_ENVIRONMENT' | translate:translateParams }}</p>
         </div>
     </div>
 
-    <div *ngIf="loading | async" class="mt-3"><i class="fas fa-sync fa-spin mr-4"></i>{{ 'Loading...' | translate }}
+    <div *ngIf="loading | async" class="mt-3"><i
+        class="fas fa-sync fa-spin mr-4"></i>{{ 'Loading...' | translate }}
     </div>
 </div>
-
-
-<ng-template #deleteDlg let-dlg>
-    <div class="modal-header">
-        <h4 class="modal-title">{{ 'Delete Topic' | translate }}</h4>
-        <button type="button" class="close" aria-label="Close" (click)="dlg.dismiss()">
-            <span aria-hidden="true">&times;</span>
-        </button>
-    </div>
-    <div class="modal-body">
-        <p [innerHTML]="'DELETE_CONFIRMATION_TEXT' | translate:translateParams"></p>
-        <div class="mt-3">
-            <form role="form">
-                <fieldset class="form-group">
-                    <!--suppress TypeScriptUnresolvedVariable -->
-                    <input #topicNameConfirm name="topicNameConfirm" type="text" size="50" class="form-control"
-                           (input)="topicNameConfirmText = $event.target.value"/>
-                </fieldset>
-            </form>
-        </div>
-    </div>
-
-    <div class="modal-footer">
-        <button class="btn btn-danger" appSpinnerWhile #d="appSpinnerWhile"
-                (click)="d.while(deleteTopic()).then(dlg.dismiss)"
-                [disabled]="topicNameConfirmText !== (topicName | async)"><i
-            class="fas fa-trash mr-3"></i>{{ 'Delete Topic' | translate }}</button>
-        <button type="button" ngbAutofocus class="btn btn-success" (click)="dlg.dismiss()"><i class="fas fa-times"></i>&nbsp;{{ 'Cancel' | translate }}
-        </button>
-    </div>
-</ng-template>
-
-<ng-template #dataDlg let-dlg>
-    <div class="modal-header">
-        <h4 class="modal-title">{{ 'View Topic Data' | translate }}</h4>
-        <button type="button" class="close" aria-label="Close" (click)="dlg.dismiss()">
-            <span aria-hidden="true">&times;</span>
-        </button>
-    </div>
-    <div class="modal-body">
-        <div class="mt-3">
-            <table class="table table-striped">
-                <thead>
-                <tr>
-                    <th>{{ 'Partition / Offset' | translate }}</th>
-                    <th>{{ 'Key' | translate }}</th>
-                    <th>{{ 'Value' | translate }}<a href="#" class="ml-4" (click)="formatDataValues()"
-                                                    style="font-weight: bold;"><i class="fas fa-code"></i></a></th>
-
-                </tr>
-                </thead>
-                <tbody>
-                <tr *ngIf="topicDataLoading">
-                    <td colspan="3">
-                        <i class="fas fa-sync fa-spin mr-3"></i><i>{{ 'Loading Data, please wait...' | translate }}</i>
-                    </td>
-                </tr>
-                <ng-container *ngIf="!topicDataLoading && (topicData | async)?.length">
-                    <tr *ngFor="let row of topicData | async">
-                        <td>{{ row.partition + ' / ' + row.offset }}</td>
-                        <td>{{ row.key }}</td>
-                        <td>
-                            <pre>{{ row.value }}</pre>
-                        </td>
-                    </tr>
-                </ng-container>
-                <tr *ngIf="!topicDataLoading && !(topicData | async)?.length">
-                    <td colspan="3">
-                        <i>{{ 'No records found.' | translate }}</i>
-                    </td>
-                </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-</ng-template>
-
-<ng-template #rejectConfirmDlg let-dlg>
-    <div class="modal-header">
-        <h4 class="modal-title">{{ 'Confirm Subscription Cancellation' | translate }}</h4>
-        <button type="button" class="close" aria-label="Close" (click)="dlg.dismiss()">
-            <span aria-hidden="true">&times;</span>
-        </button>
-    </div>
-    <div class="modal-body">
-        <div class="mt-3">
-            <ngb-alert type="danger" [dismissible]="false">
-            <span
-                [innerHTML]="'REJECT_CONFIRM_DLG_HTML' | translate:{clientApplicationName: selectedSubscription.clientApplication.name}">
-            </span>
-            </ngb-alert>
-        </div>
-    </div>
-    <div class="modal-footer">
-        <button class="btn btn-danger" appSpinnerWhile #d="appSpinnerWhile"
-                (click)="d.while(rejectSubscription(selectedSubscription)).then(dlg.dismiss)"><i
-            class="fas fa-ban mr-3"></i>{{ 'Cancel Subscription' | translate }}</button>
-        <button type="button" class="btn btn-success" (click)="dlg.dismiss()"><i
-            class="fas fa-times"></i>&nbsp;{{ 'Cancel' | translate }}
-        </button>
-    </div>
-</ng-template>
-
-<ng-template #updateTopicDescription let-dlg>
-    <div class="modal-header">
-        <h4 class="modal-title">{{ 'Edit' | translate }}</h4>
-        <button type="button" class="close" aria-label="Close" (click)="dlg.dismiss()">
-            <span aria-hidden="true">&times;</span>
-        </button>
-    </div>
-    <div class="modal-body" >
-        <div class="mt-3">
-            <textarea class="form-control" rows="5" cols="11" [(ngModel)]="updatedTopicDescription"></textarea></div>
-    </div>
-    <div class="modal-footer">
-        <button class="btn btn-warning" ngbAutofocus appSpinnerWhile #d="appSpinnerWhile"
-                (click)="d.while(updateTopicDesc()).then(dlg.dismiss)"><i
-            class="fas fa-save mr-3"></i>{{ 'Save' | translate }}</button>
-        <button type="button" class="btn btn-success" (click)="dlg.dismiss()"><i
-            class="fas fa-times"></i>&nbsp;{{ 'Cancel' | translate }}
-        </button>
-    </div>
-</ng-template>
