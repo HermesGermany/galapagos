@@ -75,7 +75,7 @@ describe('ApplicationBlockComponent', () => {
                 topicNamePrefix: 'prefix name'
             }],
             prefixes: of({
-                internalTopicPrefixes: ['a.internalTopic.prefix'],
+                internalTopicPrefixes: ['a.internalTopic.prefix', 'another.internalTopic.prefix'],
 
                 consumerGroupPrefixes: ['a.consumerGroup.prefix'],
 
@@ -129,16 +129,16 @@ describe('ApplicationBlockComponent', () => {
         const accordion = fixture.debugElement.query(By.directive(NgbAccordion)).componentInstance;
         accordion.expand('_panel_rights');
         fixture.detectChanges();
-        const internalTopicPrefix = document.getElementById('internalTopicPrefix');
-        const transactionIdPrefix = document.getElementById('transactionIdPrefix');
-        const consumerGroupPrefix = document.getElementById('consumerGroupPrefix');
-
+        const listItemsInternal = document.getElementById('internalTopicPrefixes').childNodes;
+        const listItemsTransactionIdPrefix = document.getElementById('transactionIdPrefixes').childNodes;
+        const listItemsConsumerGroupPrefix = document.getElementById('consumerGroupPrefixes').childNodes;
         fixture.whenStable().then(() => {
             expect(certificateSpy).toHaveBeenCalled();
             expect(envSpy).toHaveBeenCalled();
-            expect(internalTopicPrefix.innerHTML).toEqual('a.internalTopic.prefix');
-            expect(transactionIdPrefix.innerHTML).toEqual('a.transactionId.prefix');
-            expect(consumerGroupPrefix.innerHTML).toEqual('a.consumerGroup.prefix');
+            expect(listItemsInternal.item(0).childNodes.item(0).textContent).toEqual('a.internalTopic.prefix');
+            expect(listItemsInternal.item(1).childNodes.item(0).textContent).toEqual('another.internalTopic.prefix');
+            expect(listItemsTransactionIdPrefix.item(0).childNodes.item(0).textContent).toEqual('a.transactionId.prefix');
+            expect(listItemsConsumerGroupPrefix.item(0).childNodes.item(0).textContent).toEqual('a.consumerGroup.prefix');
         });
 
     })));

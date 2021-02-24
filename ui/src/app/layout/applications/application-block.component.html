@@ -80,9 +80,9 @@
                             <tr>
                                 <th>{{ 'Prefixes for internal topics' | translate }}</th>
                                 <td>
-                                    <ul>
+                                    <ul id="internalTopicPrefixes">
                                         <li *ngFor="let prefix of internalTopicPrefixes | async">
-                                            <code id="internalTopicPrefix">{{ prefix }}</code>
+                                            <code>{{ prefix }}</code>
                                         </li>
                                     </ul>
                                 </td>
@@ -90,9 +90,9 @@
                             <tr>
                                 <th>{{ 'Prefixes for consumer group IDs' | translate }}</th>
                                 <td>
-                                    <ul>
+                                    <ul id="consumerGroupPrefixes">
                                         <li *ngFor="let prefix of consumerGroupPrefixes | async">
-                                            <code id="consumerGroupPrefix">{{ prefix }}</code>
+                                            <code>{{ prefix }}</code>
                                         </li>
                                     </ul>
                                 </td>
@@ -100,9 +100,9 @@
                             <tr>
                                 <th>{{ 'Prefixes for transactional IDs' | translate }}</th>
                                 <td>
-                                    <ul>
+                                    <ul id="transactionIdPrefixes">
                                         <li *ngFor="let prefix of transactionIdPrefixes | async">
-                                            <code id="transactionIdPrefix">{{ prefix }}</code>
+                                            <code>{{ prefix }}</code>
                                         </li>
                                     </ul>
                                 </td>
