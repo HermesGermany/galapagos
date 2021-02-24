@@ -34,7 +34,7 @@
                         <th scope="col" sortable="ownerApplication" (sort)="sortTopics($event)">{{ 'Owning Application' | translate }}</th>
                     </tr>
                 </thead>
-                <tbody *ngIf="!(loadingTopics | async)">
+                <tbody *ngIf="(loadingTopics | async) === false">
                     <tr *ngFor="let topic of topics | async">
                         <td><a [ngClass]="{deprecated:topic.deprecated}" [routerLink]="'/topics/' + topic.name">
                             <ngb-highlight [result]="topic.name" [term]="searchData.searchTerm"></ngb-highlight>

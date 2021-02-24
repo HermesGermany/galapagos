@@ -5,6 +5,6 @@ import org.apache.kafka.common.KafkaException;
 
 public interface KafkaConsumerFactory<K, V> {
 
-	KafkaConsumer<K, V> newConsumer() throws KafkaException;
+    KafkaConsumer<K, V> newConsumer() throws KafkaException;
 
 }

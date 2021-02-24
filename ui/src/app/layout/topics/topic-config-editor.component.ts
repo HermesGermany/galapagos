@@ -30,14 +30,14 @@ export class TopicConfigEditorComponent implements OnInit, AfterViewChecked {
     constructor(private environmentsService: EnvironmentsService, private topicsService: TopicsService,
         private toasts: ToastService, private translateService: TranslateService, private route: ActivatedRoute,
         private changeDetector: ChangeDetectorRef) {
-        this.topicName = this.route.params.pipe(map(params => <string>params['name'])).pipe(shareReplay(1));
+        this.topicName = this.route.params.pipe(map(params => params['name'] as string)).pipe(shareReplay(1));
     }
 
     ngOnInit() {
         this.environments = this.environmentsService.getEnvironments().pipe(flatMap(envs =>
             this.topicName.pipe(flatMap(topicName => this.topicsService.getEnvironmentsForTopic(topicName)))
-            .pipe(map(envIds => envIds.map(id => envs.find(e => e.id === id))))
-            )).pipe(shareReplay(1));
+                .pipe(map(envIds => envIds.map(id => envs.find(e => e.id === id))))
+        )).pipe(shareReplay(1));
 
         this.allConfigurationProperties = this.topicsService.getSupportedConfigProperties();
 
@@ -52,7 +52,7 @@ export class TopicConfigEditorComponent implements OnInit, AfterViewChecked {
     }
 
     ngAfterViewChecked() {
-      this.changeDetector.detectChanges();
+        this.changeDetector.detectChanges();
     }
 
     isDefaultConfig(envId: string, configName: string) {
@@ -83,7 +83,7 @@ export class TopicConfigEditorComponent implements OnInit, AfterViewChecked {
         const successMsg = await this.translateService.get('TOPIC_CONFIG_UPDATE_SUCCESS').pipe(take(1)).toPromise();
         const errorMsg = await this.translateService.get('TOPIC_CONFIG_UPDATE_ERROR').pipe(take(1)).toPromise();
 
-        return result.then(() => this.toasts.addSuccessToast(successMsg), (err) => this.toasts.addHttpErrorToast(errorMsg, err));
+        return result.then(() => this.toasts.addSuccessToast(successMsg), err => this.toasts.addHttpErrorToast(errorMsg, err));
     }
 
 }

@@ -9,11 +9,11 @@ import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
  */
 public interface InitPerCluster {
 
-	/**
-	 * Called during Galapagos startup, once for each connected Kafka cluster.
-	 *
-	 * @param cluster Cluster to perform startup initialization on (e.g., initialize a repository).
-	 */
-	void init(KafkaCluster cluster);
+    /**
+     * Called during Galapagos startup, once for each connected Kafka cluster.
+     *
+     * @param cluster Cluster to perform startup initialization on (e.g., initialize a repository).
+     */
+    void init(KafkaCluster cluster);
 
 }

@@ -7,11 +7,12 @@ import lombok.Getter;
 @Getter
 public class TopicCreatedEvent extends TopicEvent {
 
-	private TopicCreateParams topicCreateParams;
+    private TopicCreateParams topicCreateParams;
 
-	public TopicCreatedEvent(GalapagosEventContext context, TopicMetadata metadata, TopicCreateParams topicCreateParams) {
-		super(context, metadata);
-		this.topicCreateParams = topicCreateParams;
-	}
+    public TopicCreatedEvent(GalapagosEventContext context, TopicMetadata metadata,
+            TopicCreateParams topicCreateParams) {
+        super(context, metadata);
+        this.topicCreateParams = topicCreateParams;
+    }
 
 }

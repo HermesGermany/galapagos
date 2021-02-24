@@ -24,186 +24,191 @@ import static org.mockito.Mockito.when;
 
 public class StagingImplTest {
 
-	@Test
-	public void testSubscriptionIdentity() throws Exception {
-		TopicService topicService = mock(TopicService.class);
+    @Test
+    public void testSubscriptionIdentity() throws Exception {
+        TopicService topicService = mock(TopicService.class);
 
-		TopicMetadata topic1 = new TopicMetadata();
-		topic1.setName("topic-1");
-		topic1.setOwnerApplicationId("app-2");
-		topic1.setType(TopicType.EVENTS);
+        TopicMetadata topic1 = new TopicMetadata();
+        topic1.setName("topic-1");
+        topic1.setOwnerApplicationId("app-2");
+        topic1.setType(TopicType.EVENTS);
 
-		when(topicService.listTopics("dev")).thenReturn(Collections.singletonList(topic1));
-		when(topicService.listTopics("int")).thenReturn(Collections.singletonList(topic1));
+        when(topicService.listTopics("dev")).thenReturn(Collections.singletonList(topic1));
+        when(topicService.listTopics("int")).thenReturn(Collections.singletonList(topic1));
 
-		SubscriptionService subscriptionService = mock(SubscriptionService.class);
+        SubscriptionService subscriptionService = mock(SubscriptionService.class);
 
-		SubscriptionMetadata sub1 = new SubscriptionMetadata();
-		sub1.setClientApplicationId("app-1");
-		sub1.setId("123");
-		sub1.setTopicName("topic-1");
-		when(subscriptionService.getSubscriptionsOfApplication("dev", "app-1", false)).thenReturn(Collections.singletonList(sub1));
+        SubscriptionMetadata sub1 = new SubscriptionMetadata();
+        sub1.setClientApplicationId("app-1");
+        sub1.setId("123");
+        sub1.setTopicName("topic-1");
+        when(subscriptionService.getSubscriptionsOfApplication("dev", "app-1", false))
+                .thenReturn(Collections.singletonList(sub1));
 
-		StagingImpl staging = StagingImpl.build("app-1", "dev", "int", null, topicService, subscriptionService).get();
+        StagingImpl staging = StagingImpl.build("app-1", "dev", "int", null, topicService, subscriptionService).get();
 
-		// subscription must be staged
-		List<? extends Change> changes = staging.getChanges();
-		assertEquals(1, changes.size());
-		Change change = changes.get(0);
-		assertEquals(ChangeType.TOPIC_SUBSCRIBED, change.getChangeType());
+        // subscription must be staged
+        List<? extends Change> changes = staging.getChanges();
+        assertEquals(1, changes.size());
+        Change change = changes.get(0);
+        assertEquals(ChangeType.TOPIC_SUBSCRIBED, change.getChangeType());
 
-		// now, let's assume subscription exists on INT, then it must not be staged again
-		// note that the ID may be different on different environments!
-		SubscriptionMetadata sub2 = new SubscriptionMetadata();
-		sub2.setClientApplicationId("app-1");
-		sub2.setId("456");
-		sub2.setTopicName("topic-1");
-		when(subscriptionService.getSubscriptionsOfApplication("int", "app-1", false)).thenReturn(Collections.singletonList(sub2));
+        // now, let's assume subscription exists on INT, then it must not be staged again
+        // note that the ID may be different on different environments!
+        SubscriptionMetadata sub2 = new SubscriptionMetadata();
+        sub2.setClientApplicationId("app-1");
+        sub2.setId("456");
+        sub2.setTopicName("topic-1");
+        when(subscriptionService.getSubscriptionsOfApplication("int", "app-1", false))
+                .thenReturn(Collections.singletonList(sub2));
 
-		staging = StagingImpl.build("app-1", "dev", "int", null, topicService, subscriptionService).get();
-		changes = staging.getChanges();
-		assertEquals(0, changes.size());
-	}
+        staging = StagingImpl.build("app-1", "dev", "int", null, topicService, subscriptionService).get();
+        changes = staging.getChanges();
+        assertEquals(0, changes.size());
+    }
 
-	@Test
-	public void testSchemaIdentity() throws Exception {
-		TopicService topicService = mock(TopicService.class);
+    @Test
+    public void testSchemaIdentity() throws Exception {
+        TopicService topicService = mock(TopicService.class);
 
-		TopicMetadata topic1 = new TopicMetadata();
-		topic1.setName("topic-1");
-		topic1.setOwnerApplicationId("app-1");
-		topic1.setType(TopicType.EVENTS);
+        TopicMetadata topic1 = new TopicMetadata();
+        topic1.setName("topic-1");
+        topic1.setOwnerApplicationId("app-1");
+        topic1.setType(TopicType.EVENTS);
 
-		when(topicService.listTopics("dev")).thenReturn(Collections.singletonList(topic1));
-		when(topicService.listTopics("int")).thenReturn(Collections.singletonList(topic1));
+        when(topicService.listTopics("dev")).thenReturn(Collections.singletonList(topic1));
+        when(topicService.listTopics("int")).thenReturn(Collections.singletonList(topic1));
 
-		SchemaMetadata schema1 = new SchemaMetadata();
-		schema1.setId("999");
-		schema1.setSchemaVersion(1);
-		schema1.setCreatedBy("test");
-		schema1.setTopicName("topic-1");
+        SchemaMetadata schema1 = new SchemaMetadata();
+        schema1.setId("999");
+        schema1.setSchemaVersion(1);
+        schema1.setCreatedBy("test");
+        schema1.setTopicName("topic-1");
 
-		when(topicService.getTopicSchemaVersions("dev", "topic-1")).thenReturn(Collections.singletonList(schema1));
+        when(topicService.getTopicSchemaVersions("dev", "topic-1")).thenReturn(Collections.singletonList(schema1));
 
-		SubscriptionService subscriptionService = mock(SubscriptionService.class);
+        SubscriptionService subscriptionService = mock(SubscriptionService.class);
 
-		StagingImpl staging = StagingImpl.build("app-1", "dev", "int", null, topicService, subscriptionService).get();
+        StagingImpl staging = StagingImpl.build("app-1", "dev", "int", null, topicService, subscriptionService).get();
 
-		// schema must be staged
-		List<? extends Change> changes = staging.getChanges();
-		assertEquals(1, changes.size());
-		Change change = changes.get(0);
-		assertEquals(ChangeType.TOPIC_SCHEMA_VERSION_PUBLISHED, change.getChangeType());
+        // schema must be staged
+        List<? extends Change> changes = staging.getChanges();
+        assertEquals(1, changes.size());
+        Change change = changes.get(0);
+        assertEquals(ChangeType.TOPIC_SCHEMA_VERSION_PUBLISHED, change.getChangeType());
 
-		// now, let's assume schema exists on INT, then it must not be staged again
-		// note that the ID may be different on different environments!
-		SchemaMetadata schema2 = new SchemaMetadata();
-		schema2.setId("000");
-		schema2.setCreatedBy("test");
-		schema2.setTopicName("topic-1");
-		schema2.setSchemaVersion(1);
-		when(topicService.getTopicSchemaVersions("int", "topic-1")).thenReturn(Collections.singletonList(schema2));
+        // now, let's assume schema exists on INT, then it must not be staged again
+        // note that the ID may be different on different environments!
+        SchemaMetadata schema2 = new SchemaMetadata();
+        schema2.setId("000");
+        schema2.setCreatedBy("test");
+        schema2.setTopicName("topic-1");
+        schema2.setSchemaVersion(1);
+        when(topicService.getTopicSchemaVersions("int", "topic-1")).thenReturn(Collections.singletonList(schema2));
 
-		staging = StagingImpl.build("app-1", "dev", "int", null, topicService, subscriptionService).get();
-		changes = staging.getChanges();
-		assertEquals(0, changes.size());
-	}
+        staging = StagingImpl.build("app-1", "dev", "int", null, topicService, subscriptionService).get();
+        changes = staging.getChanges();
+        assertEquals(0, changes.size());
+    }
 
-	@Test
-	public void testCompoundChangeForApiTopicCreation() throws Exception {
-		TopicService topicService = mock(TopicService.class);
+    @Test
+    public void testCompoundChangeForApiTopicCreation() throws Exception {
+        TopicService topicService = mock(TopicService.class);
 
-		TopicMetadata topic1 = new TopicMetadata();
-		topic1.setName("topic-1");
-		topic1.setOwnerApplicationId("app-1");
-		topic1.setType(TopicType.EVENTS);
+        TopicMetadata topic1 = new TopicMetadata();
+        topic1.setName("topic-1");
+        topic1.setOwnerApplicationId("app-1");
+        topic1.setType(TopicType.EVENTS);
 
-		when(topicService.listTopics("dev")).thenReturn(Collections.singletonList(topic1));
-		when(topicService.buildTopicCreateParams("dev", "topic-1")).thenReturn(
-			CompletableFuture.completedFuture(new TopicCreateParams(2, 2)));
+        when(topicService.listTopics("dev")).thenReturn(Collections.singletonList(topic1));
+        when(topicService.buildTopicCreateParams("dev", "topic-1"))
+                .thenReturn(CompletableFuture.completedFuture(new TopicCreateParams(2, 2)));
 
-		SchemaMetadata schema1 = new SchemaMetadata();
-		schema1.setId("999");
-		schema1.setSchemaVersion(1);
-		schema1.setCreatedBy("test");
-		schema1.setTopicName("topic-1");
+        SchemaMetadata schema1 = new SchemaMetadata();
+        schema1.setId("999");
+        schema1.setSchemaVersion(1);
+        schema1.setCreatedBy("test");
+        schema1.setTopicName("topic-1");
 
-		SchemaMetadata schema2 = new SchemaMetadata();
-		schema2.setId("000");
-		schema2.setSchemaVersion(2);
-		schema2.setCreatedBy("test");
-		schema2.setTopicName("topic-1");
+        SchemaMetadata schema2 = new SchemaMetadata();
+        schema2.setId("000");
+        schema2.setSchemaVersion(2);
+        schema2.setCreatedBy("test");
+        schema2.setTopicName("topic-1");
 
-		when(topicService.getTopicSchemaVersions("dev", "topic-1")).thenReturn(List.of(schema1, schema2));
+        when(topicService.getTopicSchemaVersions("dev", "topic-1")).thenReturn(List.of(schema1, schema2));
 
-		SubscriptionService subscriptionService = mock(SubscriptionService.class);
+        SubscriptionService subscriptionService = mock(SubscriptionService.class);
 
-		StagingImpl staging = StagingImpl.build("app-1", "dev", "int", null, topicService, subscriptionService).get();
+        StagingImpl staging = StagingImpl.build("app-1", "dev", "int", null, topicService, subscriptionService).get();
 
-		// Must contain TWO changes: One compound change for creating the topic and the first schema, and another one for
-		// creating second schema
-		List<? extends Change> changes = staging.getChanges();
-		assertEquals(2, changes.size());
-		assertEquals(ChangeType.COMPOUND_CHANGE, changes.get(0).getChangeType());
-		assertEquals(ChangeType.TOPIC_SCHEMA_VERSION_PUBLISHED, changes.get(1).getChangeType());
+        // Must contain TWO changes: One compound change for creating the topic and the first schema, and another one
+        // for
+        // creating second schema
+        List<? extends Change> changes = staging.getChanges();
+        assertEquals(2, changes.size());
+        assertEquals(ChangeType.COMPOUND_CHANGE, changes.get(0).getChangeType());
+        assertEquals(ChangeType.TOPIC_SCHEMA_VERSION_PUBLISHED, changes.get(1).getChangeType());
 
-		String firstChangeJson = JsonUtil.newObjectMapper().writeValueAsString(changes.get(0));
-		assertTrue(firstChangeJson.contains("app-1"));
-		assertTrue(firstChangeJson.contains("999"));
-		assertFalse(firstChangeJson.contains("000"));
-	}
+        String firstChangeJson = JsonUtil.newObjectMapper().writeValueAsString(changes.get(0));
+        assertTrue(firstChangeJson.contains("app-1"));
+        assertTrue(firstChangeJson.contains("999"));
+        assertFalse(firstChangeJson.contains("000"));
+    }
 
-	@Test
-	public void testApiTopicWithoutSchema_fail() throws Exception {
-		TopicService topicService = mock(TopicService.class);
+    @Test
+    public void testApiTopicWithoutSchema_fail() throws Exception {
+        TopicService topicService = mock(TopicService.class);
 
-		TopicMetadata topic1 = new TopicMetadata();
-		topic1.setName("topic-1");
-		topic1.setOwnerApplicationId("app-1");
-		topic1.setType(TopicType.EVENTS);
+        TopicMetadata topic1 = new TopicMetadata();
+        topic1.setName("topic-1");
+        topic1.setOwnerApplicationId("app-1");
+        topic1.setType(TopicType.EVENTS);
 
-		when(topicService.listTopics("dev")).thenReturn(Collections.singletonList(topic1));
+        when(topicService.listTopics("dev")).thenReturn(Collections.singletonList(topic1));
 
-		SubscriptionService subscriptionService = mock(SubscriptionService.class);
+        SubscriptionService subscriptionService = mock(SubscriptionService.class);
 
-		StagingImpl staging = StagingImpl.build("app-1", "dev", "int", null, topicService, subscriptionService).get();
-		List<? extends Change> changes = staging.getChanges();
+        StagingImpl staging = StagingImpl.build("app-1", "dev", "int", null, topicService, subscriptionService).get();
+        List<? extends Change> changes = staging.getChanges();
 
-		assertEquals(1, changes.size());
-		try {
-			((ApplicableChange) changes.get(0)).applyTo(null).get();
-			fail("Applying create topic change expected to fail because no JSON schema published");
-		} catch (ExecutionException e) {
-			assertTrue(e.getCause() instanceof IllegalStateException);
-			assertTrue(e.getCause().getMessage().contains("schema"));
-		}
-	}
+        assertEquals(1, changes.size());
+        try {
+            ((ApplicableChange) changes.get(0)).applyTo(null).get();
+            fail("Applying create topic change expected to fail because no JSON schema published");
+        }
+        catch (ExecutionException e) {
+            assertTrue(e.getCause() instanceof IllegalStateException);
+            assertTrue(e.getCause().getMessage().contains("schema"));
+        }
+    }
 
-	@Test
-	public void testStageDeprecatedTopic_fail() throws Exception {
-		TopicService topicService = mock(TopicService.class);
+    @Test
+    public void testStageDeprecatedTopic_fail() throws Exception {
+        TopicService topicService = mock(TopicService.class);
 
-		TopicMetadata topic1 = new TopicMetadata();
-		topic1.setName("topic-1");
-		topic1.setOwnerApplicationId("app-1");
-		topic1.setType(TopicType.EVENTS);
-		topic1.setDeprecated(true);
+        TopicMetadata topic1 = new TopicMetadata();
+        topic1.setName("topic-1");
+        topic1.setOwnerApplicationId("app-1");
+        topic1.setType(TopicType.EVENTS);
+        topic1.setDeprecated(true);
 
-		when(topicService.listTopics("dev")).thenReturn(Collections.singletonList(topic1));
+        when(topicService.listTopics("dev")).thenReturn(Collections.singletonList(topic1));
 
-		SubscriptionService subscriptionService = mock(SubscriptionService.class);
+        SubscriptionService subscriptionService = mock(SubscriptionService.class);
 
-		StagingImpl staging = StagingImpl.build("app-1", "dev", "int", null, topicService, subscriptionService).get();
-		List<? extends Change> changes = staging.getChanges();
+        StagingImpl staging = StagingImpl.build("app-1", "dev", "int", null, topicService, subscriptionService).get();
+        List<? extends Change> changes = staging.getChanges();
 
-		assertEquals(1, changes.size());
-		try {
-			((ApplicableChange) changes.get(0)).applyTo(null).get();
-			fail("Applying create topic change expected to fail because topic is deprecated, but succeeded.");
-		} catch (ExecutionException e) {
-			assertTrue(e.getCause() instanceof IllegalStateException);
-			assertTrue(e.getCause().getMessage().toLowerCase(Locale.US).contains("deprecated"));
-		}
-	}
+        assertEquals(1, changes.size());
+        try {
+            ((ApplicableChange) changes.get(0)).applyTo(null).get();
+            fail("Applying create topic change expected to fail because topic is deprecated, but succeeded.");
+        }
+        catch (ExecutionException e) {
+            assertTrue(e.getCause() instanceof IllegalStateException);
+            assertTrue(e.getCause().getMessage().toLowerCase(Locale.US).contains("deprecated"));
+        }
+    }
 
 }

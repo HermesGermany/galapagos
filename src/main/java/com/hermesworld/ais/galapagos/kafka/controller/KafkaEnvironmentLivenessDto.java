@@ -5,13 +5,13 @@ import lombok.Getter;
 @Getter
 public class KafkaEnvironmentLivenessDto {
 
-	private String server;
+    private String server;
 
-	private boolean online;
+    private boolean online;
 
-	public KafkaEnvironmentLivenessDto(String server, boolean online) {
-		this.server = server;
-		this.online = online;
-	}
+    public KafkaEnvironmentLivenessDto(String server, boolean online) {
+        this.server = server;
+        this.online = online;
+    }
 
 }

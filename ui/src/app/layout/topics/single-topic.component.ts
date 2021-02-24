@@ -1,9 +1,9 @@
 import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { routerTransition } from '../../router.animations';
 import { ActivatedRoute, Router } from '@angular/router';
-import { SchemaMetadata, Topic, TopicRecord, TopicsService, TopicSubscription } from '../../shared/services/topics.service';
+import { Topic, TopicRecord, TopicsService, TopicSubscription } from '../../shared/services/topics.service';
 import { combineLatest, Observable } from 'rxjs';
-import { finalize, flatMap, map, shareReplay, startWith, take } from 'rxjs/operators';
+import { finalize, map, mergeMap, shareReplay, startWith, take } from 'rxjs/operators';
 import { ApplicationsService, UserApplicationInfo } from '../../shared/services/applications.service';
 import { EnvironmentsService, KafkaEnvironment } from '../../shared/services/environments.service';
 import { ToastService } from '../../shared/modules/toast/toast.service';
@@ -12,6 +12,7 @@ import { NgbDateStruct, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { CertificateService } from '../../shared/services/certificates.service';
 import * as moment from 'moment';
 import { ServerInfoService } from '../../shared/services/serverinfo.service';
+import { SchemaSectionComponent } from './schema-section.component';
 
 @Component({
     selector: 'app-single-topic',
@@ -46,21 +47,9 @@ export class SingleTopicComponent implements OnInit {
 
     selectedEnvironment: Observable<KafkaEnvironment>;
 
-    topicSchemas: Promise<SchemaMetadata[]>;
-
-    selectedSchemaVersion: SchemaMetadata;
-
-    loadingSchemas: boolean;
-
     translateParams: any = {};
 
-    currentText: Observable<string>;
-
     isOwnerOfTopic: Observable<boolean>;
-
-    editSchemaMode = false;
-
-    newSchemaText = '';
 
     topicNameConfirmText = '';
 
@@ -78,7 +67,9 @@ export class SingleTopicComponent implements OnInit {
 
     deprecateTopicHtml: Observable<string>;
 
-    minDeprecationDate: Observable<{ year: number, month: number, day: number }>;
+    minDeprecationDate: Observable<{ year: number; month: number; day: number }>;
+
+    updatedTopicDescription: string;
 
     constructor(
         private route: ActivatedRoute,
@@ -90,9 +81,9 @@ export class SingleTopicComponent implements OnInit {
         private toasts: ToastService,
         private router: Router,
         private translateService: TranslateService,
-        private modalService: NgbModal
+        private modalService: NgbModal,
+        private schemaSection: SchemaSectionComponent
     ) {
-        this.currentText = translateService.stream('(current)');
 
         route.queryParamMap.subscribe({
             next: params => {
@@ -114,7 +105,7 @@ export class SingleTopicComponent implements OnInit {
     }
 
     ngOnInit() {
-        this.topicName = this.route.params.pipe(map(params => <string>params['name'])).pipe(shareReplay(1));
+        this.topicName = this.route.params.pipe(map(params => params['name'] as string)).pipe(shareReplay(1));
         this.selectedEnvironment = this.environmentsService.getCurrentEnvironment();
 
         const listTopics = this.topicService.listTopics();
@@ -129,7 +120,6 @@ export class SingleTopicComponent implements OnInit {
             next: value => {
                 if (value[0]) {
                     this.loadSubscribers(value[0], value[1].id);
-                    this.loadSchemas(value[0], value[1].id);
                     this.translateParams.topicName = value[0].name;
                 }
             }
@@ -148,14 +138,14 @@ export class SingleTopicComponent implements OnInit {
         const currentLang = this.translateService.onLangChange.pipe(map(evt => evt.lang))
             .pipe(startWith(this.translateService.currentLang));
         this.deprecateTopicHtml = combineLatest([currentLang, this.serverInfoService.getUiConfig()])
-            .pipe(flatMap(val => this.translateService.get('DEPRECATE_TOPIC_HTML',
+            .pipe(mergeMap(val => this.translateService.get('DEPRECATE_TOPIC_HTML',
                 { period: this.toPeriodText(val[1].minDeprecationTime) }).pipe(map(o => o.toString()))
             ));
         this.minDeprecationDate = this.serverInfoService.getUiConfig()
             .pipe(map(config => this.getValidDatesDeprecation(config.minDeprecationTime)));
     }
 
-    getValidDatesDeprecation(date: { years: number; months: number; days: number; }) {
+    getValidDatesDeprecation(date: { years: number; months: number; days: number }) {
         const minDeprecationTime = moment().add(date.years, 'y')
             .add(date.months, 'month')
             .add(date.days, 'days').locale(this.translateService.currentLang);
@@ -193,6 +183,14 @@ export class SingleTopicComponent implements OnInit {
                 err => this.toasts.addHttpErrorToast('Deprecation-Markierung konnte nicht entfernt werden', err));
     }
 
+    async updateTopicDesc() {
+        const topic = await this.topic.pipe(take(1)).toPromise();
+        return this.topicService
+            .updateTopicDescription(this.updatedTopicDescription, topic.name)
+            .then(() => this.toasts.addSuccessToast('Beschreibung erfolgreich geändert'),
+                err => this.toasts.addHttpErrorToast('Beschreibung konnte nicht geändert werden', err));
+    }
+
     async subscribeToTopic(): Promise<any> {
         if (!this.selectedApplication) {
             return Promise.resolve();
@@ -203,14 +201,14 @@ export class SingleTopicComponent implements OnInit {
 
         return this.topicService.subscribeToTopic(topic.name, environment.id, this.selectedApplication.id, this.subscriptionDescription)
             .then(() => {
-                    if (topic.subscriptionApprovalRequired) {
-                        this.toasts.addSuccessToast('Die Topic-Owner wurden über die Abonnement-Anfrage informiert');
-                    } else {
-                        this.toasts.addSuccessToast('Die Anwendung hat das Topic nun abonniert');
-                    }
-                    this.loadSubscribers(topic, environment.id);
-                },
-                err => this.toasts.addHttpErrorToast('Das Abonnement konnte nicht erstellt werden', err)
+                if (topic.subscriptionApprovalRequired) {
+                    this.toasts.addSuccessToast('Die Topic-Owner wurden über die Abonnement-Anfrage informiert');
+                } else {
+                    this.toasts.addSuccessToast('Die Anwendung hat das Topic nun abonniert');
+                }
+                this.loadSubscribers(topic, environment.id);
+            },
+            err => this.toasts.addHttpErrorToast('Das Abonnement konnte nicht erstellt werden', err)
             )
             .finally(() => this.subscriptionDescription = null);
     }
@@ -251,21 +249,14 @@ export class SingleTopicComponent implements OnInit {
         );
     }
 
-    private async updateSubscription(sub: TopicSubscription, approve: boolean, successMessage: string, errorMessage: string) {
-        const topic = await this.topic.pipe(take(1)).toPromise();
-        const environment = await this.environmentsService.getCurrentEnvironment().pipe(take(1)).toPromise();
-
-        return this.topicService.updateTopicSubscription(environment.id, topic.name, sub.id, approve).then(
-            () => {
-                this.toasts.addSuccessToast(successMessage);
-                this.loadSubscribers(topic, environment.id);
-            },
-            err => this.toasts.addHttpErrorToast(errorMessage, err)
-        );
-    }
-
     openDeleteConfirmDlg(content: any) {
         this.topicNameConfirmText = '';
+        this.modalService.open(content, { ariaLabelledBy: 'modal-title', size: 'lg' });
+    }
+
+    async openChangeDescDlg(content: any) {
+        const topic = await this.topic.pipe(take(1)).toPromise();
+        this.updatedTopicDescription = topic.description;
         this.modalService.open(content, { ariaLabelledBy: 'modal-title', size: 'lg' });
     }
 
@@ -284,42 +275,6 @@ export class SingleTopicComponent implements OnInit {
                 this.router.navigateByUrl('/topics');
             },
             err => this.toasts.addHttpErrorToast('Das Topic konnte nicht gelöscht werden', err)
-        );
-    }
-
-    schemaUrl(schemaVersion: SchemaMetadata) {
-        return window.location.origin + '/schema/' + schemaVersion.id;
-    }
-
-    startEditSchemaMode() {
-        this.editSchemaMode = true;
-        this.newSchemaText = '';
-    }
-
-    async publishNewSchema(): Promise<any> {
-        const topic = await this.topic.pipe(take(1)).toPromise();
-        const environment = await this.environmentsService.getCurrentEnvironment().pipe(take(1)).toPromise();
-
-        return this.topicService.addTopicSchema(topic.name, environment.id, this.newSchemaText).then(
-            () => {
-                this.editSchemaMode = false;
-                this.toasts.addSuccessToast('Das Schema wurde erfolgreich veröffentlicht.');
-                this.loadSchemas(topic, environment.id);
-            },
-            err => this.toasts.addHttpErrorToast('Das Schema konnte nicht veröffentlicht werden', err)
-        );
-    }
-
-    async deleteLatestSchema(): Promise<any> {
-        const topic = await this.topic.pipe(take(1)).toPromise();
-        const environment = await this.environmentsService.getCurrentEnvironment().pipe(take(1)).toPromise();
-
-        return this.topicService.deleteLatestSchema(topic.name, environment.id).then(
-            () => {
-                this.toasts.addSuccessToast('Das Schema wurde erfolgreich gelöscht.');
-                this.loadSchemas(topic, environment.id);
-            },
-            err => this.toasts.addHttpErrorToast('Das Schema konnte nicht gelöscht werden', err)
         );
     }
 
@@ -347,6 +302,7 @@ export class SingleTopicComponent implements OnInit {
             try {
                 const obj = JSON.parse(val);
                 return {
+                    partition: rec.partition,
                     offset: rec.offset,
                     key: rec.key,
                     value: JSON.stringify(obj, null, 4)
@@ -356,9 +312,7 @@ export class SingleTopicComponent implements OnInit {
             }
         };
 
-        this.topicData = this.topicData.then(data => {
-            return data.map(rec => tryFormatValue(rec));
-        });
+        this.topicData = this.topicData.then(data => data.map(rec => tryFormatValue(rec)));
 
         return false;
     }
@@ -368,12 +322,25 @@ export class SingleTopicComponent implements OnInit {
             return;
         }
         try {
-            const certificates = await this.certificateService.getApplicationCertificates(this.selectedApplication.id);
+            const certificates = await this.certificateService.getApplicationCertificatesPromise(this.selectedApplication.id);
             const env = await this.selectedEnvironment.pipe(take(1)).toPromise();
             this.showRegistrationWarning = !certificates.find(c => c.environmentId === env.id);
         } catch (e) {
             this.toasts.addHttpErrorToast('Could not check for application certificates', e);
         }
+    }
+
+    private async updateSubscription(sub: TopicSubscription, approve: boolean, successMessage: string, errorMessage: string) {
+        const topic = await this.topic.pipe(take(1)).toPromise();
+        const environment = await this.environmentsService.getCurrentEnvironment().pipe(take(1)).toPromise();
+
+        return this.topicService.updateTopicSubscription(environment.id, topic.name, sub.id, approve).then(
+            () => {
+                this.toasts.addSuccessToast(successMessage);
+                this.loadSubscribers(topic, environment.id);
+            },
+            err => this.toasts.addHttpErrorToast(errorMessage, err)
+        );
     }
 
     private loadSubscribers(topic: Topic, environmentId: string) {
@@ -409,21 +376,9 @@ export class SingleTopicComponent implements OnInit {
             });
     }
 
-    private loadSchemas(topic: Topic, environmentId: string) {
-        this.loadingSchemas = true;
-        this.topicSchemas = this.topicService
-            .getTopicSchemas(topic.name, environmentId)
-            .then(schemas => schemas.reverse())
-            .then(schemas => {
-                this.selectedSchemaVersion = schemas.length ? schemas[0] : null;
-                return schemas;
-            })
-            .finally(() => (this.loadingSchemas = false));
-    }
-
-    private toPeriodText(period: { years: number, months: number, days: number }): string {
+    private toPeriodText(period: { years: number; months: number; days: number }): string {
         const target = moment().add(period.years, 'y').add(period.months, 'month').add(period.days, 'days');
-        const oldThreshold = <number>moment.relativeTimeThreshold('d');
+        const oldThreshold = moment.relativeTimeThreshold('d') as number;
 
         // special treatment: If days set, avoid moment "rounding" to months
         // Note: this still produces wrong results for some values of "days"

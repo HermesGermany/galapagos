@@ -13,6 +13,6 @@ import lombok.Setter;
 @JsonSerialize
 public class StagingFilterDto {
 
-	private List<Change> changes;
+    private List<Change> changes;
 
 }

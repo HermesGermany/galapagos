@@ -14,34 +14,34 @@ import lombok.Setter;
 @Setter
 public class ChangeData implements Comparable<ChangeData>, HasKey {
 
-	private String id;
+    private String id;
 
-	@JsonFormat(shape = Shape.STRING)
-	private ZonedDateTime timestamp;
+    @JsonFormat(shape = Shape.STRING)
+    private ZonedDateTime timestamp;
 
-	private String principal;
+    private String principal;
 
-	private String principalFullName;
+    private String principalFullName;
 
-	private Change change;
+    private Change change;
 
-	@Override
-	public String key() {
-		return id;
-	}
+    @Override
+    public String key() {
+        return id;
+    }
 
-	@Override
-	public int compareTo(ChangeData o) {
-		if (o == null) {
-			return -1;
-		}
-		if (timestamp == null) {
-			return o.timestamp == null ? 0 : -1;
-		}
-		if (o.timestamp == null) {
-			return 1;
-		}
-		return timestamp.compareTo(o.timestamp);
-	}
+    @Override
+    public int compareTo(ChangeData o) {
+        if (o == null) {
+            return -1;
+        }
+        if (timestamp == null) {
+            return o.timestamp == null ? 0 : -1;
+        }
+        if (o.timestamp == null) {
+            return 1;
+        }
+        return timestamp.compareTo(o.timestamp);
+    }
 
 }

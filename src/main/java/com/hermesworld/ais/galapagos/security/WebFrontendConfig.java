@@ -9,10 +9,10 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @EnableWebMvc
 public class WebFrontendConfig implements WebMvcConfigurer {
 
-	@Override
-	public void addResourceHandlers(ResourceHandlerRegistry registry) {
-		registry.addResourceHandler("/app/**", "/assets/**").addResourceLocations("classpath:/static/app/",
-				"classpath:/static/app/assets/");
-	}
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        registry.addResourceHandler("/app/**", "/assets/**").addResourceLocations("classpath:/static/app/",
+                "classpath:/static/app/assets/");
+    }
 
 }

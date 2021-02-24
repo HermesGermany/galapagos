@@ -20,26 +20,26 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class KeycloakConfigController {
 
-	@Value("${keycloak.configurationFile}")
-	private Resource keycloakConfigFile;
+    @Value("${keycloak.configurationFile}")
+    private Resource keycloakConfigFile;
 
-	@GetMapping(value = "/keycloak/config.json", produces = MediaType.APPLICATION_JSON_VALUE)
-	public Map<String, Object> getKeycloakConfig() {
+    @GetMapping(value = "/keycloak/config.json", produces = MediaType.APPLICATION_JSON_VALUE)
+    public Map<String, Object> getKeycloakConfig() {
 
-		try (InputStream in = keycloakConfigFile.getInputStream()) {
-			String contents = new String(StreamUtils.copyToByteArray(in), StandardCharsets.UTF_8);
-			JSONObject config = new JSONObject(contents);
+        try (InputStream in = keycloakConfigFile.getInputStream()) {
+            String contents = new String(StreamUtils.copyToByteArray(in), StandardCharsets.UTF_8);
+            JSONObject config = new JSONObject(contents);
 
-			Map<String, Object> result = new HashMap<>();
-			result.put("url", config.getString("auth-server-url"));
-			result.put("realm", config.getString("realm"));
-			result.put("clientId", config.getString("resource"));
-			return result;
-		}
-		catch (IOException e) {
-			log.error("Could not read Keycloak config resource", e);
-			return Collections.emptyMap();
-		}
-	}
+            Map<String, Object> result = new HashMap<>();
+            result.put("url", config.getString("auth-server-url"));
+            result.put("realm", config.getString("realm"));
+            result.put("clientId", config.getString("resource"));
+            return result;
+        }
+        catch (IOException e) {
+            log.error("Could not read Keycloak config resource", e);
+            return Collections.emptyMap();
+        }
+    }
 
 }

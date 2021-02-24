@@ -13,6 +13,6 @@ import java.util.concurrent.CompletableFuture;
  */
 public interface KafkaSender {
 
-	CompletableFuture<Void> send(String topic, String key, String message);
+    CompletableFuture<Void> send(String topic, String key, String message);
 
 }

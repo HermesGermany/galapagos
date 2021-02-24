@@ -27,96 +27,98 @@ import com.hermesworld.ais.galapagos.util.TimeService;
 @Slf4j
 public class DeveloperCertificateServiceImpl implements DeveloperCertificateService, InitPerCluster {
 
-	private KafkaClusters kafkaClusters;
+    private KafkaClusters kafkaClusters;
 
-	private CurrentUserService currentUserService;
+    private CurrentUserService currentUserService;
 
-	private DevUserAclListener aclUpdater;
+    private DevUserAclListener aclUpdater;
 
-	private TimeService timeService;
+    private TimeService timeService;
 
-	@Autowired
-	public DeveloperCertificateServiceImpl(KafkaClusters kafkaClusters, CurrentUserService currentUserService,
-			DevUserAclListener aclUpdater, TimeService timeService) {
-		this.kafkaClusters = kafkaClusters;
-		this.currentUserService = currentUserService;
-		this.aclUpdater = aclUpdater;
-		this.timeService = timeService;
-	}
+    @Autowired
+    public DeveloperCertificateServiceImpl(KafkaClusters kafkaClusters, CurrentUserService currentUserService,
+            DevUserAclListener aclUpdater, TimeService timeService) {
+        this.kafkaClusters = kafkaClusters;
+        this.currentUserService = currentUserService;
+        this.aclUpdater = aclUpdater;
+        this.timeService = timeService;
+    }
 
-	@Override
-	public void init(KafkaCluster cluster) {
-		getRepository(cluster).getObjects();
-	}
+    @Override
+    public void init(KafkaCluster cluster) {
+        getRepository(cluster).getObjects();
+    }
 
-	@Override
-	public CompletableFuture<Void> createDeveloperCertificateForCurrentUser(String environmentId, OutputStream p12OutputStream) {
-		String userName = currentUserService.getCurrentUserName().orElse(null);
-		if (userName == null) {
-			return FutureUtil.noUser();
-		}
+    @Override
+    public CompletableFuture<Void> createDeveloperCertificateForCurrentUser(String environmentId,
+            OutputStream p12OutputStream) {
+        String userName = currentUserService.getCurrentUserName().orElse(null);
+        if (userName == null) {
+            return FutureUtil.noUser();
+        }
 
-		KafkaCluster cluster = kafkaClusters.getEnvironment(environmentId).orElse(null);
-		CaManager caManager = kafkaClusters.getCaManager(environmentId).orElse(null);
-		if (cluster == null || caManager == null) {
-			return FutureUtil.noSuchEnvironment(environmentId);
-		}
+        KafkaCluster cluster = kafkaClusters.getEnvironment(environmentId).orElse(null);
+        CaManager caManager = kafkaClusters.getCaManager(environmentId).orElse(null);
+        if (cluster == null || caManager == null) {
+            return FutureUtil.noSuchEnvironment(environmentId);
+        }
 
-		TopicBasedRepository<DevCertificateMetadata> repository = getRepository(cluster);
+        TopicBasedRepository<DevCertificateMetadata> repository = getRepository(cluster);
 
-		CompletableFuture<Void> removeFuture = repository.getObject(userName)
-				.map(oldMeta -> aclUpdater.removeAcls(cluster, Collections.singleton(oldMeta))).orElse(FutureUtil.noop());
+        CompletableFuture<Void> removeFuture = repository.getObject(userName)
+                .map(oldMeta -> aclUpdater.removeAcls(cluster, Collections.singleton(oldMeta)))
+                .orElse(FutureUtil.noop());
 
-		return removeFuture.thenCompose(o -> caManager.createDeveloperCertificateAndPrivateKey(userName))
-				.thenCompose(result -> saveMetadata(cluster, userName, result)).thenApply(result -> {
-					byte[] p12Data = result.getP12Data().orElse(null);
-					if (p12Data == null) {
-						log.error("No PKCS data for developer certificate returned by generation");
-					}
-					try {
-						p12OutputStream.write(p12Data);
-					}
-					catch (IOException e) {
-						log.warn("Could not write PKCS data of developer certificate to output stream", e);
-					}
-					return (Void) null;
-				})
-				.thenCompose(o -> getRepository(cluster).getObject(userName)
-						.map(meta -> aclUpdater.updateAcls(cluster, Collections.singleton(meta)))
-						.orElse(FutureUtil.noop()));
-	}
+        return removeFuture.thenCompose(o -> caManager.createDeveloperCertificateAndPrivateKey(userName))
+                .thenCompose(result -> saveMetadata(cluster, userName, result)).thenApply(result -> {
+                    byte[] p12Data = result.getP12Data().orElse(null);
+                    if (p12Data == null) {
+                        log.error("No PKCS data for developer certificate returned by generation");
+                    }
+                    try {
+                        p12OutputStream.write(p12Data);
+                    }
+                    catch (IOException e) {
+                        log.warn("Could not write PKCS data of developer certificate to output stream", e);
+                    }
+                    return (Void) null;
+                })
+                .thenCompose(o -> getRepository(cluster).getObject(userName)
+                        .map(meta -> aclUpdater.updateAcls(cluster, Collections.singleton(meta)))
+                        .orElse(FutureUtil.noop()));
+    }
 
-	@Override
-	public Optional<DevCertificateMetadata> getDeveloperCertificateOfCurrentUser(String environmentId) {
-		String userName = currentUserService.getCurrentUserName().orElse(null);
-		KafkaCluster cluster = kafkaClusters.getEnvironment(environmentId).orElse(null);
-		if (userName == null || cluster == null) {
-			return Optional.empty();
-		}
+    @Override
+    public Optional<DevCertificateMetadata> getDeveloperCertificateOfCurrentUser(String environmentId) {
+        String userName = currentUserService.getCurrentUserName().orElse(null);
+        KafkaCluster cluster = kafkaClusters.getEnvironment(environmentId).orElse(null);
+        if (userName == null || cluster == null) {
+            return Optional.empty();
+        }
 
-		DevCertificateMetadata metadata = getRepository(cluster).getObject(userName).orElse(null);
-		if (metadata == null || metadata.getExpiryDate().isBefore(timeService.getTimestamp().toInstant())) {
-			return Optional.empty();
-		}
+        DevCertificateMetadata metadata = getRepository(cluster).getObject(userName).orElse(null);
+        if (metadata == null || metadata.getExpiryDate().isBefore(timeService.getTimestamp().toInstant())) {
+            return Optional.empty();
+        }
 
-		return Optional.of(metadata);
-	}
+        return Optional.of(metadata);
+    }
 
-	private CompletableFuture<CertificateSignResult> saveMetadata(KafkaCluster cluster, String userName,
-			CertificateSignResult result) {
-		return getRepository(cluster).save(toMetadata(userName, result)).thenApply(o -> result);
-	}
+    private CompletableFuture<CertificateSignResult> saveMetadata(KafkaCluster cluster, String userName,
+            CertificateSignResult result) {
+        return getRepository(cluster).save(toMetadata(userName, result)).thenApply(o -> result);
+    }
 
-	static TopicBasedRepository<DevCertificateMetadata> getRepository(KafkaCluster cluster) {
-		return cluster.getRepository("devcerts", DevCertificateMetadata.class);
-	}
+    static TopicBasedRepository<DevCertificateMetadata> getRepository(KafkaCluster cluster) {
+        return cluster.getRepository("devcerts", DevCertificateMetadata.class);
+    }
 
-	private DevCertificateMetadata toMetadata(String userName, CertificateSignResult result) {
-		DevCertificateMetadata metadata = new DevCertificateMetadata();
-		metadata.setUserName(userName);
-		metadata.setCertificateDn(result.getDn());
-		metadata.setExpiryDate(Instant.ofEpochMilli(result.getCertificate().getNotAfter().getTime()));
-		return metadata;
-	}
+    private DevCertificateMetadata toMetadata(String userName, CertificateSignResult result) {
+        DevCertificateMetadata metadata = new DevCertificateMetadata();
+        metadata.setUserName(userName);
+        metadata.setCertificateDn(result.getDn());
+        metadata.setExpiryDate(Instant.ofEpochMilli(result.getCertificate().getNotAfter().getTime()));
+        return metadata;
+    }
 
 }

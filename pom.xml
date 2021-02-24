@@ -20,12 +20,10 @@
 		<keycloak.version>6.0.1</keycloak.version>
 		<lombok.version>1.18.12</lombok.version>
 		<kafka.version>2.5.0</kafka.version>
-		<docker.image.prefix>galapagos</docker.image.prefix>
 		<sonar-maven-plugin.version>3.7.0.1746</sonar-maven-plugin.version>
 		<sonar.sources>src/main/java</sonar.sources>
 		<sonar.exclusions>src/main/resources/*</sonar.exclusions>
 		<jacoco-maven-plugin.version>0.8.5</jacoco-maven-plugin.version>
-		<!--		<sonar.coverage.exclusions>src/main/js/**/*</sonar.coverage.exclusions>-->
 	</properties>
 
 	<dependencies>
@@ -61,7 +59,11 @@
 			<artifactId>logstash-logback-encoder</artifactId>
 			<version>4.11</version>
 		</dependency>
-
+		<dependency>
+			<groupId>com.ibm.icu</groupId>
+			<artifactId>icu4j</artifactId>
+			<version>68.2</version>
+		</dependency>
 
 		<dependency>
 			<groupId>org.keycloak</groupId>
@@ -145,6 +147,12 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
+			<version>3.7.7</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -152,6 +160,29 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+
+			<!-- this ensures consistent Java code formatting using Eclipse Formatter Settings.
+			     Note that there are also Plugins e.g. for IntelliJ IDEA being able to consume and apply these Settings.
+			     To apply these rules to your code, either import the settings into your IDE, or just run
+			     mvn formatter:format on the command line. -->
+			<plugin>
+				<groupId>net.revelc.code.formatter</groupId>
+				<artifactId>formatter-maven-plugin</artifactId>
+				<version>2.13.0</version>
+				<configuration>
+					<lineEnding>LF</lineEnding>
+					<configFile>${project.basedir}/eclipse-code-formatter.xml</configFile>
+				</configuration>
+				<executions>
+					<execution>
+						<id>validate-formatting</id>
+						<phase>process-sources</phase>
+						<goals>
+							<goal>validate</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 
 			<plugin>
@@ -179,21 +210,6 @@
 					<workingDirectory>${basedir}/ui</workingDirectory>
 					<installDirectory>${project.build.directory}</installDirectory>
 					<arguments>run build-from-maven</arguments>
-				</configuration>
-			</plugin>
-
-			<plugin>
-				<groupId>com.google.cloud.tools</groupId>
-				<artifactId>jib-maven-plugin</artifactId>
-				<version>2.1.0</version>
-				<configuration>
-					<to>
-						<image>harbor.doa.otc.hlg.de/${docker.image.prefix}/${project.artifactId}</image>
-						<tags>
-							<tag>latest</tag>
-							<tag>${project.version}</tag>
-						</tags>
-					</to>
 				</configuration>
 			</plugin>
 
@@ -249,6 +265,16 @@
 				</executions>
 			</plugin>
 		</plugins>
+
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>com.google.cloud.tools</groupId>
+					<artifactId>jib-maven-plugin</artifactId>
+					<version>2.7.0</version>
+				</plugin>
+			</plugins>
+		</pluginManagement>
 	</build>
 
 	<repositories>

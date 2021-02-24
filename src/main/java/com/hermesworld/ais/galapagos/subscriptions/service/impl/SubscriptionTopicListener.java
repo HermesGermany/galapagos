@@ -31,61 +31,63 @@ import com.hermesworld.ais.galapagos.util.FutureUtil;
 @Component
 public class SubscriptionTopicListener implements TopicEventsListener {
 
-	private SubscriptionService subscriptionService;
+    private SubscriptionService subscriptionService;
 
-	@Autowired
-	public SubscriptionTopicListener(SubscriptionService subscriptionService) {
-		this.subscriptionService = subscriptionService;
-	}
+    @Autowired
+    public SubscriptionTopicListener(SubscriptionService subscriptionService) {
+        this.subscriptionService = subscriptionService;
+    }
 
-	@Override
-	public CompletableFuture<Void> handleTopicCreated(TopicCreatedEvent event) {
-		return FutureUtil.noop();
-	}
+    @Override
+    public CompletableFuture<Void> handleTopicCreated(TopicCreatedEvent event) {
+        return FutureUtil.noop();
+    }
 
-	@Override
-	public CompletableFuture<Void> handleTopicDeleted(TopicEvent event) {
-		KafkaCluster cluster = event.getContext().getKafkaCluster();
-		CompletableFuture<Void> result = FutureUtil.noop();
-		for (SubscriptionMetadata subscription : subscriptionService.getSubscriptionsForTopic(cluster.getId(),
-				event.getMetadata().getName(), true)) {
-			result = result.thenCompose(o -> subscriptionService.deleteSubscription(cluster.getId(), subscription.getId()));
-		}
-		return result;
-	}
+    @Override
+    public CompletableFuture<Void> handleTopicDeleted(TopicEvent event) {
+        KafkaCluster cluster = event.getContext().getKafkaCluster();
+        CompletableFuture<Void> result = FutureUtil.noop();
+        for (SubscriptionMetadata subscription : subscriptionService.getSubscriptionsForTopic(cluster.getId(),
+                event.getMetadata().getName(), true)) {
+            result = result
+                    .thenCompose(o -> subscriptionService.deleteSubscription(cluster.getId(), subscription.getId()));
+        }
+        return result;
+    }
 
-	@Override
-	public CompletableFuture<Void> handleTopicDescriptionChanged(TopicEvent event) {
-		return FutureUtil.noop();
-	}
+    @Override
+    public CompletableFuture<Void> handleTopicDescriptionChanged(TopicEvent event) {
+        return FutureUtil.noop();
+    }
 
-	@Override
-	public CompletableFuture<Void> handleTopicDeprecated(TopicEvent event) {
-		return FutureUtil.noop();
-	}
+    @Override
+    public CompletableFuture<Void> handleTopicDeprecated(TopicEvent event) {
+        return FutureUtil.noop();
+    }
 
-	@Override
-	public CompletableFuture<Void> handleTopicUndeprecated(TopicEvent event) {
-		return FutureUtil.noop();
-	}
+    @Override
+    public CompletableFuture<Void> handleTopicUndeprecated(TopicEvent event) {
+        return FutureUtil.noop();
+    }
 
-	@Override
-	public CompletableFuture<Void> handleTopicSchemaAdded(TopicSchemaAddedEvent event) {
-		return FutureUtil.noop();
-	}
+    @Override
+    public CompletableFuture<Void> handleTopicSchemaAdded(TopicSchemaAddedEvent event) {
+        return FutureUtil.noop();
+    }
 
-	@Override
-	public CompletableFuture<Void> handleTopicSubscriptionApprovalRequiredFlagChanged(TopicEvent event) {
-		KafkaCluster cluster = event.getContext().getKafkaCluster();
-		CompletableFuture<Void> result = FutureUtil.noop();
+    @Override
+    public CompletableFuture<Void> handleTopicSubscriptionApprovalRequiredFlagChanged(TopicEvent event) {
+        KafkaCluster cluster = event.getContext().getKafkaCluster();
+        CompletableFuture<Void> result = FutureUtil.noop();
 
-		for (SubscriptionMetadata subscription : subscriptionService.getSubscriptionsForTopic(cluster.getId(),
-				event.getMetadata().getName(), true)) {
-			if (subscription.getState() == SubscriptionState.PENDING) {
-				result = subscriptionService.updateSubscriptionState(cluster.getId(), subscription.getId(), SubscriptionState.APPROVED);
-			}
-		}
-		return result;
-	}
+        for (SubscriptionMetadata subscription : subscriptionService.getSubscriptionsForTopic(cluster.getId(),
+                event.getMetadata().getName(), true)) {
+            if (subscription.getState() == SubscriptionState.PENDING) {
+                result = subscriptionService.updateSubscriptionState(cluster.getId(), subscription.getId(),
+                        SubscriptionState.APPROVED);
+            }
+        }
+        return result;
+    }
 
 }

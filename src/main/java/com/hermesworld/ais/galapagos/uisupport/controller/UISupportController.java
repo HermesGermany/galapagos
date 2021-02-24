@@ -1,5 +1,26 @@
 package com.hermesworld.ais.galapagos.uisupport.controller;
 
+import com.hermesworld.ais.galapagos.applications.ApplicationsService;
+import com.hermesworld.ais.galapagos.applications.BusinessCapability;
+import com.hermesworld.ais.galapagos.applications.KnownApplication;
+import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
+import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
+import com.hermesworld.ais.galapagos.kafka.config.KafkaEnvironmentConfig;
+import com.hermesworld.ais.galapagos.kafka.util.KafkaTopicConfigHelper;
+import com.hermesworld.ais.galapagos.naming.NamingService;
+import com.hermesworld.ais.galapagos.topics.config.GalapagosTopicConfig;
+import com.hermesworld.ais.galapagos.topics.service.TopicService;
+import com.hermesworld.ais.galapagos.util.CertificateUtil;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.common.config.TopicConfig;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.util.StreamUtils;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -11,27 +32,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-
-import com.hermesworld.ais.galapagos.applications.ApplicationMetadata;
-import com.hermesworld.ais.galapagos.applications.ApplicationsService;
-import com.hermesworld.ais.galapagos.applications.BusinessCapability;
-import com.hermesworld.ais.galapagos.applications.KnownApplication;
-import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
-import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
-import com.hermesworld.ais.galapagos.kafka.config.KafkaEnvironmentConfig;
-import com.hermesworld.ais.galapagos.kafka.util.KafkaTopicConfigHelper;
-import com.hermesworld.ais.galapagos.topics.TopicNameValidator;
-import com.hermesworld.ais.galapagos.topics.config.GalapagosTopicConfig;
-import com.hermesworld.ais.galapagos.topics.service.TopicService;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.common.config.TopicConfig;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.util.StreamUtils;
-import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 /**
  * Crossfunctional controller for calculating sensible defaults and other useful values mainly for use in UIs. <br>
@@ -45,232 +45,241 @@ import org.springframework.web.server.ResponseStatusException;
 @Slf4j
 public class UISupportController {
 
-	private final ApplicationsService applicationsService;
+    private final ApplicationsService applicationsService;
 
-	private final TopicService topicService;
+    private final TopicService topicService;
 
-	private KafkaClusters kafkaClusters;
+    private KafkaClusters kafkaClusters;
 
-	private final TopicNameValidator topicNameValidator;
+    private final NamingService namingService;
 
-	private final GalapagosTopicConfig topicConfig;
+    private final GalapagosTopicConfig topicConfig;
 
-	private final CustomLinksConfig customLinksConfig;
+    private final CustomLinksConfig customLinksConfig;
 
-	private static final Supplier<ResponseStatusException> badRequest = () -> new ResponseStatusException(HttpStatus.BAD_REQUEST);
+    private static final Supplier<ResponseStatusException> badRequest = () -> new ResponseStatusException(
+            HttpStatus.BAD_REQUEST);
 
-	private static final Supplier<ResponseStatusException> notFound = () -> new ResponseStatusException(HttpStatus.NOT_FOUND);
+    private static final Supplier<ResponseStatusException> notFound = () -> new ResponseStatusException(
+            HttpStatus.NOT_FOUND);
 
-	private static final int TEN_MEGABYTES = (int) Math.pow(2, 20) * 10;
+    private static final int TEN_MEGABYTES = (int) Math.pow(2, 20) * 10;
 
-	private static final int TEN_GIGABYTES = (int) Math.pow(2, 30) * 10;
+    private static final int TEN_GIGABYTES = (int) Math.pow(2, 30) * 10;
 
-	private static final long ONE_HOUR = TimeUnit.HOURS.toMillis(1);
+    private static final long ONE_HOUR = TimeUnit.HOURS.toMillis(1);
 
-	private static final long ONE_WEEK = TimeUnit.DAYS.toMillis(7);
+    private static final long ONE_WEEK = TimeUnit.DAYS.toMillis(7);
 
-	@Autowired
-	public UISupportController(ApplicationsService applicationsService, TopicService topicService,
-		KafkaClusters kafkaClusters,
-		TopicNameValidator topicNameValidator, GalapagosTopicConfig topicConfig, CustomLinksConfig customLinksConfig) {
-		this.applicationsService = applicationsService;
-		this.topicService = topicService;
-		this.kafkaClusters = kafkaClusters;
-		this.topicNameValidator = topicNameValidator;
-		this.topicConfig = topicConfig;
-		this.customLinksConfig = customLinksConfig;
-	}
+    @Autowired
+    public UISupportController(ApplicationsService applicationsService, TopicService topicService,
+            KafkaClusters kafkaClusters, NamingService namingService, GalapagosTopicConfig topicConfig,
+            CustomLinksConfig customLinksConfig) {
+        this.applicationsService = applicationsService;
+        this.topicService = topicService;
+        this.kafkaClusters = kafkaClusters;
+        this.namingService = namingService;
+        this.topicConfig = topicConfig;
+        this.customLinksConfig = customLinksConfig;
+    }
 
-	/**
-	 * Returns all configuration elements of the backend which are also relevant for the frontend. Also includes the
-	 * custom links to be shown on the dashboard.
-	 *
-	 * @return All configuration elements of the backend which are also relevant for the frontend.
-	 */
-	@GetMapping(value = "/api/util/uiconfig", produces = MediaType.APPLICATION_JSON_VALUE)
-	public UiConfigDto getUiConfig() {
-		UiConfigDto result = new UiConfigDto();
-		result.setMinDeprecationTime(toPeriodDto(topicConfig.getMinDeprecationTime()));
-		result.setCustomLinks(customLinksConfig.getLinks());
-		return result;
-	}
+    /**
+     * Returns all configuration elements of the backend which are also relevant for the frontend. Also includes the
+     * custom links to be shown on the dashboard.
+     *
+     * @return All configuration elements of the backend which are also relevant for the frontend.
+     */
+    @GetMapping(value = "/api/util/uiconfig", produces = MediaType.APPLICATION_JSON_VALUE)
+    public UiConfigDto getUiConfig() {
+        UiConfigDto result = new UiConfigDto();
+        result.setMinDeprecationTime(toPeriodDto(topicConfig.getMinDeprecationTime()));
+        result.setCustomLinks(customLinksConfig.getLinks());
+        return result;
+    }
 
-	@GetMapping(value = "/api/util/customlinks", produces = MediaType.APPLICATION_JSON_VALUE)
-	public List<CustomLinkConfig> getCustomLinks() {
-		return customLinksConfig.getLinks();
-	}
+    @GetMapping(value = "/api/util/customlinks", produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<CustomLinkConfig> getCustomLinks() {
+        return customLinksConfig.getLinks();
+    }
 
-	@GetMapping(value = "/api/util/framework-config/{environmentId}/{framework}", produces = MediaType.TEXT_PLAIN_VALUE)
-	public String getFrameworkConfigTemplate(@PathVariable String environmentId, @PathVariable String framework) {
-		switch (framework) {
-			case "spring":
-				return springConfigBuilder.apply(environmentId);
-			case "micronaut":
-				return micronautConfigBuilder.apply(environmentId);
-		}
+    @GetMapping(value = "/api/util/framework-config/{environmentId}/{framework}", produces = MediaType.TEXT_PLAIN_VALUE)
+    public String getFrameworkConfigTemplate(@PathVariable String environmentId, @PathVariable String framework) {
+        switch (framework) {
+        case "spring":
+            return springConfigBuilder.apply(environmentId);
+        case "micronaut":
+            return micronautConfigBuilder.apply(environmentId);
+        }
 
-		throw notFound.get();
-	}
+        throw notFound.get();
+    }
 
-	@PostMapping(value = "/api/util/topic-create-defaults", consumes = MediaType.APPLICATION_JSON_VALUE,
-			produces = MediaType.APPLICATION_JSON_VALUE)
-	public TopicCreateDefaultsDto getDefaultTopicCreateParams(@RequestBody QueryTopicCreateDefaultsDto query) {
-		TopicCreateDefaultsDto result = new TopicCreateDefaultsDto();
-		if (!StringUtils.isEmpty(query.getApplicationId()) && !StringUtils.isEmpty(query.getEnvironmentId())
-				&& query.getTopicType() != null) {
-			result.setTopicNameSuggestion(getTopicNameSuggestion(query));
-		}
+    @PostMapping(value = "/api/util/topic-create-defaults", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public TopicCreateDefaultsDto getDefaultTopicCreateParams(@RequestBody QueryTopicCreateDefaultsDto query) {
+        TopicCreateDefaultsDto result = new TopicCreateDefaultsDto();
+        if (!StringUtils.isEmpty(query.getApplicationId()) && !StringUtils.isEmpty(query.getEnvironmentId())
+                && query.getTopicType() != null) {
+            result.setTopicNameSuggestion(getTopicNameSuggestion(query));
+        }
 
-		result.setDefaultPartitionCount(topicConfig.getDefaultPartitionCount());
+        result.setDefaultPartitionCount(topicConfig.getDefaultPartitionCount());
 
-		Map<String, String> defaultConfigs = new HashMap<>();
-		defaultConfigs.put(TopicConfig.CLEANUP_POLICY_CONFIG, TopicConfig.CLEANUP_POLICY_DELETE);
-		defaultConfigs.put(TopicConfig.RETENTION_MS_CONFIG, String.valueOf(TimeUnit.DAYS.toMillis(7)));
+        Map<String, String> defaultConfigs = new HashMap<>();
+        defaultConfigs.put(TopicConfig.CLEANUP_POLICY_CONFIG, TopicConfig.CLEANUP_POLICY_DELETE);
+        defaultConfigs.put(TopicConfig.RETENTION_MS_CONFIG, String.valueOf(TimeUnit.DAYS.toMillis(7)));
 
-		if (query.getExpectedMessageCountPerDay() != null && query.getExpectedAvgMessageSizeBytes() != null) {
-			int cnt = query.getExpectedMessageCountPerDay();
-			long bytesPerDay = cnt * query.getExpectedAvgMessageSizeBytes();
-			long segmentBytes = Math.max(TEN_MEGABYTES, bytesPerDay);
-			segmentBytes = Math.min(segmentBytes, TEN_GIGABYTES);
+        if (query.getExpectedMessageCountPerDay() != null && query.getExpectedAvgMessageSizeBytes() != null) {
+            int cnt = query.getExpectedMessageCountPerDay();
+            long bytesPerDay = cnt * query.getExpectedAvgMessageSizeBytes();
+            long segmentBytes = Math.max(TEN_MEGABYTES, bytesPerDay);
+            segmentBytes = Math.min(segmentBytes, TEN_GIGABYTES);
 
-			defaultConfigs.put(TopicConfig.SEGMENT_BYTES_CONFIG, String.valueOf(segmentBytes));
-		}
+            defaultConfigs.put(TopicConfig.SEGMENT_BYTES_CONFIG, String.valueOf(segmentBytes));
+        }
 
-		// we set segment.ms to max one week to avoid unexpected effects when e.g. testing retention time settings.
-		// If retention is lower, segment.ms will be set to retention time.
-		if (query.getRetentionTimeMs() != null) {
-			long segmentMs = Math.max(query.getRetentionTimeMs(), ONE_HOUR);
-			segmentMs = Math.min(segmentMs, ONE_WEEK);
-			defaultConfigs.put(TopicConfig.SEGMENT_MS_CONFIG, String.valueOf(segmentMs));
-		}
+        // we set segment.ms to max one week to avoid unexpected effects when e.g. testing retention time settings.
+        // If retention is lower, segment.ms will be set to retention time.
+        if (query.getRetentionTimeMs() != null) {
+            long segmentMs = Math.max(query.getRetentionTimeMs(), ONE_HOUR);
+            segmentMs = Math.min(segmentMs, ONE_WEEK);
+            defaultConfigs.put(TopicConfig.SEGMENT_MS_CONFIG, String.valueOf(segmentMs));
+        }
 
-		result.setDefaultTopicConfigs(defaultConfigs);
-		return result;
-	}
+        result.setDefaultTopicConfigs(defaultConfigs);
+        return result;
+    }
 
-	@GetMapping(value = "/api/util/default-topic-config/{environmentId}", produces = MediaType.APPLICATION_JSON_VALUE)
-	public Map<String, String> getDefaultTopicConfig(@PathVariable String environmentId) {
-		KafkaCluster env = kafkaClusters.getEnvironment(environmentId).orElseThrow(notFound);
-		try {
-			return env.getDefaultTopicConfig().get();
-		}
-		catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-			return Collections.emptyMap();
-		}
-		catch (ExecutionException e) {
-			throw handleExecutionException(e, "Could not query default topic configuration: ");
-		}
-	}
+    @GetMapping(value = "/api/util/default-topic-config/{environmentId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public Map<String, String> getDefaultTopicConfig(@PathVariable String environmentId) {
+        KafkaCluster env = kafkaClusters.getEnvironment(environmentId).orElseThrow(notFound);
+        try {
+            return env.getDefaultTopicConfig().get();
+        }
+        catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return Collections.emptyMap();
+        }
+        catch (ExecutionException e) {
+            throw handleExecutionException(e, "Could not query default topic configuration: ");
+        }
+    }
 
-	@GetMapping(value = "/api/util/supported-kafka-configs", produces = MediaType.APPLICATION_JSON_VALUE)
-	public List<KafkaConfigDescriptionDto> getSupportedKafkaConfigs() {
-		return KafkaTopicConfigHelper.getConfigKeysAndDescription().entrySet().stream()
-				.map(entry -> new KafkaConfigDescriptionDto(entry.getKey(), entry.getValue())).collect(Collectors.toList());
-	}
+    @GetMapping(value = "/api/util/supported-kafka-configs", produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<KafkaConfigDescriptionDto> getSupportedKafkaConfigs() {
+        return KafkaTopicConfigHelper.getConfigKeysAndDescription().entrySet().stream()
+                .map(entry -> new KafkaConfigDescriptionDto(entry.getKey(), entry.getValue()))
+                .collect(Collectors.toList());
+    }
 
-	@GetMapping(value = "/api/util/environments-for-topic/{topicName:.+}", produces = MediaType.APPLICATION_JSON_VALUE)
-	public List<String> getEnvironmentsWithTopic(@PathVariable String topicName) {
-		return kafkaClusters.getEnvironmentIds().stream()
-				.map(envId -> topicService.getTopic(envId, topicName).map(t -> envId).orElse(null))
-				.filter(s -> s != null).collect(Collectors.toList());
-	}
+    @GetMapping(value = "/api/util/environments-for-topic/{topicName:.+}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<String> getEnvironmentsWithTopic(@PathVariable String topicName) {
+        return kafkaClusters.getEnvironmentIds().stream()
+                .map(envId -> topicService.getTopic(envId, topicName).map(t -> envId).orElse(null))
+                .filter(s -> s != null).collect(Collectors.toList());
+    }
 
-	@GetMapping(value = "/api/util/supported-devcert-environments", produces = MediaType.APPLICATION_JSON_VALUE)
-	public List<String> getEnvironmentsWithDeveloperCertificateSupport() {
-		return kafkaClusters.getEnvironmentIds().stream()
-				.map(id -> kafkaClusters.getCaManager(id).map(caMan -> caMan.supportsDeveloperCertificates() ? id : null).orElse(null))
-				.filter(id -> id != null)
-				.collect(Collectors.toList());
-	}
+    @GetMapping(value = "/api/util/supported-devcert-environments", produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<String> getEnvironmentsWithDeveloperCertificateSupport() {
+        return kafkaClusters.getEnvironmentIds().stream()
+                .map(id -> kafkaClusters.getCaManager(id)
+                        .map(caMan -> caMan.supportsDeveloperCertificates() ? id : null).orElse(null))
+                .filter(id -> id != null).collect(Collectors.toList());
+    }
 
-	private String getTopicNameSuggestion(QueryTopicCreateDefaultsDto query) {
-		KnownApplication app = applicationsService.getKnownApplication(query.getApplicationId()).orElseThrow(badRequest);
-		BusinessCapability cap = app.getBusinessCapabilities().stream()
-				.filter(bc -> bc.getId().equals(query.getBusinessCapabilityId())).findFirst().orElse(null);
+    @GetMapping(value = "/api/util/common-name/{applicationId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ApplicationCnDto getApplicationCommonName(@PathVariable String applicationId) {
+        return applicationsService.getKnownApplication(applicationId)
+                .map(app -> new ApplicationCnDto(app.getId(), app.getName(), CertificateUtil.toAppCn(app.getName())))
+                .orElseThrow(notFound);
+    }
 
-		ApplicationMetadata metadata = applicationsService.getApplicationMetadata(query.getEnvironmentId(), query.getApplicationId())
-				.orElseThrow(badRequest);
+    private String getTopicNameSuggestion(QueryTopicCreateDefaultsDto query) {
+        KnownApplication app = applicationsService.getKnownApplication(query.getApplicationId())
+                .orElseThrow(badRequest);
+        BusinessCapability cap = app.getBusinessCapabilities().stream()
+                .filter(bc -> bc.getId().equals(query.getBusinessCapabilityId())).findFirst().orElse(null);
 
-		String name = topicNameValidator.getTopicNameSuggestion(query.getTopicType(), app, metadata, cap);
-		if (name == null) {
-			throw badRequest.get();
-		}
+        String name = namingService.getTopicNameSuggestion(query.getTopicType(), app, cap);
+        if (name == null) {
+            throw badRequest.get();
+        }
 
-		return name;
-	}
+        return name;
+    }
 
-	private ResponseStatusException handleExecutionException(ExecutionException e, String msgPrefix) {
-		Throwable t = e.getCause();
-		if (t instanceof CertificateException) {
-			return new ResponseStatusException(HttpStatus.BAD_REQUEST, msgPrefix + t.getMessage());
-		}
-		if (t instanceof NoSuchElementException) {
-			return new ResponseStatusException(HttpStatus.NOT_FOUND);
-		}
-		if ((t instanceof IllegalStateException) || (t instanceof IllegalArgumentException)) {
-			return new ResponseStatusException(HttpStatus.BAD_REQUEST, t.getMessage());
-		}
+    private ResponseStatusException handleExecutionException(ExecutionException e, String msgPrefix) {
+        Throwable t = e.getCause();
+        if (t instanceof CertificateException) {
+            return new ResponseStatusException(HttpStatus.BAD_REQUEST, msgPrefix + t.getMessage());
+        }
+        if (t instanceof NoSuchElementException) {
+            return new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
+        if ((t instanceof IllegalStateException) || (t instanceof IllegalArgumentException)) {
+            return new ResponseStatusException(HttpStatus.BAD_REQUEST, t.getMessage());
+        }
 
-		log.error("Unhandled exception in UISupportController", t);
-		return new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
-	}
+        log.error("Unhandled exception in UISupportController", t);
+        return new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 
-	private static String readConfigTemplate(String name) throws IOException {
-		try (InputStream in = UISupportController.class.getClassLoader().getResourceAsStream("configtemplates/" + name)) {
-			return StreamUtils.copyToString(in, StandardCharsets.UTF_8);
-		}
-	}
+    private static String readConfigTemplate(String name) throws IOException {
+        try (InputStream in = UISupportController.class.getClassLoader()
+                .getResourceAsStream("configtemplates/" + name)) {
+            return StreamUtils.copyToString(in, StandardCharsets.UTF_8);
+        }
+    }
 
-	private static PeriodDto toPeriodDto(Period period) {
-		return new PeriodDto(period.getYears(), period.getMonths(), period.getDays());
-	}
+    private static PeriodDto toPeriodDto(Period period) {
+        return new PeriodDto(period.getYears(), period.getMonths(), period.getDays());
+    }
 
-	private final Function<String, String> springConfigBuilder = (environmentId) -> {
-		KafkaEnvironmentConfig config = kafkaClusters.getEnvironmentMetadata(environmentId).orElse(null);
-		if (config == null) {
-			return null;
-		}
+    private final Function<String, String> springConfigBuilder = (environmentId) -> {
+        KafkaEnvironmentConfig config = kafkaClusters.getEnvironmentMetadata(environmentId).orElse(null);
+        if (config == null) {
+            return null;
+        }
 
-		try {
-			return readConfigTemplate("spring.yaml.template").replace("${bootstrap.servers}", config.getBootstrapServers());
-		}
-		catch (IOException e) {
-			log.error("Could not read Spring config template", e);
-			return null;
-		}
-	};
+        try {
+            return readConfigTemplate("spring.yaml.template").replace("${bootstrap.servers}",
+                    config.getBootstrapServers());
+        }
+        catch (IOException e) {
+            log.error("Could not read Spring config template", e);
+            return null;
+        }
+    };
 
-	private final Function<String, String> micronautConfigBuilder = (environmentId) -> {
-		KafkaEnvironmentConfig config = kafkaClusters.getEnvironmentMetadata(environmentId).orElse(null);
-		if (config == null) {
-			return null;
-		}
+    private final Function<String, String> micronautConfigBuilder = (environmentId) -> {
+        KafkaEnvironmentConfig config = kafkaClusters.getEnvironmentMetadata(environmentId).orElse(null);
+        if (config == null) {
+            return null;
+        }
 
-		String[] bootstrapServers = config.getBootstrapServers().split(",");
+        String[] bootstrapServers = config.getBootstrapServers().split(",");
 
-		try {
-			String configFile = readConfigTemplate("micronaut.yaml.template");
-			StringBuilder sbOut = new StringBuilder();
+        try {
+            String configFile = readConfigTemplate("micronaut.yaml.template");
+            StringBuilder sbOut = new StringBuilder();
 
-			String[] lines = configFile.split("\\r?\\n");
-			for (String line : lines) {
-				if (line.contains("${bootstrap.server}")) {
-					for (String server : bootstrapServers) {
-						sbOut.append(line.replace("${bootstrap.server}", server.trim())).append('\n');
-					}
-				}
-				else {
-					sbOut.append(line).append('\n');
-				}
-			}
+            String[] lines = configFile.split("\\r?\\n");
+            for (String line : lines) {
+                if (line.contains("${bootstrap.server}")) {
+                    for (String server : bootstrapServers) {
+                        sbOut.append(line.replace("${bootstrap.server}", server.trim())).append('\n');
+                    }
+                }
+                else {
+                    sbOut.append(line).append('\n');
+                }
+            }
 
-			return sbOut.toString();
-		}
-		catch (IOException e) {
-			log.error("Could not read Micronaut config template", e);
-			return null;
-		}
-	};
+            return sbOut.toString();
+        }
+        catch (IOException e) {
+            log.error("Could not read Micronaut config template", e);
+            return null;
+        }
+    };
 
 }

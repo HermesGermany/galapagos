@@ -12,23 +12,23 @@ import org.thymeleaf.templateresolver.ITemplateResolver;
 @Configuration
 public class MailConfig {
 
-	@Bean
-	public TemplateEngine emailTemplateEngine() {
-		final SpringTemplateEngine templateEngine = new SpringTemplateEngine();
-		templateEngine.addDialect(new Java8TimeDialect());
-		templateEngine.addTemplateResolver(htmlTemplateResolver());
-		return templateEngine;
-	}
+    @Bean
+    public TemplateEngine emailTemplateEngine() {
+        final SpringTemplateEngine templateEngine = new SpringTemplateEngine();
+        templateEngine.addDialect(new Java8TimeDialect());
+        templateEngine.addTemplateResolver(htmlTemplateResolver());
+        return templateEngine;
+    }
 
-	private ITemplateResolver htmlTemplateResolver() {
-		final ClassLoaderTemplateResolver templateResolver = new ClassLoaderTemplateResolver();
-		templateResolver.setOrder(1);
-		templateResolver.setPrefix("/mailtemplates/");
-		templateResolver.setSuffix(".html");
-		templateResolver.setTemplateMode(TemplateMode.HTML);
-		templateResolver.setCharacterEncoding("UTF-8");
-		templateResolver.setCacheable(false);
-		return templateResolver;
-	}
+    private ITemplateResolver htmlTemplateResolver() {
+        final ClassLoaderTemplateResolver templateResolver = new ClassLoaderTemplateResolver();
+        templateResolver.setOrder(1);
+        templateResolver.setPrefix("/mailtemplates/");
+        templateResolver.setSuffix(".html");
+        templateResolver.setTemplateMode(TemplateMode.HTML);
+        templateResolver.setCharacterEncoding("UTF-8");
+        templateResolver.setCacheable(false);
+        return templateResolver;
+    }
 
 }

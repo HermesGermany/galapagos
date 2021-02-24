@@ -1,9 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { routerTransition } from '../../router.animations';
-import { NgbModal, NgbTabChangeEvent } from '@ng-bootstrap/ng-bootstrap';
+import { NgbModal, NgbNavChangeEvent } from '@ng-bootstrap/ng-bootstrap';
 import {
     ApplicationInfo,
     ApplicationOwnerRequest,
+    ApplicationPrefixes,
     ApplicationsService,
     UserApplicationInfo
 } from '../../shared/services/applications.service';
@@ -11,19 +12,22 @@ import { combineLatest, Observable, of } from 'rxjs';
 import { toNiceTimestamp } from '../../shared/util/time-util';
 
 import * as moment from 'moment';
-import { flatMap, map, shareReplay, startWith } from 'rxjs/operators';
+import { map, mergeMap, shareReplay, startWith } from 'rxjs/operators';
 import { EnvironmentsService, KafkaEnvironment } from '../../shared/services/environments.service';
 import { ToastService } from '../../shared/modules/toast/toast.service';
 import { ApplicationCertificate, CertificateService } from '../../shared/services/certificates.service';
 import { TopicsService } from '../../shared/services/topics.service';
 import { TranslateService } from '@ngx-translate/core';
 import { HttpErrorResponse } from '@angular/common/http';
+import { OpenCertificateDialogEvent } from './application-block.component';
 
-interface UserApplicationInfoWithTopics extends UserApplicationInfo {
+export interface UserApplicationInfoWithTopics extends UserApplicationInfo {
 
     owningTopics: string[];
 
     usingTopics: Observable<string[]>;
+
+    prefixes: Observable<ApplicationPrefixes>;
 
 }
 
@@ -50,11 +54,8 @@ export class ApplicationsComponent implements OnInit {
         applicationName: null,
         applicationId: null,
         environment: null,
-        existingCertificate: <ApplicationCertificate>null,
+        existingCertificate: null as ApplicationCertificate,
         csrData: null,
-        topicPrefixes: [],
-        selectedTopicPrefix: null,
-        groupPrefixes: [],
         commonName: null,
         orgUnitName: null,
         keyfileName: null,
@@ -107,15 +108,15 @@ export class ApplicationsComponent implements OnInit {
 
         this.userApplications = combineLatest([obsTopics, obsPlainUserApplications, this.environmentsService.getCurrentEnvironment()])
             .pipe(map(([topics, apps, env]) => {
-                const getOwningTopicsForApp = (appId: string): string[] => {
-                    return topics.filter(topic => topic.ownerApplication.id === appId && topic.topicType !== 'INTERNAL').map(t => t.name);
-                };
+                const getOwningTopicsForApp = (appId: string): string[] =>
+                    topics.filter(topic => topic.ownerApplication.id === appId && topic.topicType !== 'INTERNAL').map(t => t.name);
 
-                return <UserApplicationInfoWithTopics[]>apps.map(app => ({
+                return apps.map(app => ({
                     ...app, owningTopics: getOwningTopicsForApp(app.id),
                     usingTopics: this.applicationsService.getApplicationSubscriptions(app.id, env.id)
-                        .pipe(map(subs => subs.map(s => s.topicName)))
-                }));
+                        .pipe(map(subs => subs.map(s => s.topicName))),
+                    prefixes: this.applicationsService.getApplicationPrefixes(app.id, env.id)
+                })) as UserApplicationInfoWithTopics[];
             })).pipe(shareReplay(1));
 
         this.environments = this.environmentsService.getEnvironments();
@@ -152,12 +153,9 @@ export class ApplicationsComponent implements OnInit {
         );
     }
 
-    openCertDlg(app: UserApplicationInfo, env: KafkaEnvironment, content: any) {
-        const names = [this.cnForApp(app.name).toLowerCase().replace(/_/g, '-')];
-        app.aliases.forEach(a => names.push(this.cnForApp(a).toLowerCase().replace(/_/g, '-')));
-
-        const topicPrefixes = names.map(n => n + '.internal.');
-        const groupPrefixes = names.map(n => n + '.');
+    openCertDlg(event: OpenCertificateDialogEvent, content: any) {
+        const app = event.application;
+        const env = event.environment;
 
         this.certificateDlgData = {
             applicationId: app.id,
@@ -165,20 +163,18 @@ export class ApplicationsComponent implements OnInit {
             environment: env,
             existingCertificate: null,
             csrData: '',
-            topicPrefixes: topicPrefixes,
-            selectedTopicPrefix: topicPrefixes[0],
-            groupPrefixes: groupPrefixes.map(n => 'de.hlg.' + n),
-            commonName: this.cnForApp(app.name),
+            commonName: null,
             orgUnitName: null,
-            keyfileName: this.cnForApp(app.name) + '_' + env.id + '.key',
+            keyfileName: null,
             expiryWarningType: 'info',
             expiryWarningHtml: of('')
         };
-        this.certificateService.getApplicationCertificates(app.id).then(certs => {
+        this.certificateService.getApplicationCertificatesPromise(app.id).then(certs => {
             this.certificateDlgData.existingCertificate = certs.find(cert => cert.environmentId === env.id) || null;
             if (this.certificateDlgData.existingCertificate) {
-                this.certificateDlgData.commonName = this.extractCommonName(this.certificateDlgData.existingCertificate.dn);
-                this.certificateDlgData.orgUnitName = this.extractOrgUnitName(this.certificateDlgData.existingCertificate.dn);
+                const dn = this.certificateDlgData.existingCertificate.dn;
+                this.certificateDlgData.commonName = this.extractCommonName(dn);
+                this.certificateDlgData.orgUnitName = this.extractOrgUnitName(dn);
                 this.certificateDlgData.keyfileName = this.certificateDlgData.commonName + '_' + env.id + '.key';
 
                 const isoExpiryDate = this.certificateDlgData.existingCertificate.expiresAt;
@@ -187,51 +183,41 @@ export class ApplicationsComponent implements OnInit {
                     (moment(isoExpiryDate).diff(now, 'days') < 90 ? 'warning' : 'info');
 
                 this.certificateDlgData.expiryWarningType = expiryWarnLevel;
-                this.certificateDlgData.expiryWarningHtml = this.currentLang.pipe(flatMap(lang =>
+                this.certificateDlgData.expiryWarningHtml = this.currentLang.pipe(mergeMap(lang =>
                     this.translateService.get(expiryWarnLevel === 'danger' ? 'CERTIFICATE_EXPIRED_HTML' : 'CERTIFICATE_EXPIRY_HTML',
                         { expiryDate: moment(isoExpiryDate).locale(lang).format('L') })));
+            } else {
+                this.certificateDlgData.commonName = 'app';
+                this.certificateDlgData.keyfileName = 'app.key';
+                this.certificateService.getApplicationCn(app.id).then(cn => {
+                    this.certificateDlgData.commonName = cn;
+                    this.certificateDlgData.keyfileName = this.certificateDlgData.commonName + '_' + env.id + '.key';
+                });
             }
             this.modalService.open(content, { ariaLabelledBy: 'modal-title', size: 'lg', windowClass: 'modal-xxl' });
         });
     }
 
-    handleDlgTabChange(event: NgbTabChangeEvent) {
+    handleDlgTabChange(event: NgbNavChangeEvent) {
         this.activeTab = event.nextId;
     }
 
     generateCertificate(): void {
         if (this.certificateDlgData.applicationId && this.certificateDlgData.environment) {
+            const appId = this.certificateDlgData.applicationId;
             this.certificateService
                 .requestAndDownloadApplicationCertificate(
-                    this.certificateDlgData.applicationId,
+                    appId,
                     this.certificateDlgData.environment.id,
                     this.certificateDlgData.csrData,
-                    this.certificateDlgData.selectedTopicPrefix,
                     this.activeTab === 'extend'
                 )
                 .then(
                     () => this.toasts.addSuccessToast('Zertifikat erfolgreich erstellt (bitte Browser-Downloads beachten)'),
                     (err: HttpErrorResponse) => this.toasts.addHttpErrorToast('Zertifikat konnte nicht erstellt werden', err)
-                );
+                )
+                .then(() => this.certificateService.getApplicationCertificates(appId).refresh());
         }
-    }
-
-    cnForApp(app: string) {
-        if (!app) {
-            return '';
-        }
-        let cn = app.toLowerCase();
-        cn = cn.replace(/[^0-9a-zA-Z]/g, '_');
-        while (cn.indexOf('__') > -1) {
-            cn = cn.replace('__', '_');
-        }
-        if (cn.startsWith('_')) {
-            cn = cn.substring(1);
-        }
-        if (cn.endsWith('_')) {
-            cn = cn.substring(0, cn.length - 1);
-        }
-        return cn;
     }
 
     niceTimestamp(str: string): string {

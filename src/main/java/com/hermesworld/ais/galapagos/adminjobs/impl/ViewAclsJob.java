@@ -24,48 +24,48 @@ import org.springframework.stereotype.Component;
 @Component
 public class ViewAclsJob extends SingleClusterAdminJob {
 
-	@Autowired
-	public ViewAclsJob(KafkaClusters kafkaClusters) {
-		super(kafkaClusters);
-	}
+    @Autowired
+    public ViewAclsJob(KafkaClusters kafkaClusters) {
+        super(kafkaClusters);
+    }
 
-	@Override
-	public String getJobName() {
-		return "view-acls";
-	}
+    @Override
+    public String getJobName() {
+        return "view-acls";
+    }
 
-	@Override
-	public void runOnCluster(KafkaCluster cluster, ApplicationArguments allArguments) throws Exception {
-		JSONArray acls = new JSONArray();
-		cluster.visitAcls(acl -> {
-			acls.put(toJsonObject(acl));
-			return true;
-		}).get();
+    @Override
+    public void runOnCluster(KafkaCluster cluster, ApplicationArguments allArguments) throws Exception {
+        JSONArray acls = new JSONArray();
+        cluster.visitAcls(acl -> {
+            acls.put(toJsonObject(acl));
+            return true;
+        }).get();
 
-		System.out.println();
-		System.out.println();
-		System.out.println(acls.toString());
-		System.out.println();
-		System.out.println();
-	}
+        System.out.println();
+        System.out.println();
+        System.out.println(acls.toString());
+        System.out.println();
+        System.out.println();
+    }
 
-	private JSONObject toJsonObject(AclBinding aclBinding) {
-		JSONObject pattern = new JSONObject();
-		pattern.put("resourceType", aclBinding.pattern().resourceType().toString());
-		pattern.put("patternType", aclBinding.pattern().patternType().toString());
-		pattern.put("name", aclBinding.pattern().name());
+    private JSONObject toJsonObject(AclBinding aclBinding) {
+        JSONObject pattern = new JSONObject();
+        pattern.put("resourceType", aclBinding.pattern().resourceType().toString());
+        pattern.put("patternType", aclBinding.pattern().patternType().toString());
+        pattern.put("name", aclBinding.pattern().name());
 
-		JSONObject entry = new JSONObject();
-		entry.put("principal", aclBinding.entry().principal());
-		entry.put("host", aclBinding.entry().host());
-		entry.put("operation", aclBinding.entry().operation().toString());
-		entry.put("permissionType", aclBinding.entry().permissionType().toString());
+        JSONObject entry = new JSONObject();
+        entry.put("principal", aclBinding.entry().principal());
+        entry.put("host", aclBinding.entry().host());
+        entry.put("operation", aclBinding.entry().operation().toString());
+        entry.put("permissionType", aclBinding.entry().permissionType().toString());
 
-		JSONObject result = new JSONObject();
-		result.put("pattern", pattern);
-		result.put("entry", entry);
+        JSONObject result = new JSONObject();
+        result.put("pattern", pattern);
+        result.put("entry", entry);
 
-		return result;
-	}
+        return result;
+    }
 
 }

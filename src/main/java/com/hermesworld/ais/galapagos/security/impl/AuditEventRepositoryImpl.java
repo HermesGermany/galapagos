@@ -37,70 +37,72 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 @Component
 public class AuditEventRepositoryImpl extends InMemoryAuditEventRepository {
 
-	private static final Logger LOG = LoggerFactory.getLogger("galapagos.audit");
+    private static final Logger LOG = LoggerFactory.getLogger("galapagos.audit");
 
-	private ObjectMapper objectMapper;
+    private ObjectMapper objectMapper;
 
-	public AuditEventRepositoryImpl() {
-		this.objectMapper = new ObjectMapper();
-		this.objectMapper.setConfig(this.objectMapper.getSerializationConfig().without(SerializationFeature.FAIL_ON_EMPTY_BEANS));
+    public AuditEventRepositoryImpl() {
+        this.objectMapper = new ObjectMapper();
+        this.objectMapper.setConfig(
+                this.objectMapper.getSerializationConfig().without(SerializationFeature.FAIL_ON_EMPTY_BEANS));
 
-		SimpleModule mapperModule = new SimpleModule();
-		mapperModule.addSerializer(new KeycloakSecurityContextSerializer());
-		this.objectMapper.registerModule(mapperModule);
-	}
+        SimpleModule mapperModule = new SimpleModule();
+        mapperModule.addSerializer(new KeycloakSecurityContextSerializer());
+        this.objectMapper.registerModule(mapperModule);
+    }
 
-	@Override
-	public void add(AuditEvent event) {
-		super.add(event);
+    @Override
+    public void add(AuditEvent event) {
+        super.add(event);
 
-		HttpServletRequest request = null;
-		try {
-			if (RequestContextHolder.currentRequestAttributes() instanceof ServletRequestAttributes) {
-				request = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
-			}
-		}
-		catch (IllegalStateException e) {
-			// OK, no request
-			request = null;
-		}
+        HttpServletRequest request = null;
+        try {
+            if (RequestContextHolder.currentRequestAttributes() instanceof ServletRequestAttributes) {
+                request = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
+            }
+        }
+        catch (IllegalStateException e) {
+            // OK, no request
+            request = null;
+        }
 
-		Map<String, Object> logEntry = new HashMap<>();
-		if (request != null) {
-			logEntry.put("request", toLogMap(request));
-		}
-		logEntry.put("event", event);
+        Map<String, Object> logEntry = new HashMap<>();
+        if (request != null) {
+            logEntry.put("request", toLogMap(request));
+        }
+        logEntry.put("event", event);
 
-		try {
-			LOG.info(this.objectMapper.writeValueAsString(logEntry));
-		}
-		catch (JsonProcessingException e) {
-			// critical, as Audit log entry missing
-			throw new RuntimeException("Could not serialize Audit log entry", e);
-		}
-	}
+        try {
+            LOG.info(this.objectMapper.writeValueAsString(logEntry));
+        }
+        catch (JsonProcessingException e) {
+            // critical, as Audit log entry missing
+            throw new RuntimeException("Could not serialize Audit log entry", e);
+        }
+    }
 
-	private static Map<String, String> toLogMap(HttpServletRequest request) {
-		Map<String, String> result = new HashMap<>();
-		result.put("url", request.getRequestURL().toString());
-		result.put("method", request.getMethod());
-		result.put("path", request.getPathInfo());
-		result.put("clientIp", request.getRemoteAddr());
-		return result;
-	}
+    private static Map<String, String> toLogMap(HttpServletRequest request) {
+        Map<String, String> result = new HashMap<>();
+        result.put("url", request.getRequestURL().toString());
+        result.put("method", request.getMethod());
+        result.put("path", request.getPathInfo());
+        result.put("clientIp", request.getRemoteAddr());
+        return result;
+    }
 
-	private static class KeycloakSecurityContextSerializer extends JsonSerializer<KeycloakSecurityContext> {
+    private static class KeycloakSecurityContextSerializer extends JsonSerializer<KeycloakSecurityContext> {
 
-		@Override
-		public void serialize(KeycloakSecurityContext value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
-			gen.writeObject(Collections.emptyMap());
-		}
+        @Override
+        public void serialize(KeycloakSecurityContext value, JsonGenerator gen, SerializerProvider serializers)
+                throws IOException {
+            gen.writeObject(Collections.emptyMap());
+        }
 
-		@Override
-		public Class<KeycloakSecurityContext> handledType() {
-			return KeycloakSecurityContext.class;
-		}
+        @Override
+        public Class<KeycloakSecurityContext> handledType() {
+            return KeycloakSecurityContext.class;
+        }
 
-	}
+    }
 
 }

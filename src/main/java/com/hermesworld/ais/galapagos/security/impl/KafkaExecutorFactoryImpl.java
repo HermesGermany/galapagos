@@ -21,9 +21,10 @@ import com.hermesworld.ais.galapagos.kafka.KafkaExecutorFactory;
 @Component
 public class KafkaExecutorFactoryImpl implements KafkaExecutorFactory {
 
-	@Override
-	public ExecutorService newExecutor() {
-		return new DelegatingSecurityContextExecutorService(Executors.newSingleThreadExecutor(), SecurityContextHolder.getContext());
-	}
+    @Override
+    public ExecutorService newExecutor() {
+        return new DelegatingSecurityContextExecutorService(Executors.newSingleThreadExecutor(),
+                SecurityContextHolder.getContext());
+    }
 
 }

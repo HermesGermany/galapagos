@@ -16,46 +16,46 @@ import lombok.Setter;
 @Setter
 public class TopicMetadata implements HasKey {
 
-	private String name;
+    private String name;
 
-	private TopicType type;
+    private TopicType type;
 
-	private String description;
+    private String description;
 
-	/**
-	 * Can be set from external tooling via Kafka Topic galapagos.internal.topics
-	 */
-	private String infoUrl;
+    /**
+     * Can be set from external tooling via Kafka Topic galapagos.internal.topics
+     */
+    private String infoUrl;
 
-	private String ownerApplicationId;
+    private String ownerApplicationId;
 
-	private boolean isDeprecated;
+    private boolean isDeprecated;
 
-	private String deprecationText;
+    private String deprecationText;
 
-	@JsonFormat(shape = Shape.STRING)
-	private LocalDate eolDate;
+    @JsonFormat(shape = Shape.STRING)
+    private LocalDate eolDate;
 
-	private boolean subscriptionApprovalRequired;
+    private boolean subscriptionApprovalRequired;
 
-	public TopicMetadata() {
-	}
+    public TopicMetadata() {
+    }
 
-	public TopicMetadata(TopicMetadata original) {
-		this.name = original.name;
-		this.type = original.type;
-		this.description = original.description;
-		this.infoUrl = original.infoUrl;
-		this.ownerApplicationId = original.ownerApplicationId;
-		this.isDeprecated = original.isDeprecated;
-		this.deprecationText = original.deprecationText;
-		this.eolDate = original.eolDate;
-		this.subscriptionApprovalRequired = original.subscriptionApprovalRequired;
-	}
+    public TopicMetadata(TopicMetadata original) {
+        this.name = original.name;
+        this.type = original.type;
+        this.description = original.description;
+        this.infoUrl = original.infoUrl;
+        this.ownerApplicationId = original.ownerApplicationId;
+        this.isDeprecated = original.isDeprecated;
+        this.deprecationText = original.deprecationText;
+        this.eolDate = original.eolDate;
+        this.subscriptionApprovalRequired = original.subscriptionApprovalRequired;
+    }
 
-	@Override
-	public String key() {
-		return name;
-	}
+    @Override
+    public String key() {
+        return name;
+    }
 
 }

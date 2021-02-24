@@ -15,19 +15,19 @@ import com.hermesworld.ais.galapagos.kafka.KafkaSender;
  */
 public class KafkaSenderImpl implements KafkaSender {
 
-	private KafkaTemplate<String, String> kafkaTemplate;
+    private KafkaTemplate<String, String> kafkaTemplate;
 
-	private KafkaFutureDecoupler futureDecoupler;
+    private KafkaFutureDecoupler futureDecoupler;
 
-	public KafkaSenderImpl(KafkaTemplate<String, String> template, KafkaFutureDecoupler futureDecoupler) {
-		this.kafkaTemplate = template;
-		this.futureDecoupler = futureDecoupler;
-	}
+    public KafkaSenderImpl(KafkaTemplate<String, String> template, KafkaFutureDecoupler futureDecoupler) {
+        this.kafkaTemplate = template;
+        this.futureDecoupler = futureDecoupler;
+    }
 
-	@Override
-	public CompletableFuture<Void> send(String topic, String key, String message) {
-		return futureDecoupler.toCompletableFuture(kafkaTemplate.send(new ProducerRecord<>(topic, key, message)))
-				.thenApply(o -> null);
-	}
+    @Override
+    public CompletableFuture<Void> send(String topic, String key, String message) {
+        return futureDecoupler.toCompletableFuture(kafkaTemplate.send(new ProducerRecord<>(topic, key, message)))
+                .thenApply(o -> null);
+    }
 
 }

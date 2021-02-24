@@ -30,66 +30,67 @@ import com.hermesworld.ais.galapagos.util.FutureUtil;
 
 public class ViewAclsJobTest {
 
-	private ByteArrayOutputStream stdoutData = new ByteArrayOutputStream();
+    private ByteArrayOutputStream stdoutData = new ByteArrayOutputStream();
 
-	private PrintStream oldOut;
+    private PrintStream oldOut;
 
-	@Before
-	public void setup() {
-		oldOut = System.out;
-		System.setOut(new PrintStream(stdoutData));
-	}
+    @Before
+    public void setup() {
+        oldOut = System.out;
+        System.setOut(new PrintStream(stdoutData));
+    }
 
-	@After
-	public void cleanup() {
-		System.setOut(oldOut);
-	}
+    @After
+    public void cleanup() {
+        System.setOut(oldOut);
+    }
 
-	@Test
-	public void testJsonMapping() throws Exception {
-		KafkaClusters clusters = mock(KafkaClusters.class);
+    @Test
+    public void testJsonMapping() throws Exception {
+        KafkaClusters clusters = mock(KafkaClusters.class);
 
-		KafkaCluster cluster = mock(KafkaCluster.class);
-		when(cluster.visitAcls(any())).then(inv -> {
-			Function<AclBinding, Boolean> fn = inv.getArgument(0);
-			AclBinding binding1 = new AclBinding(new ResourcePattern(ResourceType.GROUP, "group1", PatternType.LITERAL),
-					new AccessControlEntry("dummy", "localhost", AclOperation.ALTER, AclPermissionType.ALLOW));
-			AclBinding binding2 = new AclBinding(new ResourcePattern(ResourceType.TOPIC, "topic1", PatternType.PREFIXED),
-					new AccessControlEntry("alice", "otherhost", AclOperation.READ, AclPermissionType.DENY));
-			fn.apply(binding1);
-			fn.apply(binding2);
-			return FutureUtil.noop();
-		});
+        KafkaCluster cluster = mock(KafkaCluster.class);
+        when(cluster.visitAcls(any())).then(inv -> {
+            Function<AclBinding, Boolean> fn = inv.getArgument(0);
+            AclBinding binding1 = new AclBinding(new ResourcePattern(ResourceType.GROUP, "group1", PatternType.LITERAL),
+                    new AccessControlEntry("dummy", "localhost", AclOperation.ALTER, AclPermissionType.ALLOW));
+            AclBinding binding2 = new AclBinding(
+                    new ResourcePattern(ResourceType.TOPIC, "topic1", PatternType.PREFIXED),
+                    new AccessControlEntry("alice", "otherhost", AclOperation.READ, AclPermissionType.DENY));
+            fn.apply(binding1);
+            fn.apply(binding2);
+            return FutureUtil.noop();
+        });
 
-		when(clusters.getEnvironment("test")).thenReturn(Optional.of(cluster));
+        when(clusters.getEnvironment("test")).thenReturn(Optional.of(cluster));
 
-		ViewAclsJob job = new ViewAclsJob(clusters);
+        ViewAclsJob job = new ViewAclsJob(clusters);
 
-		ApplicationArguments args = mock(ApplicationArguments.class);
-		when(args.getOptionValues("kafka.environment")).thenReturn(Collections.singletonList("test"));
+        ApplicationArguments args = mock(ApplicationArguments.class);
+        when(args.getOptionValues("kafka.environment")).thenReturn(Collections.singletonList("test"));
 
-		job.run(args);
+        job.run(args);
 
-		String stdout = new String(stdoutData.toByteArray());
+        String stdout = new String(stdoutData.toByteArray());
 
-		assertTrue(stdout.contains("[{\""));
-		String jsonData = stdout.substring(stdout.indexOf("[{\""));
-		int endIndex = jsonData.indexOf('\r');
-		if (endIndex == -1) {
-			endIndex = jsonData.indexOf('\n');
-		}
+        assertTrue(stdout.contains("[{\""));
+        String jsonData = stdout.substring(stdout.indexOf("[{\""));
+        int endIndex = jsonData.indexOf('\r');
+        if (endIndex == -1) {
+            endIndex = jsonData.indexOf('\n');
+        }
 
-		JSONArray arr = new JSONArray(jsonData);
-		assertEquals(2, arr.length());
+        JSONArray arr = new JSONArray(jsonData);
+        assertEquals(2, arr.length());
 
-		// only some checks for now
-		JSONObject obj1 = arr.getJSONObject(0);
-		assertEquals("LITERAL", obj1.getJSONObject("pattern").getString("patternType"));
-		assertEquals("localhost", obj1.getJSONObject("entry").getString("host"));
+        // only some checks for now
+        JSONObject obj1 = arr.getJSONObject(0);
+        assertEquals("LITERAL", obj1.getJSONObject("pattern").getString("patternType"));
+        assertEquals("localhost", obj1.getJSONObject("entry").getString("host"));
 
-		JSONObject obj2 = arr.getJSONObject(1);
-		assertEquals("topic1", obj2.getJSONObject("pattern").getString("name"));
-		assertEquals("DENY", obj2.getJSONObject("entry").getString("permissionType"));
-	}
+        JSONObject obj2 = arr.getJSONObject(1);
+        assertEquals("topic1", obj2.getJSONObject("pattern").getString("name"));
+        assertEquals("DENY", obj2.getJSONObject("entry").getString("permissionType"));
+    }
 
 }

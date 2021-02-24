@@ -21,47 +21,47 @@ import com.hermesworld.ais.galapagos.kafka.KafkaExecutorFactory;
 
 public class KafkaSenderImplTest {
 
-	private static ThreadFactory tfDecoupled = new ThreadFactory() {
-		@Override
-		public Thread newThread(Runnable r) {
-			return new Thread(r, "decoupled-" + System.currentTimeMillis());
-		}
-	};
+    private static ThreadFactory tfDecoupled = new ThreadFactory() {
+        @Override
+        public Thread newThread(Runnable r) {
+            return new Thread(r, "decoupled-" + System.currentTimeMillis());
+        }
+    };
 
-	private static KafkaExecutorFactory executorFactory = () -> {
-		return Executors.newSingleThreadExecutor(tfDecoupled);
-	};
+    private static KafkaExecutorFactory executorFactory = () -> {
+        return Executors.newSingleThreadExecutor(tfDecoupled);
+    };
 
-	@Test
-	public void testSendDecoupling() throws Exception {
-		KafkaFutureDecoupler decoupler = new KafkaFutureDecoupler(executorFactory);
+    @Test
+    public void testSendDecoupling() throws Exception {
+        KafkaFutureDecoupler decoupler = new KafkaFutureDecoupler(executorFactory);
 
-		@SuppressWarnings("unchecked")
-		Producer<String, String> producer = mock(Producer.class);
-		when(producer.send(any(), any())).then(inv -> {
-			return CompletableFuture.runAsync(() -> {
-				try {
-					Thread.sleep(200);
-				}
-				catch (InterruptedException e) {
-				}
-				Callback cb = inv.getArgument(1);
-				cb.onCompletion(new RecordMetadata(new TopicPartition("a", 0), 0, 0, 0, null, 0, 0), null);
-			});
-		});
+        @SuppressWarnings("unchecked")
+        Producer<String, String> producer = mock(Producer.class);
+        when(producer.send(any(), any())).then(inv -> {
+            return CompletableFuture.runAsync(() -> {
+                try {
+                    Thread.sleep(200);
+                }
+                catch (InterruptedException e) {
+                }
+                Callback cb = inv.getArgument(1);
+                cb.onCompletion(new RecordMetadata(new TopicPartition("a", 0), 0, 0, 0, null, 0, 0), null);
+            });
+        });
 
-		ProducerFactory<String, String> factory = () -> {
-			return producer;
-		};
+        ProducerFactory<String, String> factory = () -> {
+            return producer;
+        };
 
-		KafkaTemplate<String, String> template = new KafkaTemplate<String, String>(factory);
+        KafkaTemplate<String, String> template = new KafkaTemplate<String, String>(factory);
 
-		KafkaSenderImpl sender = new KafkaSenderImpl(template, decoupler);
+        KafkaSenderImpl sender = new KafkaSenderImpl(template, decoupler);
 
-		StringBuilder threadName = new StringBuilder();
+        StringBuilder threadName = new StringBuilder();
 
-		sender.send("a", "b", "c").thenApply(o -> threadName.append(Thread.currentThread().getName())).get();
-		assertTrue(threadName.toString().startsWith("decoupled-"));
-	}
+        sender.send("a", "b", "c").thenApply(o -> threadName.append(Thread.currentThread().getName())).get();
+        assertTrue(threadName.toString().startsWith("decoupled-"));
+    }
 
 }

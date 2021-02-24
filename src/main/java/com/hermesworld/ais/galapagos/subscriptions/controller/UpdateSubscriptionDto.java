@@ -11,6 +11,6 @@ import lombok.Setter;
 @Setter
 public class UpdateSubscriptionDto {
 
-	private SubscriptionState newState;
+    private SubscriptionState newState;
 
 }

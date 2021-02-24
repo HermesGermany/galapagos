@@ -8,12 +8,12 @@ import lombok.Setter;
 @Setter
 public class TopicNameSuggestionQueryDto {
 
-	private TopicType topicType;
+    private TopicType topicType;
 
-	private String applicationId;
+    private String applicationId;
 
-	private String environmentId;
+    private String environmentId;
 
-	private String businessCapabilityId;
+    private String businessCapabilityId;
 
 }

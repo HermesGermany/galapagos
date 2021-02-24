@@ -29,57 +29,62 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class StartupRepositoryInitializer {
 
-	private final KafkaClusters kafkaClusters;
+    private final KafkaClusters kafkaClusters;
 
-	private final Duration initialRepositoryLoadWaitTime;
+    private final Duration initialRepositoryLoadWaitTime;
 
-	private final Duration repositoryLoadIdleTime;
+    private final Duration repositoryLoadIdleTime;
 
-	@Autowired
-	public StartupRepositoryInitializer(KafkaClusters kafkaClusters,
-		@Value("${galapagos.initialRepositoryLoadWaitTime:5s}") Duration initialRepositoryLoadWaitTime,
-		@Value("${galapagos.repositoryLoadIdleTime:2s}") Duration repositoryLoadIdleTime) {
-		this.kafkaClusters = kafkaClusters;
-		this.initialRepositoryLoadWaitTime = initialRepositoryLoadWaitTime;
-		this.repositoryLoadIdleTime = repositoryLoadIdleTime;
-	}
+    @Autowired
+    public StartupRepositoryInitializer(KafkaClusters kafkaClusters,
+            @Value("${galapagos.initialRepositoryLoadWaitTime:5s}") Duration initialRepositoryLoadWaitTime,
+            @Value("${galapagos.repositoryLoadIdleTime:2s}") Duration repositoryLoadIdleTime) {
+        this.kafkaClusters = kafkaClusters;
+        this.initialRepositoryLoadWaitTime = initialRepositoryLoadWaitTime;
+        this.repositoryLoadIdleTime = repositoryLoadIdleTime;
+    }
 
-	@EventListener
-	public void initializePerCluster(ContextRefreshedEvent event) {
-		Collection<InitPerCluster> beans = event.getApplicationContext().getBeansOfType(InitPerCluster.class).values();
+    @EventListener
+    public void initializePerCluster(ContextRefreshedEvent event) {
+        Collection<InitPerCluster> beans = event.getApplicationContext().getBeansOfType(InitPerCluster.class).values();
 
-		ScheduledExecutorService executorService = new ScheduledThreadPoolExecutor(1);
+        ScheduledExecutorService executorService = new ScheduledThreadPoolExecutor(1);
 
-		List<CompletableFuture<?>> futures = new ArrayList<>();
+        List<CompletableFuture<?>> futures = new ArrayList<>();
 
-		log.info("Waiting for Galapagos Metadata repositories to be initialized...");
+        log.info("Waiting for Galapagos Metadata repositories to be initialized...");
 
-		try {
-			for (String id : kafkaClusters.getEnvironmentIds()) {
-				KafkaCluster cluster = kafkaClusters.getEnvironment(id).orElse(null);
-				if (cluster != null) {
-					beans.forEach(bean -> bean.init(cluster));
-					cluster.getRepositories().stream().map(r -> r.waitForInitialization(initialRepositoryLoadWaitTime, repositoryLoadIdleTime, executorService)).forEach(futures::add);
-				}
-			}
+        try {
+            for (String id : kafkaClusters.getEnvironmentIds()) {
+                KafkaCluster cluster = kafkaClusters.getEnvironment(id).orElse(null);
+                if (cluster != null) {
+                    beans.forEach(bean -> bean.init(cluster));
+                    cluster.getRepositories().stream().map(r -> r.waitForInitialization(initialRepositoryLoadWaitTime,
+                            repositoryLoadIdleTime, executorService)).forEach(futures::add);
+                }
+            }
 
-			for (CompletableFuture<?> future : futures) {
-				try {
-					future.get();
-				} catch (InterruptedException e) {
-					return;
-				} catch (ExecutionException e) {
-					log.error("Exception when waiting for Kafka repository initialization", e);
-				}
-			}
-		} finally {
-			executorService.shutdown();
-			try {
-				executorService.awaitTermination(1, TimeUnit.MINUTES);
-			} catch (InterruptedException e) {
-				log.warn("Thread has been interrupted while waiting for executor shutdown", e);
-			}
-		}
-	}
+            for (CompletableFuture<?> future : futures) {
+                try {
+                    future.get();
+                }
+                catch (InterruptedException e) {
+                    return;
+                }
+                catch (ExecutionException e) {
+                    log.error("Exception when waiting for Kafka repository initialization", e);
+                }
+            }
+        }
+        finally {
+            executorService.shutdown();
+            try {
+                executorService.awaitTermination(1, TimeUnit.MINUTES);
+            }
+            catch (InterruptedException e) {
+                log.warn("Thread has been interrupted while waiting for executor shutdown", e);
+            }
+        }
+    }
 
 }

@@ -9,14 +9,14 @@ package com.hermesworld.ais.galapagos.kafka;
  */
 public interface TopicConfigEntry {
 
-	String getName();
+    String getName();
 
-	String getValue();
+    String getValue();
 
-	boolean isDefault();
+    boolean isDefault();
 
-	boolean isReadOnly();
+    boolean isReadOnly();
 
-	boolean isSensitive();
+    boolean isSensitive();
 
 }

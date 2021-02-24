@@ -23,9 +23,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import org.springframework.boot.ApplicationArguments;
 
-
 public class ImportKnownApplicationsJobTest {
-
 
     private KafkaClusters kafkaClusters;
 
@@ -37,7 +35,6 @@ public class ImportKnownApplicationsJobTest {
 
     private ObjectMapper mapper;
 
-
     @Before
     public void setUp() {
 
@@ -47,20 +44,22 @@ public class ImportKnownApplicationsJobTest {
         when(testCluster.getId()).thenReturn("test");
         when(kafkaClusters.getEnvironment("test")).thenReturn(Optional.of(testCluster));
         appRepository = new TopicBasedRepositoryMock<>();
-        when(kafkaClusters.getGlobalRepository("known-applications", KnownApplicationImpl.class)).thenReturn(appRepository);
+        when(kafkaClusters.getGlobalRepository("known-applications", KnownApplicationImpl.class))
+                .thenReturn(appRepository);
 
     }
 
     @Test
     public void reImportAfterAppChanges() throws Exception {
 
-        List<KnownApplicationImpl> knownApplications =
-            mapper.readValue(fileWithOutInfoUrl, new TypeReference<List<KnownApplicationImpl>>() {
-            });
+        List<KnownApplicationImpl> knownApplications = mapper.readValue(fileWithOutInfoUrl,
+                new TypeReference<List<KnownApplicationImpl>>() {
+                });
 
         ImportKnownApplicationsJob job = new ImportKnownApplicationsJob(kafkaClusters);
         ApplicationArguments args = mock(ApplicationArguments.class);
-        when(args.getOptionValues("applications.import.file")).thenReturn(Collections.singletonList(fileWithInfoUrl.getPath()));
+        when(args.getOptionValues("applications.import.file"))
+                .thenReturn(Collections.singletonList(fileWithInfoUrl.getPath()));
         knownApplications.forEach(app -> appRepository.save(app));
 
         // redirect STDOUT to check update count
@@ -70,7 +69,8 @@ public class ImportKnownApplicationsJobTest {
         try {
             System.setOut(new PrintStream(buffer));
             job.run(args);
-        } finally {
+        }
+        finally {
             System.setOut(oldOut);
         }
 
@@ -84,16 +84,18 @@ public class ImportKnownApplicationsJobTest {
     @Test
     public void importApps_alreadyIdentical() throws Exception {
 
-        List<KnownApplicationImpl> knownApplications =
-            mapper.readValue(fileWithOutInfoUrl, new TypeReference<List<KnownApplicationImpl>>() {
-            });
+        List<KnownApplicationImpl> knownApplications = mapper.readValue(fileWithOutInfoUrl,
+                new TypeReference<List<KnownApplicationImpl>>() {
+                });
 
         ImportKnownApplicationsJob job = new ImportKnownApplicationsJob(kafkaClusters);
         ApplicationArguments args = mock(ApplicationArguments.class);
-        when(args.getOptionValues("applications.import.file")).thenReturn(Collections.singletonList(fileWithOutInfoUrl.getPath()));
+        when(args.getOptionValues("applications.import.file"))
+                .thenReturn(Collections.singletonList(fileWithOutInfoUrl.getPath()));
         TopicBasedRepositoryMock<KnownApplicationImpl> appRepository = new TopicBasedRepositoryMock<>();
         knownApplications.forEach(app -> appRepository.save(app));
-        when(kafkaClusters.getGlobalRepository("known-applications", KnownApplicationImpl.class)).thenReturn(appRepository);
+        when(kafkaClusters.getGlobalRepository("known-applications", KnownApplicationImpl.class))
+                .thenReturn(appRepository);
 
         // redirect STDOUT to check update count
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
@@ -102,7 +104,8 @@ public class ImportKnownApplicationsJobTest {
         try {
             System.setOut(new PrintStream(buffer));
             job.run(args);
-        } finally {
+        }
+        finally {
             System.setOut(oldOut);
         }
 
@@ -117,9 +120,11 @@ public class ImportKnownApplicationsJobTest {
 
         ImportKnownApplicationsJob job = new ImportKnownApplicationsJob(kafkaClusters);
         ApplicationArguments args = mock(ApplicationArguments.class);
-        when(args.getOptionValues("applications.import.file")).thenReturn(Collections.singletonList(fileWithOutInfoUrl.getPath()));
+        when(args.getOptionValues("applications.import.file"))
+                .thenReturn(Collections.singletonList(fileWithOutInfoUrl.getPath()));
         TopicBasedRepositoryMock<KnownApplicationImpl> appRepository = new TopicBasedRepositoryMock<>();
-        when(kafkaClusters.getGlobalRepository("known-applications", KnownApplicationImpl.class)).thenReturn(appRepository);
+        when(kafkaClusters.getGlobalRepository("known-applications", KnownApplicationImpl.class))
+                .thenReturn(appRepository);
 
         // redirect STDOUT to check update count
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
@@ -128,7 +133,8 @@ public class ImportKnownApplicationsJobTest {
         try {
             System.setOut(new PrintStream(buffer));
             job.run(args);
-        } finally {
+        }
+        finally {
             System.setOut(oldOut);
         }
 

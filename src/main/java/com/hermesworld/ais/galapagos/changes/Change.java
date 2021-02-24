@@ -10,11 +10,11 @@ package com.hermesworld.ais.galapagos.changes;
  */
 public interface Change {
 
-	/**
-	 * Returns the type of this change.
-	 *
-	 * @return The type of this change, never <code>null</code>.
-	 */
-	ChangeType getChangeType();
+    /**
+     * Returns the type of this change.
+     *
+     * @return The type of this change, never <code>null</code>.
+     */
+    ChangeType getChangeType();
 
 }

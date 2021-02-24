@@ -33,166 +33,175 @@ import org.apache.kafka.common.errors.WakeupException;
 @Slf4j
 public class KafkaRepositoryContainerImpl implements KafkaRepositoryContainer {
 
-	private final KafkaConsumer<String, String> consumer;
+    private final KafkaConsumer<String, String> consumer;
 
-	private final KafkaSender sender;
+    private final KafkaSender sender;
 
-	private final Map<String, TopicBasedRepositoryImpl<?>> repositories = new ConcurrentHashMap<>();
+    private final Map<String, TopicBasedRepositoryImpl<?>> repositories = new ConcurrentHashMap<>();
 
-	private final AtomicBoolean refreshSubscriptions = new AtomicBoolean();
+    private final AtomicBoolean refreshSubscriptions = new AtomicBoolean();
 
-	private final AdminClient adminClient;
+    private final AdminClient adminClient;
 
-	private final String environmentId;
+    private final String environmentId;
 
-	private static final Duration POLL_DURATION = Duration.of(10, ChronoUnit.SECONDS);
+    private static final Duration POLL_DURATION = Duration.of(10, ChronoUnit.SECONDS);
 
-	private static final long CONSUMER_ERROR_WAIT_MILLIS = TimeUnit.SECONDS.toMillis(30);
+    private static final long CONSUMER_ERROR_WAIT_MILLIS = TimeUnit.SECONDS.toMillis(30);
 
-	private Thread consumerThread;
+    private Thread consumerThread;
 
-	private final Object consumeSemaphore = new Object();
+    private final Object consumeSemaphore = new Object();
 
-	private final String prefix;
+    private final String prefix;
 
-	public KafkaRepositoryContainerImpl(KafkaConnectionManager connectionManager, String environmentId,
-		String galapagosInternalPrefix) {
-		this.consumer = connectionManager.getConsumerFactory(environmentId).newConsumer();
-		this.sender = connectionManager.getKafkaSender(environmentId);
-		this.adminClient = connectionManager.getAdminClient(environmentId);
-		this.environmentId = environmentId;
-		this.prefix = galapagosInternalPrefix;
+    public KafkaRepositoryContainerImpl(KafkaConnectionManager connectionManager, String environmentId,
+            String galapagosInternalPrefix) {
+        this.consumer = connectionManager.getConsumerFactory(environmentId).newConsumer();
+        this.sender = connectionManager.getKafkaSender(environmentId);
+        this.adminClient = connectionManager.getAdminClient(environmentId);
+        this.environmentId = environmentId;
+        this.prefix = galapagosInternalPrefix;
 
-		this.consumerThread = new Thread(this::consume);
-		this.consumerThread.start();
-	}
+        this.consumerThread = new Thread(this::consume);
+        this.consumerThread.start();
+    }
 
-	public void dispose() {
-		if (this.consumerThread != null) {
-			this.consumer.wakeup();
-			this.consumerThread = null;
-		}
-	}
+    public void dispose() {
+        if (this.consumerThread != null) {
+            this.consumer.wakeup();
+            this.consumerThread = null;
+        }
+    }
 
-	@Override
-	public <T extends HasKey> TopicBasedRepository<T> addRepository(String topicName, Class<T> valueClass) {
-		String kafkaTopicName = prefix + topicName;
-		ensureTopicExists(kafkaTopicName);
-		TopicBasedRepositoryImpl<T> repository = new TopicBasedRepositoryImpl<>(kafkaTopicName, topicName, valueClass, sender);
-		this.repositories.put(kafkaTopicName, repository);
-		refreshSubscriptions.set(true);
-		synchronized (consumeSemaphore) {
-			consumeSemaphore.notify();
-		}
+    @Override
+    public <T extends HasKey> TopicBasedRepository<T> addRepository(String topicName, Class<T> valueClass) {
+        String kafkaTopicName = prefix + topicName;
+        ensureTopicExists(kafkaTopicName);
+        TopicBasedRepositoryImpl<T> repository = new TopicBasedRepositoryImpl<>(kafkaTopicName, topicName, valueClass,
+                sender);
+        this.repositories.put(kafkaTopicName, repository);
+        refreshSubscriptions.set(true);
+        synchronized (consumeSemaphore) {
+            consumeSemaphore.notify();
+        }
 
-		return repository;
-	}
+        return repository;
+    }
 
-	private void updateSubscriptions() {
-		consumer.subscribe(repositories.keySet(), new ConsumerRebalanceListener() {
-			@Override
-			public void onPartitionsRevoked(Collection<TopicPartition> partitions) {
-			}
+    private void updateSubscriptions() {
+        consumer.subscribe(repositories.keySet(), new ConsumerRebalanceListener() {
+            @Override
+            public void onPartitionsRevoked(Collection<TopicPartition> partitions) {
+            }
 
-			@Override
-			public void onPartitionsAssigned(Collection<TopicPartition> partitions) {
-				log.debug("Environment " + environmentId + ": Consumer has been assigned to partitions " + partitions);
-				consumer.seekToBeginning(partitions);
-			}
-		});
-	}
+            @Override
+            public void onPartitionsAssigned(Collection<TopicPartition> partitions) {
+                log.debug("Environment " + environmentId + ": Consumer has been assigned to partitions " + partitions);
+                consumer.seekToBeginning(partitions);
+            }
+        });
+    }
 
-	private void ensureTopicExists(String topic) {
-		try {
-			Map<String, TopicDescription> desc;
+    private void ensureTopicExists(String topic) {
+        try {
+            Map<String, TopicDescription> desc;
 
-			try {
-				desc = this.adminClient.describeTopics(Collections.singleton(topic)).all().get();
-			}
-			catch (Exception e) {
-				desc = Collections.emptyMap();
-			}
+            try {
+                desc = this.adminClient.describeTopics(Collections.singleton(topic)).all().get();
+            }
+            catch (Exception e) {
+                desc = Collections.emptyMap();
+            }
 
-			if (desc.isEmpty()) {
-				log.info("Creating metadata topic " + topic + " on environment " + environmentId);
-				int nodeCount = this.adminClient.describeCluster().nodes().get().size();
-				short replicationFactor = (short) (nodeCount == 1 ? 1 : 2);
-				this.adminClient.createTopics(Collections.singleton(new NewTopic(topic, 3, replicationFactor))).all().get();
+            if (desc.isEmpty()) {
+                log.info("Creating metadata topic " + topic + " on environment " + environmentId);
+                int nodeCount = this.adminClient.describeCluster().nodes().get().size();
+                short replicationFactor = (short) (nodeCount == 1 ? 1 : 2);
+                this.adminClient.createTopics(Collections.singleton(new NewTopic(topic, 3, replicationFactor))).all()
+                        .get();
 
-				// use Log Compaction instead of Retention time
-				ConfigResource res = new ConfigResource(Type.TOPIC, topic);
-				List<ConfigEntry> configs = List.of(new ConfigEntry(TopicConfig.CLEANUP_POLICY_CONFIG, TopicConfig.CLEANUP_POLICY_COMPACT));
+                // use Log Compaction instead of Retention time
+                ConfigResource res = new ConfigResource(Type.TOPIC, topic);
+                List<ConfigEntry> configs = List
+                        .of(new ConfigEntry(TopicConfig.CLEANUP_POLICY_CONFIG, TopicConfig.CLEANUP_POLICY_COMPACT));
 
-				Config config = new Config(configs);
-				// We intentionally use alterConfigs() (and not incrementalAlterConfigs) to be pre-2.3 compatible
-				//noinspection deprecation
-				this.adminClient.alterConfigs(Collections.singletonMap(res, config)).all().get();
-			}
-		}
-		catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-		}
-		catch (ExecutionException e) {
-			if (e.getCause() instanceof RuntimeException) {
-				throw (RuntimeException) e.getCause();
-			}
-			throw new RuntimeException(e.getCause());
-		}
-	}
+                Config config = new Config(configs);
+                // We intentionally use alterConfigs() (and not incrementalAlterConfigs) to be pre-2.3 compatible
+                // noinspection deprecation
+                this.adminClient.alterConfigs(Collections.singletonMap(res, config)).all().get();
+            }
+        }
+        catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        catch (ExecutionException e) {
+            if (e.getCause() instanceof RuntimeException) {
+                throw (RuntimeException) e.getCause();
+            }
+            throw new RuntimeException(e.getCause());
+        }
+    }
 
-	private void consume() {
-		while (repositories.isEmpty() && !Thread.interrupted()) {
-			try {
-				synchronized (consumeSemaphore) {
-					consumeSemaphore.wait();
-				}
-			}
-			catch (InterruptedException e) {
-				return;
-			}
-		}
+    private void consume() {
+        while (repositories.isEmpty() && !Thread.interrupted()) {
+            try {
+                synchronized (consumeSemaphore) {
+                    consumeSemaphore.wait();
+                }
+            }
+            catch (InterruptedException e) {
+                return;
+            }
+        }
 
-		while (!Thread.interrupted()) {
-			if (refreshSubscriptions.getAndSet(false)) {
-				updateSubscriptions();
-			}
+        while (!Thread.interrupted()) {
+            if (refreshSubscriptions.getAndSet(false)) {
+                updateSubscriptions();
+            }
 
-			try {
-				long start = 0;
-				if (log.isTraceEnabled()) {
-					log.trace("Calling poll() on environment " + environmentId);
-					start = System.currentTimeMillis();
-				}
-				ConsumerRecords<String, String> records = consumer.poll(POLL_DURATION);
-				if (log.isTraceEnabled()) {
-					log.trace("poll() returned " + records.count() + " record(s) and took " + (System.currentTimeMillis() - start) + " ms");
-				}
-				for (ConsumerRecord<String, String> record : records) {
-					TopicBasedRepositoryImpl<?> repository = repositories.get(record.topic());
-					if (repository != null) {
-						repository.messageReceived(record.topic(), record.key(), record.value());
-					} else {
-						log.warn("No handler found for message on topic " + record.topic());
-					}
-				}
-			} catch (WakeupException | InterruptException e) {
-				// signal to close consumer!
-				break;
-			} catch (AuthenticationException | AuthorizationException e) {
-				log.error("Unrecoverable exception when polling Kafka consumer, will exit consumer Thread", e);
-				break;
-			} catch (KafkaException e) {
-				log.error("Exception when polling Kafka consumer, will retry in 30 seconds", e);
-				try {
-					//noinspection BusyWait
-					Thread.sleep(CONSUMER_ERROR_WAIT_MILLIS);
-				} catch (InterruptedException ie) {
-					break;
-				}
-			}
-		}
-		
-		consumer.close();
-	}
+            try {
+                long start = 0;
+                if (log.isTraceEnabled()) {
+                    log.trace("Calling poll() on environment " + environmentId);
+                    start = System.currentTimeMillis();
+                }
+                ConsumerRecords<String, String> records = consumer.poll(POLL_DURATION);
+                if (log.isTraceEnabled()) {
+                    log.trace("poll() returned " + records.count() + " record(s) and took "
+                            + (System.currentTimeMillis() - start) + " ms");
+                }
+                for (ConsumerRecord<String, String> record : records) {
+                    TopicBasedRepositoryImpl<?> repository = repositories.get(record.topic());
+                    if (repository != null) {
+                        repository.messageReceived(record.topic(), record.key(), record.value());
+                    }
+                    else {
+                        log.warn("No handler found for message on topic " + record.topic());
+                    }
+                }
+            }
+            catch (WakeupException | InterruptException e) {
+                // signal to close consumer!
+                break;
+            }
+            catch (AuthenticationException | AuthorizationException e) {
+                log.error("Unrecoverable exception when polling Kafka consumer, will exit consumer Thread", e);
+                break;
+            }
+            catch (KafkaException e) {
+                log.error("Exception when polling Kafka consumer, will retry in 30 seconds", e);
+                try {
+                    // noinspection BusyWait
+                    Thread.sleep(CONSUMER_ERROR_WAIT_MILLIS);
+                }
+                catch (InterruptedException ie) {
+                    break;
+                }
+            }
+        }
+
+        consumer.close();
+    }
 
 }

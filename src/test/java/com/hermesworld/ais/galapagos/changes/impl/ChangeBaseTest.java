@@ -21,8 +21,9 @@ import org.springframework.beans.BeanUtils;
 public class ChangeBaseTest {
 
     /**
-     * Tests that each private field in all of the subclasses of ChangeBase have a Getter for all of their private fields,
-     * because this getter is highly important for correct serialization of the changes. This test makes heavy use of Reflection!
+     * Tests that each private field in all of the subclasses of ChangeBase have a Getter for all of their private
+     * fields, because this getter is highly important for correct serialization of the changes. This test makes heavy
+     * use of Reflection!
      */
     @Test
     public void testGettersForFields() {
@@ -41,7 +42,8 @@ public class ChangeBaseTest {
             Class<?> clazz;
             try {
                 clazz = cl.loadClass(className);
-            } catch (Throwable t) {
+            }
+            catch (Throwable t) {
                 // ignore! May be something else
                 continue;
             }
@@ -75,7 +77,8 @@ public class ChangeBaseTest {
         AtomicBoolean createCalled = new AtomicBoolean();
 
         SubscriptionService subscriptionService = mock(SubscriptionService.class);
-        when(subscriptionService.addSubscription(any(), any(), any(), any())).thenThrow(UnsupportedOperationException.class);
+        when(subscriptionService.addSubscription(any(), any(), any(), any()))
+                .thenThrow(UnsupportedOperationException.class);
 
         when(subscriptionService.addSubscription(any(), any())).then(inv -> {
             createCalled.set(true);
@@ -87,7 +90,8 @@ public class ChangeBaseTest {
             return CompletableFuture.completedFuture(sub);
         });
 
-        when(subscriptionService.updateSubscriptionState(any(), any(), any())).thenThrow(UnsupportedOperationException.class);
+        when(subscriptionService.updateSubscriptionState(any(), any(), any()))
+                .thenThrow(UnsupportedOperationException.class);
 
         ApplyChangeContext context = mock(ApplyChangeContext.class);
         when(context.getTargetEnvironmentId()).thenReturn("target");

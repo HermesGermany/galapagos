@@ -1,6 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { routerTransition } from 'src/app/router.animations';
-import { ApplicationsService, BusinessCapabilityInfo, UserApplicationInfo } from 'src/app/shared/services/applications.service';
+import {
+    ApplicationsService,
+    BusinessCapabilityInfo,
+    UserApplicationInfo
+} from 'src/app/shared/services/applications.service';
 import { Observable } from 'rxjs';
 import { TopicCreateParams, TopicsService, TopicType } from 'src/app/shared/services/topics.service';
 import { EnvironmentsService, KafkaEnvironment } from 'src/app/shared/services/environments.service';
@@ -78,7 +82,7 @@ export class CreateTopicComponent implements OnInit {
             return;
         }
         try {
-            const certificates = await this.certificateService.getApplicationCertificates(this.selectedApplication.id);
+            const certificates = await this.certificateService.getApplicationCertificatesPromise(this.selectedApplication.id);
             const env = await this.selectedEnvironment.pipe(take(1)).toPromise();
             this.showRegistrationWarning = !certificates.find(c => c.environmentId === env.id);
         } catch (e) {

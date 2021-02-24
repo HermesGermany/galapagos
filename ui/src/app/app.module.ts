@@ -17,6 +17,7 @@ import { TopicsService } from './shared/services/topics.service';
 
 import { ServerInfoService } from './shared/services/serverinfo.service';
 import { CertificateService } from './shared/services/certificates.service';
+import { SchemaSectionComponent } from './layout/topics/schema-section.component';
 
 const keycloakService = new KeycloakService();
 
@@ -32,32 +33,32 @@ const keycloakService = new KeycloakService();
     ],
     declarations: [AppComponent],
     providers: [AuthGuard, ApplicationsService, EnvironmentsService, TopicsService, CertificateService, ToastService,
+        SchemaSectionComponent,
         ServerInfoService, {
             provide: KeycloakService,
             useValue: keycloakService
-        }],
-    entryComponents: [AppComponent]
+        }]
 })
 export class AppModule implements DoBootstrap {
 
     ngDoBootstrap(app: ApplicationRef) {
-      // use fetch as it does not require any other services or modules to be loaded
-      fetch('/keycloak/config.json', { method: 'GET' })
-        .then(resp => resp.json())
-        .then(config => this.initKeycloak(config))
-        .then(() => app.bootstrap(AppComponent))
-        .catch(err => console.error('Could not initialize Keycloak. Application cannot be initialized'));
+        // use fetch as it does not require any other services or modules to be loaded
+        fetch('/keycloak/config.json', { method: 'GET' })
+            .then(resp => resp.json())
+            .then(config => this.initKeycloak(config))
+            .then(() => app.bootstrap(AppComponent))
+            .catch(err => console.error('Could not initialize Keycloak. Application cannot be initialized'));
     }
 
     private initKeycloak(config: any): Promise<any> {
-      return keycloakService.init({
-        config: config,
-          initOptions: {
-            onLoad: 'login-required',
-            checkLoginIframe: false
-          },
-          enableBearerInterceptor: true,
-          bearerExcludedUrls: ['/assets']
+        return keycloakService.init({
+            config: config,
+            initOptions: {
+                onLoad: 'login-required',
+                checkLoginIframe: false
+            },
+            enableBearerInterceptor: true,
+            bearerExcludedUrls: ['/assets']
         });
     }
 }

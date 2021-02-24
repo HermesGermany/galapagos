@@ -13,24 +13,25 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class HomeController {
 
-	// TODO alternative implementation idea: catch /app/**, check if a matching static resource exists. If yes, return it.
-	// If no, forward to index.html (not sure if this is possible with a controller only)
+    // TODO alternative implementation idea: catch /app/**, check if a matching static resource exists. If yes, return
+    // it.
+    // If no, forward to index.html (not sure if this is possible with a controller only)
 
-	/**
-	 * Forwards all calls to an Angular route to the <code>index.html</code> page. Note: If new routes are added to the
-	 * frontend, you will have to add them here as part of the mapping as well.
-	 *
-	 * @return Forward command to the <code>index.html</code> page.
-	 */
-	@GetMapping({ "/app", "/app/applications", "/app/admin", "/app/topics", "/app/topics/**", "/app/dashboard",
-			"/app/createtopic" })
-	public String app() {
-		return "forward:/app/index.html";
-	}
+    /**
+     * Forwards all calls to an Angular route to the <code>index.html</code> page. Note: If new routes are added to the
+     * frontend, you will have to add them here as part of the mapping as well.
+     *
+     * @return Forward command to the <code>index.html</code> page.
+     */
+    @GetMapping({ "/app", "/app/applications", "/app/admin", "/app/topics", "/app/topics/**", "/app/dashboard",
+            "/app/createtopic" })
+    public String app() {
+        return "forward:/app/index.html";
+    }
 
-	@GetMapping("/")
-	public String root() {
-		return "redirect:/app";
-	}
+    @GetMapping("/")
+    public String root() {
+        return "redirect:/app";
+    }
 
 }

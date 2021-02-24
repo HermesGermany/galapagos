@@ -1,0 +1,150 @@
+<div class="card" *ngIf="environmentsService.getCurrentEnvironment() | async; let env">
+    <div class="card-header bg-warning">
+        <i class="far fa-window-maximize mr-2"></i>{{ application.name }}
+    </div>
+    <div class="card-body">
+        <div
+            *ngIf="(currentEnvApplicationCertificate | async) === undefined">
+            <i>{{ 'NO_CERTIFICATE_FOR_APP' | translate }}&#32;
+                <a [routerLink]=""
+                   (click)="openCertificateDialog.emit({ application: application, environment: env });">{{ 'Create Certificate now' | translate }}</a>
+            </i>
+        </div>
+        <div *ngIf="(currentEnvApplicationCertificate | async)">
+            <p><i
+                [innerHTML]="'APPLICATION_ENV_HINT_HTML' | translate: { environmentName: (environmentsService.getCurrentEnvironment() | async)?.name }"></i>
+            </p>
+            <ngb-accordion #acc="ngbAccordion"
+                           [activeIds]="['_panel_topics']">
+                <ngb-panel [id]="'_panel_topics'">
+                    <ng-template ngbPanelTitle>
+                        <span><i class="fa fa-layer-group mr-2"></i>{{ 'Topics' | translate }}</span>
+                    </ng-template>
+                    <ng-template ngbPanelContent>
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <table class="table table-striped">
+                                        <thead>
+                                        <tr>
+                                            <th>{{ 'Owned Topics' | translate }}</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        <tr *ngFor="let t of application.owningTopics">
+                                            <td>
+                                                <code><a [routerLink]="'/topics/' + t">{{ t }}</a></code>
+                                            </td>
+                                        </tr>
+                                        <tr *ngIf="application.owningTopics.length === 0">
+                                            <td>
+                                                <i>{{ 'No topics found.' | translate }}</i>
+                                            </td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="col-md-6">
+                                    <table class="table table-striped">
+                                        <thead>
+                                        <tr>
+                                            <th>{{ 'Subscribed Topics' | translate }}</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        <tr *ngFor="let t of application.usingTopics | async">
+                                            <td>
+                                                <code><a [routerLink]="'/topics/' + t">{{ t }}</a></code>
+                                            </td>
+                                        </tr>
+                                        <tr *ngIf="(application.usingTopics | async)?.length === 0">
+                                            <td>
+                                                <i>{{ 'No topics found.' | translate }}</i>
+                                            </td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </ng-template>
+                </ngb-panel>
+                <ngb-panel [id]="'_panel_rights'">
+                    <ng-template ngbPanelTitle>
+                        <span><i class="fas fa-key mr-2"></i>{{ 'Kafka Access Rights' | translate }}</span>
+                    </ng-template>
+                    <ng-template ngbPanelContent>
+                        <table class="table">
+                            <thead></thead>
+                            <tbody>
+                            <tr>
+                                <th>{{ 'Prefixes for internal topics' | translate }}</th>
+                                <td>
+                                    <ul id="internalTopicPrefixes">
+                                        <li *ngFor="let prefix of internalTopicPrefixes | async">
+                                            <code>{{ prefix }}</code>
+                                        </li>
+                                    </ul>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>{{ 'Prefixes for consumer group IDs' | translate }}</th>
+                                <td>
+                                    <ul id="consumerGroupPrefixes">
+                                        <li *ngFor="let prefix of consumerGroupPrefixes | async">
+                                            <code>{{ prefix }}</code>
+                                        </li>
+                                    </ul>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>{{ 'Prefixes for transactional IDs' | translate }}</th>
+                                <td>
+                                    <ul id="transactionIdPrefixes">
+                                        <li *ngFor="let prefix of transactionIdPrefixes | async">
+                                            <code>{{ prefix }}</code>
+                                        </li>
+                                    </ul>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </ng-template>
+                </ngb-panel>
+                <ngb-panel [id]="'_panel_certificate'">
+                    <ng-template ngbPanelTitle>
+                        <span><i class="fas fa-award mr-2"></i>{{ 'Certificate Info' | translate }}</span>
+                    </ng-template>
+                    <ng-template ngbPanelContent>
+                        <table class="table">
+                            <thead></thead>
+                            <tbody>
+                            <tr>
+                                <th>{{ 'Certificate DN' | translate }}</th>
+                                <td>
+                                    <code>{{ (currentEnvApplicationCertificate | async).dn }}</code>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>{{ 'Expiry Date' | translate }}</th>
+                                <td>
+                                    <b>{{ expiryDateString | async }}</b>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="2">
+                                    <button type="button" class="btn btn-danger mr-2"
+                                            [title]=" 'CERT_BUTTON_TITLE' | translate:{ env: env.name }"
+                                            (click)="openCertificateDialog.emit({ application: application, environment: env })">
+                                        <i class="fas fa-award"></i>&nbsp;{{ 'Create / extend application certificate' | translate }}
+                                    </button>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </ng-template>
+                </ngb-panel>
+            </ngb-accordion>
+        </div>
+    </div>
+</div>

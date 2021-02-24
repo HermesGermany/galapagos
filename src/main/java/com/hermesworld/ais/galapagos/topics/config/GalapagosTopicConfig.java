@@ -4,29 +4,24 @@ import java.time.Period;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * Represents all (technical) configuration elements related to Topics. <br>
+ * Default values can be found in resource file <code>application.properties</code>. <br>
+ * For Naming Rules, see {@link com.hermesworld.ais.galapagos.naming.config.NamingConfig}.
+ */
 @Configuration
 @ConfigurationProperties("galapagos.topics")
 @Getter
 @Setter
 public class GalapagosTopicConfig {
 
-	@Value("topics")
-	private String namePrefix;
+    private int maxPartitionCount;
 
-	@Value(".")
-	private String nameSeparator;
+    private int defaultPartitionCount;
 
-	@Value("100")
-	private int maxPartitionCount;
-
-	@Value("6")
-	private int defaultPartitionCount;
-
-	@Value("P3M")
-	private Period minDeprecationTime;
+    private Period minDeprecationTime;
 
 }

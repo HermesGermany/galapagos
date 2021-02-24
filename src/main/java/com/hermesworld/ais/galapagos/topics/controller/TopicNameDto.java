@@ -7,10 +7,10 @@ import lombok.Setter;
 @Setter
 public class TopicNameDto {
 
-	private String name;
+    private String name;
 
-	public TopicNameDto(String name) {
-		this.name = name;
-	}
+    public TopicNameDto(String name) {
+        this.name = name;
+    }
 
 }

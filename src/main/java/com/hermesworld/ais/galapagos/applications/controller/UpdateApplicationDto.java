@@ -7,6 +7,6 @@ import lombok.Setter;
 @Setter
 public class UpdateApplicationDto {
 
-	private String kafkaGroupPrefix;
+    private String kafkaGroupPrefix;
 
 }

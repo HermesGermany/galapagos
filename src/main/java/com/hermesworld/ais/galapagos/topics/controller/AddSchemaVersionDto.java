@@ -7,6 +7,8 @@ import lombok.Setter;
 @Setter
 public class AddSchemaVersionDto {
 
-	private String jsonSchema;
+    private String jsonSchema;
+
+    private String changeDescription;
 
 }

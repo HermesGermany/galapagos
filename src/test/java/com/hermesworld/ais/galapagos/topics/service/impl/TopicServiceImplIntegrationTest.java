@@ -1,5 +1,33 @@
 package com.hermesworld.ais.galapagos.topics.service.impl;
 
+import com.hermesworld.ais.galapagos.applications.ApplicationsService;
+import com.hermesworld.ais.galapagos.changes.ChangeData;
+import com.hermesworld.ais.galapagos.events.*;
+import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
+import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
+import com.hermesworld.ais.galapagos.kafka.impl.TopicBasedRepositoryMock;
+import com.hermesworld.ais.galapagos.naming.NamingService;
+import com.hermesworld.ais.galapagos.notifications.NotificationService;
+import com.hermesworld.ais.galapagos.security.CurrentUserService;
+import com.hermesworld.ais.galapagos.topics.TopicMetadata;
+import com.hermesworld.ais.galapagos.topics.TopicType;
+import com.hermesworld.ais.galapagos.topics.config.GalapagosTopicConfig;
+import com.hermesworld.ais.galapagos.util.FutureUtil;
+import com.hermesworld.ais.galapagos.util.HasKey;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
+import org.springframework.test.context.junit4.SpringRunner;
+
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,37 +38,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.hermesworld.ais.galapagos.applications.ApplicationsService;
-import com.hermesworld.ais.galapagos.changes.ChangeData;
-import com.hermesworld.ais.galapagos.events.*;
-import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
-import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
-import com.hermesworld.ais.galapagos.kafka.impl.TopicBasedRepositoryMock;
-import com.hermesworld.ais.galapagos.notifications.NotificationService;
-import com.hermesworld.ais.galapagos.security.CurrentUserService;
-import com.hermesworld.ais.galapagos.topics.TopicMetadata;
-import com.hermesworld.ais.galapagos.topics.TopicNameValidator;
-import com.hermesworld.ais.galapagos.topics.TopicType;
-import com.hermesworld.ais.galapagos.topics.config.GalapagosTopicConfig;
-import com.hermesworld.ais.galapagos.util.FutureUtil;
-import com.hermesworld.ais.galapagos.util.HasKey;
-import org.junit.After;
 import static org.junit.Assert.assertEquals;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Import;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Component;
-import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * Tests that Security Context data is passed correctly to event context, even when performing the quite complex,
@@ -68,11 +69,14 @@ public class TopicServiceImplIntegrationTest {
 
     private final AtomicInteger threadNo = new AtomicInteger();
 
-    private final ExecutorService executorService = Executors.newCachedThreadPool(r -> new Thread(r, "inttest-" + threadNo.incrementAndGet()));
+    private final ExecutorService executorService = Executors
+            .newCachedThreadPool(r -> new Thread(r, "inttest-" + threadNo.incrementAndGet()));
 
-    private final TopicBasedRepositoryMock<TopicMetadata> topicRepository1 = new DecoupledTopicBasedRepositoryMock<>(executorService);
+    private final TopicBasedRepositoryMock<TopicMetadata> topicRepository1 = new DecoupledTopicBasedRepositoryMock<>(
+            executorService);
 
-    private final TopicBasedRepositoryMock<TopicMetadata> topicRepository2 = new DecoupledTopicBasedRepositoryMock<>(executorService);
+    private final TopicBasedRepositoryMock<TopicMetadata> topicRepository2 = new DecoupledTopicBasedRepositoryMock<>(
+            executorService);
 
     @Before
     public void feedMocks() {
@@ -85,8 +89,10 @@ public class TopicServiceImplIntegrationTest {
         when(cluster1.getRepository("topics", TopicMetadata.class)).thenReturn(topicRepository1);
         when(cluster2.getRepository("topics", TopicMetadata.class)).thenReturn(topicRepository2);
 
-        when(cluster1.getRepository("changelog", ChangeData.class)).thenReturn(new DecoupledTopicBasedRepositoryMock<>(executorService));
-        when(cluster2.getRepository("changelog", ChangeData.class)).thenReturn(new DecoupledTopicBasedRepositoryMock<>(executorService));
+        when(cluster1.getRepository("changelog", ChangeData.class))
+                .thenReturn(new DecoupledTopicBasedRepositoryMock<>(executorService));
+        when(cluster2.getRepository("changelog", ChangeData.class))
+                .thenReturn(new DecoupledTopicBasedRepositoryMock<>(executorService));
 
         when(clusters.getEnvironmentIds()).thenReturn(List.of("dev", "int"));
         when(clusters.getProductionEnvironmentId()).thenReturn("int");
@@ -106,7 +112,7 @@ public class TopicServiceImplIntegrationTest {
     @Test
     public void testTopicDeprecated_passesCurrentUser() throws Exception {
         ApplicationsService applicationsService = mock(ApplicationsService.class);
-        TopicNameValidator nameValidator = mock(TopicNameValidator.class);
+        NamingService namingService = mock(NamingService.class);
         GalapagosTopicConfig topicSettings = mock(GalapagosTopicConfig.class);
 
         TopicMetadata topic = new TopicMetadata();
@@ -120,7 +126,8 @@ public class TopicServiceImplIntegrationTest {
         topic.setType(TopicType.EVENTS);
         topicRepository2.save(topic).get();
 
-        TopicServiceImpl service = new TopicServiceImpl(clusters, applicationsService, nameValidator, currentUserService, topicSettings, eventManager);
+        TopicServiceImpl service = new TopicServiceImpl(clusters, applicationsService, namingService,
+                currentUserService, topicSettings, eventManager);
 
         SecurityContext securityContext = mock(SecurityContext.class);
         Authentication auth = mock(Authentication.class);
@@ -133,13 +140,14 @@ public class TopicServiceImplIntegrationTest {
         service.markTopicDeprecated("topic-1", "deprecated", LocalDate.of(2999, 1, 1)).get();
 
         assertEquals(2, eventListener.deprecationEvents.size());
-        assertEquals("testUser", eventListener.deprecationEvents.get(1).getContext().getContextValue("username").orElse(null));
+        assertEquals("testUser",
+                eventListener.deprecationEvents.get(1).getContext().getContextValue("username").orElse(null));
     }
 
     @Test
     public void testTopicUndeprecated_passesCurrentUser() throws Exception {
         ApplicationsService applicationsService = mock(ApplicationsService.class);
-        TopicNameValidator nameValidator = mock(TopicNameValidator.class);
+        NamingService namingService = mock(NamingService.class);
         GalapagosTopicConfig topicSettings = mock(GalapagosTopicConfig.class);
 
         TopicMetadata topic = new TopicMetadata();
@@ -155,7 +163,8 @@ public class TopicServiceImplIntegrationTest {
         topic.setDeprecated(true);
         topicRepository2.save(topic).get();
 
-        TopicServiceImpl service = new TopicServiceImpl(clusters, applicationsService, nameValidator, currentUserService, topicSettings, eventManager);
+        TopicServiceImpl service = new TopicServiceImpl(clusters, applicationsService, namingService,
+                currentUserService, topicSettings, eventManager);
 
         SecurityContext securityContext = mock(SecurityContext.class);
         Authentication auth = mock(Authentication.class);
@@ -168,7 +177,8 @@ public class TopicServiceImplIntegrationTest {
         service.unmarkTopicDeprecated("topic-1").get();
 
         assertEquals(2, eventListener.undeprecationEvents.size());
-        assertEquals("testUser", eventListener.undeprecationEvents.get(1).getContext().getContextValue("username").orElse(null));
+        assertEquals("testUser",
+                eventListener.undeprecationEvents.get(1).getContext().getContextValue("username").orElse(null));
     }
 
     @Component
@@ -216,7 +226,6 @@ public class TopicServiceImplIntegrationTest {
         }
     }
 
-
     /**
      * A mock implementation for a TopicBasedRepository which behaves more like the original, Kafka-based one, in that
      * it completes each save operation asynchronously, on a new Thread.
@@ -236,7 +245,8 @@ public class TopicServiceImplIntegrationTest {
             return super.save(value).thenCompose(o -> CompletableFuture.runAsync(() -> {
                 try {
                     Thread.sleep(200);
-                } catch (InterruptedException e) {
+                }
+                catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 }
             }, executorService));

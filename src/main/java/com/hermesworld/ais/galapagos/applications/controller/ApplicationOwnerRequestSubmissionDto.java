@@ -7,8 +7,8 @@ import lombok.Setter;
 @Setter
 public class ApplicationOwnerRequestSubmissionDto {
 
-	private String applicationId;
+    private String applicationId;
 
-	private String comments;
+    private String comments;
 
 }

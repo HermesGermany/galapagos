@@ -7,11 +7,11 @@ import lombok.Setter;
 @Setter
 public class CreateSubscriptionDto {
 
-	private String topicName;
+    private String topicName;
 
-	private String description;
+    private String description;
 
-	public CreateSubscriptionDto() {
-	}
+    public CreateSubscriptionDto() {
+    }
 
 }

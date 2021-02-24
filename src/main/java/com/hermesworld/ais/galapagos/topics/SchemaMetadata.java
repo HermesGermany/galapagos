@@ -1,44 +1,49 @@
 package com.hermesworld.ais.galapagos.topics;
 
-import java.time.ZonedDateTime;
-
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.hermesworld.ais.galapagos.util.HasKey;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.ZonedDateTime;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 @JsonSerialize
 @Getter
 @Setter
 public class SchemaMetadata implements HasKey {
 
-	private String id;
+    private String id;
 
-	private String topicName;
+    private String topicName;
 
-	private int schemaVersion;
+    private int schemaVersion;
 
-	private String jsonSchema;
+    private String jsonSchema;
 
-	private ZonedDateTime createdAt;
+    private ZonedDateTime createdAt;
 
-	private String createdBy;
+    private String createdBy;
 
-	public SchemaMetadata() {
-	}
+    private String changeDescription;
 
-	public SchemaMetadata(SchemaMetadata original) {
-		this.id = original.id;
-		this.topicName = original.topicName;
-		this.schemaVersion = original.schemaVersion;
-		this.jsonSchema = original.jsonSchema;
-		this.createdAt = original.createdAt;
-		this.createdBy = original.createdBy;
-	}
+    public SchemaMetadata() {
+    }
 
-	@Override
-	public String key() {
-		return id;
-	}
+    public SchemaMetadata(SchemaMetadata original) {
+        this.id = original.id;
+        this.topicName = original.topicName;
+        this.schemaVersion = original.schemaVersion;
+        this.jsonSchema = original.jsonSchema;
+        this.createdAt = original.createdAt;
+        this.createdBy = original.createdBy;
+        this.changeDescription = original.changeDescription;
+    }
+
+    @Override
+    public String key() {
+        return id;
+    }
 
 }

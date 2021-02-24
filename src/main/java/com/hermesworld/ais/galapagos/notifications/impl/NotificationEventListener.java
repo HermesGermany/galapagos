@@ -1,14 +1,5 @@
 package com.hermesworld.ais.galapagos.notifications.impl;
 
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import javax.servlet.http.HttpServletRequest;
-
 import com.hermesworld.ais.galapagos.applications.ApplicationsService;
 import com.hermesworld.ais.galapagos.applications.KnownApplication;
 import com.hermesworld.ais.galapagos.applications.RequestState;
@@ -27,6 +18,15 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import javax.servlet.http.HttpServletRequest;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+
 /**
  * This is the central component listening for all types of events in Galapagos and notifying the relevant parties. Here
  * is the mapping logic of "what happened?" to "who should be notified?". For the real notification, the
@@ -36,7 +36,8 @@ import org.springframework.web.context.request.ServletRequestAttributes;
  */
 @Component
 @Slf4j
-public class NotificationEventListener implements TopicEventsListener, SubscriptionEventsListener, ApplicationEventsListener, EventContextSource {
+public class NotificationEventListener
+        implements TopicEventsListener, SubscriptionEventsListener, ApplicationEventsListener, EventContextSource {
 
     private final NotificationService notificationService;
 
@@ -49,9 +50,9 @@ public class NotificationEventListener implements TopicEventsListener, Subscript
     private final KafkaClusters kafkaClusters;
 
     // TODO externalize
-    private String unknownApp = "(unknown app)";
-    private String unknownUser = "(unknown user)";
-    private String unknownEnv = "(unknown environment)";
+    private final String unknownApp = "(unknown app)";
+    private final String unknownUser = "(unknown user)";
+    private final String unknownEnv = "(unknown environment)";
 
     private static final String HTTP_REQUEST_URL_KEY = NotificationEventListener.class.getName() + "_requestUrl";
 
@@ -61,7 +62,7 @@ public class NotificationEventListener implements TopicEventsListener, Subscript
 
     @Autowired
     public NotificationEventListener(NotificationService notificationService, ApplicationsService applicationsService,
-        TopicService topicService, CurrentUserService userService, KafkaClusters kafkaClusters) {
+            TopicService topicService, CurrentUserService userService, KafkaClusters kafkaClusters) {
         this.notificationService = notificationService;
         this.applicationsService = applicationsService;
         this.topicService = topicService;
@@ -75,11 +76,12 @@ public class NotificationEventListener implements TopicEventsListener, Subscript
             String topicName = event.getMetadata().getTopicName();
             String environmentId = event.getContext().getKafkaCluster().getId();
 
-            String clientApplicationName = applicationsService.getKnownApplication(event.getMetadata().getClientApplicationId())
-                .map(KnownApplication::getName).orElse(unknownApp);
+            String clientApplicationName = applicationsService
+                    .getKnownApplication(event.getMetadata().getClientApplicationId()).map(KnownApplication::getName)
+                    .orElse(unknownApp);
             String ownerApplicationName = topicService.getTopic(environmentId, topicName)
-                .flatMap(t -> applicationsService.getKnownApplication(t.getOwnerApplicationId()))
-                .map(KnownApplication::getName).orElse(unknownApp);
+                    .flatMap(t -> applicationsService.getKnownApplication(t.getOwnerApplicationId()))
+                    .map(KnownApplication::getName).orElse(unknownApp);
 
             NotificationParams params = new NotificationParams("approve_subscription");
             params.addVariable("topic_name", topicName);
@@ -87,7 +89,7 @@ public class NotificationEventListener implements TopicEventsListener, Subscript
             params.addVariable("owner_application_name", ownerApplicationName);
             params.addVariable("subscription_description", event.getMetadata().getDescription());
             params.addVariable("galapagos_topic_url",
-                buildUIUrl(event, "/topics/" + topicName + "?environment=" + environmentId));
+                    buildUIUrl(event, "/topics/" + topicName + "?environment=" + environmentId));
             return notificationService.notifyTopicOwners(environmentId, topicName, params);
         }
 
@@ -103,22 +105,25 @@ public class NotificationEventListener implements TopicEventsListener, Subscript
     public CompletableFuture<Void> handleSubscriptionUpdated(SubscriptionEvent event) {
         String topicName = event.getMetadata().getTopicName();
         String environmentId = event.getContext().getKafkaCluster().getId();
-        String environmentName = kafkaClusters.getEnvironmentMetadata(environmentId).map(KafkaEnvironmentConfig::getName).orElse(unknownEnv);
+        String environmentName = kafkaClusters.getEnvironmentMetadata(environmentId)
+                .map(KafkaEnvironmentConfig::getName).orElse(unknownEnv);
 
         String clientApplicationId = event.getMetadata().getClientApplicationId();
-        String clientApplicationName = applicationsService.getKnownApplication(event.getMetadata().getClientApplicationId())
-            .map(KnownApplication::getName).orElse(unknownApp);
+        String clientApplicationName = applicationsService
+                .getKnownApplication(event.getMetadata().getClientApplicationId()).map(KnownApplication::getName)
+                .orElse(unknownApp);
         String ownerApplicationName = topicService.getTopic(environmentId, topicName)
-            .flatMap(t -> applicationsService.getKnownApplication(t.getOwnerApplicationId()))
-            .map(KnownApplication::getName).orElse(unknownApp);
+                .flatMap(t -> applicationsService.getKnownApplication(t.getOwnerApplicationId()))
+                .map(KnownApplication::getName).orElse(unknownApp);
 
-        NotificationParams params = new NotificationParams("subscription-" + event.getMetadata().getState().name().toLowerCase(Locale.US));
+        NotificationParams params = new NotificationParams(
+                "subscription-" + event.getMetadata().getState().name().toLowerCase(Locale.US));
         params.addVariable("topic_name", topicName);
         params.addVariable("env_name", environmentName);
         params.addVariable("client_application_name", clientApplicationName);
         params.addVariable("owner_application_name", ownerApplicationName);
         params.addVariable("galapagos_topic_url",
-            buildUIUrl(event, "/topics/" + topicName + "?environment=" + environmentId));
+                buildUIUrl(event, "/topics/" + topicName + "?environment=" + environmentId));
 
         return notificationService.notifyApplicationTopicOwners(clientApplicationId, params);
     }
@@ -158,7 +163,8 @@ public class NotificationEventListener implements TopicEventsListener, Subscript
 
     @Override
     public CompletableFuture<Void> handleTopicSchemaAdded(TopicSchemaAddedEvent event) {
-        return handleTopicChange(event, "ein neues JSON-Schema veröffentlicht");
+        return handleTopicChange(event,
+                "ein neues JSON-Schema veröffentlicht (" + event.getNewSchema().getChangeDescription() + ")");
     }
 
     @Override
@@ -198,7 +204,8 @@ public class NotificationEventListener implements TopicEventsListener, Subscript
             return FutureUtil.noop();
         }
 
-        NotificationParams params = new NotificationParams("appowner-request-" + newState.toString().toLowerCase(Locale.US));
+        NotificationParams params = new NotificationParams(
+                "appowner-request-" + newState.toString().toLowerCase(Locale.US));
         params.addVariable("galapagos_apps_url", buildUIUrl(event, "/applications"));
         params.addVariable("user_name", requestorUserName);
         params.addVariable("updated_by", userName);
@@ -218,22 +225,24 @@ public class NotificationEventListener implements TopicEventsListener, Subscript
         String topicName = event.getMetadata().getName();
 
         String userName = event.getContext().getContextValue(USER_NAME_KEY).map(Object::toString).orElse(unknownUser);
-        String environmentName = kafkaClusters.getEnvironmentMetadata(environmentId).map(KafkaEnvironmentConfig::getName).orElse(unknownEnv);
+        String environmentName = kafkaClusters.getEnvironmentMetadata(environmentId)
+                .map(KafkaEnvironmentConfig::getName).orElse(unknownEnv);
 
         // TODO externalize strings
         NotificationParams params = new NotificationParams("topic-changed");
         params.addVariable("user_name", userName);
         params.addVariable("topic_name", topicName);
         params.addVariable("change_action_text", changeText);
-        params.addVariable("galapagos_topic_url", buildUIUrl(event, "/topics/" + topicName + "?environment=" + environmentId));
+        params.addVariable("galapagos_topic_url",
+                buildUIUrl(event, "/topics/" + topicName + "?environment=" + environmentId));
         params.addVariable("environment_name", environmentName);
-
         return notificationService.notifySubscribers(environmentId, topicName, params, userName);
     }
 
     @Override
     public Map<String, Object> getContextValues() {
-        // store the HttpRequest in the event context, as we may otherwise not be able to get it later (different Thread)
+        // store the HttpRequest in the event context, as we may otherwise not be able to get it later (different
+        // Thread)
         // same for current user name
 
         Map<String, Object> result = new HashMap<>();
@@ -253,17 +262,19 @@ public class NotificationEventListener implements TopicEventsListener, Subscript
         try {
             URL requestUrl = new URL(opRequestUrl.get());
             return new URL(requestUrl.getProtocol(), requestUrl.getHost(), requestUrl.getPort(),
-                "/app/" + (uri.startsWith("/") ? uri.substring(1) : uri)).toString();
-        } catch (MalformedURLException e) {
+                    "/app/" + (uri.startsWith("/") ? uri.substring(1) : uri)).toString();
+        }
+        catch (MalformedURLException e) {
             log.warn("Could not parse request URL from HTTP Request", e);
             return "#";
         }
     }
 
     private static Optional<HttpServletRequest> getCurrentHttpRequest() {
-        return Optional.ofNullable(RequestContextHolder.getRequestAttributes())
-            .filter(requestAttributes -> ServletRequestAttributes.class.isAssignableFrom(requestAttributes.getClass()))
-            .map(requestAttributes -> ((ServletRequestAttributes) requestAttributes)).map(ServletRequestAttributes::getRequest);
+        return Optional.ofNullable(RequestContextHolder.getRequestAttributes()).filter(
+                requestAttributes -> ServletRequestAttributes.class.isAssignableFrom(requestAttributes.getClass()))
+                .map(requestAttributes -> ((ServletRequestAttributes) requestAttributes))
+                .map(ServletRequestAttributes::getRequest);
     }
 
 }

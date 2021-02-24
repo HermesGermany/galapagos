@@ -6,11 +6,11 @@ import lombok.Getter;
 @Getter
 public class ApplicationEvent extends AbstractGalapagosEvent {
 
-	private ApplicationMetadata metadata;
+    private ApplicationMetadata metadata;
 
-	public ApplicationEvent(GalapagosEventContext context, ApplicationMetadata metadata) {
-		super(context);
-		this.metadata = metadata;
-	}
+    public ApplicationEvent(GalapagosEventContext context, ApplicationMetadata metadata) {
+        super(context);
+        this.metadata = metadata;
+    }
 
 }

@@ -7,12 +7,12 @@ import lombok.Setter;
 @Setter
 public class CustomLinkConfig {
 
-	private String id;
+    private String id;
 
-	private String href;
+    private String href;
 
-	private String label;
+    private String label;
 
-	private LinkType linkType;
+    private LinkType linkType;
 
 }

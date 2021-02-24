@@ -11,34 +11,34 @@ import com.hermesworld.ais.galapagos.topics.TopicMetadata;
 
 public interface GalapagosEventSink {
 
-	CompletableFuture<Void> handleTopicCreated(TopicMetadata metadata, TopicCreateParams topicCreateParams);
+    CompletableFuture<Void> handleTopicCreated(TopicMetadata metadata, TopicCreateParams topicCreateParams);
 
-	CompletableFuture<Void> handleTopicDeleted(TopicMetadata metadata);
+    CompletableFuture<Void> handleTopicDeleted(TopicMetadata metadata);
 
-	CompletableFuture<Void> handleTopicDescriptionChanged(TopicMetadata metadata);
+    CompletableFuture<Void> handleTopicDescriptionChanged(TopicMetadata metadata);
 
-	CompletableFuture<Void> handleTopicDeprecated(TopicMetadata metadata);
+    CompletableFuture<Void> handleTopicDeprecated(TopicMetadata metadata);
 
-	CompletableFuture<Void> handleTopicUndeprecated(TopicMetadata metadata);
+    CompletableFuture<Void> handleTopicUndeprecated(TopicMetadata metadata);
 
-	CompletableFuture<Void> handleTopicSubscriptionApprovalRequiredFlagChanged(TopicMetadata metadata);
+    CompletableFuture<Void> handleTopicSubscriptionApprovalRequiredFlagChanged(TopicMetadata metadata);
 
-	CompletableFuture<Void> handleTopicSchemaAdded(TopicMetadata metadata, SchemaMetadata newSchema);
+    CompletableFuture<Void> handleTopicSchemaAdded(TopicMetadata metadata, SchemaMetadata newSchema);
 
-	CompletableFuture<Void> handleSubscriptionCreated(SubscriptionMetadata subscription);
+    CompletableFuture<Void> handleSubscriptionCreated(SubscriptionMetadata subscription);
 
-	CompletableFuture<Void> handleSubscriptionUpdated(SubscriptionMetadata subscription);
+    CompletableFuture<Void> handleSubscriptionUpdated(SubscriptionMetadata subscription);
 
-	CompletableFuture<Void> handleSubscriptionDeleted(SubscriptionMetadata subscription);
+    CompletableFuture<Void> handleSubscriptionDeleted(SubscriptionMetadata subscription);
 
-	CompletableFuture<Void> handleApplicationRegistered(ApplicationMetadata metadata);
+    CompletableFuture<Void> handleApplicationRegistered(ApplicationMetadata metadata);
 
-	CompletableFuture<Void> handleApplicationCertificateChanged(ApplicationMetadata metadata, String previousDn);
+    CompletableFuture<Void> handleApplicationCertificateChanged(ApplicationMetadata metadata, String previousDn);
 
-	CompletableFuture<Void> handleApplicationOwnerRequestCreated(ApplicationOwnerRequest request);
+    CompletableFuture<Void> handleApplicationOwnerRequestCreated(ApplicationOwnerRequest request);
 
-	CompletableFuture<Void> handleApplicationOwnerRequestUpdated(ApplicationOwnerRequest request);
+    CompletableFuture<Void> handleApplicationOwnerRequestUpdated(ApplicationOwnerRequest request);
 
-	CompletableFuture<Void> handleApplicationOwnerRequestCanceled(ApplicationOwnerRequest request);
+    CompletableFuture<Void> handleApplicationOwnerRequestCanceled(ApplicationOwnerRequest request);
 
 }

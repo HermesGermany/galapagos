@@ -9,8 +9,8 @@ import lombok.Setter;
 @Setter
 public class UpdateTopicConfigEntryDto {
 
-	private String name;
+    private String name;
 
-	private String value;
+    private String value;
 
 }

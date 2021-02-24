@@ -11,17 +11,16 @@ import { SingleTopicComponent } from './single-topic.component';
 import { SpinnerWhileModule } from '../../shared/modules/spinner-while/spinner-while.module';
 import { HIGHLIGHT_OPTIONS, HighlightModule } from 'ngx-highlightjs';
 import { TopicConfigEditorComponent } from './topic-config-editor.component';
+import { SchemaSectionComponent } from './schema-section.component';
 
-export function getHighlightLanguages() {
-    return {
-        json: () => import('highlight.js/lib/languages/json')
-    };
-}
+export const getHighlightLanguages = () => ({
+    json: () => import('highlight.js/lib/languages/json')
+});
 
 @NgModule({
     imports: [CommonModule, TopicsRoutingModule, TranslateModule, FormsModule, NgbModule,
         SpinnerWhileModule, HighlightModule],
-    declarations: [TopicsComponent, TableSortDirective, SingleTopicComponent, TopicConfigEditorComponent],
+    declarations: [TopicsComponent, TableSortDirective, SingleTopicComponent, TopicConfigEditorComponent, SchemaSectionComponent],
     providers: [
         {
             provide: HIGHLIGHT_OPTIONS,
@@ -30,7 +29,7 @@ export function getHighlightLanguages() {
                 lineNumbers: true
             }
         }
-    ],
+    ]
 })
 export class TopicsModule {
 }

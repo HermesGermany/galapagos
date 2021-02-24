@@ -31,6 +31,16 @@ export interface UserApplicationInfo extends ApplicationInfo {
 
 }
 
+export interface ApplicationPrefixes {
+
+    internalTopicPrefixes: string[];
+
+    consumerGroupPrefixes: string[];
+
+    transactionIdPrefixes: string[];
+
+}
+
 export interface ApplicationOwnerRequest {
     id: string;
 
@@ -125,17 +135,21 @@ export class ApplicationsService {
         return this.http.get<ApplicationTopicSubscription[]>('/api/applications/' + appId + '/subscriptions/' + envId);
     }
 
+    public getApplicationPrefixes(applicationId: string, environmentId: string): Observable<ApplicationPrefixes> {
+        return this.http.get<ApplicationPrefixes>(`/api/environments/${environmentId}/prefixes/${applicationId}`);
+    }
+
     public async submitApplicationOwnerRequest(applicationId: string, comments: string): Promise<ApplicationOwnerRequest> {
         const body = JSON.stringify({
             applicationId: applicationId,
             comments: comments || null
-         });
+        });
 
         return this.http.put('/api/me/requests', body, { headers: jsonHeader() }).toPromise().then(value => {
             this.userRequests.refresh();
             this.availableAppsExcl.refresh();
             this.availableAppsIncl.refresh();
-            return <ApplicationOwnerRequest>value;
+            return value as ApplicationOwnerRequest;
         });
     }
 
@@ -156,12 +170,6 @@ export class ApplicationsService {
             this.userApplications.refresh();
         });
     }
-
-    /*public async updateApplication(applicationId: string, kafkaGroupPrefix: string): Promise<any> {
-        const body = JSON.stringify({ kafkaGroupPrefix: kafkaGroupPrefix });
-        return this.http.post('/api/applications/' + applicationId, body, { headers: jsonHeader() }).toPromise().then(
-            () => this.userApplications.refresh());
-    }*/
 
     public async refresh(): Promise<any> {
         return Promise.all([
