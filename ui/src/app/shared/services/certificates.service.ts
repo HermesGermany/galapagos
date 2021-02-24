@@ -60,6 +60,10 @@ export class CertificateService {
             this.http.get('/api/certificates/' + applicationId).pipe(map(val => val as ApplicationCertificate[])));
     }
 
+    public getApplicationCn(applicationId: string): Promise<string> {
+        return this.http.get('/api/util/common-name/' + applicationId).pipe(map(val => (val as any).cn)).toPromise();
+    }
+
     public getApplicationCertificatesPromise(applicationId: string): Promise<ApplicationCertificate[]> {
         return this.getApplicationCertificates(applicationId).getObservable().pipe(take(1)).toPromise();
     }

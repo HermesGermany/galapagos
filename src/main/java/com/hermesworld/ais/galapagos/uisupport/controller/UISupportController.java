@@ -10,6 +10,7 @@ import com.hermesworld.ais.galapagos.kafka.util.KafkaTopicConfigHelper;
 import com.hermesworld.ais.galapagos.naming.NamingService;
 import com.hermesworld.ais.galapagos.topics.config.GalapagosTopicConfig;
 import com.hermesworld.ais.galapagos.topics.service.TopicService;
+import com.hermesworld.ais.galapagos.util.CertificateUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.config.TopicConfig;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -183,6 +184,13 @@ public class UISupportController {
                 .map(id -> kafkaClusters.getCaManager(id)
                         .map(caMan -> caMan.supportsDeveloperCertificates() ? id : null).orElse(null))
                 .filter(id -> id != null).collect(Collectors.toList());
+    }
+
+    @GetMapping(value = "/api/util/common-name/{applicationId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ApplicationCnDto getApplicationCommonName(@PathVariable String applicationId) {
+        return applicationsService.getKnownApplication(applicationId)
+                .map(app -> new ApplicationCnDto(app.getId(), app.getName(), CertificateUtil.toAppCn(app.getName())))
+                .orElseThrow(notFound);
     }
 
     private String getTopicNameSuggestion(QueryTopicCreateDefaultsDto query) {

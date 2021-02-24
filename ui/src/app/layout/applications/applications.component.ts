@@ -186,6 +186,13 @@ export class ApplicationsComponent implements OnInit {
                 this.certificateDlgData.expiryWarningHtml = this.currentLang.pipe(mergeMap(lang =>
                     this.translateService.get(expiryWarnLevel === 'danger' ? 'CERTIFICATE_EXPIRED_HTML' : 'CERTIFICATE_EXPIRY_HTML',
                         { expiryDate: moment(isoExpiryDate).locale(lang).format('L') })));
+            } else {
+                this.certificateDlgData.commonName = 'app';
+                this.certificateDlgData.keyfileName = 'app.key';
+                this.certificateService.getApplicationCn(app.id).then(cn => {
+                    this.certificateDlgData.commonName = cn;
+                    this.certificateDlgData.keyfileName = this.certificateDlgData.commonName + '_' + env.id + '.key';
+                });
             }
             this.modalService.open(content, { ariaLabelledBy: 'modal-title', size: 'lg', windowClass: 'modal-xxl' });
         });
