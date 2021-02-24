@@ -68,7 +68,8 @@ export class SubscriptionSectionComponent implements OnInit {
 
         return this.topicService.subscribeToTopic(this.topic.name, environment.id,
             this.selectedApplication.id, this.subscriptionDescription)
-            .then(() => {
+            .then(
+                () => {
                     if (this.topic.subscriptionApprovalRequired) {
                         this.toasts.addSuccessToast('Die Topic-Owner wurden über die Abonnement-Anfrage informiert');
                     } else {
