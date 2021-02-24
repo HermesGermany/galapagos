@@ -80,7 +80,7 @@
                             <tr>
                                 <th>{{ 'Prefixes for internal topics' | translate }}</th>
                                 <td>
-                                    <ul>
+                                    <ul id="internalTopicPrefixes">
                                         <li *ngFor="let prefix of internalTopicPrefixes | async">
                                             <code>{{ prefix }}</code>
                                         </li>
@@ -90,7 +90,7 @@
                             <tr>
                                 <th>{{ 'Prefixes for consumer group IDs' | translate }}</th>
                                 <td>
-                                    <ul>
+                                    <ul id="consumerGroupPrefixes">
                                         <li *ngFor="let prefix of consumerGroupPrefixes | async">
                                             <code>{{ prefix }}</code>
                                         </li>
@@ -100,7 +100,7 @@
                             <tr>
                                 <th>{{ 'Prefixes for transactional IDs' | translate }}</th>
                                 <td>
-                                    <ul>
+                                    <ul id="transactionIdPrefixes">
                                         <li *ngFor="let prefix of transactionIdPrefixes | async">
                                             <code>{{ prefix }}</code>
                                         </li>
