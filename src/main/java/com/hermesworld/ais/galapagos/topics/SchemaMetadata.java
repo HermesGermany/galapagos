@@ -1,5 +1,6 @@
 package com.hermesworld.ais.galapagos.topics;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.hermesworld.ais.galapagos.util.HasKey;
 import lombok.Getter;
@@ -7,6 +8,7 @@ import lombok.Setter;
 
 import java.time.ZonedDateTime;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 @JsonSerialize
 @Getter
 @Setter
