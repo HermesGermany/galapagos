@@ -13,7 +13,7 @@
                                                   [topicSubscribers]="topicSubscribers | async"
                                                   [approvedTopicSubscribers]="approvedTopicSubscribers | async"
                                                   [pendingTopicSubscribers]="pendingTopicSubscribers | async"
-                                                  (onSubsChange)="refreshChildData()">
+                                                  (subsChanged)="refreshChildData()">
                         </app-topic-metadata-table>
 
                         <app-schema-section [topic]="topic | async" [isOwnerOfTopic]="isOwnerOfTopic | async"
@@ -21,10 +21,9 @@
                         ></app-schema-section>
 
                         <app-subscription-section [topic]="topic | async" [isOwnerOfTopic]="isOwnerOfTopic | async"
-                                                  [selectedEnvironment]="selectedEnvironment | async"
                                                   [availableApplications]="availableApplications | async"
                                                   [loadingApplications]="loadingApplications | async"
-                                                  (onAppChange)="refreshChildData()">
+                                                  (appChanged)="refreshChildData()">
                         </app-subscription-section>
 
                         <app-deprecation-component [topic]="topic | async" [isOwnerOfTopic]="isOwnerOfTopic | async">

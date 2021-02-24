@@ -1,7 +1,6 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { Topic, TopicsService } from '../../../shared/services/topics.service';
-import { Observable } from 'rxjs';
-import { EnvironmentsService, KafkaEnvironment } from '../../../shared/services/environments.service';
+import { EnvironmentsService } from '../../../shared/services/environments.service';
 import { ServerInfoService } from '../../../shared/services/serverinfo.service';
 import { TranslateService } from '@ngx-translate/core';
 import { ToastService } from '../../../shared/modules/toast/toast.service';
@@ -13,7 +12,7 @@ import { Router } from '@angular/router';
     selector: 'app-delete-topic-component',
     templateUrl: './delete-topic.component.html'
 })
-export class DeleteTopicComponent implements OnInit {
+export class DeleteTopicComponent {
 
     @Input() topic: Topic;
 
@@ -22,8 +21,6 @@ export class DeleteTopicComponent implements OnInit {
     @Input() topicName: string;
 
     @Input() translateParams: any = {};
-
-    selectedEnvironment: Observable<KafkaEnvironment>;
 
     topicNameConfirmText = '';
 
@@ -36,10 +33,6 @@ export class DeleteTopicComponent implements OnInit {
         private modalService: NgbModal,
         private router: Router
     ) {
-    }
-
-    ngOnInit() {
-
     }
 
     openDeleteConfirmDlg(content: any) {

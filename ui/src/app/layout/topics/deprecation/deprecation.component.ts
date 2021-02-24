@@ -30,7 +30,6 @@ export class DeprecationComponent implements OnInit {
 
     minDeprecationDate: Observable<{ year: number; month: number; day: number }>;
 
-
     constructor(
         private serverInfoService: ServerInfoService,
         private translateService: TranslateService,

@@ -27,7 +27,7 @@ export class TopicMetadataTableComponent implements OnInit {
 
     @Input() pendingTopicSubscribers: TopicSubscription[];
 
-    @Output() onSubsChange = new EventEmitter();
+    @Output() subsChanged = new EventEmitter();
 
     selectedEnvironment: Observable<KafkaEnvironment>;
 
@@ -52,16 +52,13 @@ export class TopicMetadataTableComponent implements OnInit {
     }
 
     ngOnInit(): void {
-
         this.selectedEnvironment = this.environmentsService.getCurrentEnvironment();
-
     }
 
     async openChangeDescDlg(content: any) {
         this.updatedTopicDescription = this.topic.description;
         this.modalService.open(content, { ariaLabelledBy: 'modal-title', size: 'lg' });
     }
-
 
     async rejectSubscription(sub: TopicSubscription) {
         return this.updateSubscription(
@@ -152,7 +149,7 @@ export class TopicMetadataTableComponent implements OnInit {
                         ? 'Die Abonnements-Anfrage wurde gelöscht.'
                         : 'Die Anwendung abonniert dieses Topic nicht länger. ACHTUNG: Die Leserechte wurden entzogen!';
                 this.toasts.addSuccessToast(msg);
-                this.onSubsChange.emit();
+                this.subsChanged.emit();
             },
             err => this.toasts.addHttpErrorToast('Das Abonnement konnte nicht gelöscht werden', err)
         );
@@ -170,7 +167,7 @@ export class TopicMetadataTableComponent implements OnInit {
         return this.topicService.updateTopicSubscription(environment.id, this.topic.name, sub.id, approve).then(
             () => {
                 this.toasts.addSuccessToast(successMessage);
-                this.onSubsChange.emit();
+                this.subsChanged.emit();
             },
             err => this.toasts.addHttpErrorToast(errorMessage, err)
         );

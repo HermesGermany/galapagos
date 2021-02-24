@@ -1,5 +1,5 @@
 <div class="row"
-     *ngIf="!selectedEnvironment?.stagingOnly && topic?.topicType !== 'INTERNAL'">
+     *ngIf="!(selectedEnvironment | async)?.stagingOnly && topic?.topicType !== 'INTERNAL'">
     <div class="col-md-12">
         <div class="card mb-3">
             <div class="card-header bg-hermes text-white"><i
