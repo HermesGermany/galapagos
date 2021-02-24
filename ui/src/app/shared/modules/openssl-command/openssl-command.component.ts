@@ -1,11 +1,11 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnChanges, OnInit } from '@angular/core';
 
 @Component({
     selector: 'app-openssl-command',
     templateUrl: './openssl-command.component.html',
     styleUrls: ['./openssl-command.component.scss']
 })
-export class OpensslCommandComponent implements OnInit {
+export class OpensslCommandComponent implements OnInit, OnChanges {
     @Input() commonName: string;
     @Input() orgUnitName: string;
     @Input() keyfileName: string;
@@ -21,6 +21,10 @@ export class OpensslCommandComponent implements OnInit {
     }
 
     ngOnInit() {
+        this.updateCommand();
+    }
+
+    ngOnChanges(changes) {
         this.updateCommand();
     }
 
