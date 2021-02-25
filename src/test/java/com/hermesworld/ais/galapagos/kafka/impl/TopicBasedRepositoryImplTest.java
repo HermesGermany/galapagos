@@ -1,5 +1,13 @@
 package com.hermesworld.ais.galapagos.kafka.impl;
 
+import com.hermesworld.ais.galapagos.applications.ApplicationMetadata;
+import com.hermesworld.ais.galapagos.kafka.KafkaSender;
+import com.hermesworld.ais.galapagos.util.FutureUtil;
+import com.hermesworld.ais.galapagos.util.JsonUtil;
+import org.json.JSONObject;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
+
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
@@ -7,14 +15,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-import com.hermesworld.ais.galapagos.applications.ApplicationMetadata;
-import com.hermesworld.ais.galapagos.kafka.KafkaSender;
-import com.hermesworld.ais.galapagos.util.FutureUtil;
-import com.hermesworld.ais.galapagos.util.JsonUtil;
-import org.json.JSONObject;
-import org.junit.After;
 import static org.junit.Assert.*;
-import org.junit.Test;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -25,7 +26,7 @@ public class TopicBasedRepositoryImplTest {
 
     private final ScheduledExecutorService executorService = new ScheduledThreadPoolExecutor(1);
 
-    @After
+    @AfterEach
     public void shutdownExecutor() throws Exception {
         executorService.shutdown();
         executorService.awaitTermination(1, TimeUnit.SECONDS);

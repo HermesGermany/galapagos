@@ -1,11 +1,5 @@
 package com.hermesworld.ais.galapagos.reminders.impl;
 
-import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-
 import com.hermesworld.ais.galapagos.applications.ApplicationMetadata;
 import com.hermesworld.ais.galapagos.applications.ApplicationsService;
 import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
@@ -13,9 +7,16 @@ import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.kafka.impl.TopicBasedRepositoryMock;
 import com.hermesworld.ais.galapagos.reminders.CertificateExpiryReminder;
 import com.hermesworld.ais.galapagos.reminders.ReminderType;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+
 import static org.junit.Assert.*;
-import org.junit.Before;
-import org.junit.Test;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -29,7 +30,7 @@ public class CertificateExpiryReminderServiceTest {
 
     private final TopicBasedRepositoryMock<ReminderMetadata> reminderRepository = new TopicBasedRepositoryMock<>();
 
-    @Before
+    @BeforeEach
     public void initClusters() {
         clusters = mock(KafkaClusters.class);
         KafkaCluster cluster = mock(KafkaCluster.class);

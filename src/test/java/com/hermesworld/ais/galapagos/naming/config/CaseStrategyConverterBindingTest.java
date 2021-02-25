@@ -1,6 +1,7 @@
 package com.hermesworld.ais.galapagos.naming.config;
 
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 
 import static org.junit.Assert.assertEquals;
 
@@ -16,10 +17,12 @@ public class CaseStrategyConverterBindingTest {
         assertEquals(CaseStrategy.LOWERCASE, converter.convert("lowercase"));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testNoCaseConversion() {
-        CaseStrategyConverterBinding converter = new CaseStrategyConverterBinding();
-        converter.convert("pascalCase");
+        Assertions.assertThrows(IllegalArgumentException.class, () -> {
+            CaseStrategyConverterBinding converter = new CaseStrategyConverterBinding();
+            converter.convert("pascalCase");
+        });
     }
 
     @Test(expected = IllegalArgumentException.class)

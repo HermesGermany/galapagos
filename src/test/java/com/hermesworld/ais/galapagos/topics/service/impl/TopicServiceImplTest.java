@@ -23,8 +23,8 @@ import com.hermesworld.ais.galapagos.topics.config.GalapagosTopicConfig;
 import com.hermesworld.ais.galapagos.topics.service.ValidatingTopicService;
 import com.hermesworld.ais.galapagos.util.FutureUtil;
 import org.json.JSONObject;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.io.ClassPathResource;
@@ -63,7 +63,7 @@ public class TopicServiceImplTest {
 
     private ValidatingTopicService topicService;
 
-    @Before
+    @BeforeEach
     public void feedMocks() {
         kafkaClusters = mock(KafkaClusters.class);
         applicationsService = mock(ApplicationsService.class);

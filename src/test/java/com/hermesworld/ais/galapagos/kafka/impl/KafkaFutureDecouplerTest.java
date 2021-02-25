@@ -1,22 +1,6 @@
 package com.hermesworld.ais.galapagos.kafka.impl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-
+import com.hermesworld.ais.galapagos.kafka.KafkaExecutorFactory;
 import org.apache.kafka.common.KafkaFuture;
 import org.apache.kafka.common.acl.AccessControlEntry;
 import org.apache.kafka.common.acl.AclBinding;
@@ -25,46 +9,53 @@ import org.apache.kafka.common.acl.AclPermissionType;
 import org.apache.kafka.common.resource.PatternType;
 import org.apache.kafka.common.resource.ResourcePattern;
 import org.apache.kafka.common.resource.ResourceType;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.kafka.KafkaException;
 import org.springframework.util.concurrent.FailureCallback;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.ListenableFutureCallback;
 import org.springframework.util.concurrent.SuccessCallback;
 
-import com.hermesworld.ais.galapagos.kafka.KafkaExecutorFactory;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static org.junit.Assert.*;
 
 public class KafkaFutureDecouplerTest {
 
-    private static ThreadFactory tfAdminClient = new ThreadFactory() {
+    private static final ThreadFactory tfAdminClient = new ThreadFactory() {
         @Override
         public Thread newThread(Runnable r) {
             return new Thread(r, "admin-client-" + System.currentTimeMillis());
         }
     };
 
-    private static ThreadFactory tfDecoupled = new ThreadFactory() {
+    private static final ThreadFactory tfDecoupled = new ThreadFactory() {
         @Override
         public Thread newThread(Runnable r) {
             return new Thread(r, "decoupled-" + System.currentTimeMillis());
         }
     };
 
-    private static KafkaExecutorFactory executorFactory = () -> {
+    private static final KafkaExecutorFactory executorFactory = () -> {
         return Executors.newSingleThreadExecutor(tfDecoupled);
     };
 
     private AdminClientStub adminClient;
 
-    @Before
+    @BeforeEach
     public void initAdminClient() {
         adminClient = new AdminClientStub();
         adminClient.setKafkaThreadFactory(tfAdminClient);
     }
 
-    @After
+    @AfterEach
     public void closeAdminClient() {
         adminClient.close();
     }
@@ -216,7 +207,7 @@ public class KafkaFutureDecouplerTest {
 
     private static class KafkaFutureListenableAdapter<T> implements ListenableFuture<T> {
 
-        private KafkaFuture<T> adaptee;
+        private final KafkaFuture<T> adaptee;
 
         public KafkaFutureListenableAdapter(KafkaFuture<T> adaptee) {
             this.adaptee = adaptee;

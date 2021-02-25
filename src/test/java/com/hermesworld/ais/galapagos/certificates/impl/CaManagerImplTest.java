@@ -1,5 +1,13 @@
 package com.hermesworld.ais.galapagos.certificates.impl;
 
+import com.hermesworld.ais.galapagos.certificates.CertificateSignResult;
+import com.hermesworld.ais.galapagos.kafka.config.KafkaEnvironmentConfig;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.util.StreamUtils;
+
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.security.Security;
@@ -8,16 +16,9 @@ import java.security.cert.CertificateParsingException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
-import com.hermesworld.ais.galapagos.certificates.CertificateSignResult;
-import com.hermesworld.ais.galapagos.kafka.config.KafkaEnvironmentConfig;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import static org.junit.Assert.*;
-import org.junit.Before;
-import org.junit.Test;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.util.StreamUtils;
 
 public class CaManagerImplTest {
 
@@ -25,7 +26,7 @@ public class CaManagerImplTest {
     private String testAppName;
     private File f;
 
-    @Before
+    @BeforeEach
     public void init() {
         Security.addProvider(new BouncyCastleProvider());
         testAppId = "four";

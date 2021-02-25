@@ -10,8 +10,9 @@ import com.hermesworld.ais.galapagos.topics.TopicType;
 import com.hermesworld.ais.galapagos.topics.config.GalapagosTopicConfig;
 import com.hermesworld.ais.galapagos.topics.service.TopicService;
 import com.hermesworld.ais.galapagos.topics.service.impl.ValidatingTopicServiceImpl;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
 import java.time.Period;
@@ -19,8 +20,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -28,7 +27,7 @@ public class ValidatingTopicServiceImplTest {
 
     private GalapagosTopicConfig topicConfig;
 
-    @Before
+    @BeforeEach
     public void init() {
         topicConfig = mock(GalapagosTopicConfig.class);
         when(topicConfig.getMinDeprecationTime()).thenReturn(Period.ofDays(10));
@@ -57,7 +56,7 @@ public class ValidatingTopicServiceImplTest {
         ValidatingTopicServiceImpl service = new ValidatingTopicServiceImpl(topicService, subscriptionService,
                 mock(ApplicationsService.class), clusters, topicConfig, false);
 
-        assertFalse(service.canDeleteTopic("_env1", "testtopic"));
+        Assertions.assertFalse(service.canDeleteTopic("_env1", "testtopic"));
     }
 
     @Test
@@ -79,8 +78,8 @@ public class ValidatingTopicServiceImplTest {
         ValidatingTopicServiceImpl service = new ValidatingTopicServiceImpl(topicService, subscriptionService,
                 mock(ApplicationsService.class), clusters, topicConfig, false);
 
-        assertFalse(service.canDeleteTopic("_env1", "testtopic"));
-        assertTrue(service.canDeleteTopic("_env2", "testtopic"));
+        Assertions.assertFalse(service.canDeleteTopic("_env1", "testtopic"));
+        Assertions.assertTrue(service.canDeleteTopic("_env2", "testtopic"));
     }
 
     @Test
@@ -104,7 +103,7 @@ public class ValidatingTopicServiceImplTest {
         ValidatingTopicServiceImpl service = new ValidatingTopicServiceImpl(topicService, subscriptionService,
                 mock(ApplicationsService.class), clusters, topicConfig, false);
 
-        assertTrue(service.canDeleteTopic("_env1", "testtopic"));
+        Assertions.assertTrue(service.canDeleteTopic("_env1", "testtopic"));
 
     }
 
@@ -129,7 +128,7 @@ public class ValidatingTopicServiceImplTest {
         ValidatingTopicServiceImpl service = new ValidatingTopicServiceImpl(topicService, subscriptionService,
                 mock(ApplicationsService.class), clusters, topicConfig, false);
 
-        assertFalse(service.canDeleteTopic("_env1", "testtopic"));
+        Assertions.assertFalse(service.canDeleteTopic("_env1", "testtopic"));
 
     }
 
@@ -160,7 +159,7 @@ public class ValidatingTopicServiceImplTest {
         ValidatingTopicServiceImpl service = new ValidatingTopicServiceImpl(topicService, subscriptionService,
                 mock(ApplicationsService.class), clusters, topicConfig, false);
 
-        assertTrue(service.canDeleteTopic("_env1", "testtopic"));
+        Assertions.assertTrue(service.canDeleteTopic("_env1", "testtopic"));
     }
 
     @Test
@@ -190,7 +189,7 @@ public class ValidatingTopicServiceImplTest {
         ValidatingTopicServiceImpl service = new ValidatingTopicServiceImpl(topicService, subscriptionService,
                 mock(ApplicationsService.class), clusters, topicConfig, false);
 
-        assertFalse(service.canDeleteTopic("_env1", "testtopic"));
+        Assertions.assertFalse(service.canDeleteTopic("_env1", "testtopic"));
     }
 
 }

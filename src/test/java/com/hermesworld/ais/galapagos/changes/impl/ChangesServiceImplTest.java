@@ -1,12 +1,5 @@
 package com.hermesworld.ais.galapagos.changes.impl;
 
-import java.time.LocalDate;
-import java.time.ZonedDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
 import com.hermesworld.ais.galapagos.changes.ChangeData;
 import com.hermesworld.ais.galapagos.changes.ChangeType;
 import com.hermesworld.ais.galapagos.events.GalapagosEventContext;
@@ -22,9 +15,17 @@ import com.hermesworld.ais.galapagos.topics.SchemaMetadata;
 import com.hermesworld.ais.galapagos.topics.TopicMetadata;
 import com.hermesworld.ais.galapagos.topics.TopicType;
 import com.hermesworld.ais.galapagos.util.HasKey;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import java.time.LocalDate;
+import java.time.ZonedDateTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
 import static org.junit.Assert.assertEquals;
-import org.junit.Before;
-import org.junit.Test;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -37,7 +38,7 @@ public class ChangesServiceImplTest {
 
     private AuditPrincipal principal;
 
-    @Before
+    @BeforeEach
     public void buildMocks() {
         KafkaClusters clusters = mock(KafkaClusters.class);
         impl = new ChangesServiceImpl(clusters);
@@ -160,9 +161,9 @@ public class ChangesServiceImplTest {
 
     private static class MockCluster {
 
-        private KafkaCluster cluster;
+        private final KafkaCluster cluster;
 
-        private Map<String, TopicBasedRepositoryMock<?>> repositories = new HashMap<>();
+        private final Map<String, TopicBasedRepositoryMock<?>> repositories = new HashMap<>();
 
         public MockCluster(String id) {
             cluster = mock(KafkaCluster.class);

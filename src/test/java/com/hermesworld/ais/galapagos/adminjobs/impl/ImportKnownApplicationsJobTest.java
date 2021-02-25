@@ -1,5 +1,16 @@
 package com.hermesworld.ais.galapagos.adminjobs.impl;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hermesworld.ais.galapagos.applications.impl.KnownApplicationImpl;
+import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
+import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
+import com.hermesworld.ais.galapagos.kafka.impl.TopicBasedRepositoryMock;
+import com.hermesworld.ais.galapagos.util.JsonUtil;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.ApplicationArguments;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.PrintStream;
@@ -8,34 +19,24 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.hermesworld.ais.galapagos.applications.impl.KnownApplicationImpl;
-import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
-import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
-import com.hermesworld.ais.galapagos.kafka.impl.TopicBasedRepositoryMock;
-import com.hermesworld.ais.galapagos.util.JsonUtil;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import org.springframework.boot.ApplicationArguments;
 
 public class ImportKnownApplicationsJobTest {
 
     private KafkaClusters kafkaClusters;
 
-    private File fileWithOutInfoUrl = new File("src/test/resources/test-applications.json");
+    private final File fileWithOutInfoUrl = new File("src/test/resources/test-applications.json");
 
-    private File fileWithInfoUrl = new File("src/test/resources/test-applications-infoUrl.json");
+    private final File fileWithInfoUrl = new File("src/test/resources/test-applications-infoUrl.json");
 
     private TopicBasedRepositoryMock<KnownApplicationImpl> appRepository;
 
     private ObjectMapper mapper;
 
-    @Before
+    @BeforeEach
     public void setUp() {
 
         mapper = JsonUtil.newObjectMapper();

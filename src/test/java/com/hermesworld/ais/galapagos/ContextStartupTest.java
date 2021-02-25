@@ -1,9 +1,6 @@
 package com.hermesworld.ais.galapagos;
 
-import static org.junit.Assert.assertNotNull;
-
-import java.security.Security;
-
+import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -14,7 +11,9 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
+import java.security.Security;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest

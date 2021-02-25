@@ -1,12 +1,8 @@
 package com.hermesworld.ais.galapagos.uisupport.controller;
 
-import java.util.Collections;
-
 import org.junit.Test;
 
-import com.hermesworld.ais.galapagos.uisupport.controller.CustomLinkConfig;
-import com.hermesworld.ais.galapagos.uisupport.controller.CustomLinksConfig;
-import com.hermesworld.ais.galapagos.uisupport.controller.LinkType;
+import java.util.Collections;
 
 public class CustomLinksConfigTest {
 

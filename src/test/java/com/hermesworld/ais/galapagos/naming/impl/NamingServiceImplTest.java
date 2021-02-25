@@ -9,8 +9,8 @@ import com.hermesworld.ais.galapagos.naming.config.CaseStrategy;
 import com.hermesworld.ais.galapagos.naming.config.NamingConfig;
 import com.hermesworld.ais.galapagos.naming.config.TopicNamingConfig;
 import com.hermesworld.ais.galapagos.topics.TopicType;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.Set;
@@ -31,7 +31,7 @@ public class NamingServiceImplTest {
 
     private BusinessCapability cap2;
 
-    @Before
+    @BeforeEach
     public void feedMocks() {
         rules = new AdditionNamingRules();
         rules.setAllowedSeparators(".");
