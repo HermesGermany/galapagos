@@ -154,6 +154,7 @@ export class ApplicationsComponent implements OnInit {
     }
 
     openCertDlg(event: OpenCertificateDialogEvent, content: any) {
+        console.log('clciked!');
         const app = event.application;
         const env = event.environment;
 

@@ -180,7 +180,8 @@
     </div>
     <div class="modal-footer">
         <button id="certButton" type="button" class="btn btn-warning" (click)="generateCertificate(); dlg.dismiss()"
-                [disabled]="activeTab === 'new' ? (certificateCreationType === 'hasCsr' && !certificateDlgData.csrData) : !certificateDlgData.csrData">
+                [disabled]="activeTab === 'new' ? (certificateCreationType === 'hasCsr' && !certificateDlgData.csrData)
+                || (certificateDlgData.environment?.production && certificateCreationType === 'noCsr' ) : !certificateDlgData.csrData">
             <i class="fas fa-cogs"></i>&nbsp;{{ 'Generate Client Certificate' | translate }}
         </button>
         <button type="button" ngbAutofocus class="btn btn-danger" (click)="dlg.dismiss()"><i

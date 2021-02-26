@@ -20,8 +20,9 @@ import { ReplayContainer } from '../../shared/services/services-common';
 import { of } from 'rxjs';
 import { OpensslCommandModule } from '../../shared/modules/openssl-command/openssl-command.module';
 import { ApplicationBlockComponent } from './application-block.component';
-import { SimpleChange } from '@angular/core';
+import { ApplicationModule, SimpleChange } from '@angular/core';
 import { By } from '@angular/platform-browser';
+import { ApplicationsComponent } from './applications.component';
 
 describe('ApplicationBlockComponent', () => {
 
@@ -31,7 +32,7 @@ describe('ApplicationBlockComponent', () => {
 
     beforeEach((() => {
         TestBed.configureTestingModule({
-            declarations: [ApplicationBlockComponent],
+            declarations: [ApplicationBlockComponent, ApplicationsComponent],
             imports: [
                 LanguageTranslationModule,
                 NgbModule,
@@ -42,7 +43,8 @@ describe('ApplicationBlockComponent', () => {
                 FormsModule,
                 CommonModule,
                 SpinnerWhileModule,
-                OpensslCommandModule
+                OpensslCommandModule,
+                ApplicationModule
             ],
             providers: [
                 RouterModule,
@@ -142,5 +144,67 @@ describe('ApplicationBlockComponent', () => {
         });
 
     })));
+
+    it('should not show button as enabled when generating certificate on dev and on prod right after', (() => {
+
+        const certificateService = fixture.debugElement.injector.get(CertificateService);
+        const environmentsService = fixture.debugElement.injector.get(EnvironmentsService);
+
+        const certificateSpy: jasmine.Spy = spyOn(certificateService, 'getApplicationCertificates')
+            .and.returnValue(new ReplayContainer(() => of([{
+                environmentId: 'prod',
+                dn: 'CN=My User;OU= A ou',
+                certificateDownloadUrl: 'url goes here',
+                expiresAt: 'some day'
+            }])));
+
+        const envSpy: jasmine.Spy = spyOn(environmentsService, 'getCurrentEnvironment')
+            .and.returnValue(of({
+                id: 'prod',
+                name: 'prod',
+                bootstrapServers: 'myBootstrapServers',
+                production: true,
+                stagingOnly: true
+            }));
+
+        component.application = app;
+
+        component.ngOnChanges({
+            application: new SimpleChange(undefined, app, false)
+        });
+
+        component.currentEnvApplicationCertificate = of({
+            environmentId: 'prod',
+            dn: 'CN=My User,OU= A ou',
+            certificateDownloadUrl: 'url goes here',
+            expiresAt: 'some day'
+        });
+        fixture.detectChanges();
+
+        const accordion = fixture.debugElement.query(By.directive(NgbAccordion)).componentInstance;
+        accordion.expand('_panel_certificate');
+
+        component.openCertificateDialog.emit({
+            application: app,
+            environment: {
+                id: 'prod',
+                name: 'prod',
+                bootstrapServers: 'myBootstrapServers',
+                production: true,
+                stagingOnly: true
+            }
+        });
+        const spy: jasmine.Spy = spyOn(component.openCertificateDialog, 'emit');
+
+        fixture.detectChanges();
+
+
+        expect(spy).toHaveBeenCalled();
+
+        expect(certificateSpy).toHaveBeenCalled();
+        expect(envSpy).toHaveBeenCalled();
+
+
+    }));
 
 });

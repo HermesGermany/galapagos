@@ -133,7 +133,7 @@
                             </tr>
                             <tr>
                                 <td colspan="2">
-                                    <button type="button" class="btn btn-danger mr-2"
+                                    <button id="certificateButton" type="button" class="btn btn-danger mr-2"
                                             [title]=" 'CERT_BUTTON_TITLE' | translate:{ env: env.name }"
                                             (click)="openCertificateDialog.emit({ application: application, environment: env })">
                                         <i class="fas fa-award"></i>&nbsp;{{ 'Create / extend application certificate' | translate }}
