@@ -28,8 +28,10 @@
             ],
             "scripts": [],
             "allowedCommonJsDependencies": [
-              "keycloak-js",
-              "file-saver"
+                "keycloak-js",
+                "file-saver",
+                "moment",
+                "highlight.js"
             ]
           },
           "configurations": {
