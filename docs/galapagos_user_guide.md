@@ -171,7 +171,7 @@ winpty openssl pkcs12 -in <myclientkeystore.p12> -nocerts -nodes -out <myprivate
    have one:
       
    <p align="center">
-   <img alt="Certificate warning" src="./galapagos_user_guide_images/cert-warn.png" width="600" height="300">
+   <img alt="Certificate warning" src="./galapagos_user_guide_images/cert-warn.png" width="450" height="300">
    </p>
    
 ## Create developer certificate   
@@ -252,7 +252,7 @@ winpty openssl pkcs12 -in <myclientkeystore.p12> -nocerts -nodes -out <myprivate
    a client certificate yet:
       
    <p align="center">
-   <img alt="Subscription Warn" src="./galapagos_user_guide_images/sub-warn.png" width="600" height="300">
+   <img alt="Subscription Warn" src="./galapagos_user_guide_images/sub-warn.png" width="400" height="300">
    </p>
    
    If the topic you want to subscribe to is marked as a "sensitive topic" (e.g. it contains personal data)
@@ -295,7 +295,7 @@ winpty openssl pkcs12 -in <myclientkeystore.p12> -nocerts -nodes -out <myprivate
    requesting team / the requesting application has a legitimate interest in the published data.
    
    <p align="center">
-   <img alt="Subscription approve" src="./galapagos_user_guide_images/sub-approve.png" width="600" height="300">
+   <img alt="Subscription approve" src="./galapagos_user_guide_images/sub-approve.png" width="400" height="300">
    </p>
    
 ### Upload JSON schema   
@@ -320,7 +320,7 @@ winpty openssl pkcs12 -in <myclientkeystore.p12> -nocerts -nodes -out <myprivate
    on the user interface:
    
    <p align="center">
-   <img alt="Delete Schema" src="./galapagos_user_guide_images/delete%20schema.png" width="600" height="300">
+   <img alt="Delete Schema" src="./galapagos_user_guide_images/delete%20schema.png" width="450" height="300">
    </p>
       
    You can of course use this button several times to remove all JSON schemas of a topic.
@@ -401,7 +401,7 @@ winpty openssl pkcs12 -in <myclientkeystore.p12> -nocerts -nodes -out <myprivate
    a note appears next to the name of the topic that this topic can no longer be used in the near future:
    
    <p align="center">
-   <img alt="Deprecation" src="./galapagos_user_guide_images/deprecation2.png" width="600" height="300">
+   <img alt="Deprecation" src="./galapagos_user_guide_images/deprecation2.png" width="450" height="300">
    </p>   
    
    In addition, under the "Browse Topics" tab, deprecated topics are crossed out:
