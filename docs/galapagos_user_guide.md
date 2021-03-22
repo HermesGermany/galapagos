@@ -16,7 +16,7 @@ After successfully entering your username and password, you will be redirected t
 Galapagos and land on the start screen.
 
 <p align="center">
-<img alt="Start screen" src="./galapagos_user_guide_images/start-screen.png" width="360" height="300">
+<img alt="Start screen" src="./galapagos_user_guide_images/start-screen.png" width="400" height="300">
 </p>
 
 You can already find several elements here:
@@ -42,7 +42,7 @@ On the dashboard (see screenshot above) you will find the following elements:
   clusters when establishing the connection.
   
   <p align="center">
-  <img alt="Config Template" src="./galapagos_user_guide_images/config-template.png" width="360" height="300">
+  <img alt="Config Template" src="./galapagos_user_guide_images/config-template.png" width="400" height="300">
   </p>
   
   Please note that you also need a client certificate to establish a successful connection! Information on this can
@@ -54,7 +54,7 @@ On the dashboard (see screenshot above) you will find the following elements:
   The following screen appears:
     
   <p align="center">
-  <img alt="Browse Topics" src="./galapagos_user_guide_images/browse-topics.png" width="360" height="300">
+  <img alt="Browse Topics" src="./galapagos_user_guide_images/browse-topics.png" width="400" height="300">
   </p>
   
   You can sort the topics here and search (filter) names, descriptions and owning applications. To sort, click on the double arrows
@@ -76,7 +76,7 @@ On the dashboard (see screenshot above) you will find the following elements:
    Your request will be saved, and the Galapagos admins will receive an email to review and approve the request.
       
    <p align="center">
-   <img alt="Topic Administrator" src="./galapagos_user_guide_images/AOR.png" width="360" height="300">
+   <img alt="Topic Administrator" src="./galapagos_user_guide_images/AOR.png" width="400" height="300">
    </p>
      
    After an administrator has checked and approved your request, you will recieve your approval via e-mail. Then you can
@@ -90,13 +90,13 @@ On the dashboard (see screenshot above) you will find the following elements:
    a client certificate:
 
    <p align="center">
-   <img alt="Certificate" src="./galapagos_user_guide_images/client-cert.png" width="360" height="300">
+   <img alt="Certificate" src="./galapagos_user_guide_images/client-cert.png" width="400" height="300">
    </p>
    
    A dialog for generating the certificate in the selected Kafka cluster opens:
 
    <p align="center">
-   <img alt="Certificate Dialog" src="./galapagos_user_guide_images/cert-dialog.png" width="360" height="300">
+   <img alt="Certificate Dialog" src="./galapagos_user_guide_images/cert-dialog.png" width="400" height="300">
    </p>
 
   There are two options for generating the certificate. You can either have the private key and the certificate
@@ -118,7 +118,7 @@ On the dashboard (see screenshot above) you will find the following elements:
    copy and paste this into Galapagos: 
    
    <p align="center">
-   <img alt="CSR" src="./galapagos_user_guide_images/csr-input.png" width="360" height="300">
+   <img alt="CSR" src="./galapagos_user_guide_images/csr-input.png" width="400" height="300">
    </p>
    
    When you have received the signed certificate, you can use openssl to create a .p12 file (Windows; under Linux or Mac OS you
@@ -139,7 +139,7 @@ winpty openssl pkcs12 -export -out myapp.p12 -inkey myapp.key -in myapp.cer
    the "Extend existing Certificate" tab:
    
    <p align="center">
-   <img alt="Extend Certificate" src="./galapagos_user_guide_images/extend-cert.png" width="360" height="300">
+   <img alt="Extend Certificate" src="./galapagos_user_guide_images/extend-cert.png" width="400" height="300">
    </p>
 
    Note that the expiration date is also shown in this dialog. You can always check the expiration date here, but 
@@ -171,7 +171,7 @@ winpty openssl pkcs12 -in <myclientkeystore.p12> -nocerts -nodes -out <myprivate
    have one:
       
    <p align="center">
-   <img alt="Certificate warning" src="./galapagos_user_guide_images/cert-warn.png" width="360" height="300">
+   <img alt="Certificate warning" src="./galapagos_user_guide_images/cert-warn.png" width="400" height="300">
    </p>
    
 ## Create developer certificate   
@@ -188,7 +188,7 @@ winpty openssl pkcs12 -in <myclientkeystore.p12> -nocerts -nodes -out <myprivate
    "User Settings" in the menu. The following screen opens:
       
    <p align="center">
-   <img alt="Developer Certificate" src="./galapagos_user_guide_images/dev-cert.png" width="360" height="300">
+   <img alt="Developer Certificate" src="./galapagos_user_guide_images/dev-cert.png" width="400" height="300">
    </p>
    
    Select an environment for which you would like to get a developer certificate. If you had already created a certificate for that environment,
@@ -207,7 +207,7 @@ winpty openssl pkcs12 -in <myclientkeystore.p12> -nocerts -nodes -out <myprivate
    suggestion for the topic name.
       
    <p align="center">
-   <img alt="Internal Topic" src="./galapagos_user_guide_images/topic-internal.png" width="360" height="300">
+   <img alt="Internal Topic" src="./galapagos_user_guide_images/topic-internal.png" width="400" height="300">
    </p>
    
    You can also enter a description of the contents of this topic. This is not so important for
@@ -241,7 +241,7 @@ winpty openssl pkcs12 -in <myclientkeystore.p12> -nocerts -nodes -out <myprivate
    the info page for this topic you will find the section for the Subscription:
       
    <p align="center">
-   <img alt="Subscription Section" src="./galapagos_user_guide_images/sub-section.png" width="360" height="300">
+   <img alt="Subscription Section" src="./galapagos_user_guide_images/sub-section.png" width="400" height="300">
    </p>
    
    Select the application that wants to read from this topic and click on "Subscribe". Your
@@ -252,7 +252,7 @@ winpty openssl pkcs12 -in <myclientkeystore.p12> -nocerts -nodes -out <myprivate
    a client certificate yet:
       
    <p align="center">
-   <img alt="Subscription Warn" src="./galapagos_user_guide_images/sub-warn.png" width="360" height="300">
+   <img alt="Subscription Warn" src="./galapagos_user_guide_images/sub-warn.png" width="400" height="300">
    </p>
    
    If the topic you want to subscribe to is marked as a "sensitive topic" (e.g. it contains personal data)
@@ -266,7 +266,7 @@ winpty openssl pkcs12 -in <myclientkeystore.p12> -nocerts -nodes -out <myprivate
    be dependent on the subscription!
    
    <p align="center">
-   <img alt="Unsubscribe" src="./galapagos_user_guide_images/unsub.png" width="360" height="300">
+   <img alt="Unsubscribe" src="./galapagos_user_guide_images/unsub.png" width="400" height="300">
    </p>
    
 ## Create API Topic
@@ -277,7 +277,7 @@ winpty openssl pkcs12 -in <myclientkeystore.p12> -nocerts -nodes -out <myprivate
    A few new input fields now appear:
    
    <p align="center">
-   <img alt="API Topic" src="./galapagos_user_guide_images/api-topic.png" width="360" height="300">
+   <img alt="API Topic" src="./galapagos_user_guide_images/api-topic.png" width="400" height="300">
    </p>
    
    One of the new fields is the business capability field. Select the appropriate one for you here. Again, Galapagos
@@ -295,7 +295,7 @@ winpty openssl pkcs12 -in <myclientkeystore.p12> -nocerts -nodes -out <myprivate
    requesting team / the requesting application has a legitimate interest in the published data.
    
    <p align="center">
-   <img alt="Subscription approve" src="./galapagos_user_guide_images/sub-approve.png" width="360" height="300">
+   <img alt="Subscription approve" src="./galapagos_user_guide_images/sub-approve.png" width="400" height="300">
    </p>
    
 ### Upload JSON schema   
@@ -320,7 +320,7 @@ winpty openssl pkcs12 -in <myclientkeystore.p12> -nocerts -nodes -out <myprivate
    on the user interface:
    
    <p align="center">
-   <img alt="Delete Schema" src="./galapagos_user_guide_images/delete%20schema.png" width="360" height="300">
+   <img alt="Delete Schema" src="./galapagos_user_guide_images/delete%20schema.png" width="400" height="300">
    </p>
       
    You can of course use this button several times to remove all JSON schemas of a topic.
@@ -342,7 +342,7 @@ winpty openssl pkcs12 -in <myclientkeystore.p12> -nocerts -nodes -out <myprivate
    be published to the next stage:
       
    <p align="center">
-   <img alt="Staging" src="./galapagos_user_guide_images/staging.png" width="360" height="300">
+   <img alt="Staging" src="./galapagos_user_guide_images/staging.png" width="400" height="300">
    </p>
    
    In case you don't want to stage all changes to the next stage, just uncheck the respective checkbox.
@@ -365,11 +365,11 @@ winpty openssl pkcs12 -in <myclientkeystore.p12> -nocerts -nodes -out <myprivate
    the entire topic name into the input field:
       
    <p align="center">
-   <img alt="Delete Topic" src="./galapagos_user_guide_images/delete-topic.png" width="360" height="300">
+   <img alt="Delete Topic" src="./galapagos_user_guide_images/delete-topic.png" width="400" height="300">
    </p>  
    
    <p align="center">
-   <img alt="Delete Topic" src="./galapagos_user_guide_images/delete-topic2.png" width="360" height="300">
+   <img alt="Delete Topic" src="./galapagos_user_guide_images/delete-topic2.png" width="400" height="300">
    </p>
       
    Then you can stage this "change" (deleting the topic) from DEV to PROD (see previous section).
@@ -391,7 +391,7 @@ winpty openssl pkcs12 -in <myclientkeystore.p12> -nocerts -nodes -out <myprivate
    topic, a new area appears to mark topics as deprecated:
       
    <p align="center">
-   <img alt="Deprecation" src="./galapagos_user_guide_images/deprecation1.png" width="360" height="300">
+   <img alt="Deprecation" src="./galapagos_user_guide_images/deprecation1.png" width="400" height="300">
    </p>
    
    Here you state why the topic should no longer be used and when it will be deprecated. Then click the yellow button to
@@ -401,13 +401,13 @@ winpty openssl pkcs12 -in <myclientkeystore.p12> -nocerts -nodes -out <myprivate
    a note appears next to the name of the topic that this topic can no longer be used in the near future:
    
    <p align="center">
-   <img alt="Deprecation" src="./galapagos_user_guide_images/deprecation2.png" width="360" height="300">
+   <img alt="Deprecation" src="./galapagos_user_guide_images/deprecation2.png" width="400" height="300">
    </p>   
    
    In addition, under the "Browse Topics" tab, deprecated topics are crossed out:
 
    <p align="center">
-   <img alt="Deprecation" src="./galapagos_user_guide_images/deprecation3.png" width="360" height="300">
+   <img alt="Deprecation" src="./galapagos_user_guide_images/deprecation3.png" width="400" height="300">
    </p>
       
    In addition to the description of the topic, there is another indication that the topic is deprecated,
@@ -422,7 +422,7 @@ winpty openssl pkcs12 -in <myclientkeystore.p12> -nocerts -nodes -out <myprivate
    row to remove it:
    
    <p align="center">
-   <img alt="Deprecation" src="./galapagos_user_guide_images/deprecation4.png" width="360" height="300">
+   <img alt="Deprecation" src="./galapagos_user_guide_images/deprecation4.png" width="400" height="300">
    </p>
 
    After you have clicked the button, the "Usable until" row disappears and the topic is no longer deprecated.
@@ -440,7 +440,7 @@ winpty openssl pkcs12 -in <myclientkeystore.p12> -nocerts -nodes -out <myprivate
    Click on it and you get to the configuration editor for your topic:
 
    <p align="center">
-   <img alt="Topic Settings" src="./galapagos_user_guide_images/settingTopic.png" width="360" height="300">
+   <img alt="Topic Settings" src="./galapagos_user_guide_images/settingTopic.png" width="400" height="300">
    </p>
    
    You can change each setting separately for each environment in which your topic exists. With the green "Standard" button
