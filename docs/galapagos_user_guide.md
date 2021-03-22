@@ -320,7 +320,7 @@ winpty openssl pkcs12 -in <myclientkeystore.p12> -nocerts -nodes -out <myprivate
    on the user interface:
    
    <p align="center">
-   <img alt="Delete Schema" src="./galapagos_user_guide_images/delete%20schema.png" width="600" height="300">
+   <img alt="Delete Schema" src="./galapagos_user_guide_images/delete%20schema.png" width="730" height="300">
    </p>
       
    You can of course use this button several times to remove all JSON schemas of a topic.
