@@ -295,7 +295,7 @@ winpty openssl pkcs12 -in <myclientkeystore.p12> -nocerts -nodes -out <myprivate
    requesting team / the requesting application has a legitimate interest in the published data.
    
    <p align="center">
-   <img alt="Subscription approve" src="./galapagos_user_guide_images/sub-approve.png" width="730" height="100">
+   <img alt="Subscription approve" src="./galapagos_user_guide_images/sub-approve.png" width="730" height="140">
    </p>
    
 ### Upload JSON schema   
