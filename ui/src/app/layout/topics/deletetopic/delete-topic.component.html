@@ -1,0 +1,52 @@
+<div class="row" *ngIf="isOwnerOfTopic">
+    <div class="col-md-12">
+        <div class="card mb-3">
+            <div class="card-header bg-danger text-white"><i
+                class="fas fa-exclamation-triangle mr-3"></i>{{ 'Danger Zone' | translate }}
+            </div>
+            <div class="card-body">
+                <p>{{ 'TOPIC_CONFIG_TEXT' | translate }}</p>
+                <button class="btn btn-warning"
+                        [routerLink]="'/topics/' + topicName + '/config'">
+                    <i class="fas fa-wrench mr-3"></i>{{ 'Advanced Configuration' | translate }}
+                </button>
+                <hr>
+                <p>{{ 'DELETE_TOPIC_TEXT' | translate }}</p>
+                <button class="btn btn-danger" (click)="openDeleteConfirmDlg(deleteDlg)"
+                        [disabled]="!topic?.deletable"><i
+                    class="fas fa-times mr-3"></i>{{ 'Delete Topic' | translate }}</button>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<ng-template #deleteDlg let-dlg>
+    <div class="modal-header">
+        <h4 class="modal-title">{{ 'Delete Topic' | translate }}</h4>
+        <button type="button" class="close" aria-label="Close" (click)="dlg.dismiss()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <p [innerHTML]="'DELETE_CONFIRMATION_TEXT' | translate:translateParams"></p>
+        <div class="mt-3">
+            <form role="form">
+                <fieldset class="form-group">
+                    <!--suppress TypeScriptUnresolvedVariable -->
+                    <input #topicNameConfirm name="topicNameConfirm" type="text" size="50" class="form-control"
+                           (input)="topicNameConfirmText = $event.target.value"/>
+                </fieldset>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-footer">
+        <button class="btn btn-danger" appSpinnerWhile #d="appSpinnerWhile"
+                (click)="d.while(deleteTopic()).then(dlg.dismiss)"
+                [disabled]="topicNameConfirmText !== topicName"><i
+            class="fas fa-trash mr-3"></i>{{ 'Delete Topic' | translate }}</button>
+        <button type="button" ngbAutofocus class="btn btn-success" (click)="dlg.dismiss()"><i class="fas fa-times"></i>&nbsp;{{ 'Cancel' | translate }}
+        </button>
+    </div>
+</ng-template>

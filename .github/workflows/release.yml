@@ -13,11 +13,24 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 11
-      - name: Push to Docker Hub with Jib
+      - name: Update Version in pom.xml
+        shell: bash
+        run: |
+          export TARGET_VERSION=$(mvn validate | grep 'SNAPSHOT' | cut -d' ' -f 4 | cut -d'-' -f 1)
+          mvn -B org.codehaus.mojo:versions-maven-plugin:2.7:set -DnewVersion=$TARGET_VERSION
+          echo "TARGET_VERSION=$TARGET_VERSION" >> $GITHUB_ENV
+      - name: Commit and tag updated version
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: Release ${{ env.TARGET_VERSION }}
+          file_pattern: pom.xml
+          tagging_message: v${{ env.TARGET_VERSION }}
+      - name: Build and push Docker Image
         shell: bash
         env:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           DOCKERHUB_ACCESS_TOKEN: ${{ secrets.DOCKERHUB_ACCESS_TOKEN }}
         run: |
-          export TARGET_VERSION=$(mvn validate | grep 'SNAPSHOT' | cut -d' ' -f 4 | cut -d'-' -f 1)
-          mvn -B package jib:build -Djib.to.image=hermesgermany/galapagos '-Djib.to.auth.username=$DOCKERHUB_USERNAME' -Djib.to.auth.password=$DOCKERHUB_ACCESS_TOKEN -Djib.to.tags=$TARGET_VERSION,latest
+          export TARGET_VERSION=${{ env.TARGET_VERSION }}
+          mvn -B org.codehaus.mojo:versions-maven-plugin:2.7:set -DnewVersion=$TARGET_VERSION
+          mvn -B package jib:build -Djib.to.image=docker.io/hermesgermany/galapagos '-Djib.to.auth.username=$DOCKERHUB_USERNAME' -Djib.to.auth.password=$DOCKERHUB_ACCESS_TOKEN -Djib.to.tags=$TARGET_VERSION,latest

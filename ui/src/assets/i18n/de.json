@@ -168,5 +168,9 @@
     "Create Certificate now": "Jetzt Zertifikat erstellen",
     "Certificate DN": "Zertifikats-DN",
     "Expiry Date": "Ablaufdatum",
-    "APPLICATION_ENV_HINT_HTML": "Diese Informationen beziehen sich auf die aktuelle Umgebung <b>{{ environmentName }}</b>."
+    "APPLICATION_ENV_HINT_HTML": "Diese Informationen beziehen sich auf die aktuelle Umgebung <b>{{ environmentName }}</b>.",
+    "Prefixes for internal topics": "Präfixe für interne Topics",
+    "Prefixes for consumer group IDs": "Präfixe für Consumer Group IDs",
+    "Prefixes for transactional IDs": "Präfixe für Transactional IDs",
+    "No topics found.": "Keine Topics gefunden."
 }
