@@ -171,7 +171,7 @@ winpty openssl pkcs12 -in <myclientkeystore.p12> -nocerts -nodes -out <myprivate
    have one:
       
    <p align="center">
-   <img alt="Certificate warning" src="./galapagos_user_guide_images/cert-warn.png" width="300" height="180">
+   <img alt="Certificate warning" src="./galapagos_user_guide_images/cert-warn.png" width="500" height="180">
    </p>
    
 ## Create developer certificate   
