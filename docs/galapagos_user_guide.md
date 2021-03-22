@@ -252,7 +252,7 @@ winpty openssl pkcs12 -in <myclientkeystore.p12> -nocerts -nodes -out <myprivate
    a client certificate yet:
       
    <p align="center">
-   <img alt="Subscription Warn" src="./galapagos_user_guide_images/sub-warn.png" width="660" height="100">
+   <img alt="Subscription Warn" src="./galapagos_user_guide_images/sub-warn.png" width="760" height="100">
    </p>
    
    If the topic you want to subscribe to is marked as a "sensitive topic" (e.g. it contains personal data)
