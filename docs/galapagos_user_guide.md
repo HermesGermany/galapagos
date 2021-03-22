@@ -1,5 +1,7 @@
 # Galapagos User Guide
 
+In this User Guide we assume that you have setup the three environments DEV, INT, and PROD.
+
 ## Log in / First access
 
 When first opening Galapagos, you need to authenticate yourself. You will see 
@@ -201,7 +203,7 @@ winpty openssl pkcs12 -in <myclientkeystore.p12> -nocerts -nodes -out <myprivate
    Internal Topics can be used for the communication between different components of your application.
    You can use Galapagos to create an internal Topic: Go to "Create topic" via the menu on
    the left. Select the topic type "App internal". Select your owning application and the target environment (the direct creation of topics is only 
-   allowed on the DEV / TEST environment with Galapagos!). Galapagos automatically generates a
+   allowed on the DEV environment with Galapagos!). Galapagos automatically generates a
    suggestion for the topic name.
       
    <p align="center">
@@ -271,7 +273,7 @@ winpty openssl pkcs12 -in <myclientkeystore.p12> -nocerts -nodes -out <myprivate
 
    At some point, you want to make business events in your application available to other applications.   
    To create an API topic, proceed similarly as for internal topics. Select "Create topic" in the left menu and select target
-   environment (only DEV / TEST is possible for creation) and your application. Select the appropriate topic type, usually events.
+   environment (only DEV is possible for creation) and your application. Select the appropriate topic type.
    A few new input fields now appear:
    
    <p align="center">
@@ -304,7 +306,7 @@ winpty openssl pkcs12 -in <myclientkeystore.p12> -nocerts -nodes -out <myprivate
    You cannot make certain changes in a consumer-compatible manner (e.g. increasing the size of string fields if they were
    previously limited in length - perhaps the size of a database field depends on it somewhere and would then overflow). **Incompatible**
    changes usually require creating a new topic and marking the old topic as deprecated.
-   When you want to stage your topic from DEV / TEST into production (see next section), you must have published an
+   When you want to stage your topic from DEV into production (see next section), you must have published an
    associated JSON scheme, otherwise Galapagos will refuse to stage the topic.
    
 ### Delete JSON schema   
@@ -327,10 +329,10 @@ winpty openssl pkcs12 -in <myclientkeystore.p12> -nocerts -nodes -out <myprivate
    
    If you are satisfied with your changes (this includes newly created topics, published Json Schemas, but Subscriptions to an API
    topic as well) in the context of one of your applications, you can transfer the changes to the 
-   next "stage". Galapagos knows the three stages DEV / TEST, INT and PROD.
+   next "stage". Galapagos knows the three stages DEV, INT and PROD.
    
    The staging process ensures that the two environments do not completely diverge structurally. It should encourage you to test 
-   your changes on DEV / TEST first before going into production.
+   your changes on DEV first before going into production.
    
    To transfer your changes for an application, select "Staging" in the left menu. Then select the desired source environment and
    the application. The target environment is calculated automatically.
@@ -358,7 +360,7 @@ winpty openssl pkcs12 -in <myclientkeystore.p12> -nocerts -nodes -out <myprivate
 ### Delete internal Topic
 
    If you want to delete an internal topic that you (or someone else from your team) created using Galapagos, you always
-   have to do this on the DEV / TEST stage first. There you can search for your topic via "Search Topics", click on it 
+   have to do this on the DEV stage first. There you can search for your topic via "Search Topics", click on it 
    and find the "Danger Zone" at the bottom of the page to delete the topic. To confirm the deletion, enter
    the entire topic name into the input field:
       
@@ -370,7 +372,7 @@ winpty openssl pkcs12 -in <myclientkeystore.p12> -nocerts -nodes -out <myprivate
    <img alt="Delete Topic" src="./galapagos_user_guide_images/delete-topic2.png" width="260">
    </p>
       
-   Then you can stage this "change" (deleting the topic) from DEV / TEST to PROD (see previous section).
+   Then you can stage this "change" (deleting the topic) from DEV to PROD (see previous section).
    You should of course pay attention to whether you put an ongoing
    productive instance of your application in danger... Galapagos does not stop you from doing that!
    
@@ -380,7 +382,7 @@ winpty openssl pkcs12 -in <myclientkeystore.p12> -nocerts -nodes -out <myprivate
    You can delete API topics in Production ... if they are no longer subscribed to by any application! If there are still subscribers,
    you have to get in touch with them and tell them to stop subscribing to your topic. As soon as there are no subscribers,
    the "Danger Zone" appears for the Production environment and allows you to delete your topic. You can then delete it
-   on DEV / TEST if there are no more subscribers of course.
+   on DEV if there are no more subscribers of course.
    
 ## Deprecation of API Topics
 
