@@ -33,4 +33,4 @@ jobs:
         run: |
           export TARGET_VERSION=${{ env.TARGET_VERSION }}
           mvn -B org.codehaus.mojo:versions-maven-plugin:2.7:set -DnewVersion=$TARGET_VERSION
-          mvn -B package jib:build -Djib.to.image=docker.io/hermesgermany/galapagos '-Djib.to.auth.username=$DOCKERHUB_USERNAME' -Djib.to.auth.password=$DOCKERHUB_ACCESS_TOKEN -Djib.to.tags=$TARGET_VERSION,latest
+          mvn -B package jib:build -Djib.to.image=docker.io/hermesgermany/galapagos -Djib.to.auth.username=$DOCKERHUB_USERNAME -Djib.to.auth.password=$DOCKERHUB_ACCESS_TOKEN -Djib.to.tags=$TARGET_VERSION,latest
