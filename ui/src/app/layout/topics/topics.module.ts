@@ -9,7 +9,7 @@ import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { TableSortDirective } from './sort.directive';
 import { SingleTopicComponent } from './single-topic.component';
 import { SpinnerWhileModule } from '../../shared/modules/spinner-while/spinner-while.module';
-import { HIGHLIGHT_OPTIONS, HighlightModule } from 'ngx-highlightjs';
+import { HighlightModule } from 'ngx-highlightjs';
 import { TopicConfigEditorComponent } from './topic-config-editor.component';
 import { SchemaSectionComponent } from './schemasection/schema-section.component';
 import { TopicMetadataTableComponent } from './topicmetadatatable/topic-metadata-table.component';
@@ -27,16 +27,7 @@ export const getHighlightLanguages = () => ({
     declarations: [TopicsComponent, TableSortDirective, SingleTopicComponent,
         TopicConfigEditorComponent, SchemaSectionComponent, TopicMetadataTableComponent,
         SubscriptionSectionComponent,
-        DeprecationComponent, DeleteTopicComponent],
-    providers: [
-        {
-            provide: HIGHLIGHT_OPTIONS,
-            useValue: {
-                languages: getHighlightLanguages(),
-                lineNumbers: true
-            }
-        }
-    ]
+        DeprecationComponent, DeleteTopicComponent]
 })
 export class TopicsModule {
 }

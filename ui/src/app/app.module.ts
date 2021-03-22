@@ -17,6 +17,9 @@ import { TopicsService } from './shared/services/topics.service';
 
 import { ServerInfoService } from './shared/services/serverinfo.service';
 import { CertificateService } from './shared/services/certificates.service';
+import { SchemaSectionComponent } from './layout/topics/schema-section.component';
+import { HIGHLIGHT_OPTIONS } from 'ngx-highlightjs';
+import { getHighlightLanguages } from './layout/topics/topics.module';
 
 const keycloakService = new KeycloakService();
 
@@ -35,7 +38,15 @@ const keycloakService = new KeycloakService();
         ServerInfoService, {
             provide: KeycloakService,
             useValue: keycloakService
-        }]
+        },
+        {
+            provide: HIGHLIGHT_OPTIONS,
+            useValue: {
+                coreLibraryLoader: () => import('highlight.js/lib/core'),
+                languages: getHighlightLanguages()
+            }
+        }
+    ]
 })
 export class AppModule implements DoBootstrap {
 
