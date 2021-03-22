@@ -1,5 +1,4 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { TranslateService } from '@ngx-translate/core';
 import { ToastService } from '../../../shared/modules/toast/toast.service';
 import { Topic, TopicsService } from '../../../shared/services/topics.service';
 import { EnvironmentsService, KafkaEnvironment } from '../../../shared/services/environments.service';
@@ -35,7 +34,6 @@ export class SubscriptionSectionComponent implements OnInit {
     constructor(
         private topicService: TopicsService,
         private environmentsService: EnvironmentsService,
-        private translateService: TranslateService,
         private toasts: ToastService,
         private certificateService: CertificateService
     ) {

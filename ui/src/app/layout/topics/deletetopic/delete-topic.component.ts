@@ -1,8 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { Topic, TopicsService } from '../../../shared/services/topics.service';
 import { EnvironmentsService } from '../../../shared/services/environments.service';
-import { ServerInfoService } from '../../../shared/services/serverinfo.service';
-import { TranslateService } from '@ngx-translate/core';
 import { ToastService } from '../../../shared/modules/toast/toast.service';
 import { take } from 'rxjs/operators';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
@@ -25,8 +23,6 @@ export class DeleteTopicComponent {
     topicNameConfirmText = '';
 
     constructor(
-        private serverInfoService: ServerInfoService,
-        private translateService: TranslateService,
         private toasts: ToastService,
         private topicService: TopicsService,
         private environmentsService: EnvironmentsService,
