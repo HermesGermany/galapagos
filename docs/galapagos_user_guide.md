@@ -365,11 +365,11 @@ winpty openssl pkcs12 -in <myclientkeystore.p12> -nocerts -nodes -out <myprivate
    the entire topic name into the input field:
       
    <p align="center">
-   <img alt="Delete Topic" src="./galapagos_user_guide_images/delete-topic.png" width="600" height="300">
+   <img alt="Delete Topic" src="./galapagos_user_guide_images/delete-topic.png" width="770" height="300">
    </p>  
    
    <p align="center">
-   <img alt="Delete Topic" src="./galapagos_user_guide_images/delete-topic2.png" width="600" height="300">
+   <img alt="Delete Topic" src="./galapagos_user_guide_images/delete-topic2.png" width="770" height="300">
    </p>
       
    Then you can stage this "change" (deleting the topic) from DEV to PROD (see previous section).
