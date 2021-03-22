@@ -26,8 +26,7 @@ export const getHighlightLanguages = () => ({
         SpinnerWhileModule, HighlightModule],
     declarations: [TopicsComponent, TableSortDirective, SingleTopicComponent,
         TopicConfigEditorComponent, SchemaSectionComponent, TopicMetadataTableComponent,
-        SubscriptionSectionComponent,
-        DeprecationComponent, DeleteTopicComponent]
+        SubscriptionSectionComponent, DeprecationComponent, DeleteTopicComponent]
 })
 export class TopicsModule {
 }
