@@ -22,6 +22,7 @@ jobs:
       - name: Commit and tag updated version
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
+          branch: main
           commit_message: Release ${{ env.TARGET_VERSION }}
           file_pattern: pom.xml
           tagging_message: v${{ env.TARGET_VERSION }}
