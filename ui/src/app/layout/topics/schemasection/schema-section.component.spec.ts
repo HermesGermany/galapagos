@@ -1,25 +1,25 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { SchemaSectionComponent } from './schema-section.component';
 import { RouterModule } from '@angular/router';
-import { Topic, TopicsService } from '../../shared/services/topics.service';
-import { EnvironmentsService } from '../../shared/services/environments.service';
-import { ApplicationsService } from '../../shared/services/applications.service';
-import { CertificateService } from '../../shared/services/certificates.service';
-import { ServerInfoService } from '../../shared/services/serverinfo.service';
-import { ToastService } from '../../shared/modules/toast/toast.service';
+import { Topic, TopicsService } from '../../../shared/services/topics.service';
+import { EnvironmentsService } from '../../../shared/services/environments.service';
+import { ApplicationsService } from '../../../shared/services/applications.service';
+import { CertificateService } from '../../../shared/services/certificates.service';
+import { ServerInfoService } from '../../../shared/services/serverinfo.service';
+import { ToastService } from '../../../shared/modules/toast/toast.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
-import { LanguageTranslationModule } from '../../shared/modules/language-translation/language-translation.module';
+import { LanguageTranslationModule } from '../../../shared/modules/language-translation/language-translation.module';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { PageHeaderModule } from '../../shared/modules';
+import { PageHeaderModule } from '../../../shared/modules';
 import { of } from 'rxjs';
 import { By } from '@angular/platform-browser';
 import { Location } from '@angular/common';
-import { LoginComponent } from '../../login/login.component';
+import { LoginComponent } from '../../../login/login.component';
 import { FormsModule } from '@angular/forms';
-import { SpinnerWhileModule } from '../../shared/modules/spinner-while/spinner-while.module';
+import { SpinnerWhileModule } from '../../../shared/modules/spinner-while/spinner-while.module';
 
 describe('SchemaSectionComponent', () => {
     let component: SchemaSectionComponent;

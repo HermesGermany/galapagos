@@ -17,7 +17,6 @@ import { TopicsService } from './shared/services/topics.service';
 
 import { ServerInfoService } from './shared/services/serverinfo.service';
 import { CertificateService } from './shared/services/certificates.service';
-import { SchemaSectionComponent } from './layout/topics/schema-section.component';
 import { HIGHLIGHT_OPTIONS } from 'ngx-highlightjs';
 import { getHighlightLanguages } from './layout/topics/topics.module';
 
@@ -35,7 +34,6 @@ const keycloakService = new KeycloakService();
     ],
     declarations: [AppComponent],
     providers: [AuthGuard, ApplicationsService, EnvironmentsService, TopicsService, CertificateService, ToastService,
-        SchemaSectionComponent,
         ServerInfoService, {
             provide: KeycloakService,
             useValue: keycloakService

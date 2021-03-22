@@ -1,12 +1,12 @@
 import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
-import { SchemaMetadata, Topic, TopicsService, TopicSubscription } from '../../shared/services/topics.service';
+import { SchemaMetadata, Topic, TopicsService, TopicSubscription } from '../../../shared/services/topics.service';
 import { map, shareReplay, take } from 'rxjs/operators';
-import { EnvironmentsService, KafkaEnvironment } from '../../shared/services/environments.service';
-import { ToastService } from '../../shared/modules/toast/toast.service';
+import { EnvironmentsService, KafkaEnvironment } from '../../../shared/services/environments.service';
+import { ToastService } from '../../../shared/modules/toast/toast.service';
 import { Observable } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
-import { ServerInfoService } from '../../shared/services/serverinfo.service';
+import { ServerInfoService } from '../../../shared/services/serverinfo.service';
 
 @Component({
     selector: 'app-schema-section',
@@ -48,7 +48,6 @@ export class SchemaSectionComponent implements OnInit, OnChanges {
         private serverInfo: ServerInfoService
     ) {
         this.currentText = translateService.stream('(current)');
-
     }
 
     ngOnInit(): void {
@@ -86,27 +85,25 @@ export class SchemaSectionComponent implements OnInit, OnChanges {
     }
 
     async publishNewSchema(): Promise<any> {
-        const topic = this.topic;
         const environment = await this.environmentsService.getCurrentEnvironment().pipe(take(1)).toPromise();
 
-        return this.topicService.addTopicSchema(topic.name, environment.id, this.newSchemaText, this.schemaChangeDescription).then(
+        return this.topicService.addTopicSchema(this.topic.name, environment.id, this.newSchemaText, this.schemaChangeDescription).then(
             () => {
                 this.editSchemaMode = false;
                 this.toasts.addSuccessToast('Das Schema wurde erfolgreich veröffentlicht.');
-                this.loadSchemas(topic, environment.id);
+                this.loadSchemas(this.topic, environment.id);
             },
             err => this.toasts.addHttpErrorToast('Das Schema konnte nicht veröffentlicht werden', err)
         );
     }
 
     async deleteLatestSchema(): Promise<any> {
-        const topic = this.topic;
         const environment = await this.environmentsService.getCurrentEnvironment().pipe(take(1)).toPromise();
 
-        return this.topicService.deleteLatestSchema(topic.name, environment.id).then(
+        return this.topicService.deleteLatestSchema(this.topic.name, environment.id).then(
             () => {
                 this.toasts.addSuccessToast('Das Schema wurde erfolgreich gelöscht.');
-                this.loadSchemas(topic, environment.id);
+                this.loadSchemas(this.topic, environment.id);
             },
             err => this.toasts.addHttpErrorToast('Das Schema konnte nicht gelöscht werden', err)
         );
