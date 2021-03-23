@@ -1,10 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { routerTransition } from 'src/app/router.animations';
-import {
-    ApplicationsService,
-    BusinessCapabilityInfo,
-    UserApplicationInfo
-} from 'src/app/shared/services/applications.service';
+import { ApplicationsService, BusinessCapabilityInfo, UserApplicationInfo } from 'src/app/shared/services/applications.service';
 import { Observable } from 'rxjs';
 import { TopicCreateParams, TopicsService, TopicType } from 'src/app/shared/services/topics.service';
 import { EnvironmentsService, KafkaEnvironment } from 'src/app/shared/services/environments.service';
@@ -115,6 +111,7 @@ export class CreateTopicComponent implements OnInit {
                     this.description = null;
                     this.topicName = null;
                     this.subscriptionApprovalRequired = false;
+                    this.initialSchema = null;
                     if (topicType !== 'INTERNAL' && initialSchema) {
                         return this.createInitialSchema(topicName, env.id, initialSchema);
                     }
