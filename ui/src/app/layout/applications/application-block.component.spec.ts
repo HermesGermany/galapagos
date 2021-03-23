@@ -20,7 +20,7 @@ import { ReplayContainer } from '../../shared/services/services-common';
 import { of } from 'rxjs';
 import { OpensslCommandModule } from '../../shared/modules/openssl-command/openssl-command.module';
 import { ApplicationBlockComponent } from './application-block.component';
-import { ApplicationModule, SimpleChange } from '@angular/core';
+import { SimpleChange } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { ApplicationsComponent } from './applications.component';
 
@@ -29,9 +29,8 @@ describe('ApplicationBlockComponent', () => {
     let component: ApplicationBlockComponent;
     let fixture: ComponentFixture<ApplicationBlockComponent>;
     let app;
-    let parent;
 
-    beforeEach(waitForAsync(() => {
+    beforeEach((() => {
         TestBed.configureTestingModule({
             declarations: [ApplicationBlockComponent, ApplicationsComponent],
             imports: [
@@ -44,8 +43,7 @@ describe('ApplicationBlockComponent', () => {
                 FormsModule,
                 CommonModule,
                 SpinnerWhileModule,
-                OpensslCommandModule,
-                ApplicationModule
+                OpensslCommandModule
             ],
             providers: [
                 RouterModule,
@@ -59,7 +57,6 @@ describe('ApplicationBlockComponent', () => {
                 NgbModal]
         }).compileComponents();
 
-        parent = TestBed.createComponent(ApplicationsComponent).componentInstance;
         fixture = TestBed.createComponent(ApplicationBlockComponent);
         component = fixture.componentInstance;
         fixture.detectChanges();
@@ -79,7 +76,9 @@ describe('ApplicationBlockComponent', () => {
             }],
             prefixes: of({
                 internalTopicPrefixes: ['a.internalTopic.prefix', 'another.internalTopic.prefix'],
+
                 consumerGroupPrefixes: ['a.consumerGroup.prefix'],
+
                 transactionIdPrefixes: ['a.transactionId.prefix']
             })
         };
@@ -143,6 +142,5 @@ describe('ApplicationBlockComponent', () => {
         });
 
     })));
-
 
 });
