@@ -22,7 +22,6 @@ import { OpensslCommandModule } from '../../shared/modules/openssl-command/opens
 import { ApplicationBlockComponent } from './application-block.component';
 import { SimpleChange } from '@angular/core';
 import { By } from '@angular/platform-browser';
-import { ApplicationsComponent } from './applications.component';
 
 describe('ApplicationBlockComponent', () => {
 
@@ -32,7 +31,7 @@ describe('ApplicationBlockComponent', () => {
 
     beforeEach((() => {
         TestBed.configureTestingModule({
-            declarations: [ApplicationBlockComponent, ApplicationsComponent],
+            declarations: [ApplicationBlockComponent],
             imports: [
                 LanguageTranslationModule,
                 NgbModule,
@@ -54,7 +53,8 @@ describe('ApplicationBlockComponent', () => {
                 ServerInfoService,
                 ToastService,
                 TranslateService,
-                NgbModal]
+                NgbModal
+            ]
         }).compileComponents();
 
         fixture = TestBed.createComponent(ApplicationBlockComponent);
