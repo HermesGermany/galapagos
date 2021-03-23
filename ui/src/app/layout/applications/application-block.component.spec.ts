@@ -29,8 +29,9 @@ describe('ApplicationBlockComponent', () => {
     let component: ApplicationBlockComponent;
     let fixture: ComponentFixture<ApplicationBlockComponent>;
     let app;
+    let parent;
 
-    beforeEach((() => {
+    beforeEach(waitForAsync(() => {
         TestBed.configureTestingModule({
             declarations: [ApplicationBlockComponent, ApplicationsComponent],
             imports: [
@@ -55,10 +56,10 @@ describe('ApplicationBlockComponent', () => {
                 ServerInfoService,
                 ToastService,
                 TranslateService,
-                NgbModal
-            ]
+                NgbModal]
         }).compileComponents();
 
+        parent = TestBed.createComponent(ApplicationsComponent).componentInstance;
         fixture = TestBed.createComponent(ApplicationBlockComponent);
         component = fixture.componentInstance;
         fixture.detectChanges();
@@ -78,9 +79,7 @@ describe('ApplicationBlockComponent', () => {
             }],
             prefixes: of({
                 internalTopicPrefixes: ['a.internalTopic.prefix', 'another.internalTopic.prefix'],
-
                 consumerGroupPrefixes: ['a.consumerGroup.prefix'],
-
                 transactionIdPrefixes: ['a.transactionId.prefix']
             })
         };
@@ -145,66 +144,5 @@ describe('ApplicationBlockComponent', () => {
 
     })));
 
-    it('should not show button as enabled when generating certificate on dev and on prod right after', (() => {
-
-        const certificateService = fixture.debugElement.injector.get(CertificateService);
-        const environmentsService = fixture.debugElement.injector.get(EnvironmentsService);
-
-        const certificateSpy: jasmine.Spy = spyOn(certificateService, 'getApplicationCertificates')
-            .and.returnValue(new ReplayContainer(() => of([{
-                environmentId: 'prod',
-                dn: 'CN=My User;OU= A ou',
-                certificateDownloadUrl: 'url goes here',
-                expiresAt: 'some day'
-            }])));
-
-        const envSpy: jasmine.Spy = spyOn(environmentsService, 'getCurrentEnvironment')
-            .and.returnValue(of({
-                id: 'prod',
-                name: 'prod',
-                bootstrapServers: 'myBootstrapServers',
-                production: true,
-                stagingOnly: true
-            }));
-
-        component.application = app;
-
-        component.ngOnChanges({
-            application: new SimpleChange(undefined, app, false)
-        });
-
-        component.currentEnvApplicationCertificate = of({
-            environmentId: 'prod',
-            dn: 'CN=My User,OU= A ou',
-            certificateDownloadUrl: 'url goes here',
-            expiresAt: 'some day'
-        });
-        fixture.detectChanges();
-
-        const accordion = fixture.debugElement.query(By.directive(NgbAccordion)).componentInstance;
-        accordion.expand('_panel_certificate');
-
-        component.openCertificateDialog.emit({
-            application: app,
-            environment: {
-                id: 'prod',
-                name: 'prod',
-                bootstrapServers: 'myBootstrapServers',
-                production: true,
-                stagingOnly: true
-            }
-        });
-        const spy: jasmine.Spy = spyOn(component.openCertificateDialog, 'emit');
-
-        fixture.detectChanges();
-
-
-        expect(spy).toHaveBeenCalled();
-
-        expect(certificateSpy).toHaveBeenCalled();
-        expect(envSpy).toHaveBeenCalled();
-
-
-    }));
 
 });
