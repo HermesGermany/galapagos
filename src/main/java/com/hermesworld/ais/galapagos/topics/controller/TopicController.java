@@ -195,6 +195,7 @@ public class TopicController {
 
     @PutMapping(value = "/api/topics/{environmentId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public TopicDto createTopic(@PathVariable String environmentId, @RequestBody CreateTopicDto topicData) {
+
         if (!applicationsService.isUserAuthorizedFor(topicData.getOwnerApplicationId())) {
             // TODO Security Audit log?
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
@@ -357,7 +358,9 @@ public class TopicController {
         return new TopicDto(topic.getName(), topic.getType().toString(), environmentId, topic.getDescription(),
                 topic.getInfoUrl(), topic.getOwnerApplicationId(), topic.isDeprecated(), topic.getDeprecationText(),
                 topic.getEolDate() == null ? null : topic.getEolDate().toString(),
-                topic.isSubscriptionApprovalRequired(), canDelete);
+                topic.isSubscriptionApprovalRequired(), canDelete, topic.getCompactionTimeMillis(),
+                topic.getRetentionTimeMillis(), topic.getCriticality(), topic.getMessagesPerDay(),
+                topic.getMessagesSize());
     }
 
     private TopicConfigEntryDto toConfigEntryDto(TopicConfigEntry configEntry) {
@@ -372,6 +375,11 @@ public class TopicController {
         topic.setOwnerApplicationId(dto.getOwnerApplicationId());
         topic.setType(dto.getTopicType());
         topic.setSubscriptionApprovalRequired(dto.isSubscriptionApprovalRequired());
+        topic.setCompactionTimeMillis(dto.getCompactionTimeMillis());
+        topic.setRetentionTimeMillis(dto.getRetentionTimeMillis());
+        topic.setCriticality(dto.getCriticality());
+        topic.setMessagesPerDay(dto.getMessagesPerDay());
+        topic.setMessagesSize(dto.getMessagesSize());
 
         return topic;
     }

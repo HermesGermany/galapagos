@@ -1,0 +1,151 @@
+<div *ngIf="topicType !== 'INTERNAL' && !selectedEnvironment?.stagingOnly"
+     class="card mb-3">
+    <div class="card-header bg-warning"><i
+        class="fas fa-wrench mr-3 "></i>{{ 'Topic Settings' | translate }}</div>
+    <div class="card-body">
+        <p [innerHTML]="'TOPIC_SETTINGS_INTRO_HTML' | translate"></p>
+        <div class="form-group">
+            <ngb-accordion #acc="ngbAccordion">
+                <ngb-panel *ngIf="showSubscriptionApprovalRequired">
+                    <ng-template ngbPanelTitle>
+                        <span> <i class="fas fa-shield-alt fa-fw mr-1"></i>{{ 'Security Settings' | translate }}</span>
+                    </ng-template>
+                    <ng-template ngbPanelContent>
+                        <div class="row">
+                            <div class="card-body">
+                                <p [innerHTML]="'SECURITY_SETTINGS_HTML' | translate"></p>
+                                <div class="form-check">
+                                    <input (change)="handleSubscriptionApprovalRequiredChange()"
+                                           class="form-check-input" type="checkbox"
+                                           [(ngModel)]="subscriptionApprovalRequired"
+                                           id="subApprovalReq" name="subApprovalReq" #subApprovalReq>
+                                    <label class="form-check-label" for="subApprovalReq">
+                                        {{ 'Subscriptions of this topic require approval' | translate }}
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </ng-template>
+                </ngb-panel>
+                <ngb-panel>
+                    <ng-template ngbPanelTitle>
+                        <span> <i class="fas fa-snowplow fa-fw mr-1"></i>{{'Cleanup Strategy' | translate}}</span>
+                    </ng-template>
+                    <ng-template ngbPanelContent>
+                        <p [innerHTML]="'CLEANUP_STRATEGY_TEXT_HTML' | translate"></p>
+                        <div class="container">
+                            <div class="row">
+                                <div class="btn-group btn-group-toggle">
+                                    <label
+                                        class="{{activeButtons.logCompaction ? 'btn btn-success':'btn-secondary'}} btn-lg box-shadow"
+                                        ngbButtonLabel>
+                                        <input
+                                            (change)="!selectedCleanUpStrategy.includes('compact') ?
+                                            selectedCleanUpStrategy.push('compact'): deleteItem('compact')"
+                                            type="checkbox" ngbButton
+                                            [(ngModel)]="activeButtons.logCompaction">
+                                        {{'Log Compaction' | translate}}
+                                    </label>
+                                    <label
+                                        class="{{(subscriptionApprovalRequired ||
+                                        selectedCleanUpStrategy.includes('delete')) ? 'btn btn-danger':'btn-secondary'}} btn-lg ml-3 box-shadow"
+                                        ngbButtonLabel>
+                                        <input [disabled]="subscriptionApprovalRequired"
+                                               (change)="!selectedCleanUpStrategy.includes('delete') ?
+                                            selectedCleanUpStrategy.push('delete'): deleteItem('delete')"
+                                               type="checkbox" ngbButton
+                                               [(ngModel)]="activeButtons.deletion"> {{'Deletion' | translate}}
+                                    </label>
+                                </div>
+                            </div>
+                            <br>
+                            <span *ngIf="activeButtons.logCompaction">
+                                <label>{{'Compaction time' | translate}}</label>
+                              <div class="form-group form-inline">
+                                <input [(ngModel)]="compactionTime" type="text" class="form-control text-right mr-1"
+                                       aria-label="Text input with dropdown button">
+                                <div class="input-group-append">
+                  <select class="form-control mr-3" [(ngModel)]="compactionTimeUnit">
+                                <option>ms</option>
+                                <option>s</option>
+                                <option>m</option>
+                                <option>h</option>
+                                <option>d</option>
+                            </select>
+                                </div>
+                            </div>
+                          </span>
+                            <span
+                                *ngIf="selectedCleanUpStrategy.includes('delete')">
+                                <label>{{'Retention time' | translate}}</label>
+                              <div class="form-group form-inline">
+                                <input [(ngModel)]="retentionTime" type="text" class="form-control text-right mr-1"
+                                       aria-label="Text input with dropdown button">
+                                <div class="input-group-append">
+                                   <div ngbDropdown container="body">
+                 <select class="form-control mr-3" [(ngModel)]="retentionTimeUnit">
+                                <option>ms</option>
+                                <option>s</option>
+                                <option>m</option>
+                                <option>h</option>
+                                <option>d</option>
+                            </select>
+                                    </div>
+                                </div>
+                            </div>
+                          </span>
+                        </div>
+                    </ng-template>
+                </ngb-panel>
+                <ngb-panel>
+                    <ng-template ngbPanelTitle>
+                        <span> <i class="fas fa-exclamation fa-fw mr-1"></i>{{'Criticality' | translate}}</span>
+                    </ng-template>
+                    <ng-template ngbPanelContent>
+                        <p [innerHTML]="'CRITICALITY_TEXT_HTML' | translate"></p>
+                        <div class="form-check">
+                            <input [(ngModel)]="criticalityType" class="form-check-input" type="radio"
+                                   value="NORMAL" id="flexRadioDefault1">
+                            <label class="form-check-label" for="flexRadioDefault1">
+                                {{'Normal' | translate}}
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" value="CRITICAL"
+                                   id="flexRadioDefault2"
+                                   [(ngModel)]="criticalityType">
+                            <label class="form-check-label" for="flexRadioDefault2">
+                                {{'Critical' | translate}} </label>
+                        </div>
+                    </ng-template>
+                </ngb-panel>
+                <ngb-panel>
+                    <ng-template ngbPanelTitle>
+                        <span> <i
+                            class="fas fa-ruler fa-fw mr-1"></i>{{'Size estimates' | translate}}</span>
+                    </ng-template>
+                    <ng-template ngbPanelContent>
+                        <p [innerHTML]="'SIZE_ESTIMATION_TEXT_HTML' | translate"></p><br>
+                        <div class="custom-slider">
+                            <div class="slider">
+                                <label class="custom-label" for="dataSlider">
+                                    <b>{{'Messages per day' | translate}}</b></label>
+                                <ngx-slider id="dataSlider" [options]="optionsData"
+                                            (userChangeEnd)="onUserChangeEndData($event)"></ngx-slider>
+                            </div>
+                        </div>
+                        <br> <br>
+                        <div class="custom-slider">
+                            <div class="slider">
+                                <label class="custom-label" for="sizeSlider">
+                                    <b>{{'Size of the Messages' | translate}}</b></label>
+                                <ngx-slider id="sizeSlider" [options]="optionsSize"
+                                            (userChangeEnd)="onUserChangeEndSize($event)"></ngx-slider>
+                            </div>
+                        </div>
+                    </ng-template>
+                </ngb-panel>
+            </ngb-accordion>
+        </div>
+    </div>
+</div>

@@ -5,6 +5,7 @@ import { concatMap, map, take } from 'rxjs/operators';
 import { jsonHeader, ReplayContainer } from './services-common';
 import { combineLatest, forkJoin, Observable, of } from 'rxjs';
 import { EnvironmentsService, KafkaEnvironment } from './environments.service';
+import { TopicSettingsData } from '../../layout/createtopic/datasettings/data-settings.component';
 
 export type TopicType = 'EVENTS' | 'DATA' | 'COMMANDS' | 'INTERNAL';
 
@@ -181,14 +182,20 @@ export class TopicsService {
     }
 
     public async createTopic(topicType: TopicType, appInfo: UserApplicationInfo, environmentId: string, topicName: string,
-        description: string, subscriptionApprovalRequired: boolean, createParams: TopicCreateParams): Promise<any> {
+                             description: string, subscriptionApprovalRequired: boolean, initialSettings: TopicSettingsData,
+                             createParams: TopicCreateParams): Promise<any> {
         const body = JSON.stringify({
             name: topicName,
             topicType: topicType,
             ownerApplicationId: appInfo.id,
             subscriptionApprovalRequired: subscriptionApprovalRequired,
             description: description || null,
-            ...createParams
+            ...createParams,
+            compactionTimeMillis: initialSettings.compactionTimeMillis,
+            retentionTimeMillis: initialSettings.retentionTimeMillis,
+            criticality: initialSettings.criticality,
+            messagesPerDay: initialSettings.messagesPerDay,
+            messagesSize: initialSettings.messagesSize
         });
 
         return this.http.put('/api/topics/' + environmentId, body, { headers: jsonHeader() }).toPromise()
