@@ -109,16 +109,17 @@ export class DataSettingsComponent {
 
     handleSubscriptionApprovalRequiredChange(): void {
 
+        if (this.selectedCleanUpStrategy.length === 1 && this.selectedCleanUpStrategy.includes('delete')) {
+            return;
+        }
+
         if (this.subscriptionApprovalRequired && !this.selectedCleanUpStrategy.includes('delete')) {
             this.selectedCleanUpStrategy.push('delete');
         }
 
-        if (this.selectedCleanUpStrategy.length === 1 && this.selectedCleanUpStrategy.includes('delete')) {
-            return;
-        }
     }
 
-    prepareDataForParent() {
+    prepareDataForParent(): Promise<any> {
         const initialSettings: TopicSettingsData = {
             subscriptionApprovalRequired: this.subscriptionApprovalRequired,
             cleanUpStrategy: this.selectedCleanUpStrategy,
@@ -128,7 +129,7 @@ export class DataSettingsComponent {
             messagesPerDay: this.selectedDataSliderValue,
             messagesSize: this.selectedSizeSliderValue
         };
-        this.setTopicSettings.emit(initialSettings);
+        return Promise.resolve(this.setTopicSettings.emit(initialSettings));
     }
 
     onUserChangeEndData(changeContext: ChangeContext) {

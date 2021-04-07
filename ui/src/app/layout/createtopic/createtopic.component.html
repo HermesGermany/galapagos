@@ -132,7 +132,7 @@
                     <div class="card-body">
                         <button type="button" class="btn btn-success" appSpinnerWhile #b="appSpinnerWhile"
                                 [disabled]="!selectedApplication || !topicType || !topicName || (topicType !== 'INTERNAL' && !selectedBusinessCapability) || (selectedEnvironment | async)?.stagingOnly"
-                                (click)="initialTopicSettings.prepareDataForParent()">
+                                (click)="b.while(initialTopicSettings.prepareDataForParent())">
                             <i class="fas fa-save"></i>&nbsp;{{ 'Create Topic' | translate }}
                         </button>
                     </div>
