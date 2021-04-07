@@ -39,6 +39,7 @@ public class TopicDto {
     private final MessagesPerDay messagesPerDay;
 
     private final MessagesSize messagesSize;
+
     public TopicDto(String name, String topicType, String environmentId, String description,
             String externalInterfaceUrl, String ownerApplicationId, boolean deprecated, String deprecationText,
             String eolDate, boolean subscriptionApprovalRequired, boolean deletable, long compactionTimeMillis,
