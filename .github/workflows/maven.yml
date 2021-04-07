@@ -19,7 +19,7 @@ jobs:
       - name: Install modules
         run: npm i
         working-directory: ui
-      - name: Run Tests
+      - name: Run ui Tests
         run: npm run test
         working-directory: ui
       - name: Run ESLint
