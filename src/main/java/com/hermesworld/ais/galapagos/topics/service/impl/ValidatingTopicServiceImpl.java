@@ -19,7 +19,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
 import java.time.Period;
@@ -65,10 +64,6 @@ public class ValidatingTopicServiceImpl implements ValidatingTopicService {
     @Override
     public CompletableFuture<TopicMetadata> createTopic(String environmentId, TopicMetadata topic,
             Integer partitionCount, Map<String, String> topicConfig) {
-
-        if (StringUtils.isEmpty(topicConfig.get("cleanup.policy"))) {
-            return CompletableFuture.failedFuture(new IllegalStateException("Please select a cleanup strategy!"));
-        }
 
         if (topic.getMessagesPerDay() == null || topic.getMessagesSize() == null) {
             return CompletableFuture.failedFuture(new IllegalStateException(

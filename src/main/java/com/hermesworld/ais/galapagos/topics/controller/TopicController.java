@@ -195,7 +195,6 @@ public class TopicController {
 
     @PutMapping(value = "/api/topics/{environmentId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public TopicDto createTopic(@PathVariable String environmentId, @RequestBody CreateTopicDto topicData) {
-
         if (!applicationsService.isUserAuthorizedFor(topicData.getOwnerApplicationId())) {
             // TODO Security Audit log?
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);

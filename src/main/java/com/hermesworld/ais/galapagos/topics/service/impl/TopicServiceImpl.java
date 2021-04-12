@@ -121,7 +121,8 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
 
         return environment.getActiveBrokerCount().thenCompose(brokerCount -> {
 
-            int replicationFactor = topic.getCriticality() == Criticality.CRITICAL ? 3 : 2;
+            int replicationFactor = (topic.getType() != TopicType.INTERNAL
+                    && topic.getCriticality() == Criticality.CRITICAL) ? 3 : 2;
 
             if (brokerCount < replicationFactor) {
                 replicationFactor = brokerCount;

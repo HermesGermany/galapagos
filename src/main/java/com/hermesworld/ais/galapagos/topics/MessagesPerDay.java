@@ -1,6 +1,16 @@
 package com.hermesworld.ais.galapagos.topics;
 
+import lombok.Getter;
+
+@Getter
 public enum MessagesPerDay {
 
-    LOW, NORMAL, LARGE, VERY_LARGE;
+    FEW(1000), NORMAL(100000), MANY(1000000), VERY_MANY(1500000);
+
+    private final int lowerBoundary;
+
+    MessagesPerDay(int lowerBoundary) {
+        this.lowerBoundary = lowerBoundary;
+    }
+
 }

@@ -8,7 +8,7 @@ type CleanUpStrategy = 'compact' | 'delete';
 
 type Criticality = 'NORMAL' | 'CRITICAL';
 
-type MessagesPerDay = 'LOW' | 'NORMAL' | 'LARGE' | 'VERY_LARGE';
+type MessagesPerDay = 'FEW' | 'NORMAL' | 'MANY' | 'VERY_MANY';
 
 type MessagesSize = 'VERY_SMALL' | 'SMALL' | 'NORMAL' | 'LARGE' | 'VERY_LARGE';
 
@@ -61,7 +61,7 @@ export class DataSettingsComponent {
 
     criticalityType: Criticality = 'NORMAL';
 
-    dataIntervals: string[] = ['< 1.000', '< 100.000', '< 1.000.000', '> 1.000.000'];
+    dataIntervals: string[] = ['<1K', '<100K', '<1M', '>1M'];
 
     selectedDataSliderValue: MessagesPerDay;
 
@@ -149,13 +149,13 @@ export class DataSettingsComponent {
     private resolveData(index: number): MessagesPerDay {
         switch (index) {
         case 1:
-            return 'LOW';
+            return 'FEW';
         case 2:
             return 'NORMAL';
         case 3:
-            return 'LARGE';
+            return 'MANY';
         case 4:
-            return 'VERY_LARGE';
+            return 'VERY_MANY';
         }
     }
 
