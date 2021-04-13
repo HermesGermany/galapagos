@@ -29,34 +29,32 @@
                 </ngb-panel>
                 <ngb-panel>
                     <ng-template ngbPanelTitle>
-                        <span> <i class="fas fa-snowplow fa-fw mr-1"></i>{{'Cleanup Strategy' | translate}}</span>
+                        <span> <i class="fas fa-snowplow fa-fw mr-1"></i>{{'Cleanup Policy' | translate}}</span>
                     </ng-template>
                     <ng-template ngbPanelContent>
                         <p [innerHTML]="'CLEANUP_STRATEGY_TEXT_HTML' | translate"></p>
-                        <div class="container">
-                            <div class="row">
-                                <div class="btn-group btn-group-toggle">
-                                    <label
-                                        class="{{activeButtons.logCompaction ? 'btn btn-success':'btn-secondary'}} btn-lg"
-                                        ngbButtonLabel>
-                                        <input
-                                            (change)="!selectedCleanUpStrategy.includes('compact') ?
+                        <div>
+                            <div class="btn-group btn-group-toggle mb-3">
+                                <label
+                                    class="{{activeButtons.logCompaction ? 'btn btn-success':'btn-secondary'}} btn-lg"
+                                    ngbButtonLabel>
+                                    <input
+                                        (change)="!selectedCleanUpStrategy.includes('compact') ?
                                             selectedCleanUpStrategy.push('compact'): deleteItem('compact')"
-                                            type="checkbox" ngbButton
-                                            [(ngModel)]="activeButtons.logCompaction">
-                                        {{'Log Compaction' | translate}}
-                                    </label>
-                                    <label
-                                        class="{{(subscriptionApprovalRequired ||
-                                        selectedCleanUpStrategy.includes('delete')) ? 'btn btn-danger':'btn-secondary'}} btn-lg ml-3"
-                                        ngbButtonLabel>
-                                        <input [disabled]="subscriptionApprovalRequired"
-                                               (change)="!selectedCleanUpStrategy.includes('delete') ?
+                                        type="checkbox" ngbButton
+                                        [(ngModel)]="activeButtons.logCompaction">
+                                    {{'Log Compaction' | translate}}
+                                </label>
+                                <label
+                                    class="{{(subscriptionApprovalRequired ||
+                                        selectedCleanUpStrategy.includes('delete')) ? 'btn btn-danger':'btn-secondary'}} btn-lg"
+                                    ngbButtonLabel>
+                                    <input [disabled]="subscriptionApprovalRequired"
+                                           (change)="!selectedCleanUpStrategy.includes('delete') ?
                                             selectedCleanUpStrategy.push('delete'): deleteItem('delete')"
-                                               type="checkbox" ngbButton
-                                               [(ngModel)]="activeButtons.deletion"> {{'Deletion' | translate}}
-                                    </label>
-                                </div>
+                                           type="checkbox" ngbButton
+                                           [(ngModel)]="activeButtons.deletion"> {{'Deletion' | translate}}
+                                </label>
                             </div>
                             <br>
                             <span *ngIf="activeButtons.logCompaction">
