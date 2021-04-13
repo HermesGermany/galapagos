@@ -5,7 +5,7 @@ import lombok.Getter;
 @Getter
 public enum MessagesSize {
 
-    VERY_SMALL(0), SMALL(10000), NORMAL(100000), LARGE(1000000), VERY_LARGE(1000000);
+    VERY_SMALL(0), SMALL(1000), NORMAL(10000), LARGE(100000), VERY_LARGE(1000000);
 
     private final int lowerBoundary;
 
@@ -13,3 +13,4 @@ public enum MessagesSize {
         this.lowerBoundary = lowerBoundary;
     }
 }
+

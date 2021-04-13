@@ -5,7 +5,7 @@ import lombok.Getter;
 @Getter
 public enum MessagesPerDay {
 
-    FEW(0), NORMAL(100000), MANY(1000000), VERY_MANY(1000000);
+    FEW(0), NORMAL(1000), MANY(100000), VERY_MANY(1000000);
 
     private final int lowerBoundary;
 
