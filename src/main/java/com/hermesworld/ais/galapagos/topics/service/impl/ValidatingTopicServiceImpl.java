@@ -65,7 +65,8 @@ public class ValidatingTopicServiceImpl implements ValidatingTopicService {
     public CompletableFuture<TopicMetadata> createTopic(String environmentId, TopicMetadata topic,
             Integer partitionCount, Map<String, String> topicConfig) {
 
-        if (topic.getMessagesPerDay() == null || topic.getMessagesSize() == null) {
+        if ((topic.getMessagesPerDay() == null || topic.getMessagesSize() == null)
+                && topic.getType() != TopicType.INTERNAL) {
             return CompletableFuture.failedFuture(new IllegalStateException(
                     "Please select the number of messages per day and how big your messages are!"));
         }
