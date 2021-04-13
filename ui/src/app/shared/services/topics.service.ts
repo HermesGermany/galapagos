@@ -191,11 +191,10 @@ export class TopicsService {
             subscriptionApprovalRequired: subscriptionApprovalRequired,
             description: description || null,
             ...createParams,
-            ...(topicType !== 'INTERNAL' && { compactionTimeMillis: initialSettings.compactionTimeMillis }),
-            ...(topicType !== 'INTERNAL' && { retentionTimeMillis: initialSettings.retentionTimeMillis }),
-            ...(topicType !== 'INTERNAL' && { criticality: initialSettings.criticality }),
-            ...(topicType !== 'INTERNAL' && { messagesPerDay: initialSettings.messagesPerDay }),
-            ...(topicType !== 'INTERNAL' && { messagesSize: initialSettings.messagesSize })
+            ...(topicType !== 'INTERNAL' && { compactionTimeMillis: initialSettings.compactionTimeMillis }
+                && { retentionTimeMillis: initialSettings.retentionTimeMillis }
+                && { criticality: initialSettings.criticality } && { messagesPerDay: initialSettings.messagesPerDay }
+                && { messagesSize: initialSettings.messagesSize })
         });
 
         return this.http.put('/api/topics/' + environmentId, body, { headers: jsonHeader() }).toPromise()
