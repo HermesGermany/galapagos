@@ -37,7 +37,7 @@
                             <div class="row">
                                 <div class="btn-group btn-group-toggle">
                                     <label
-                                        class="{{activeButtons.logCompaction ? 'btn btn-success':'btn-secondary'}} btn-lg box-shadow"
+                                        class="{{activeButtons.logCompaction ? 'btn btn-success':'btn-secondary'}} btn-lg"
                                         ngbButtonLabel>
                                         <input
                                             (change)="!selectedCleanUpStrategy.includes('compact') ?
@@ -48,7 +48,7 @@
                                     </label>
                                     <label
                                         class="{{(subscriptionApprovalRequired ||
-                                        selectedCleanUpStrategy.includes('delete')) ? 'btn btn-danger':'btn-secondary'}} btn-lg ml-3 box-shadow"
+                                        selectedCleanUpStrategy.includes('delete')) ? 'btn btn-danger':'btn-secondary'}} btn-lg ml-3"
                                         ngbButtonLabel>
                                         <input [disabled]="subscriptionApprovalRequired"
                                                (change)="!selectedCleanUpStrategy.includes('delete') ?
