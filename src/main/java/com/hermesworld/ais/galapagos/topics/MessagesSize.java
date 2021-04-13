@@ -13,4 +13,3 @@ public enum MessagesSize {
         this.lowerBoundary = lowerBoundary;
     }
 }
-
