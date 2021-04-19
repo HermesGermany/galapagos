@@ -101,14 +101,6 @@ export class CreateTopicComponent implements OnInit {
         const subscriptionApprovalRequired = this.topicType !== 'INTERNAL' && initialSettings.subscriptionApprovalRequired;
         const app = this.selectedApplication;
         const initialSchema = this.initialSchema;
-        this.createParams.topicConfig = {
-            'cleanup.policy': initialSettings.cleanUpStrategy.join(),
-            ...(initialSettings.cleanUpStrategy.includes('delete') && { 'retention.ms': initialSettings.retentionTimeMillis.toString() }),
-            ...(initialSettings.cleanUpStrategy.includes('compact') && {
-                'min.compaction.lag.ms': initialSettings.compactionTimeMillis.toString(),
-                'delete.retention.ms': initialSettings.compactionTimeMillis.toString()
-            })
-        };
 
         return this.environmentsService.getCurrentEnvironment().pipe(take(1)).toPromise().then(env =>
             this.topicsSerivce.createTopic(topicType, app, env.id, topicName, description, subscriptionApprovalRequired, initialSettings,

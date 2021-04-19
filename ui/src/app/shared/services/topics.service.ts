@@ -184,6 +184,25 @@ export class TopicsService {
     public async createTopic(topicType: TopicType, appInfo: UserApplicationInfo, environmentId: string, topicName: string,
         description: string, subscriptionApprovalRequired: boolean, initialSettings: TopicSettingsData,
         createParams: TopicCreateParams): Promise<any> {
+
+        let topicSettingsData = {};
+        if (topicType !== 'INTERNAL') {
+            createParams.topicConfig = {
+                'cleanup.policy': initialSettings.cleanUpStrategy.join(),
+                'retention.ms': initialSettings.retentionTimeMillis.toString(),
+                'min.compaction.lag.ms': initialSettings.compactionTimeMillis.toString(),
+                'delete.retention.ms': initialSettings.compactionTimeMillis.toString()
+            };
+
+            topicSettingsData = {
+                compactionTimeMillis: initialSettings.compactionTimeMillis,
+                retentionTimeMillis: initialSettings.retentionTimeMillis,
+                criticality: initialSettings.criticality,
+                messagesPerDay: initialSettings.messagesPerDay,
+                messagesSize: initialSettings.messagesSize
+            };
+        }
+
         const body = JSON.stringify({
             name: topicName,
             topicType: topicType,
@@ -191,12 +210,7 @@ export class TopicsService {
             subscriptionApprovalRequired: subscriptionApprovalRequired,
             description: description || null,
             ...createParams,
-            ...(topicType !== 'INTERNAL' && {
-                compactionTimeMillis: initialSettings.compactionTimeMillis,
-                retentionTimeMillis: initialSettings.retentionTimeMillis,
-                criticality: initialSettings.criticality, messagesPerDay: initialSettings.messagesPerDay,
-                messagesSize: initialSettings.messagesSize
-            })
+            ...topicSettingsData
         });
 
         return this.http.put('/api/topics/' + environmentId, body, { headers: jsonHeader() }).toPromise()
