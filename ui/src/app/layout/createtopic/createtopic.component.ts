@@ -102,7 +102,7 @@ export class CreateTopicComponent implements OnInit {
         const app = this.selectedApplication;
         const initialSchema = this.initialSchema;
         this.createParams.topicConfig = {
-            'cleanup.policy': initialSettings.cleanUpStrategy.join(),
+            ...(this.topicType !== 'INTERNAL' && { 'cleanup.policy': initialSettings.cleanUpStrategy.join() }),
             ...(initialSettings.cleanUpStrategy.includes('delete') && { 'retention.ms': initialSettings.retentionTimeMillis.toString() }),
             ...(initialSettings.cleanUpStrategy.includes('compact') && {
                 'min.compaction.lag.ms': initialSettings.compactionTimeMillis.toString(),
