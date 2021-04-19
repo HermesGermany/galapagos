@@ -190,8 +190,8 @@ export class TopicsService {
             ownerApplicationId: appInfo.id,
             subscriptionApprovalRequired: subscriptionApprovalRequired,
             description: description || null,
-            ...createParams,
             ...(topicType !== 'INTERNAL' && {
+                ...createParams,
                 compactionTimeMillis: initialSettings.compactionTimeMillis,
                 retentionTimeMillis: initialSettings.retentionTimeMillis,
                 criticality: initialSettings.criticality, messagesPerDay: initialSettings.messagesPerDay,
