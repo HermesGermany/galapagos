@@ -185,7 +185,7 @@ export class TopicsService {
         description: string, subscriptionApprovalRequired: boolean, initialSettings: TopicSettingsData,
         createParams: TopicCreateParams): Promise<any> {
 
-        let topicSettingsData;
+        let topicSettingsData = {};
         if (topicType !== 'INTERNAL') {
             createParams.topicConfig = {
                 'cleanup.policy': initialSettings.cleanUpStrategy.join(),
