@@ -9,6 +9,7 @@ jobs:
     if: github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, 'release')
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v2
       - name: Update Version in pom.xml
         shell: bash
         run: |
