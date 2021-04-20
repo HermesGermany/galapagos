@@ -1,0 +1,30 @@
+on:
+  pull_request:
+    types: [closed]
+    branches:
+    - main
+
+jobs:
+  draft_release:
+    if: github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, 'release')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Update Version in pom.xml
+        shell: bash
+        run: |
+          export TARGET_VERSION=$(mvn validate | grep 'SNAPSHOT' | cut -d' ' -f 4 | cut -d'-' -f 1)
+          mvn -B org.codehaus.mojo:versions-maven-plugin:2.7:set -DnewVersion=$TARGET_VERSION
+          echo "TARGET_VERSION=$TARGET_VERSION" >> $GITHUB_ENV
+      - name: Commit and tag updated version
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          branch: main
+          commit_message: Release ${{ env.TARGET_VERSION }}
+          file_pattern: pom.xml
+          tagging_message: v${{ env.TARGET_VERSION }}          
+      - uses: release-drafter/release-drafter@v5
+        with:
+          tag: v${{ env.TARGET_VERSION }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

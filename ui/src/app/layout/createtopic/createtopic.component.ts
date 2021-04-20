@@ -1,10 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { routerTransition } from 'src/app/router.animations';
-import {
-    ApplicationsService,
-    BusinessCapabilityInfo,
-    UserApplicationInfo
-} from 'src/app/shared/services/applications.service';
+import { ApplicationsService, BusinessCapabilityInfo, UserApplicationInfo } from 'src/app/shared/services/applications.service';
 import { Observable } from 'rxjs';
 import { TopicCreateParams, TopicsService, TopicType } from 'src/app/shared/services/topics.service';
 import { EnvironmentsService, KafkaEnvironment } from 'src/app/shared/services/environments.service';
@@ -12,6 +8,8 @@ import { map, shareReplay, take, tap } from 'rxjs/operators';
 import { ToastService } from 'src/app/shared/modules/toast/toast.service';
 import { CertificateService } from 'src/app/shared/services/certificates.service';
 import { CustomLink, ServerInfoService } from '../../shared/services/serverinfo.service';
+import { TopicSettingsData } from './datasettings/data-settings.component';
+import { Router } from '@angular/router';
 
 @Component({
     selector: 'app-create-topic',
@@ -31,8 +29,6 @@ export class CreateTopicComponent implements OnInit {
 
     description: string;
 
-    subscriptionApprovalRequired = false;
-
     availableApplications: Observable<UserApplicationInfo[]>;
 
     allEnvironments: Observable<KafkaEnvironment[]>;
@@ -49,9 +45,11 @@ export class CreateTopicComponent implements OnInit {
 
     namingConventionLink: Observable<CustomLink>;
 
-    constructor(private topicsSerivce: TopicsService, private applicationsService: ApplicationsService,
-                private environmentsService: EnvironmentsService, private toasts: ToastService,
-                private certificateService: CertificateService, private serverInfo: ServerInfoService) {
+    constructor(private topicsSerivce: TopicsService,
+                private applicationsService: ApplicationsService,
+                private environmentsService: EnvironmentsService,
+                private toasts: ToastService, private certificateService: CertificateService,
+                private serverInfo: ServerInfoService, private router: Router) {
     }
 
     ngOnInit() {
@@ -95,30 +93,25 @@ export class CreateTopicComponent implements OnInit {
             envs => this.environmentsService.setCurrentEnvironment(envs.find(env => env.id === envId)));
     }
 
-    async createTopic(): Promise<any> {
+    async createTopic(initialSettings: TopicSettingsData): Promise<any> {
         // save relevant values to avoid concurrent changes by the user
         const topicType = this.topicType;
         const topicName = this.topicName;
         const description = this.description;
-        const subscriptionApprovalRequired = this.topicType !== 'INTERNAL' && this.subscriptionApprovalRequired;
+        const subscriptionApprovalRequired = this.topicType !== 'INTERNAL' && initialSettings.subscriptionApprovalRequired;
         const app = this.selectedApplication;
         const initialSchema = this.initialSchema;
 
         return this.environmentsService.getCurrentEnvironment().pipe(take(1)).toPromise().then(env =>
-            this.topicsSerivce.createTopic(topicType, app, env.id, topicName, description, subscriptionApprovalRequired,
+            this.topicsSerivce.createTopic(topicType, app, env.id, topicName, description, subscriptionApprovalRequired, initialSettings,
                 this.createParams).then(
                 () => {
                     this.toasts.addSuccessToast('Das Topic wurde erfolgreich angelegt.');
-                    this.selectedApplication = null;
-                    this.selectedBusinessCapability = null;
-                    this.topicType = null;
-                    this.description = null;
-                    this.topicName = null;
-                    this.subscriptionApprovalRequired = false;
+
                     if (topicType !== 'INTERNAL' && initialSchema) {
                         return this.createInitialSchema(topicName, env.id, initialSchema);
                     }
-                    // TODO perhaps navigate to "browse topics"?
+                    this.router.navigate(['/topics']);
                 },
                 err => this.toasts.addHttpErrorToast('Das Topic konnte nicht angelegt werden', err))
         );

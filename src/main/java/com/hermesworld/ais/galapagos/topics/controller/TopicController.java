@@ -357,7 +357,9 @@ public class TopicController {
         return new TopicDto(topic.getName(), topic.getType().toString(), environmentId, topic.getDescription(),
                 topic.getInfoUrl(), topic.getOwnerApplicationId(), topic.isDeprecated(), topic.getDeprecationText(),
                 topic.getEolDate() == null ? null : topic.getEolDate().toString(),
-                topic.isSubscriptionApprovalRequired(), canDelete);
+                topic.isSubscriptionApprovalRequired(), canDelete, topic.getCompactionTimeMillis(),
+                topic.getRetentionTimeMillis(), topic.getCriticality(), topic.getMessagesPerDay(),
+                topic.getMessagesSize());
     }
 
     private TopicConfigEntryDto toConfigEntryDto(TopicConfigEntry configEntry) {
@@ -372,6 +374,11 @@ public class TopicController {
         topic.setOwnerApplicationId(dto.getOwnerApplicationId());
         topic.setType(dto.getTopicType());
         topic.setSubscriptionApprovalRequired(dto.isSubscriptionApprovalRequired());
+        topic.setCompactionTimeMillis(dto.getCompactionTimeMillis());
+        topic.setRetentionTimeMillis(dto.getRetentionTimeMillis());
+        topic.setCriticality(dto.getCriticality());
+        topic.setMessagesPerDay(dto.getMessagesPerDay());
+        topic.setMessagesSize(dto.getMessagesSize());
 
         return topic;
     }
