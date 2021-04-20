@@ -1,10 +1,13 @@
 package com.hermesworld.ais.galapagos.topics.controller;
 
-import java.util.Map;
-
+import com.hermesworld.ais.galapagos.topics.Criticality;
+import com.hermesworld.ais.galapagos.topics.MessagesPerDay;
+import com.hermesworld.ais.galapagos.topics.MessagesSize;
 import com.hermesworld.ais.galapagos.topics.TopicType;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.Map;
 
 @Getter
 @Setter
@@ -24,4 +27,13 @@ public class CreateTopicDto {
 
     private Map<String, String> topicConfig;
 
+    private long compactionTimeMillis;
+
+    private long retentionTimeMillis;
+
+    private Criticality criticality;
+
+    private MessagesPerDay messagesPerDay;
+
+    private MessagesSize messagesSize;
 }
