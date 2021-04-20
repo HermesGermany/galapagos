@@ -1,5 +1,12 @@
 package com.hermesworld.ais.galapagos.topics.service.impl;
 
+import java.time.LocalDate;
+import java.time.Period;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
 import com.hermesworld.ais.galapagos.applications.ApplicationsService;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.kafka.TopicCreateParams;
@@ -19,13 +26,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
-
-import java.time.LocalDate;
-import java.time.Period;
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * Wraps the real Topic Service to perform validations which should <b>not</b> be performed during Staging (e.g., if the
@@ -64,13 +64,6 @@ public class ValidatingTopicServiceImpl implements ValidatingTopicService {
     @Override
     public CompletableFuture<TopicMetadata> createTopic(String environmentId, TopicMetadata topic,
             Integer partitionCount, Map<String, String> topicConfig) {
-
-        if ((topic.getMessagesPerDay() == null || topic.getMessagesSize() == null)
-                && topic.getType() != TopicType.INTERNAL) {
-            return CompletableFuture.failedFuture(new IllegalStateException(
-                    "Please select the number of messages per day and how big your messages are!"));
-        }
-
         return checkOnNonStaging(environmentId, "create topics", TopicMetadata.class)
                 .orElseGet(() -> topicService.createTopic(environmentId, topic, partitionCount, topicConfig));
     }

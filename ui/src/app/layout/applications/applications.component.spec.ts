@@ -21,7 +21,7 @@ import { ReplayContainer } from '../../shared/services/services-common';
 import { of } from 'rxjs';
 import { OpensslCommandModule } from '../../shared/modules/openssl-command/openssl-command.module';
 
-xdescribe('ApplicationsComponent', () => {
+describe('ApplicationsComponent', () => {
 
     let component: ApplicationsComponent;
     let fixture: ComponentFixture<ApplicationsComponent>;

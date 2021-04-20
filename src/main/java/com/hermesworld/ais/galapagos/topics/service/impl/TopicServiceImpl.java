@@ -15,7 +15,6 @@ import com.hermesworld.ais.galapagos.naming.NamingService;
 import com.hermesworld.ais.galapagos.schemas.IncompatibleSchemaException;
 import com.hermesworld.ais.galapagos.schemas.SchemaUtil;
 import com.hermesworld.ais.galapagos.security.CurrentUserService;
-import com.hermesworld.ais.galapagos.topics.Criticality;
 import com.hermesworld.ais.galapagos.topics.SchemaMetadata;
 import com.hermesworld.ais.galapagos.topics.TopicMetadata;
 import com.hermesworld.ais.galapagos.topics.TopicType;
@@ -120,9 +119,8 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
         GalapagosEventSink eventSink = eventManager.newEventSink(environment);
 
         return environment.getActiveBrokerCount().thenCompose(brokerCount -> {
-
-            int replicationFactor = (topic.getType() != TopicType.INTERNAL
-                    && topic.getCriticality() == Criticality.CRITICAL) ? 3 : 2;
+            // TODO should be configurable
+            int replicationFactor = (topic.getType() == TopicType.INTERNAL ? 2 : 3);
 
             if (brokerCount < replicationFactor) {
                 replicationFactor = brokerCount;

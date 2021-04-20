@@ -1,4 +1,4 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { SchemaSectionComponent } from './schema-section.component';
 import { RouterModule } from '@angular/router';
 import { Topic, TopicsService } from '../../../shared/services/topics.service';
@@ -26,7 +26,7 @@ describe('SchemaSectionComponent', () => {
     let fixture: ComponentFixture<SchemaSectionComponent>;
     let topic: Topic;
 
-    beforeEach((() => {
+    beforeEach(waitForAsync(() => {
         TestBed.configureTestingModule({
             declarations: [SchemaSectionComponent],
             imports: [
@@ -54,41 +54,42 @@ describe('SchemaSectionComponent', () => {
                 TranslateService,
                 LoginComponent
             ]
-        }).compileComponents();
-        fixture = TestBed.createComponent(SchemaSectionComponent);
-        component = fixture.componentInstance;
+        }).compileComponents().then(() => {
+            fixture = TestBed.createComponent(SchemaSectionComponent);
+            component = fixture.componentInstance;
 
-        topic = {
-            name: 'myTopic',
+            topic = {
+                name: 'myTopic',
 
-            topicType: 'EVENTS',
+                topicType: 'EVENTS',
 
-            environmentId: 'devtest',
+                environmentId: 'devtest',
 
-            description: 'my topic',
+                description: 'my topic',
 
-            ownerApplication: {
-                id: '1',
+                ownerApplication: {
+                    id: '1',
 
-                name: 'app1',
+                    name: 'app1',
 
-                aliases: ['a1']
-            },
+                    aliases: ['a1']
+                },
 
-            createdTimestamp: 'string',
+                createdTimestamp: 'string',
 
-            deprecated: false,
+                deprecated: false,
 
-            deprecationText: '',
+                deprecationText: '',
 
-            eolDate: '',
+                eolDate: '',
 
-            subscriptionApprovalRequired: false,
+                subscriptionApprovalRequired: false,
 
-            deletable: false
-        };
-        component.topic = topic;
-        fixture.detectChanges();
+                deletable: false
+            };
+            component.topic = topic;
+            fixture.detectChanges();
+        });
 
     }));
 
@@ -146,29 +147,6 @@ describe('SchemaSectionComponent', () => {
 
         component.ngOnInit();
         component.topicSubscribers = [];
-        component.topicSchemas = Promise.resolve([
-            {
-                id: '123',
-                topicName: 'myTopic',
-                createdBy: 'someUser',
-                createdAt: 'someTime',
-                schemaVersion: 2,
-                jsonSchema: '{}',
-                changeDescription: '',
-                isLatest: true
-            }, {
-                id: '1234',
-                topicName: 'myTopic',
-                createdBy: 'someUser2',
-                createdAt: 'someTime2',
-                schemaVersion: 1,
-                jsonSchema: '{"e":"f"}',
-                changeDescription: 'a change',
-                isLatest: false
-            }
-        ]);
-
-        component.isOwnerOfTopic = true;
         fixture.detectChanges();
 
         setTimeout(() => {
@@ -191,9 +169,18 @@ describe('SchemaSectionComponent', () => {
             topicName: 'myTopic',
             createdBy: 'someUser',
             createdAt: 'someTime',
-            schemaVersion: 1,
+            schemaVersion: 2,
             jsonSchema: '{}',
             isLatest: true
+        }, {
+            id: '1234',
+            topicName: 'myTopic',
+            createdBy: 'someUser2',
+            createdAt: 'someTime2',
+            schemaVersion: 1,
+            jsonSchema: '{"e":"f"}',
+            changeDescription: 'a change',
+            isLatest: false
         }]));
 
         const envSpy: jasmine.Spy = spyOn(environmentsService, 'getCurrentEnvironment')
@@ -284,29 +271,6 @@ describe('SchemaSectionComponent', () => {
 
         component.editSchemaMode = false;
         const debugElement = fixture.debugElement;
-        component.topicSchemas = Promise.resolve([
-            {
-                id: '123',
-                topicName: 'myTopic',
-                createdBy: 'someUser',
-                createdAt: 'someTime',
-                schemaVersion: 2,
-                jsonSchema: '{}',
-                changeDescription: '',
-                isLatest: true
-            }, {
-                id: '1234',
-                topicName: 'myTopic',
-                createdBy: 'someUser2',
-                createdAt: 'someTime2',
-                schemaVersion: 1,
-                jsonSchema: '{"e":"f"}',
-                changeDescription: 'a change',
-                isLatest: false
-            }
-        ]);
-
-        component.isOwnerOfTopic = true;
 
         component.ngOnInit();
         fixture.detectChanges();

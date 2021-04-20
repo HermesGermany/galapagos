@@ -15,7 +15,6 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { CertificateService } from '../../shared/services/certificates.service';
 import { of } from 'rxjs';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { RouterTestingModule } from '@angular/router/testing';
 
 describe('CreateTopicComponent', () => {
 
@@ -31,8 +30,7 @@ describe('CreateTopicComponent', () => {
                 NgbModule,
                 FormsModule,
                 SpinnerWhileModule,
-                NoopAnimationsModule,
-                RouterTestingModule
+                NoopAnimationsModule
             ],
             declarations: [CreateTopicComponent],
             providers: [TranslateService,

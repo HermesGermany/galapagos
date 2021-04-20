@@ -83,11 +83,26 @@
                 </div>
             </div>
         </div>
-
-        <app-data-settings #initialTopicSettings (setTopicSettings)="createTopic($event)" [topicType]="topicType"
-                           [selectedEnvironment]="selectedEnvironment | async"
-                           [showSubscriptionApprovalRequired]="showSubscriptionApprovalRequired | async"></app-data-settings>
-
+        <div class="row" *ngIf="(showSubscriptionApprovalRequired | async) && topicType && topicType !== 'INTERNAL'">
+            <div class="col-md-12">
+                <div class="card mb-3">
+                    <div class="card-header bg-warning">
+                        <i class="fas fa-shield-alt mr-3"></i>{{ 'Security Settings' | translate }}
+                    </div>
+                    <div class="card-body">
+                        <p [innerHTML]="'SECURITY_SETTINGS_HTML' | translate"></p>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox"
+                                   [(ngModel)]="subscriptionApprovalRequired"
+                                   id="subApprovalReq" name="subApprovalReq" #subApprovalReq>
+                            <label class="form-check-label" for="subApprovalReq">
+                                {{ 'Subscriptions of this topic require approval' | translate }}
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class="row">
             <div class="col-md-12">
                 <div class="card mb-3">
@@ -132,7 +147,7 @@
                     <div class="card-body">
                         <button type="button" class="btn btn-success" appSpinnerWhile #b="appSpinnerWhile"
                                 [disabled]="!selectedApplication || !topicType || !topicName || (topicType !== 'INTERNAL' && !selectedBusinessCapability) || (selectedEnvironment | async)?.stagingOnly"
-                                (click)="b.while(initialTopicSettings.prepareDataForParent())">
+                                (click)="b.while(createTopic())">
                             <i class="fas fa-save"></i>&nbsp;{{ 'Create Topic' | translate }}
                         </button>
                     </div>

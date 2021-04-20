@@ -1,50 +1,35 @@
 package com.hermesworld.ais.galapagos.topics.controller;
 
-import com.hermesworld.ais.galapagos.topics.Criticality;
-import com.hermesworld.ais.galapagos.topics.MessagesPerDay;
-import com.hermesworld.ais.galapagos.topics.MessagesSize;
 import lombok.Getter;
 
 @Getter
 public class TopicDto {
 
-    private final String name;
+    private String name;
 
-    private final String topicType;
+    private String topicType;
 
-    private final String environmentId;
+    private String environmentId;
 
-    private final String description;
+    private String description;
 
-    private final String externalInterfaceUrl;
+    private String externalInterfaceUrl;
 
-    private final String ownerApplicationId;
+    private String ownerApplicationId;
 
-    private final boolean deprecated;
+    private boolean deprecated;
 
-    private final String deprecationText;
+    private String deprecationText;
 
-    private final String eolDate;
+    private String eolDate;
 
-    private final boolean subscriptionApprovalRequired;
+    private boolean subscriptionApprovalRequired;
 
-    private final boolean deletable;
-
-    private final long compactionTimeMillis;
-
-    private final long retentionTimeMillis;
-
-    private final Criticality criticality;
-
-    private final MessagesPerDay messagesPerDay;
-
-    private final MessagesSize messagesSize;
+    private boolean deletable;
 
     public TopicDto(String name, String topicType, String environmentId, String description,
             String externalInterfaceUrl, String ownerApplicationId, boolean deprecated, String deprecationText,
-            String eolDate, boolean subscriptionApprovalRequired, boolean deletable, long compactionTimeMillis,
-            long retentionTimeMillis, Criticality criticality, MessagesPerDay messagesPerDay,
-            MessagesSize messagesSize) {
+            String eolDate, boolean subscriptionApprovalRequired, boolean deletable) {
         this.name = name;
         this.topicType = topicType;
         this.environmentId = environmentId;
@@ -56,11 +41,6 @@ public class TopicDto {
         this.eolDate = eolDate;
         this.subscriptionApprovalRequired = subscriptionApprovalRequired;
         this.deletable = deletable;
-        this.compactionTimeMillis = compactionTimeMillis;
-        this.retentionTimeMillis = retentionTimeMillis;
-        this.criticality = criticality;
-        this.messagesPerDay = messagesPerDay;
-        this.messagesSize = messagesSize;
     }
 
 }
