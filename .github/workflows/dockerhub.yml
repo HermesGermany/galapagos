@@ -20,4 +20,4 @@ jobs:
           DOCKERHUB_ACCESS_TOKEN: ${{ secrets.DOCKERHUB_ACCESS_TOKEN }}
         run: |
           export TARGET_VERSION=$(mvn validate | grep 'Building Galapagos ' | cut -d' ' -f 4)
-          mvn -B package jib:build -Djib.to.image=docker.io/hermesgermany/galapagos -Djib.to.auth.username=$DOCKERHUB_USERNAME -Djib.to.auth.password=$DOCKERHUB_ACCESS_TOKEN -Djib.to.tags=$TARGET_VERSION,latest
+          mvn -B package jib:build -Djib.to.image=docker.io/hermesgermany/galapagos -Djib.to.auth.username=$DOCKERHUB_USERNAME -Djib.to.auth.password=$DOCKERHUB_ACCESS_TOKEN -Djib.to.tags=$TARGET_VERSION,latest -Djib.httpTimeout=150000
