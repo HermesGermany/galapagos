@@ -4,7 +4,6 @@ import { map, take } from 'rxjs/operators';
 
 import { saveAs } from 'file-saver';
 import { jsonHeader, ReplayContainer } from './services-common';
-import { Observable } from 'rxjs';
 
 export interface ApplicationCertificate {
     environmentId: string;
@@ -43,8 +42,6 @@ const base64ToBlob = (b64Data: string, sliceSize: number = 512) => {
 
 @Injectable()
 export class CertificateService {
-
-    private envsWithDevCertSupport = new ReplayContainer<string[]>(() => this.http.get('/api/util/supported-devcert-environments'));
 
     private appCertificates: { [appId: string]: ReplayContainer<ApplicationCertificate[]> } = {};
 
@@ -86,21 +83,6 @@ export class CertificateService {
                 const ra = resp as any;
                 saveAs(base64ToBlob(ra.fileContentsBase64), ra.fileName);
             });
-    }
-
-    public async downloadDeveloperCertificate(environmentId: string): Promise<any> {
-        return this.http.post('/api/me/certificates/' + environmentId, '').toPromise().then(resp => {
-            const ra = resp as any;
-            saveAs(base64ToBlob(ra.fileContentsBase64), ra.fileName);
-        });
-    }
-
-    public getDeveloperCertificateInfo(environmentId: string): Observable<DeveloperCertificateInfo> {
-        return this.http.get('/api/me/certificates/' + environmentId).pipe(map(data => data as DeveloperCertificateInfo));
-    }
-
-    public getEnvironmentsWithDevCertSupport(): Observable<string[]> {
-        return this.envsWithDevCertSupport.getObservable();
     }
 
 }
