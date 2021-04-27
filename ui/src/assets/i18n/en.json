@@ -104,7 +104,7 @@
     "EXTEND_CERTIFICATE_COMMAND_HTML": "The following <code>openssl</code> command assumes that your private key is in file <code>{{ keyfile }}</code>. If your private key is in another file, please adjust the command accordingly.",
     "CERTIFICATE_EXPIRED_HTML": "The certificate for your application on this environment expired on <b>{{ expiryDate }}</b> ab. Please renew your certificate immediately!",
     "CERTIFICATE_EXPIRY_HTML": "The certificate for your application on this environment will expire on <b>{{ expiryDate }}</b>.",
-    "NO_CERTIFICATE_FOR_APP": "No client certificate has been created yet for this application on this environment.",
+    "NO_API_KEY_FOR_APP": "No Api Key has been created yet for this application on this environment.",
     "APPLICATION_ENV_HINT_HTML": "This information is valid for current environment <b>{{ environmentName }}</b>.",
     "Cleanup Strategy": "Cleanup Strategy",
     "Log Compaction": "Log Compaction",

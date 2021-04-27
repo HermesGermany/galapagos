@@ -5,9 +5,9 @@
     <div class="card-body">
         <div
             *ngIf="(currentEnvApplicationCertificate | async) === undefined">
-            <i>{{ 'NO_CERTIFICATE_FOR_APP' | translate }}&#32;
+            <i>{{ 'NO_API_KEY_FOR_APP' | translate }}&#32;
                 <a [routerLink]=""
-                   (click)="openCertificateDialog.emit({ application: application, environment: env });">{{ 'Create Certificate now' | translate }}</a>
+                   (click)="openApiKeyDialog.emit({ application: application, environment: env });">{{ 'Create Api Key now' | translate }}</a>
             </i>
         </div>
         <div *ngIf="(currentEnvApplicationCertificate | async)">
@@ -113,30 +113,24 @@
                 </ngb-panel>
                 <ngb-panel [id]="'_panel_certificate'">
                     <ng-template ngbPanelTitle>
-                        <span><i class="fas fa-award mr-2"></i>{{ 'Certificate Info' | translate }}</span>
+                        <span><i class="fas fa-award mr-2"></i>{{ 'Client Access' | translate }}</span>
                     </ng-template>
                     <ng-template ngbPanelContent>
                         <table class="table">
                             <thead></thead>
                             <tbody>
                             <tr>
-                                <th>{{ 'Certificate DN' | translate }}</th>
+                                <th>{{ 'SAML Username' | translate }}</th>
                                 <td>
-                                    <code>{{ (currentEnvApplicationCertificate | async).dn }}</code>
-                                </td>
-                            </tr>
-                            <tr>
-                                <th>{{ 'Expiry Date' | translate }}</th>
-                                <td>
-                                    <b>{{ expiryDateString | async }}</b>
+                                    <code>{{apiKey}}</code>
                                 </td>
                             </tr>
                             <tr>
                                 <td colspan="2">
                                     <button type="button" class="btn btn-danger mr-2"
                                             [title]=" 'CERT_BUTTON_TITLE' | translate:{ env: env.name }"
-                                            (click)="openCertificateDialog.emit({ application: application, environment: env })">
-                                        <i class="fas fa-award"></i>&nbsp;{{ 'Create / extend application certificate' | translate }}
+                                            (click)="openApiKeyDialog.emit({ application: application, environment: env })">
+                                        <i class="fas fa-award"></i>&nbsp;{{ 'New login details' | translate }}
                                     </button>
                                 </td>
                             </tr>

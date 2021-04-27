@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { routerTransition } from '../../router.animations';
-import { NgbModal, NgbNavChangeEvent } from '@ng-bootstrap/ng-bootstrap';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import {
     ApplicationInfo,
     ApplicationOwnerRequest,
@@ -8,18 +8,18 @@ import {
     ApplicationsService,
     UserApplicationInfo
 } from '../../shared/services/applications.service';
-import { combineLatest, Observable, of } from 'rxjs';
+import { combineLatest, Observable } from 'rxjs';
 import { toNiceTimestamp } from '../../shared/util/time-util';
 
 import * as moment from 'moment';
-import { map, mergeMap, shareReplay, startWith } from 'rxjs/operators';
+import { map, shareReplay, startWith } from 'rxjs/operators';
 import { EnvironmentsService, KafkaEnvironment } from '../../shared/services/environments.service';
 import { ToastService } from '../../shared/modules/toast/toast.service';
-import { ApplicationCertificate, CertificateService } from '../../shared/services/certificates.service';
+import { ApiKeyService } from '../../shared/services/certificates.service';
 import { TopicsService } from '../../shared/services/topics.service';
 import { TranslateService } from '@ngx-translate/core';
+import { OpenApiKeyDialogEvent } from './application-block.component';
 import { HttpErrorResponse } from '@angular/common/http';
-import { OpenCertificateDialogEvent } from './application-block.component';
 
 export interface UserApplicationInfoWithTopics extends UserApplicationInfo {
 
@@ -50,18 +50,22 @@ export class ApplicationsComponent implements OnInit {
 
     userApplications: Observable<UserApplicationInfoWithTopics[]>;
 
-    certificateDlgData = {
+    apiKeyDlgData = {
         applicationName: null,
         applicationId: null,
         environment: null,
-        existingCertificate: null as ApplicationCertificate,
-        csrData: null,
-        commonName: null,
-        orgUnitName: null,
-        keyfileName: null,
-        expiryWarningType: 'info',
-        expiryWarningHtml: of('')
+        existingApiKey: null
     };
+
+    key: string;
+
+    secret: string;
+
+    showApiKeyTable = false;
+
+    copiedKey = false;
+
+    copiedSecret = false;
 
     submitting = false;
 
@@ -71,14 +75,10 @@ export class ApplicationsComponent implements OnInit {
 
     currentLang: Observable<string>;
 
-    activeTab: string;
-
-    certificateCreationType = 'hasCsr';
-
     constructor(
         private modalService: NgbModal,
         private applicationsService: ApplicationsService,
-        private certificateService: CertificateService,
+        private apiKeyService: ApiKeyService,
         private environmentsService: EnvironmentsService,
         private topicsService: TopicsService,
         private toasts: ToastService,
@@ -121,8 +121,6 @@ export class ApplicationsComponent implements OnInit {
 
         this.environments = this.environmentsService.getEnvironments();
 
-        this.activeTab = 'new';
-
         this.applicationsService.refresh().then();
     }
 
@@ -153,70 +151,67 @@ export class ApplicationsComponent implements OnInit {
         );
     }
 
-    openCertDlg(event: OpenCertificateDialogEvent, content: any) {
+    openApiKeyDlg(event: OpenApiKeyDialogEvent, content: any) {
         const app = event.application;
         const env = event.environment;
 
-        this.certificateDlgData = {
+        this.apiKeyDlgData = {
             applicationId: app.id,
             applicationName: app.name,
             environment: env,
-            existingCertificate: null,
-            csrData: '',
-            commonName: null,
-            orgUnitName: null,
-            keyfileName: null,
-            expiryWarningType: 'info',
-            expiryWarningHtml: of('')
+            existingApiKey: null
         };
-        this.certificateService.getApplicationCertificatesPromise(app.id).then(certs => {
-            this.certificateDlgData.existingCertificate = certs.find(cert => cert.environmentId === env.id) || null;
-            if (this.certificateDlgData.existingCertificate) {
-                const dn = this.certificateDlgData.existingCertificate.dn;
-                this.certificateDlgData.commonName = this.extractCommonName(dn);
-                this.certificateDlgData.orgUnitName = this.extractOrgUnitName(dn);
-                this.certificateDlgData.keyfileName = this.certificateDlgData.commonName + '_' + env.id + '.key';
+        this.apiKeyService.getApplicationApiKeysPromise(app.id).then(keys => {
+            this.apiKeyDlgData.existingApiKey = keys.find(key => key.environmentId === env.id);
 
-                const isoExpiryDate = this.certificateDlgData.existingCertificate.expiresAt;
-                const now = moment();
-                const expiryWarnLevel = moment(isoExpiryDate).isBefore(now) ? 'danger' :
-                    (moment(isoExpiryDate).diff(now, 'days') < 90 ? 'warning' : 'info');
-
-                this.certificateDlgData.expiryWarningType = expiryWarnLevel;
-                this.certificateDlgData.expiryWarningHtml = this.currentLang.pipe(mergeMap(lang =>
-                    this.translateService.get(expiryWarnLevel === 'danger' ? 'CERTIFICATE_EXPIRED_HTML' : 'CERTIFICATE_EXPIRY_HTML',
-                        { expiryDate: moment(isoExpiryDate).locale(lang).format('L') })));
-            } else {
-                this.certificateDlgData.commonName = 'app';
-                this.certificateDlgData.keyfileName = 'app.key';
-                this.certificateService.getApplicationCn(app.id).then(cn => {
-                    this.certificateDlgData.commonName = cn;
-                    this.certificateDlgData.keyfileName = this.certificateDlgData.commonName + '_' + env.id + '.key';
-                });
-            }
             this.modalService.open(content, { ariaLabelledBy: 'modal-title', size: 'lg', windowClass: 'modal-xxl' });
         });
     }
 
-    handleDlgTabChange(event: NgbNavChangeEvent) {
-        this.activeTab = event.nextId;
+    generateApiKey(): void {
+        if (this.apiKeyDlgData.applicationId && this.apiKeyDlgData.environment) {
+            const appId = this.apiKeyDlgData.applicationId;
+            this.apiKeyService
+                .requestApiKey(appId, null)
+                .then(apiKey => {
+                    this.key = apiKey.key;
+                    this.secret = apiKey.secret;
+                    this.showApiKeyTable = true;
+                })
+                .then(
+                    () => this.toasts.addSuccessToast('API Key erfolgreich erstellt'),
+                    (err: HttpErrorResponse) => this.toasts.addHttpErrorToast('API Key konnte nicht erstellt werden', err)
+                )
+                .then(() => this.apiKeyService.getApplicationApiKeys(appId).refresh());
+        }
     }
 
-    generateCertificate(): void {
-        if (this.certificateDlgData.applicationId && this.certificateDlgData.environment) {
-            const appId = this.certificateDlgData.applicationId;
-            this.certificateService
-                .requestAndDownloadApplicationCertificate(
-                    appId,
-                    this.certificateDlgData.environment.id,
-                    this.certificateDlgData.csrData,
-                    this.activeTab === 'extend'
-                )
-                .then(
-                    () => this.toasts.addSuccessToast('Zertifikat erfolgreich erstellt (bitte Browser-Downloads beachten)'),
-                    (err: HttpErrorResponse) => this.toasts.addHttpErrorToast('Zertifikat konnte nicht erstellt werden', err)
-                )
-                .then(() => this.certificateService.getApplicationCertificates(appId).refresh());
+    handleDlgDismiss(): void {
+        this.showApiKeyTable = false;
+        this.secret = null;
+
+    }
+
+    copyValue(value: string) {
+        const selBox = document.createElement('textarea');
+        selBox.style.position = 'fixed';
+        selBox.style.left = '0';
+        selBox.style.top = '0';
+        selBox.style.opacity = '0';
+        selBox.value = value;
+        document.body.appendChild(selBox);
+        selBox.focus();
+        selBox.select();
+        document.execCommand('copy');
+        document.body.removeChild(selBox);
+
+        console.log(value);
+
+        if (value === this.key) {
+            this.copiedKey = true;
+        } else {
+            this.copiedSecret = true;
+
         }
     }
 
@@ -230,14 +225,6 @@ export class ApplicationsComponent implements OnInit {
         return this.applicationsService
             .getAvailableApplications(false)
             .pipe(map(apps => apps.filter(app => app.id === appId).map(app => app.name)[0] || appId));
-    }
-
-    extractCommonName(dn: string): string {
-        return dn.match(/CN=([^,]+)/)[1];
-    }
-
-    extractOrgUnitName(dn: string): string {
-        return dn.match(/OU=([^,]+)/)[1];
     }
 
 }

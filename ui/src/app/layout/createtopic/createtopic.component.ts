@@ -6,7 +6,7 @@ import { TopicCreateParams, TopicsService, TopicType } from 'src/app/shared/serv
 import { EnvironmentsService, KafkaEnvironment } from 'src/app/shared/services/environments.service';
 import { map, shareReplay, take, tap } from 'rxjs/operators';
 import { ToastService } from 'src/app/shared/modules/toast/toast.service';
-import { CertificateService } from 'src/app/shared/services/certificates.service';
+import { ApiKeyService } from 'src/app/shared/services/certificates.service';
 import { CustomLink, ServerInfoService } from '../../shared/services/serverinfo.service';
 import { TopicSettingsData } from './datasettings/data-settings.component';
 import { Router } from '@angular/router';
@@ -48,7 +48,7 @@ export class CreateTopicComponent implements OnInit {
     constructor(private topicsSerivce: TopicsService,
                 private applicationsService: ApplicationsService,
                 private environmentsService: EnvironmentsService,
-                private toasts: ToastService, private certificateService: CertificateService,
+                private toasts: ToastService, private apiKeyService: ApiKeyService,
                 private serverInfo: ServerInfoService, private router: Router) {
     }
 
@@ -80,7 +80,7 @@ export class CreateTopicComponent implements OnInit {
             return;
         }
         try {
-            const certificates = await this.certificateService.getApplicationCertificatesPromise(this.selectedApplication.id);
+            const certificates = await this.apiKeyService.getApplicationApiKeysPromise(this.selectedApplication.id);
             const env = await this.selectedEnvironment.pipe(take(1)).toPromise();
             this.showRegistrationWarning = !certificates.find(c => c.environmentId === env.id);
         } catch (e) {
