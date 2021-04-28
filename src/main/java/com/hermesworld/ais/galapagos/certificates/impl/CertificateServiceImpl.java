@@ -1,10 +1,8 @@
 package com.hermesworld.ais.galapagos.certificates.impl;
 
-import java.io.File;
-import java.io.IOException;
-import java.security.GeneralSecurityException;
-import java.util.Map;
-
+import com.hermesworld.ais.galapagos.certificates.CaManager;
+import com.hermesworld.ais.galapagos.certificates.CertificateService;
+import com.hermesworld.ais.galapagos.certificates.auth.CertificatesAuthenticationConfig;
 import org.bouncycastle.asn1.ASN1Encoding;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.DERBMPString;
@@ -16,9 +14,12 @@ import org.bouncycastle.pkcs.bc.BcPKCS12MacCalculatorBuilder;
 import org.bouncycastle.pkcs.jcajce.JcaPKCS12SafeBagBuilder;
 import org.springframework.stereotype.Component;
 
-import com.hermesworld.ais.galapagos.certificates.CaManager;
-import com.hermesworld.ais.galapagos.certificates.CertificateService;
-import com.hermesworld.ais.galapagos.kafka.config.KafkaEnvironmentConfig;
+import java.io.File;
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 @Component
 public class CertificateServiceImpl implements CertificateService {
@@ -29,15 +30,23 @@ public class CertificateServiceImpl implements CertificateService {
 
     private byte[] truststore;
 
+    private final Map<String, CaManager> caManagers = new HashMap<>();
+
     @Override
-    public CaManager buildCaManager(KafkaEnvironmentConfig env, File certificatesWorkdir)
-            throws IOException, GeneralSecurityException, OperatorCreationException {
-        return new CaManagerImpl(env, certificatesWorkdir);
+    public void buildCaManagers(Map<String, CertificatesAuthenticationConfig> config, File certificatesWorkdir)
+            throws IOException, GeneralSecurityException, OperatorCreationException, PKCSException {
+        for (Map.Entry<String, CertificatesAuthenticationConfig> entry : config.entrySet()) {
+            caManagers.put(entry.getKey(), new CaManagerImpl(entry.getKey(), entry.getValue(), certificatesWorkdir));
+        }
+        buildTrustStore();
     }
 
     @Override
-    public void buildTrustStore(Map<String, CaManager> caManagers)
-            throws IOException, GeneralSecurityException, PKCSException {
+    public Optional<CaManager> getCaManager(String environmentId) {
+        return Optional.ofNullable(caManagers.get(environmentId));
+    }
+
+    private void buildTrustStore() throws IOException, PKCSException {
         PKCS12PfxPduBuilder keyStoreBuilder = new PKCS12PfxPduBuilder();
 
         for (Map.Entry<String, CaManager> entry : caManagers.entrySet()) {

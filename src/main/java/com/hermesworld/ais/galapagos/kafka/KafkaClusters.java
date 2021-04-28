@@ -1,14 +1,14 @@
 package com.hermesworld.ais.galapagos.kafka;
 
+import com.hermesworld.ais.galapagos.kafka.auth.KafkaAuthenticationModule;
+import com.hermesworld.ais.galapagos.kafka.config.KafkaEnvironmentConfig;
+import com.hermesworld.ais.galapagos.kafka.util.TopicBasedRepository;
+import com.hermesworld.ais.galapagos.util.HasKey;
+
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
-import com.hermesworld.ais.galapagos.certificates.CaManager;
-import com.hermesworld.ais.galapagos.kafka.config.KafkaEnvironmentConfig;
-import com.hermesworld.ais.galapagos.kafka.util.TopicBasedRepository;
-import com.hermesworld.ais.galapagos.util.HasKey;
 
 public interface KafkaClusters {
 
@@ -32,7 +32,7 @@ public interface KafkaClusters {
                 .collect(Collectors.toList());
     }
 
-    Optional<CaManager> getCaManager(String environmentId);
+    Optional<KafkaAuthenticationModule> getAuthenticationModule(String environmentId);
 
     /**
      * Returns a repository for saving and retrieving objects in a Kafka Topic. Repositories returned by this method can

@@ -1,32 +1,31 @@
 package com.hermesworld.ais.galapagos.applications.impl;
 
 import com.hermesworld.ais.galapagos.applications.*;
-import com.hermesworld.ais.galapagos.certificates.CaManager;
-import com.hermesworld.ais.galapagos.certificates.CertificateSignResult;
 import com.hermesworld.ais.galapagos.events.GalapagosEventManager;
 import com.hermesworld.ais.galapagos.events.GalapagosEventSink;
 import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
+import com.hermesworld.ais.galapagos.kafka.auth.CreateAuthenticationResult;
+import com.hermesworld.ais.galapagos.kafka.auth.KafkaAuthenticationModule;
 import com.hermesworld.ais.galapagos.kafka.util.InitPerCluster;
 import com.hermesworld.ais.galapagos.kafka.util.TopicBasedRepository;
 import com.hermesworld.ais.galapagos.naming.ApplicationPrefixes;
 import com.hermesworld.ais.galapagos.naming.NamingService;
 import com.hermesworld.ais.galapagos.security.CurrentUserService;
+import com.hermesworld.ais.galapagos.util.FutureUtil;
 import com.hermesworld.ais.galapagos.util.TimeService;
 import lombok.extern.slf4j.Slf4j;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
-import java.time.Instant;
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -235,49 +234,88 @@ public class ApplicationsServiceImpl implements ApplicationsService, InitPerClus
     }
 
     @Override
-    public CompletableFuture<ApplicationMetadata> createApplicationCertificateFromCsr(String environmentId,
-            String applicationId, String csrData, boolean extendCertificate, OutputStream outputStreamForCerFile) {
-
-        Function<CertificateSignResult, CompletableFuture<CertificateSignResult>> resultHandler = result -> {
-            try {
-                outputStreamForCerFile.write(result.getCertificatePemData().getBytes(StandardCharsets.UTF_8));
-            }
-            catch (IOException e) {
-                return CompletableFuture.failedFuture(e);
-            }
-            return CompletableFuture.completedFuture(result);
-        };
-
-        if (extendCertificate) {
-            ApplicationMetadata existing = getApplicationMetadata(environmentId, applicationId).orElse(null);
-            if (existing == null) {
-                return unknownApplication(applicationId);
-            }
-            return registerApplication((caManager, appl) -> caManager
-                    .extendApplicationCertificate(existing.getDn(), csrData).thenCompose(resultHandler), environmentId,
-                    applicationId);
+    public CompletableFuture<ApplicationMetadata> registerApplicationOnEnvironment(String environmentId,
+            String applicationId, JSONObject registerParams, OutputStream outputStreamForSecret) {
+        KafkaAuthenticationModule authModule = kafkaClusters.getAuthenticationModule(environmentId).orElse(null);
+        if (authModule == null) {
+            return unknownEnvironment(environmentId);
         }
-        else {
-            return registerApplication((caManager, appl) -> caManager
-                    .createApplicationCertificateFromCsr(applicationId, csrData, appl.getName())
-                    .thenCompose(resultHandler), environmentId, applicationId);
+
+        KafkaCluster kafkaCluster = kafkaClusters.getEnvironment(environmentId).orElse(null);
+        if (kafkaCluster == null) {
+            return unknownEnvironment(environmentId);
         }
+
+        KnownApplication knownApplication = getKnownApplication(applicationId).orElse(null);
+        if (knownApplication == null) {
+            return unknownApplication(applicationId);
+        }
+
+        String applicationName = namingService.normalize(knownApplication.getName());
+
+        ApplicationMetadata existing = getApplicationMetadata(environmentId, applicationId).orElse(null);
+        CompletableFuture<Void> deleteExisting = FutureUtil.noop();
+
+        // TODO deleteExisting (yes/no) should be determined by module, based on registerParams
+        if (existing != null) {
+            String json = existing.getAuthenticationJson();
+            if (!StringUtils.isEmpty(json)) {
+                deleteExisting = authModule.deleteApplicationAuthentication(applicationId, new JSONObject(json));
+            }
+        }
+
+        return deleteExisting
+                .thenCompose(
+                        o -> authModule.createApplicationAuthentication(applicationId, applicationName, registerParams))
+                .thenCompose(result -> updateApplicationMetadata(kafkaCluster, knownApplication, result)
+                        .thenCompose(meta -> futureWrite(outputStreamForSecret, result.getPrivateAuthenticationData())
+                                .thenApply(o -> meta)));
     }
 
-    @Override
-    public CompletableFuture<ApplicationMetadata> createApplicationCertificateAndPrivateKey(String environmentId,
-            String applicationId, OutputStream outputStreamForP12File) {
-        return registerApplication((caManager, appl) -> caManager
-                .createApplicationCertificateAndPrivateKey(applicationId, appl.getName()).thenCompose(result -> {
-                    try {
-                        outputStreamForP12File.write(result.getP12Data().orElse(new byte[0]));
-                    }
-                    catch (IOException e) {
-                        return CompletableFuture.failedFuture(e);
-                    }
-                    return CompletableFuture.completedFuture(result);
-                }), environmentId, applicationId);
-    }
+//    @Override
+//    public CompletableFuture<ApplicationMetadata> createApplicationCertificateFromCsr(String environmentId,
+//            String applicationId, String csrData, boolean extendCertificate, OutputStream outputStreamForCerFile) {
+//
+//        Function<CertificateSignResult, CompletableFuture<CertificateSignResult>> resultHandler = result -> {
+//            try {
+//                outputStreamForCerFile.write(result.getCertificatePemData().getBytes(StandardCharsets.UTF_8));
+//            }
+//            catch (IOException e) {
+//                return CompletableFuture.failedFuture(e);
+//            }
+//            return CompletableFuture.completedFuture(result);
+//        };
+//
+//        if (extendCertificate) {
+//            ApplicationMetadata existing = getApplicationMetadata(environmentId, applicationId).orElse(null);
+//            if (existing == null) {
+//                return unknownApplication(applicationId);
+//            }
+//            return registerApplication((caManager, appl) -> caManager
+//                    .extendApplicationCertificate(existing.getDn(), csrData).thenCompose(resultHandler), environmentId,
+//                    applicationId);
+//        }
+//        else {
+//            return registerApplication((caManager, appl) -> caManager
+//                    .createApplicationCertificateFromCsr(applicationId, csrData, appl.getName())
+//                    .thenCompose(resultHandler), environmentId, applicationId);
+//        }
+//    }
+//
+//    @Override
+//    public CompletableFuture<ApplicationMetadata> createApplicationCertificateAndPrivateKey(String environmentId,
+//            String applicationId, OutputStream outputStreamForP12File) {
+//        return registerApplication((caManager, appl) -> caManager
+//                .createApplicationCertificateAndPrivateKey(applicationId, appl.getName()).thenCompose(result -> {
+//                    try {
+//                        outputStreamForP12File.write(result.getP12Data().orElse(new byte[0]));
+//                    }
+//                    catch (IOException e) {
+//                        return CompletableFuture.failedFuture(e);
+//                    }
+//                    return CompletableFuture.completedFuture(result);
+//                }), environmentId, applicationId);
+//    }
 
     @Override
     public CompletableFuture<ApplicationMetadata> resetApplicationPrefixes(String environmentId, String applicationId) {
@@ -300,98 +338,88 @@ public class ApplicationsServiceImpl implements ApplicationsService, InitPerClus
         }).orElseGet(() -> CompletableFuture.failedFuture(new NoSuchElementException()));
     }
 
-    /**
-     * "Migrates" ApplicationMetadata entries in the <code>galapagos.internal.application-metadata</code> topic. Entries
-     * having the property <code>topicPrefix</code> set will be re-written to that topic, where the value of that
-     * property will either be added to its <code>internalTopicPrefixes</code> array, or the array will be created,
-     * containing only that value. <br>
-     * Additionally, all internal topic prefixes (possibly that single one from the old field) are copied to
-     * <code>transactionIdPrefixes</code>, if that property is not set or empty for an application. <br>
-     * This method is called from the admin job "Update Application ACLs", which must be called after migration to
-     * Galapagos 1.8.0.
-     */
-    @SuppressWarnings({ "deprecation", "removal" })
-//    public void migrateApplicationMetadata(KafkaCluster cluster) {
-//        log.debug("Migrating application-metadata topic on " + cluster.getId() + "...");
-//
-//        TopicBasedRepository<ApplicationMetadata> repo = getRepository(cluster);
-//        List<CompletableFuture<Void>> saveFutures = repo.getObjects().stream()
-//                .filter(app -> app.getTopicPrefix() != null || app.getInternalTopicPrefixes() == null
-//                        || app.getInternalTopicPrefixes().isEmpty())
-//                .map(app -> repo.save(migrator.apply(app))).collect(Collectors.toList());
-//        try {
-//            CompletableFuture.allOf(saveFutures.toArray(new CompletableFuture[0])).get();
-//            if (!saveFutures.isEmpty()) {
-//                log.info("Migrated " + saveFutures.size() + " application-metadata record(s) on cluster "
-//                        + cluster.getId());
-//            }
-//        }
-//        catch (InterruptedException e) {
-//            Thread.currentThread().interrupt();
-//        }
-//        catch (ExecutionException e) {
-//            log.error("Migration of application metadata failed", e);
-//        }
-//    }
-
     private List<KnownApplication> internalGetKnownApplications() {
         return knownApplicationsSource.getObjects().stream().sorted().collect(Collectors.toList());
     }
 
-    private CompletableFuture<ApplicationMetadata> registerApplication(
-            BiFunction<CaManager, KnownApplication, CompletableFuture<CertificateSignResult>> signResultFutureFn,
-            String environmentId, String applicationId) {
-        KnownApplication application = getKnownApplication(applicationId).orElse(null);
-        if (application == null) {
-            return unknownApplication(applicationId);
-        }
-        KafkaCluster kafkaCluster = kafkaClusters.getEnvironment(environmentId).orElse(null);
-        if (kafkaCluster == null) {
-            return unknownEnvironment(environmentId);
-        }
+    private CompletableFuture<ApplicationMetadata> updateApplicationMetadata(KafkaCluster kafkaCluster,
+            KnownApplication application, CreateAuthenticationResult authenticationResult) {
+        ApplicationMetadata newMetadata = new ApplicationMetadata();
+        ApplicationPrefixes prefixes = namingService.getAllowedPrefixes(application);
 
-        ApplicationMetadata existing = getApplicationMetadata(environmentId, applicationId).orElse(null);
-
-        // currently, we additionally use ALL previously assigned prefixes here, so extending a certificate does not
-        // break running applications. In the future, supporting admin jobs could check for "orphaned" prefixes which
-        // then can be removed after responsible team's approval.
-        ApplicationPrefixes prefixes = namingService.getAllowedPrefixes(application)
-                .combineWith(existing == null ? ApplicationPrefixes.EMPTY : existing);
-
-        GalapagosEventSink eventSink = eventManager.newEventSink(kafkaCluster);
-
-        return signResultFutureFn.apply(kafkaClusters.getCaManager(environmentId).orElseThrow(), application)
-                .thenCompose(result -> updateApplicationMetadataFromCertificate(kafkaCluster, existing, applicationId,
-                        prefixes, result))
-                .thenCompose(a -> {
-                    if (existing != null && !existing.getDn().equals(a.getDn())) {
-                        return eventSink.handleApplicationCertificateChanged(a, existing.getDn()).thenApply(o -> a);
-                    }
-                    else if (existing == null) {
-                        return eventSink.handleApplicationRegistered(a).thenApply(o -> a);
-                    }
-
-                    // no event for certificate extension yet
-                    return CompletableFuture.completedFuture(a);
-                });
-    }
-
-    private CompletableFuture<ApplicationMetadata> updateApplicationMetadataFromCertificate(KafkaCluster kafkaCluster,
-            ApplicationMetadata metadataOrNull, String applicationId, ApplicationPrefixes prefixes,
-            CertificateSignResult result) {
-        ApplicationMetadata newMetadata = metadataOrNull != null ? new ApplicationMetadata(metadataOrNull)
-                : new ApplicationMetadata();
-
-        newMetadata.setApplicationId(applicationId);
-        newMetadata.setDn(result.getDn());
-        newMetadata.setCertificateExpiresAt(ZonedDateTime
-                .ofInstant(Instant.ofEpochMilli(result.getCertificate().getNotAfter().getTime()), ZoneId.of("Z")));
+        newMetadata.setApplicationId(application.getId());
         newMetadata.setInternalTopicPrefixes(prefixes.getInternalTopicPrefixes());
         newMetadata.setConsumerGroupPrefixes(prefixes.getConsumerGroupPrefixes());
         newMetadata.setTransactionIdPrefixes(prefixes.getTransactionIdPrefixes());
+        newMetadata.setAuthenticationJson(authenticationResult.getPublicAuthenticationData().toString());
 
         return getRepository(kafkaCluster).save(newMetadata).thenApply(o -> newMetadata);
     }
+
+    private CompletableFuture<Void> futureWrite(OutputStream os, byte[] data) {
+        try {
+            os.write(data);
+            return CompletableFuture.completedFuture(null);
+        }
+        catch (IOException e) {
+            return CompletableFuture.failedFuture(e);
+        }
+    }
+
+//    private CompletableFuture<ApplicationMetadata> registerApplication(
+//            BiFunction<CaManager, KnownApplication, CompletableFuture<CertificateSignResult>> signResultFutureFn,
+//            String environmentId, String applicationId) {
+//        KnownApplication application = getKnownApplication(applicationId).orElse(null);
+//        if (application == null) {
+//            return unknownApplication(applicationId);
+//        }
+//        KafkaCluster kafkaCluster = kafkaClusters.getEnvironment(environmentId).orElse(null);
+//        if (kafkaCluster == null) {
+//            return unknownEnvironment(environmentId);
+//        }
+//
+//        ApplicationMetadata existing = getApplicationMetadata(environmentId, applicationId).orElse(null);
+//
+//        // currently, we additionally use ALL previously assigned prefixes here, so extending a certificate does not
+//        // break running applications. In the future, supporting admin jobs could check for "orphaned" prefixes which
+//        // then can be removed after responsible team's approval.
+//        ApplicationPrefixes prefixes = namingService.getAllowedPrefixes(application)
+//                .combineWith(existing == null ? ApplicationPrefixes.EMPTY : existing);
+//
+//        GalapagosEventSink eventSink = eventManager.newEventSink(kafkaCluster);
+//
+//        return signResultFutureFn.apply(kafkaClusters.getCaManager(environmentId).orElseThrow(), application)
+//                .thenCompose(result -> updateApplicationMetadataFromCertificate(kafkaCluster, existing, applicationId,
+//                        prefixes, result))
+//                .thenCompose(a -> {
+//                    if (existing != null && !existing.getDn().equals(a.getDn())) {
+//                        return eventSink.handleApplicationCertificateChanged(a, existing.getDn()).thenApply(o -> a);
+//                    }
+//                    else if (existing == null) {
+//                        return eventSink.handleApplicationRegistered(a).thenApply(o -> a);
+//                    }
+//
+//                    // no event for certificate extension yet
+//                    return CompletableFuture.completedFuture(a);
+//                });
+//    }
+//
+//    private CompletableFuture<ApplicationMetadata> updateApplicationMetadataFromCertificate(KafkaCluster kafkaCluster,
+//            ApplicationMetadata metadataOrNull, String applicationId, ApplicationPrefixes prefixes,
+//            CertificateSignResult result) {
+//        ApplicationMetadata newMetadata = metadataOrNull != null ? new ApplicationMetadata(metadataOrNull)
+//                : new ApplicationMetadata();
+//
+//        newMetadata.setApplicationId(applicationId);
+//        newMetadata.setDn(result.getDn());
+//        newMetadata.setCertificateExpiresAt(ZonedDateTime
+//                .ofInstant(Instant.ofEpochMilli(result.getCertificate().getNotAfter().getTime()), ZoneId.of("Z")));
+//        newMetadata.setInternalTopicPrefixes(prefixes.getInternalTopicPrefixes());
+//        newMetadata.setConsumerGroupPrefixes(prefixes.getConsumerGroupPrefixes());
+//        newMetadata.setTransactionIdPrefixes(prefixes.getTransactionIdPrefixes());
+//
+//        return getRepository(kafkaCluster).save(newMetadata).thenApply(o -> newMetadata);
+//    }
 
     @Scheduled(initialDelay = 30000, fixedDelayString = "PT6H")
     void removeOldRequests() {

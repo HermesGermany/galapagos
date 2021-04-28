@@ -3,6 +3,7 @@ package com.hermesworld.ais.galapagos.uisupport.controller;
 import com.hermesworld.ais.galapagos.applications.ApplicationsService;
 import com.hermesworld.ais.galapagos.applications.BusinessCapability;
 import com.hermesworld.ais.galapagos.applications.KnownApplication;
+import com.hermesworld.ais.galapagos.certificates.CertificateService;
 import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.kafka.config.KafkaEnvironmentConfig;
@@ -53,6 +54,8 @@ public class UISupportController {
 
     private final NamingService namingService;
 
+    private final CertificateService certificateService;
+
     private final GalapagosTopicConfig topicConfig;
 
     private final CustomLinksConfig customLinksConfig;
@@ -73,12 +76,13 @@ public class UISupportController {
 
     @Autowired
     public UISupportController(ApplicationsService applicationsService, TopicService topicService,
-            KafkaClusters kafkaClusters, NamingService namingService, GalapagosTopicConfig topicConfig,
-            CustomLinksConfig customLinksConfig) {
+            KafkaClusters kafkaClusters, NamingService namingService, CertificateService certificateService,
+            GalapagosTopicConfig topicConfig, CustomLinksConfig customLinksConfig) {
         this.applicationsService = applicationsService;
         this.topicService = topicService;
         this.kafkaClusters = kafkaClusters;
         this.namingService = namingService;
+        this.certificateService = certificateService;
         this.topicConfig = topicConfig;
         this.customLinksConfig = customLinksConfig;
     }
@@ -181,7 +185,7 @@ public class UISupportController {
     @GetMapping(value = "/api/util/supported-devcert-environments", produces = MediaType.APPLICATION_JSON_VALUE)
     public List<String> getEnvironmentsWithDeveloperCertificateSupport() {
         return kafkaClusters.getEnvironmentIds().stream()
-                .map(id -> kafkaClusters.getCaManager(id)
+                .map(id -> certificateService.getCaManager(id)
                         .map(caMan -> caMan.supportsDeveloperCertificates() ? id : null).orElse(null))
                 .filter(id -> id != null).collect(Collectors.toList());
     }

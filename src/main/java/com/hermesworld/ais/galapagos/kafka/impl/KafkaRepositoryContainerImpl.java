@@ -1,16 +1,5 @@
 package com.hermesworld.ais.galapagos.kafka.impl;
 
-import java.time.Duration;
-import java.time.temporal.ChronoUnit;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import com.hermesworld.ais.galapagos.kafka.KafkaSender;
 import com.hermesworld.ais.galapagos.kafka.util.TopicBasedRepository;
 import com.hermesworld.ais.galapagos.util.HasKey;
@@ -29,6 +18,17 @@ import org.apache.kafka.common.errors.AuthenticationException;
 import org.apache.kafka.common.errors.AuthorizationException;
 import org.apache.kafka.common.errors.InterruptException;
 import org.apache.kafka.common.errors.WakeupException;
+
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Slf4j
 public class KafkaRepositoryContainerImpl implements KafkaRepositoryContainer {
@@ -117,7 +117,11 @@ public class KafkaRepositoryContainerImpl implements KafkaRepositoryContainer {
             if (desc.isEmpty()) {
                 log.info("Creating metadata topic " + topic + " on environment " + environmentId);
                 int nodeCount = this.adminClient.describeCluster().nodes().get().size();
-                short replicationFactor = (short) (nodeCount == 1 ? 1 : 2);
+
+                // short replicationFactor = (short) (nodeCount == 1 ? 1 : 2);
+                // FIXME this must be configurable
+                short replicationFactor = 3;
+
                 this.adminClient.createTopics(Collections.singleton(new NewTopic(topic, 3, replicationFactor))).all()
                         .get();
 

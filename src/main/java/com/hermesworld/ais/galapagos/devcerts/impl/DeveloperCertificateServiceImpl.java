@@ -1,17 +1,7 @@
 package com.hermesworld.ais.galapagos.devcerts.impl;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.time.Instant;
-import java.util.Collections;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import com.hermesworld.ais.galapagos.certificates.CaManager;
+import com.hermesworld.ais.galapagos.certificates.CertificateService;
 import com.hermesworld.ais.galapagos.certificates.CertificateSignResult;
 import com.hermesworld.ais.galapagos.devcerts.DevCertificateMetadata;
 import com.hermesworld.ais.galapagos.devcerts.DeveloperCertificateService;
@@ -22,24 +12,37 @@ import com.hermesworld.ais.galapagos.kafka.util.TopicBasedRepository;
 import com.hermesworld.ais.galapagos.security.CurrentUserService;
 import com.hermesworld.ais.galapagos.util.FutureUtil;
 import com.hermesworld.ais.galapagos.util.TimeService;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.time.Instant;
+import java.util.Collections;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 @Component
 @Slf4j
 public class DeveloperCertificateServiceImpl implements DeveloperCertificateService, InitPerCluster {
 
-    private KafkaClusters kafkaClusters;
+    private final KafkaClusters kafkaClusters;
 
-    private CurrentUserService currentUserService;
+    private final CurrentUserService currentUserService;
 
-    private DevUserAclListener aclUpdater;
+    private final CertificateService certificateService;
 
-    private TimeService timeService;
+    private final DevUserAclListener aclUpdater;
+
+    private final TimeService timeService;
 
     @Autowired
     public DeveloperCertificateServiceImpl(KafkaClusters kafkaClusters, CurrentUserService currentUserService,
-            DevUserAclListener aclUpdater, TimeService timeService) {
+            CertificateService certificateService, DevUserAclListener aclUpdater, TimeService timeService) {
         this.kafkaClusters = kafkaClusters;
         this.currentUserService = currentUserService;
+        this.certificateService = certificateService;
         this.aclUpdater = aclUpdater;
         this.timeService = timeService;
     }
@@ -58,7 +61,7 @@ public class DeveloperCertificateServiceImpl implements DeveloperCertificateServ
         }
 
         KafkaCluster cluster = kafkaClusters.getEnvironment(environmentId).orElse(null);
-        CaManager caManager = kafkaClusters.getCaManager(environmentId).orElse(null);
+        CaManager caManager = certificateService.getCaManager(environmentId).orElse(null);
         if (cluster == null || caManager == null) {
             return FutureUtil.noSuchEnvironment(environmentId);
         }
@@ -74,6 +77,7 @@ public class DeveloperCertificateServiceImpl implements DeveloperCertificateServ
                     byte[] p12Data = result.getP12Data().orElse(null);
                     if (p12Data == null) {
                         log.error("No PKCS data for developer certificate returned by generation");
+                        return null;
                     }
                     try {
                         p12OutputStream.write(p12Data);
