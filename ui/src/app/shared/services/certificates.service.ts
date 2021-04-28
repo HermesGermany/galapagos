@@ -61,8 +61,7 @@ export class CertificateService {
         return this.getApplicationCertificates(applicationId).getObservable().pipe(take(1)).toPromise();
     }
 
-    public async requestAndDownloadApplicationCertificate(applicationId: string, environmentId: string, csrData: string,
-                                                          extendCertificate: boolean): Promise<any> {
+    public async requestAndDownloadApplicationCertificate(applicationId: string, environmentId: string, csrData: string, extendCertificate: boolean): Promise<any> {
         let body;
         if (csrData) {
             body = JSON.stringify({
