@@ -5,6 +5,7 @@ import com.hermesworld.ais.galapagos.applications.KnownApplication;
 import com.hermesworld.ais.galapagos.applications.impl.KnownApplicationImpl;
 import com.hermesworld.ais.galapagos.applications.impl.UpdateApplicationAclsListener;
 import com.hermesworld.ais.galapagos.certificates.CaManager;
+import com.hermesworld.ais.galapagos.certificates.CertificateService;
 import com.hermesworld.ais.galapagos.certificates.CertificateSignResult;
 import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
@@ -42,12 +43,15 @@ public class GenerateToolingCertificateJob extends SingleClusterAdminJob {
 
     private final NamingService namingService;
 
+    private final CertificateService certificateService;
+
     @Autowired
     public GenerateToolingCertificateJob(KafkaClusters kafkaClusters, UpdateApplicationAclsListener aclUpdater,
-            NamingService namingService) {
+            NamingService namingService, CertificateService certificateService) {
         super(kafkaClusters);
         this.aclUpdater = aclUpdater;
         this.namingService = namingService;
+        this.certificateService = certificateService;
     }
 
     @Override
@@ -71,7 +75,7 @@ public class GenerateToolingCertificateJob extends SingleClusterAdminJob {
             }
         }
 
-        CaManager caManager = kafkaClusters.getCaManager(cluster.getId()).orElseThrow();
+        CaManager caManager = certificateService.getCaManager(cluster.getId()).orElseThrow();
 
         CertificateSignResult result = caManager.createToolingCertificateAndPrivateKey().get();
 

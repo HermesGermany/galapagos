@@ -53,8 +53,8 @@ public class ApplicationsControllerTest {
         when(applicationsService.getKnownApplication(any())).thenReturn(Optional.of(knownApp));
         when(applicationsService.isUserAuthorizedFor(any())).thenReturn(true);
         when(kafkaClusters.getEnvironmentMetadata(environmentId)).thenReturn(Optional.of(kafkaEnvironmentConfig));
-        when(applicationsService.createApplicationCertificateAndPrivateKey(any(), any(), any()))
-                .thenReturn(CompletableFuture.completedFuture(applicationMetadata));
+//        when(applicationsService.createApplicationCertificateAndPrivateKey(any(), any(), any()))
+//                .thenReturn(CompletableFuture.completedFuture(applicationMetadata));
 
         // Act
         CertificateResponseDto testee = controller.updateApplicationCertificate(applicationId, environmentId,

@@ -1,21 +1,21 @@
 package com.hermesworld.ais.galapagos.certificates;
 
+import com.hermesworld.ais.galapagos.certificates.auth.CertificatesAuthenticationConfig;
+import org.bouncycastle.operator.OperatorCreationException;
+import org.bouncycastle.pkcs.PKCSException;
+
 import java.io.File;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.Map;
-
-import org.bouncycastle.operator.OperatorCreationException;
-import org.bouncycastle.pkcs.PKCSException;
-
-import com.hermesworld.ais.galapagos.kafka.config.KafkaEnvironmentConfig;
+import java.util.Optional;
 
 public interface CertificateService {
 
-    CaManager buildCaManager(KafkaEnvironmentConfig environmentConfig, File certificatesWorkdir)
-            throws IOException, GeneralSecurityException, OperatorCreationException;
+    void buildCaManagers(Map<String, CertificatesAuthenticationConfig> config, File certificatesWorkdir)
+            throws IOException, GeneralSecurityException, OperatorCreationException, PKCSException;
 
-    void buildTrustStore(Map<String, CaManager> caManagers) throws IOException, GeneralSecurityException, PKCSException;
+    Optional<CaManager> getCaManager(String environmentId);
 
     /**
      * Returns the byte contents of a PKCS12 Keystore usable by clients as the Kafka Truststore. It contains all public

@@ -3,6 +3,7 @@ package com.hermesworld.ais.galapagos.adminjobs.impl;
 import com.hermesworld.ais.galapagos.applications.ApplicationMetadata;
 import com.hermesworld.ais.galapagos.applications.impl.UpdateApplicationAclsListener;
 import com.hermesworld.ais.galapagos.certificates.CaManager;
+import com.hermesworld.ais.galapagos.certificates.CertificateService;
 import com.hermesworld.ais.galapagos.certificates.CertificateSignResult;
 import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
@@ -35,6 +36,8 @@ public class GenerateToolingCertificateJobTest {
 
     private NamingService namingService;
 
+    private CertificateService certificateService;
+
     private UpdateApplicationAclsListener aclListener;
 
     private final byte[] testData = { 17, 12, 99, 42, 23 };
@@ -58,8 +61,9 @@ public class GenerateToolingCertificateJobTest {
         KafkaEnvironmentConfig config = mock(KafkaEnvironmentConfig.class);
         when(kafkaClusters.getEnvironmentMetadata("test")).thenReturn(Optional.of(config));
 
+        certificateService = mock(CertificateService.class);
         CaManager caMan = mock(CaManager.class);
-        when(kafkaClusters.getCaManager("test")).thenReturn(Optional.of(caMan));
+        when(certificateService.getCaManager("test")).thenReturn(Optional.of(caMan));
 
         X509Certificate cert = mock(X509Certificate.class);
         when(cert.getNotAfter()).thenReturn(new Date());
@@ -96,8 +100,8 @@ public class GenerateToolingCertificateJobTest {
 
     @Test
     public void testStandard() throws Exception {
-        GenerateToolingCertificateJob job = new GenerateToolingCertificateJob(kafkaClusters, aclListener,
-                namingService);
+        GenerateToolingCertificateJob job = new GenerateToolingCertificateJob(kafkaClusters, aclListener, namingService,
+                certificateService);
 
         ApplicationArguments args = mock(ApplicationArguments.class);
         when(args.getOptionValues("output.filename")).thenReturn(Collections.singletonList(testFile.getPath()));
@@ -115,8 +119,8 @@ public class GenerateToolingCertificateJobTest {
 
     @Test
     public void testDataOnStdout() throws Exception {
-        GenerateToolingCertificateJob job = new GenerateToolingCertificateJob(kafkaClusters, aclListener,
-                namingService);
+        GenerateToolingCertificateJob job = new GenerateToolingCertificateJob(kafkaClusters, aclListener, namingService,
+                certificateService);
 
         ApplicationArguments args = mock(ApplicationArguments.class);
         when(args.getOptionValues("kafka.environment")).thenReturn(Collections.singletonList("test"));
