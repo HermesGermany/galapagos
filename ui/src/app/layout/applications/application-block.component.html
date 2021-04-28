@@ -4,13 +4,13 @@
     </div>
     <div class="card-body">
         <div
-            *ngIf="(currentEnvApplicationCertificate | async) === undefined">
+            *ngIf="(currentEnvApplicationApiKey | async) === undefined">
             <i>{{ 'NO_API_KEY_FOR_APP' | translate }}&#32;
                 <a [routerLink]=""
                    (click)="openApiKeyDialog.emit({ application: application, environment: env });">{{ 'Create Api Key now' | translate }}</a>
             </i>
         </div>
-        <div *ngIf="(currentEnvApplicationCertificate | async)">
+        <div *ngIf="(currentEnvApplicationApiKey | async)">
             <p><i
                 [innerHTML]="'APPLICATION_ENV_HINT_HTML' | translate: { environmentName: (environmentsService.getCurrentEnvironment() | async)?.name }"></i>
             </p>
@@ -122,7 +122,7 @@
                             <tr>
                                 <th>{{ 'SAML Username' | translate }}</th>
                                 <td>
-                                    <code>{{apiKey}}</code>
+                                    <code>{{ (currentEnvApplicationApiKey | async).apiKey }}</code>
                                 </td>
                             </tr>
                             <tr>

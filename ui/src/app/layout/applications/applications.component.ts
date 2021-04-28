@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { routerTransition } from '../../router.animations';
-import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { ModalDismissReasons, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import {
     ApplicationInfo,
     ApplicationOwnerRequest,
@@ -164,7 +164,12 @@ export class ApplicationsComponent implements OnInit {
         this.apiKeyService.getApplicationApiKeysPromise(app.id).then(keys => {
             this.apiKeyDlgData.existingApiKey = keys.find(key => key.environmentId === env.id);
 
-            this.modalService.open(content, { ariaLabelledBy: 'modal-title', size: 'lg', windowClass: 'modal-xxl' });
+            this.modalService.open(content, { ariaLabelledBy: 'modal-title', size: 'lg', windowClass: 'modal-xxl' }).result.then(result => {
+            }, reason => {
+                if (reason === ModalDismissReasons.BACKDROP_CLICK) {
+                    this.handleDlgDismiss();
+                }
+            });
         });
     }
 
@@ -174,17 +179,16 @@ export class ApplicationsComponent implements OnInit {
             this.apiKeyService
                 .requestApiKey(appId, null)
                 .then(apiKey => {
-                    this.key = apiKey.key;
-                    this.secret = apiKey.secret;
-                    this.showApiKeyTable = true;
-                })
-                .then(
-                    () => this.toasts.addSuccessToast('API Key erfolgreich erstellt'),
-                    (err: HttpErrorResponse) => this.toasts.addHttpErrorToast('API Key konnte nicht erstellt werden', err)
-                )
+                        this.key = apiKey.apiKey;
+                        this.secret = apiKey.apiSecret;
+                        this.showApiKeyTable = true;
+                        this.toasts.addSuccessToast('API Key erfolgreich erstellt');
+                    },
+                    (err: HttpErrorResponse) => this.toasts.addHttpErrorToast('API Key konnte nicht erstellt werden', err))
                 .then(() => this.apiKeyService.getApplicationApiKeys(appId).refresh());
         }
     }
+
 
     handleDlgDismiss(): void {
         this.showApiKeyTable = false;

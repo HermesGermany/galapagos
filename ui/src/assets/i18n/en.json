@@ -105,6 +105,7 @@
     "CERTIFICATE_EXPIRED_HTML": "The certificate for your application on this environment expired on <b>{{ expiryDate }}</b> ab. Please renew your certificate immediately!",
     "CERTIFICATE_EXPIRY_HTML": "The certificate for your application on this environment will expire on <b>{{ expiryDate }}</b>.",
     "NO_API_KEY_FOR_APP": "No Api Key has been created yet for this application on this environment.",
+    "SAVE_KEY_WARNING": "Please <b>save</b> the secret, before you close this dialogue! The secret will not be stored in Galapagos.",
     "APPLICATION_ENV_HINT_HTML": "This information is valid for current environment <b>{{ environmentName }}</b>.",
     "Cleanup Strategy": "Cleanup Strategy",
     "Log Compaction": "Log Compaction",

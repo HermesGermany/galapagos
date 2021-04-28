@@ -1,10 +1,9 @@
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { UserApplicationInfoWithTopics } from './applications.component';
 import { combineLatest, Observable, of } from 'rxjs';
-import { catchError, map, shareReplay, startWith } from 'rxjs/operators';
+import { catchError, map, shareReplay } from 'rxjs/operators';
 import { ApiKeyService, ApplicationApikey } from '../../shared/services/certificates.service';
 import { EnvironmentsService, KafkaEnvironment } from '../../shared/services/environments.service';
-import { TranslateService } from '@ngx-translate/core';
 import { ReplayContainer } from '../../shared/services/services-common';
 
 export interface OpenApiKeyDialogEvent {
@@ -32,12 +31,11 @@ export class ApplicationBlockComponent implements OnChanges {
 
     transactionIdPrefixes: Observable<string[]>;
 
-    currentEnvApplicationCertificate: Observable<ApplicationApikey>;
+    currentEnvApplicationApiKey: Observable<ApplicationApikey>;
 
     applicationApiKeys: ReplayContainer<ApplicationApikey[]>;
 
-    constructor(private apiKeyService: ApiKeyService, private translateService: TranslateService,
-                public environmentsService: EnvironmentsService) {
+    constructor(private apiKeyService: ApiKeyService, public environmentsService: EnvironmentsService) {
     }
 
     ngOnChanges(changes: SimpleChanges): void {
@@ -47,19 +45,14 @@ export class ApplicationBlockComponent implements OnChanges {
                 const app = change.currentValue as UserApplicationInfoWithTopics;
                 this.buildPrefixes(app);
                 this.applicationApiKeys = this.apiKeyService.getApplicationApiKeys(app.id);
-                this.currentEnvApplicationCertificate = combineLatest([this.applicationApiKeys.getObservable(),
+                this.currentEnvApplicationApiKey = combineLatest([this.applicationApiKeys.getObservable(),
                     this.environmentsService.getCurrentEnvironment()]).pipe(map(
                     ([keys, env]) => keys.find(k => k.environmentId === env.id)));
-
-                const currentLang = this.translateService.onLangChange.pipe(map(evt => evt.lang))
-                    .pipe(startWith(this.translateService.currentLang)).pipe(shareReplay(1));
-
             } else {
                 this.internalTopicPrefixes = of([]);
                 this.consumerGroupPrefixes = of([]);
                 this.transactionIdPrefixes = of([]);
-
-                this.currentEnvApplicationCertificate = null;
+                this.currentEnvApplicationApiKey = null;
             }
         }
     }

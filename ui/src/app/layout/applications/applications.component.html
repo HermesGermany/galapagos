@@ -112,7 +112,7 @@
             <li [ngbNavItem]="'new'">
                 <a ngbNavLink>{{ 'Generate new API Key' | translate }}</a>
                 <ng-template ngbNavContent>
-                    <div class="alert alert-danger mb-4 mt-3" *ngIf="apiKeyDlgData.existingApiKey">
+                    <div class="alert alert-danger mb-4 mt-3" *ngIf="true">
                         <!--suppress TypeScriptUnresolvedVariable -->
                         <span
                             [innerHTML]="'CERTIFICATE_ALREADY_EXISTS_WARNING_HTML' | translate:{ env: apiKeyDlgData.environment?.name }"></span>
@@ -122,12 +122,16 @@
                                 (click)="generateApiKey()">
                             <i class="fas fa-key"></i>&nbsp;{{ 'Generate API Key' | translate }}
                         </button>
+
                     </div>
                     <div *ngIf="showApiKeyTable">
+                        <ngb-alert [dismissible]="false">
+                            {{ 'SAVE_KEY_WARNING' | translate }}
+                        </ngb-alert>
                         <table class="table table-striped table-bordered table-sm">
                             <tbody>
                             <tr>
-                                <th style="width:10%" scope="row"><i class="fas fa-key"></i>&nbsp;Key</th>
+                                <th scope="row"><i class="fas fa-key"></i>&nbsp;Key</th>
                                 <td>{{key}}</td>
                                 <button (click)="copyValue(key)" class="btn btn-outline-secondary btn-sm ml-3"><i
                                     class="fas fa-copy"></i>
@@ -135,7 +139,7 @@
                                 </button>
                             </tr>
                             <tr>
-                                <th style="width:30%" scope="row"><i class="fas fa-user-secret"></i>&nbsp;Secret</th>
+                                <th scope="row"><i class="fas fa-user-secret"></i>&nbsp;Secret</th>
                                 <td>{{secret}}</td>
                                 <button (click)="copyValue(secret)" class="btn btn-outline-secondary btn-sm ml-3"><i
                                     class="fas fa-copy"></i>

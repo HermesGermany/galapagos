@@ -6,9 +6,9 @@ import { ReplayContainer } from './services-common';
 export interface ApplicationApikey {
     environmentId: string;
 
-    key: string;
+    apiKey: string;
 
-    secret: string;
+    apiSecret: string;
 
 }
 
@@ -35,17 +35,19 @@ export class ApiKeyService {
 
     public async requestApiKey(applicationId: string, environmentId: string): Promise<ApplicationApikey> {
 
+
         return Promise.resolve({
 
             environmentId: 'devtest',
 
-            key: 'testkey',
+            apiKey: 'testkey',
 
-            secret: 'testsecret'
+            apiSecret: 'testsecret'
 
         });
 
-        const body = JSON.stringify({});
+        const body = JSON.stringify({}); // body muss leer sein !! => {}
+
 
         // return this.http.post('/api/certificates/' + applicationId + '/' + environmentId, body, { headers: jsonHeader() }).toPromise();
 

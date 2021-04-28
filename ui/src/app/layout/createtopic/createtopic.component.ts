@@ -55,7 +55,7 @@ export class CreateTopicComponent implements OnInit {
     ngOnInit() {
         this.availableApplications = this.applicationsService.getUserApplications().getObservable();
         this.allEnvironments = this.environmentsService.getEnvironments();
-        this.selectedEnvironment = this.environmentsService.getCurrentEnvironment().pipe(tap(() => this.checkApplicationCertificate()))
+        this.selectedEnvironment = this.environmentsService.getCurrentEnvironment().pipe(tap(() => this.checkApplicationApiKey()))
             .pipe(shareReplay(1));
         this.topicsSerivce.getTopicCreateDefaults().pipe(take(1)).toPromise().then(
             val => this.createParams.partitionCount = val.defaultPartitionCount);
@@ -75,14 +75,14 @@ export class CreateTopicComponent implements OnInit {
         return Promise.resolve(null);
     }
 
-    async checkApplicationCertificate() {
+    async checkApplicationApiKey() {
         if (!this.selectedApplication || !this.selectedEnvironment) {
             return;
         }
         try {
-            const certificates = await this.apiKeyService.getApplicationApiKeysPromise(this.selectedApplication.id);
+            const apiKey = await this.apiKeyService.getApplicationApiKeysPromise(this.selectedApplication.id);
             const env = await this.selectedEnvironment.pipe(take(1)).toPromise();
-            this.showRegistrationWarning = !certificates.find(c => c.environmentId === env.id);
+            this.showRegistrationWarning = !apiKey.find(c => c.environmentId === env.id);
         } catch (e) {
             this.toasts.addHttpErrorToast('Could not check for application certificates', e);
         }
