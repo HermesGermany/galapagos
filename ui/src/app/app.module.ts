@@ -16,9 +16,9 @@ import { ToastService } from './shared/modules/toast/toast.service';
 import { TopicsService } from './shared/services/topics.service';
 
 import { ServerInfoService } from './shared/services/serverinfo.service';
-import { ApiKeyService } from './shared/services/certificates.service';
 import { HIGHLIGHT_OPTIONS } from 'ngx-highlightjs';
 import { getHighlightLanguages } from './layout/topics/topics.module';
+import { ApiKeyService } from './shared/services/apikey.service';
 
 const keycloakService = new KeycloakService();
 

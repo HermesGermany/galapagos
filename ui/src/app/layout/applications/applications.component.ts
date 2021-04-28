@@ -15,11 +15,11 @@ import * as moment from 'moment';
 import { map, shareReplay, startWith } from 'rxjs/operators';
 import { EnvironmentsService, KafkaEnvironment } from '../../shared/services/environments.service';
 import { ToastService } from '../../shared/modules/toast/toast.service';
-import { ApiKeyService } from '../../shared/services/certificates.service';
 import { TopicsService } from '../../shared/services/topics.service';
 import { TranslateService } from '@ngx-translate/core';
 import { OpenApiKeyDialogEvent } from './application-block.component';
 import { HttpErrorResponse } from '@angular/common/http';
+import { ApiKeyService } from '../../shared/services/apikey.service';
 
 export interface UserApplicationInfoWithTopics extends UserApplicationInfo {
 
@@ -161,7 +161,7 @@ export class ApplicationsComponent implements OnInit {
             environment: env,
             existingApiKey: null
         };
-        this.apiKeyService.getApplicationApiKeysPromise(app.id).then(keys => {
+        this.apiKeyService.getApplicationApiKeysPromise(app.id, env.id).then(keys => {
             this.apiKeyDlgData.existingApiKey = keys.find(key => key.environmentId === env.id);
 
             this.modalService.open(content, { ariaLabelledBy: 'modal-title', size: 'lg', windowClass: 'modal-xxl' }).result.then(result => {
@@ -176,8 +176,9 @@ export class ApplicationsComponent implements OnInit {
     generateApiKey(): void {
         if (this.apiKeyDlgData.applicationId && this.apiKeyDlgData.environment) {
             const appId = this.apiKeyDlgData.applicationId;
+            const envId = this.apiKeyDlgData.environment;
             this.apiKeyService
-                .requestApiKey(appId, null)
+                .requestApiKey(appId, envId)
                 .then(apiKey => {
                         this.key = apiKey.apiKey;
                         this.secret = apiKey.apiSecret;
@@ -185,7 +186,7 @@ export class ApplicationsComponent implements OnInit {
                         this.toasts.addSuccessToast('API Key erfolgreich erstellt');
                     },
                     (err: HttpErrorResponse) => this.toasts.addHttpErrorToast('API Key konnte nicht erstellt werden', err))
-                .then(() => this.apiKeyService.getApplicationApiKeys(appId).refresh());
+                .then(() => this.apiKeyService.getApplicationApiKeys(appId, envId).refresh());
         }
     }
 

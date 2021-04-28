@@ -6,10 +6,10 @@ import { TopicCreateParams, TopicsService, TopicType } from 'src/app/shared/serv
 import { EnvironmentsService, KafkaEnvironment } from 'src/app/shared/services/environments.service';
 import { map, shareReplay, take, tap } from 'rxjs/operators';
 import { ToastService } from 'src/app/shared/modules/toast/toast.service';
-import { ApiKeyService } from 'src/app/shared/services/certificates.service';
 import { CustomLink, ServerInfoService } from '../../shared/services/serverinfo.service';
 import { TopicSettingsData } from './datasettings/data-settings.component';
 import { Router } from '@angular/router';
+import { ApiKeyService } from '../../shared/services/apikey.service';
 
 @Component({
     selector: 'app-create-topic',
@@ -80,8 +80,8 @@ export class CreateTopicComponent implements OnInit {
             return;
         }
         try {
-            const apiKey = await this.apiKeyService.getApplicationApiKeysPromise(this.selectedApplication.id);
             const env = await this.selectedEnvironment.pipe(take(1)).toPromise();
+            const apiKey = await this.apiKeyService.getApplicationApiKeysPromise(this.selectedApplication.id, env.id);
             this.showRegistrationWarning = !apiKey.find(c => c.environmentId === env.id);
         } catch (e) {
             this.toasts.addHttpErrorToast('Could not check for application certificates', e);
