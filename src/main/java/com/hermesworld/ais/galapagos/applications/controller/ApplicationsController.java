@@ -1,7 +1,10 @@
 package com.hermesworld.ais.galapagos.applications.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.hermesworld.ais.galapagos.applications.*;
+import com.hermesworld.ais.galapagos.ccloud.apiclient.ConfluentApiException;
+import com.hermesworld.ais.galapagos.ccloud.auth.ConfluentCloudAuthUtil;
 import com.hermesworld.ais.galapagos.changes.Change;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.naming.ApplicationPrefixes;
@@ -11,6 +14,8 @@ import com.hermesworld.ais.galapagos.staging.StagingService;
 import com.hermesworld.ais.galapagos.util.CertificateUtil;
 import com.hermesworld.ais.galapagos.util.JsonUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -21,6 +26,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.security.cert.CertificateException;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
@@ -140,6 +146,59 @@ public class ApplicationsController {
     @PostMapping(value = "/api/certificates/{applicationId}/{environmentId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public CertificateResponseDto updateApplicationCertificate(@PathVariable String applicationId,
             @PathVariable String environmentId, @RequestBody CertificateRequestDto request) {
+        KnownApplication app = applicationsService.getKnownApplication(applicationId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        if (!applicationsService.isUserAuthorizedFor(applicationId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
+
+        kafkaClusters.getEnvironmentMetadata(environmentId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        String filename = CertificateUtil.toAppCn(app.getName());
+        if (!request.isGenerateKey()) {
+            String csrData = request.getCsrData();
+            if (StringUtils.isEmpty(csrData)) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "No CSR (csrData) present! Set generateKey to true if you want the server to generate a private key for you (not recommended).");
+            }
+            filename += ".cer";
+        }
+        else {
+            if (environmentId.equals(kafkaClusters.getProductionEnvironmentId())) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "You cannot get a server-side generated key for production environments.");
+            }
+            filename += ".p12";
+        }
+
+        try {
+            JSONObject requestParams = new JSONObject(JsonUtil.newObjectMapper().writeValueAsString(request));
+            ByteArrayOutputStream cerOut = new ByteArrayOutputStream();
+
+            applicationsService.registerApplicationOnEnvironment(environmentId, applicationId, requestParams, cerOut)
+                    .get();
+
+            CertificateResponseDto dto = new CertificateResponseDto();
+            dto.setFileName(filename);
+            dto.setFileContentsBase64(Base64.getEncoder().encodeToString(cerOut.toByteArray()));
+            return dto;
+        }
+        catch (ExecutionException e) {
+            throw handleExecutionException(e, "Could not create certificate: ");
+        }
+        catch (JsonProcessingException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid JSON body");
+        }
+        catch (InterruptedException e) {
+            return null;
+        }
+    }
+
+    @PostMapping(value = "/api/apikeys/{applicationId}/{environmentId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public CreatedApiKeyDto createApiKeyForApplication(@PathVariable String environmentId,
+            @PathVariable String applicationId, @RequestBody String request) {
         applicationsService.getKnownApplication(applicationId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
@@ -150,21 +209,24 @@ public class ApplicationsController {
         kafkaClusters.getEnvironmentMetadata(environmentId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
-        if (!request.isGenerateKey()) {
-            String csrData = request.getCsrData();
-            if (StringUtils.isEmpty(csrData)) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                        "No CSR (csrData) present! Set generateKey to true if you want the server to generate a private key for you (not recommended).");
-            }
-
-            return createCertificate(environmentId, applicationId, csrData, request.isExtendCertificate());
+        try {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            JSONObject params = StringUtils.isEmpty(request) ? new JSONObject() : new JSONObject(request);
+            ApplicationMetadata metadata = applicationsService
+                    .registerApplicationOnEnvironment(environmentId, applicationId, params, baos).get();
+            CreatedApiKeyDto dto = new CreatedApiKeyDto();
+            dto.setApiKey(ConfluentCloudAuthUtil.getApiKey(metadata.getAuthenticationJson()));
+            dto.setApiSecret(baos.toString(StandardCharsets.UTF_8));
+            return dto;
         }
-        else {
-            if (environmentId.equals(kafkaClusters.getProductionEnvironmentId())) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                        "You cannot get a server-side generated key for production environments.");
-            }
-            return createCertificateAndKey(environmentId, applicationId);
+        catch (JSONException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
+        catch (ExecutionException e) {
+            throw handleExecutionException(e, "Could not create API Key: ");
+        }
+        catch (InterruptedException e) {
+            return null;
         }
     }
 
@@ -177,6 +239,7 @@ public class ApplicationsController {
             return stagingService.prepareStaging(applicationId, environmentId, Collections.emptyList()).get();
         }
         catch (ExecutionException e) {
+            // noinspection ThrowableNotThrown
             handleExecutionException(e, "Could not prepare staging: ");
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
@@ -214,47 +277,8 @@ public class ApplicationsController {
         }
     }
 
-    private CertificateResponseDto createCertificate(String environmentId, String applicationId, String csrData,
-            boolean extendCertificate) {
-        try {
-            ByteArrayOutputStream cerOut = new ByteArrayOutputStream();
-            ApplicationMetadata metadata = applicationsService.createApplicationCertificateFromCsr(environmentId,
-                    applicationId, csrData, extendCertificate, cerOut).get();
-
-            CertificateResponseDto dto = new CertificateResponseDto();
-            dto.setFileName(CertificateUtil.extractCn(metadata.getDn()) + "_" + environmentId + ".cer");
-            dto.setFileContentsBase64(Base64.getEncoder().encodeToString(cerOut.toByteArray()));
-            return dto;
-        }
-        catch (ExecutionException e) {
-            throw handleExecutionException(e, "Could not generate a certificate from your CSR request: ");
-        }
-        catch (InterruptedException e) {
-            return null;
-        }
-    }
-
-    private CertificateResponseDto createCertificateAndKey(String environmentId, String applicationId) {
-        try {
-            ByteArrayOutputStream outP12 = new ByteArrayOutputStream();
-            ApplicationMetadata metadata = applicationsService
-                    .createApplicationCertificateAndPrivateKey(environmentId, applicationId, outP12).get();
-
-            CertificateResponseDto dto = new CertificateResponseDto();
-            String cn = CertificateUtil.extractCn(metadata.getDn());
-            dto.setFileName(cn + "_" + environmentId + ".p12");
-            dto.setFileContentsBase64(Base64.getEncoder().encodeToString(outP12.toByteArray()));
-            return dto;
-        }
-        catch (ExecutionException e) {
-            throw handleExecutionException(e, "Could not generate a signed certificate and private key: ");
-        }
-        catch (InterruptedException e) {
-            return null;
-        }
-    }
-
     private ApplicationCertificateDto toAppCertDto(String environmentId, ApplicationMetadata metadata) {
+
         return new ApplicationCertificateDto(environmentId, metadata.getDn(),
                 metadata.getCertificateExpiresAt().toInstant().toString());
     }
@@ -263,6 +287,10 @@ public class ApplicationsController {
         Throwable t = e.getCause();
         if (t instanceof CertificateException) {
             return new ResponseStatusException(HttpStatus.BAD_REQUEST, msgPrefix + t.getMessage());
+        }
+        if (t instanceof ConfluentApiException) {
+            log.error("Encountered Confluent API Exception", t);
+            return new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
         if (t instanceof NoSuchElementException) {
             return new ResponseStatusException(HttpStatus.NOT_FOUND);

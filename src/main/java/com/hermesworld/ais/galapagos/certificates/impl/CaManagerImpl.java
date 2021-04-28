@@ -1,23 +1,8 @@
 package com.hermesworld.ais.galapagos.certificates.impl;
 
-import java.io.*;
-import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
-import java.security.*;
-import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
-import java.security.cert.CertificateParsingException;
-import java.security.cert.X509Certificate;
-import java.time.Duration;
-import java.time.format.DateTimeParseException;
-import java.time.temporal.ChronoUnit;
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
-
 import com.hermesworld.ais.galapagos.certificates.CaManager;
 import com.hermesworld.ais.galapagos.certificates.CertificateSignResult;
-import com.hermesworld.ais.galapagos.kafka.config.KafkaEnvironmentConfig;
+import com.hermesworld.ais.galapagos.certificates.auth.CertificatesAuthenticationConfig;
 import com.hermesworld.ais.galapagos.util.CertificateUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.asn1.ASN1Encoding;
@@ -53,6 +38,21 @@ import org.bouncycastle.pkcs.jcajce.JcePKCSPBEOutputEncryptorBuilder;
 import org.bouncycastle.util.io.pem.PemWriter;
 import org.springframework.util.StringUtils;
 
+import java.io.*;
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
+import java.security.*;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.CertificateParsingException;
+import java.security.cert.X509Certificate;
+import java.time.Duration;
+import java.time.format.DateTimeParseException;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+
 /**
  * Manages the CA for a single Kafka Cluster.
  *
@@ -79,11 +79,10 @@ final class CaManagerImpl implements CaManager {
 
     private static final Random RANDOM = new Random();
 
-    public CaManagerImpl(KafkaEnvironmentConfig environmentMetadata, File certificateWorkdir)
+    public CaManagerImpl(String environmentId, CertificatesAuthenticationConfig config, File certificateWorkdir)
             throws IOException, GeneralSecurityException, OperatorCreationException {
-        this.caData = buildCaData(environmentMetadata);
-        generateGalapagosPkcs12ClientCertificate(environmentMetadata.getId(), environmentMetadata.getClientDn(),
-                certificateWorkdir);
+        this.caData = buildCaData(environmentId, config);
+        generateGalapagosPkcs12ClientCertificate(environmentId, config.getClientDn(), certificateWorkdir);
     }
 
     @Override
@@ -365,20 +364,21 @@ final class CaManagerImpl implements CaManager {
         return millis.add(BigInteger.valueOf(name.toString().hashCode()));
     }
 
-    private static CaData buildCaData(KafkaEnvironmentConfig env) throws IOException, GeneralSecurityException {
+    private static CaData buildCaData(String environmentId, CertificatesAuthenticationConfig config)
+            throws IOException, GeneralSecurityException {
         CaData data = new CaData();
 
-        if (env.getCaCertificateFile() == null) {
+        if (config.getCaCertificateFile() == null) {
             throw new RuntimeException(
-                    "Missing configuration property caCertificateFile for environment " + env.getId());
+                    "Missing configuration property caCertificateFile for environment " + environmentId);
         }
-        if (env.getCaKeyFile() == null) {
-            throw new RuntimeException("Missing configuration property caKeyFile for environment " + env.getId());
+        if (config.getCaKeyFile() == null) {
+            throw new RuntimeException("Missing configuration property caKeyFile for environment " + environmentId);
         }
 
-        try (InputStream inPublic = env.getCaCertificateFile().getInputStream();
+        try (InputStream inPublic = config.getCaCertificateFile().getInputStream();
                 PEMParser keyParser = new PEMParser(
-                        new InputStreamReader(env.getCaKeyFile().getInputStream(), StandardCharsets.ISO_8859_1))) {
+                        new InputStreamReader(config.getCaKeyFile().getInputStream(), StandardCharsets.ISO_8859_1))) {
             data.setCaCertificate(
                     (X509Certificate) CertificateFactory.getInstance("X.509", "BC").generateCertificate(inPublic));
 
@@ -398,21 +398,21 @@ final class CaManagerImpl implements CaManager {
 
         try {
             data.setApplicationCertificateValidity(
-                    StringUtils.isEmpty(env.getApplicationCertificateValidity()) ? DEFAULT_CERTIFICATE_VALIDITY
-                            : Duration.parse(env.getApplicationCertificateValidity()).toMillis());
+                    StringUtils.isEmpty(config.getApplicationCertificateValidity()) ? DEFAULT_CERTIFICATE_VALIDITY
+                            : Duration.parse(config.getApplicationCertificateValidity()).toMillis());
         }
         catch (DateTimeParseException e) {
             log.warn("Invalid duration pattern found in application configuration: "
-                    + env.getApplicationCertificateValidity());
+                    + config.getApplicationCertificateValidity());
             data.setApplicationCertificateValidity(DEFAULT_CERTIFICATE_VALIDITY);
         }
         try {
-            data.setDeveloperCertificateValidity(StringUtils.isEmpty(env.getDeveloperCertificateValidity()) ? 0
-                    : Duration.parse(env.getDeveloperCertificateValidity()).toMillis());
+            data.setDeveloperCertificateValidity(StringUtils.isEmpty(config.getDeveloperCertificateValidity()) ? 0
+                    : Duration.parse(config.getDeveloperCertificateValidity()).toMillis());
         }
         catch (DateTimeParseException e) {
             log.warn("Invalid duration pattern found in application configuration: "
-                    + env.getApplicationCertificateValidity());
+                    + config.getApplicationCertificateValidity());
             data.setApplicationCertificateValidity(DEFAULT_CERTIFICATE_VALIDITY);
         }
 

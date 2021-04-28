@@ -1,5 +1,7 @@
 package com.hermesworld.ais.galapagos.applications;
 
+import org.json.JSONObject;
+
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Objects;
@@ -35,11 +37,14 @@ public interface ApplicationsService {
 
     boolean isUserAuthorizedFor(String applicationId);
 
-    CompletableFuture<ApplicationMetadata> createApplicationCertificateFromCsr(String environmentId,
-            String applicationId, String csrData, boolean extendCertificate, OutputStream outputStreamForCerFile);
+    CompletableFuture<ApplicationMetadata> registerApplicationOnEnvironment(String environmentId, String applicationId,
+            JSONObject registerParams, OutputStream outputStreamForSecret);
 
-    CompletableFuture<ApplicationMetadata> createApplicationCertificateAndPrivateKey(String environmentId,
-            String applicationId, OutputStream outputStreamForP12File);
+//    CompletableFuture<ApplicationMetadata> createApplicationCertificateFromCsr(String environmentId,
+//            String applicationId, String csrData, boolean extendCertificate, OutputStream outputStreamForCerFile);
+//
+//    CompletableFuture<ApplicationMetadata> createApplicationCertificateAndPrivateKey(String environmentId,
+//            String applicationId, OutputStream outputStreamForP12File);
 
     /**
      * Resets the allowed prefixes for the given application on the given environment to their defaults, as resulting

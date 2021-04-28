@@ -1,11 +1,7 @@
 package com.hermesworld.ais.galapagos.kafka.impl;
 
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
-
-import com.hermesworld.ais.galapagos.certificates.CaManager;
 import com.hermesworld.ais.galapagos.kafka.KafkaSender;
+import com.hermesworld.ais.galapagos.kafka.auth.KafkaAuthenticationModule;
 import com.hermesworld.ais.galapagos.kafka.config.KafkaEnvironmentConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.CommonClientConfigs;
@@ -14,12 +10,15 @@ import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.ProducerConfig;
-import org.apache.kafka.common.config.SslConfigs;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
+
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 @Slf4j
 class KafkaConnectionManager {
@@ -30,25 +29,19 @@ class KafkaConnectionManager {
 
     private final Map<String, KafkaConsumerFactory<String, String>> consumerFactories = new HashMap<>();
 
-    private final String truststoreFile;
-
-    private final String truststorePassword;
-
     private final KafkaFutureDecoupler futureDecoupler;
 
-    public KafkaConnectionManager(List<KafkaEnvironmentConfig> environments, Map<String, CaManager> caManagers,
-            String truststoreFile, String truststorePassword, KafkaFutureDecoupler futureDecoupler) {
-        this.truststoreFile = truststoreFile;
-        this.truststorePassword = truststorePassword;
+    public KafkaConnectionManager(List<KafkaEnvironmentConfig> environments,
+            Map<String, KafkaAuthenticationModule> authenticationModules, KafkaFutureDecoupler futureDecoupler) {
         this.futureDecoupler = futureDecoupler;
 
         for (KafkaEnvironmentConfig env : environments) {
             String id = env.getId();
             log.debug("Creating Kafka Connections for " + id);
-            CaManager caManager = caManagers.get(id);
-            adminClients.put(id, buildAdminClient(env, caManager));
-            senders.put(id, buildKafkaSender(env, caManager));
-            consumerFactories.put(id, () -> buildConsumer(env, caManager));
+            KafkaAuthenticationModule authModule = authenticationModules.get(id);
+            adminClients.put(id, buildAdminClient(env, authModule));
+            senders.put(id, buildKafkaSender(env, authModule));
+            consumerFactories.put(id, () -> buildConsumer(env, authModule));
         }
     }
 
@@ -86,21 +79,23 @@ class KafkaConnectionManager {
         return consumerFactories.get(environmentId);
     }
 
-    private AdminClient buildAdminClient(KafkaEnvironmentConfig environment, CaManager caManager) {
-        return buildAdminClient(environment, caManager, new Properties());
+    private AdminClient buildAdminClient(KafkaEnvironmentConfig environment,
+            KafkaAuthenticationModule authenticationModule) {
+        return buildAdminClient(environment, authenticationModule, new Properties());
     }
 
-    private AdminClient buildAdminClient(KafkaEnvironmentConfig environment, CaManager caManager,
-            Properties propsOverride) {
-        Properties props = buildKafkaProperties(environment, caManager);
+    private AdminClient buildAdminClient(KafkaEnvironmentConfig environment,
+            KafkaAuthenticationModule authenticationModule, Properties propsOverride) {
+        Properties props = buildKafkaProperties(environment, authenticationModule);
         props.putAll(propsOverride);
 
         return AdminClient.create(props);
     }
 
-    private KafkaConsumer<String, String> buildConsumer(KafkaEnvironmentConfig environment, CaManager caManager) {
-        Properties props = buildKafkaProperties(environment, caManager);
-        props.put(ConsumerConfig.GROUP_ID_CONFIG, "galapagos." + UUID.randomUUID().toString());
+    private KafkaConsumer<String, String> buildConsumer(KafkaEnvironmentConfig environment,
+            KafkaAuthenticationModule authenticationModule) {
+        Properties props = buildKafkaProperties(environment, authenticationModule);
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, "galapagos." + UUID.randomUUID());
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         // consumer_offset is irrelevant for us, as we use a new consumer group ID in every Galapagos instance
         props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
@@ -110,8 +105,9 @@ class KafkaConnectionManager {
         return new KafkaConsumer<>(props);
     }
 
-    private KafkaSenderImpl buildKafkaSender(KafkaEnvironmentConfig environment, CaManager caManager) {
-        Properties props = buildKafkaProperties(environment, caManager);
+    private KafkaSenderImpl buildKafkaSender(KafkaEnvironmentConfig environment,
+            KafkaAuthenticationModule authenticationModule) {
+        Properties props = buildKafkaProperties(environment, authenticationModule);
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         props.put(ProducerConfig.ACKS_CONFIG, "1");
@@ -122,19 +118,13 @@ class KafkaConnectionManager {
         return new KafkaSenderImpl(new KafkaTemplate<>(factory), futureDecoupler);
     }
 
-    private Properties buildKafkaProperties(KafkaEnvironmentConfig environment, CaManager caManager) {
+    private Properties buildKafkaProperties(KafkaEnvironmentConfig environment,
+            KafkaAuthenticationModule authenticationModule) {
         Properties props = new Properties();
         props.put(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG, environment.getBootstrapServers());
-        props.put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, "SSL");
         props.put(CommonClientConfigs.RECONNECT_BACKOFF_MAX_MS_CONFIG, "60000");
 
-        props.put(SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG, truststoreFile);
-        props.put(SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG, truststorePassword);
-
-        props.put(SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG, caManager.getClientPkcs12File().getAbsolutePath());
-        props.put(SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG, caManager.getClientPkcs12Password());
-        props.put(SslConfigs.SSL_KEYSTORE_TYPE_CONFIG, "PKCS12");
-        props.put(SslConfigs.SSL_ENDPOINT_IDENTIFICATION_ALGORITHM_CONFIG, "");
+        authenticationModule.addRequiredKafkaProperties(props);
         return props;
     }
 
