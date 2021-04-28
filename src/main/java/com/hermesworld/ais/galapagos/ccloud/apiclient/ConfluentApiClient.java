@@ -69,10 +69,10 @@ public class ConfluentApiClient {
         authData.put("email", userName);
         authData.put("password", password);
 
-        return doPost(LOGIN_ENDPOINT, authData.toString(), response -> {
+        return doMethod(WebClient::post, LOGIN_ENDPOINT, authData.toString(), response -> {
             this.sessionToken = new JSONObject(response).getString("token");
             return true;
-        }, "Could not log in to Confluent Cloud").flatMap(b -> getUserId());
+        }, "Could not log in to Confluent Cloud", false).flatMap(b -> getUserId());
     }
 
     public Mono<List<ApiKeyInfo>> listApiKeys(String envId, String clusterId) {
@@ -131,8 +131,9 @@ public class ConfluentApiClient {
         keyReq.put("id", apiKeyInfo.getId());
         String keyReqJson = new JSONObject(Map.of("api_key", keyReq)).toString();
 
-        return doMethod(client -> client.method(HttpMethod.DELETE), String.format(DELETE_API_KEY_ENDPOINT, apiKeyInfo.getId()), keyReqJson, response -> true,
-                "Could not delete API Key");
+        return doMethod(client -> client.method(HttpMethod.DELETE),
+                String.format(DELETE_API_KEY_ENDPOINT, apiKeyInfo.getId()), keyReqJson, response -> true,
+                "Could not delete API Key", true);
     }
 
     private Mono<Boolean> getUserId() {
@@ -162,7 +163,7 @@ public class ConfluentApiClient {
     }
 
     private <T> Mono<T> doPost(String uri, String body, Function<String, T> responseBodyHandler, String errorMessage) {
-        return doMethod(WebClient::post, uri, body, responseBodyHandler, errorMessage);
+        return doMethod(WebClient::post, uri, body, responseBodyHandler, errorMessage, true);
     }
 
     private <T> Mono<T> doGet(String uri, Function<JSONObject, Object> jsonExtractor, JavaType resultType,
@@ -181,8 +182,9 @@ public class ConfluentApiClient {
     }
 
     private <T> Mono<T> doMethod(Function<WebClient, WebClient.RequestBodyUriSpec> method, String uri, String body,
-            Function<String, T> responseBodyHandler, String errorMessage) {
-        return assertLoggedIn().flatMap(b -> auth(method.apply(client).uri(uri).body(BodyInserters.fromValue(body)))
+            Function<String, T> responseBodyHandler, String errorMessage, boolean checkLogin) {
+        return (checkLogin ? assertLoggedIn() : Mono.just(true))
+                .flatMap(b -> auth(method.apply(client).uri(uri).body(BodyInserters.fromValue(body)))
                 .retrieve().onStatus(status -> status.isError(), errorResponseHandler(uri, errorMessage))
                 .bodyToMono(String.class)).map(responseBodyHandler);
     }
