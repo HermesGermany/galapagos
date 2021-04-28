@@ -179,7 +179,8 @@ export class ApplicationsComponent implements OnInit {
             const envId = this.apiKeyDlgData.environment;
             this.apiKeyService
                 .requestApiKey(appId, envId)
-                .then(apiKey => {
+                .then(
+                    apiKey => {
                         this.key = apiKey.apiKey;
                         this.secret = apiKey.apiSecret;
                         this.showApiKeyTable = true;
