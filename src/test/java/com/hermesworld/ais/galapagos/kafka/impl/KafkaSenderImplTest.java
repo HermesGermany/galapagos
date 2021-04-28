@@ -1,34 +1,33 @@
 package com.hermesworld.ais.galapagos.kafka.impl;
 
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import com.hermesworld.ais.galapagos.kafka.KafkaExecutorFactory;
+import org.apache.kafka.clients.producer.Callback;
+import org.apache.kafka.clients.producer.Producer;
+import org.apache.kafka.clients.producer.RecordMetadata;
+import org.apache.kafka.common.TopicPartition;
+import org.junit.jupiter.api.Test;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.core.ProducerFactory;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
-import org.apache.kafka.clients.producer.Callback;
-import org.apache.kafka.clients.producer.Producer;
-import org.apache.kafka.clients.producer.RecordMetadata;
-import org.apache.kafka.common.TopicPartition;
-import org.junit.Test;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.core.ProducerFactory;
-
-import com.hermesworld.ais.galapagos.kafka.KafkaExecutorFactory;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class KafkaSenderImplTest {
 
-    private static ThreadFactory tfDecoupled = new ThreadFactory() {
+    private static final ThreadFactory tfDecoupled = new ThreadFactory() {
         @Override
         public Thread newThread(Runnable r) {
             return new Thread(r, "decoupled-" + System.currentTimeMillis());
         }
     };
 
-    private static KafkaExecutorFactory executorFactory = () -> {
+    private static final KafkaExecutorFactory executorFactory = () -> {
         return Executors.newSingleThreadExecutor(tfDecoupled);
     };
 

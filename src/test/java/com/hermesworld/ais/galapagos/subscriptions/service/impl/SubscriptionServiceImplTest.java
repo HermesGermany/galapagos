@@ -1,9 +1,5 @@
 package com.hermesworld.ais.galapagos.subscriptions.service.impl;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.ExecutionException;
-
 import com.hermesworld.ais.galapagos.applications.ApplicationMetadata;
 import com.hermesworld.ais.galapagos.applications.ApplicationsService;
 import com.hermesworld.ais.galapagos.events.GalapagosEventManagerMock;
@@ -15,9 +11,14 @@ import com.hermesworld.ais.galapagos.subscriptions.SubscriptionState;
 import com.hermesworld.ais.galapagos.topics.TopicMetadata;
 import com.hermesworld.ais.galapagos.topics.TopicType;
 import com.hermesworld.ais.galapagos.topics.service.TopicService;
-import static org.junit.Assert.*;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.ExecutionException;
+
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -33,7 +34,7 @@ public class SubscriptionServiceImplTest {
 
     private TopicBasedRepositoryMock<SubscriptionMetadata> repository;
 
-    @Before
+    @BeforeEach
     public void setupMocks() {
         kafkaClusters = mock(KafkaClusters.class);
 

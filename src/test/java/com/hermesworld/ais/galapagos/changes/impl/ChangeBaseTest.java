@@ -1,5 +1,12 @@
 package com.hermesworld.ais.galapagos.changes.impl;
 
+import com.hermesworld.ais.galapagos.changes.ApplyChangeContext;
+import com.hermesworld.ais.galapagos.subscriptions.SubscriptionMetadata;
+import com.hermesworld.ais.galapagos.subscriptions.SubscriptionState;
+import com.hermesworld.ais.galapagos.subscriptions.service.SubscriptionService;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.BeanUtils;
+
 import java.beans.PropertyDescriptor;
 import java.io.File;
 import java.lang.reflect.Field;
@@ -7,16 +14,10 @@ import java.lang.reflect.Modifier;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import com.hermesworld.ais.galapagos.changes.ApplyChangeContext;
-import com.hermesworld.ais.galapagos.subscriptions.SubscriptionMetadata;
-import com.hermesworld.ais.galapagos.subscriptions.SubscriptionState;
-import com.hermesworld.ais.galapagos.subscriptions.service.SubscriptionService;
 import static org.junit.Assert.*;
-import org.junit.Test;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import org.springframework.beans.BeanUtils;
 
 public class ChangeBaseTest {
 

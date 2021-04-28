@@ -1,15 +1,8 @@
 package com.hermesworld.ais.galapagos.adminjobs.impl;
 
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
-import java.util.Collections;
-import java.util.Optional;
-import java.util.function.Function;
-
+import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
+import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
+import com.hermesworld.ais.galapagos.util.FutureUtil;
 import org.apache.kafka.common.acl.AccessControlEntry;
 import org.apache.kafka.common.acl.AclBinding;
 import org.apache.kafka.common.acl.AclOperation;
@@ -19,28 +12,36 @@ import org.apache.kafka.common.resource.ResourcePattern;
 import org.apache.kafka.common.resource.ResourceType;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.boot.ApplicationArguments;
 
-import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
-import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
-import com.hermesworld.ais.galapagos.util.FutureUtil;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import java.util.Collections;
+import java.util.Optional;
+import java.util.function.Function;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class ViewAclsJobTest {
 
-    private ByteArrayOutputStream stdoutData = new ByteArrayOutputStream();
+    private final ByteArrayOutputStream stdoutData = new ByteArrayOutputStream();
 
     private PrintStream oldOut;
 
-    @Before
+    @BeforeEach
     public void setup() {
         oldOut = System.out;
         System.setOut(new PrintStream(stdoutData));
     }
 
-    @After
+    @AfterEach
     public void cleanup() {
         System.setOut(oldOut);
     }

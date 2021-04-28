@@ -10,9 +10,9 @@ import com.hermesworld.ais.galapagos.kafka.KafkaUser;
 import com.hermesworld.ais.galapagos.kafka.config.KafkaEnvironmentConfig;
 import com.hermesworld.ais.galapagos.naming.ApplicationPrefixes;
 import com.hermesworld.ais.galapagos.naming.NamingService;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.util.StreamUtils;
 
@@ -24,7 +24,7 @@ import java.security.cert.X509Certificate;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -47,7 +47,7 @@ public class GenerateToolingCertificateJobTest {
 
     private static final String DATA_MARKER = "CERTIFICATE DATA: ";
 
-    @Before
+    @BeforeEach
     public void feedMocks() {
         kafkaClusters = mock(KafkaClusters.class);
 
@@ -87,7 +87,7 @@ public class GenerateToolingCertificateJobTest {
         System.setOut(new PrintStream(stdoutData));
     }
 
-    @After
+    @AfterEach
     public void cleanup() {
         // noinspection ResultOfMethodCallIgnored
         testFile.delete();

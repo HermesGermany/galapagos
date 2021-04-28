@@ -1,5 +1,25 @@
 package com.hermesworld.ais.galapagos.notifications.impl;
 
+import com.hermesworld.ais.galapagos.applications.ApplicationOwnerRequest;
+import com.hermesworld.ais.galapagos.applications.ApplicationsService;
+import com.hermesworld.ais.galapagos.applications.RequestState;
+import com.hermesworld.ais.galapagos.notifications.NotificationParams;
+import com.hermesworld.ais.galapagos.subscriptions.SubscriptionMetadata;
+import com.hermesworld.ais.galapagos.subscriptions.service.SubscriptionService;
+import com.hermesworld.ais.galapagos.topics.service.TopicService;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
+import org.springframework.mail.MailSendException;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
+import org.thymeleaf.ITemplateEngine;
+
+import javax.mail.Address;
+import javax.mail.MessagingException;
+import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMessage.RecipientType;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
@@ -9,29 +29,10 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
-import javax.mail.Address;
-import javax.mail.MessagingException;
-import javax.mail.internet.MimeMessage;
-import javax.mail.internet.MimeMessage.RecipientType;
 
-import com.hermesworld.ais.galapagos.applications.ApplicationOwnerRequest;
-import com.hermesworld.ais.galapagos.applications.ApplicationsService;
-import com.hermesworld.ais.galapagos.applications.RequestState;
-import com.hermesworld.ais.galapagos.notifications.NotificationParams;
-import com.hermesworld.ais.galapagos.subscriptions.SubscriptionMetadata;
-import com.hermesworld.ais.galapagos.subscriptions.service.SubscriptionService;
-import com.hermesworld.ais.galapagos.topics.service.TopicService;
-import org.junit.After;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.ArgumentMatchers;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
-import org.springframework.mail.MailSendException;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
-import org.thymeleaf.ITemplateEngine;
 
 public class NotificationServiceImplTest {
 
@@ -55,7 +56,7 @@ public class NotificationServiceImplTest {
 
     private MimeMessageHolder messageHolder;
 
-    @Before
+    @BeforeEach
     public void feedMocks() throws MessagingException {
         subscriptionService = mock(SubscriptionService.class);
         applicationService = mock(ApplicationsService.class);
@@ -70,7 +71,7 @@ public class NotificationServiceImplTest {
         executor = Executors.newSingleThreadExecutor();
     }
 
-    @After
+    @AfterEach
     public void destroyMocks() {
         executor.shutdown();
     }

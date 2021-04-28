@@ -1,20 +1,5 @@
 package com.hermesworld.ais.galapagos.devcerts.impl;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.invocation.InvocationOnMock;
-
 import com.hermesworld.ais.galapagos.applications.ApplicationMetadata;
 import com.hermesworld.ais.galapagos.applications.ApplicationOwnerRequest;
 import com.hermesworld.ais.galapagos.applications.ApplicationsService;
@@ -29,6 +14,20 @@ import com.hermesworld.ais.galapagos.kafka.impl.TopicBasedRepositoryMock;
 import com.hermesworld.ais.galapagos.subscriptions.service.SubscriptionService;
 import com.hermesworld.ais.galapagos.util.FutureUtil;
 import com.hermesworld.ais.galapagos.util.TimeService;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.invocation.InvocationOnMock;
+
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class DevUserAclListenerTest {
 
@@ -42,9 +41,9 @@ public class DevUserAclListenerTest {
 
     private ZonedDateTime timestamp;
 
-    private List<InvocationOnMock> updateAclCalls = new ArrayList<InvocationOnMock>();
+    private final List<InvocationOnMock> updateAclCalls = new ArrayList<InvocationOnMock>();
 
-    @Before
+    @BeforeEach
     public void initMocks() {
         applicationsService = mock(ApplicationsService.class);
         SubscriptionService subscriptionService = mock(SubscriptionService.class);

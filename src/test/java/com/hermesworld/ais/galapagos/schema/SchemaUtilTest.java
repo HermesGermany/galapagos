@@ -1,9 +1,5 @@
 package com.hermesworld.ais.galapagos.schema;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-
 import com.hermesworld.ais.galapagos.schemas.IncompatibleSchemaException;
 import com.hermesworld.ais.galapagos.schemas.SchemaUtil;
 import org.everit.json.schema.Schema;
@@ -11,6 +7,10 @@ import org.everit.json.schema.loader.SchemaLoader;
 import org.json.JSONObject;
 import org.junit.Test;
 import org.springframework.util.StreamUtils;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
 public class SchemaUtilTest {
 

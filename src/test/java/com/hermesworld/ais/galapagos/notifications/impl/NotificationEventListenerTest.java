@@ -14,8 +14,8 @@ import com.hermesworld.ais.galapagos.topics.TopicMetadata;
 import com.hermesworld.ais.galapagos.topics.TopicType;
 import com.hermesworld.ais.galapagos.topics.service.TopicService;
 import com.hermesworld.ais.galapagos.util.FutureUtil;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.util.Optional;
@@ -35,7 +35,7 @@ public class NotificationEventListenerTest {
 
     private GalapagosEventContext context;
 
-    @Before
+    @BeforeEach
     public void feedMocks() {
 
         notificationService = spy(mock(NotificationService.class));

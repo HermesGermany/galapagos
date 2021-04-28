@@ -15,8 +15,8 @@ import com.hermesworld.ais.galapagos.topics.TopicType;
 import com.hermesworld.ais.galapagos.topics.config.GalapagosTopicConfig;
 import com.hermesworld.ais.galapagos.topics.service.impl.TopicServiceImpl;
 import com.hermesworld.ais.galapagos.topics.service.impl.ValidatingTopicServiceImpl;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
 import java.time.LocalDate;
@@ -46,7 +46,7 @@ public class TopicControllerTest {
 
     private TopicBasedRepositoryMock<TopicMetadata> topicRepository;
 
-    @Before
+    @BeforeEach
     public void feedMocks() {
         kafkaClusters = mock(KafkaClusters.class);
         applicationsService = mock(ApplicationsService.class);

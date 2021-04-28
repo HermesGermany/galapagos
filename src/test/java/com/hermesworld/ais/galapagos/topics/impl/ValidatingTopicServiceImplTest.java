@@ -10,8 +10,8 @@ import com.hermesworld.ais.galapagos.topics.TopicType;
 import com.hermesworld.ais.galapagos.topics.config.GalapagosTopicConfig;
 import com.hermesworld.ais.galapagos.topics.service.TopicService;
 import com.hermesworld.ais.galapagos.topics.service.impl.ValidatingTopicServiceImpl;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
 import java.time.Period;
@@ -19,8 +19,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -28,7 +28,7 @@ public class ValidatingTopicServiceImplTest {
 
     private GalapagosTopicConfig topicConfig;
 
-    @Before
+    @BeforeEach
     public void init() {
         topicConfig = mock(GalapagosTopicConfig.class);
         when(topicConfig.getMinDeprecationTime()).thenReturn(Period.ofDays(10));
