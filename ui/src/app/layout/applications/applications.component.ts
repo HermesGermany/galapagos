@@ -186,7 +186,7 @@ export class ApplicationsComponent implements OnInit {
                         this.toasts.addSuccessToast('API Key erfolgreich erstellt');
                     },
                     (err: HttpErrorResponse) => this.toasts.addHttpErrorToast('API Key konnte nicht erstellt werden', err))
-                .then(() => this.apiKeyService.getApplicationApiKeys(appId, envId).refresh());
+                .then(() => this.apiKeyService.getApplicationApiKeys(appId).refresh());
         }
     }
 

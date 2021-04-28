@@ -25,8 +25,6 @@ export class ApplicationBlockComponent implements OnChanges {
 
     @Output() openApiKeyDialog = new EventEmitter<OpenApiKeyDialogEvent>();
 
-    currentEnvironment: string;
-
     internalTopicPrefixes: Observable<string[]>;
 
     consumerGroupPrefixes: Observable<string[]>;
@@ -38,12 +36,6 @@ export class ApplicationBlockComponent implements OnChanges {
     applicationApiKeys: ReplayContainer<ApplicationApikey[]>;
 
     constructor(private apiKeyService: ApiKeyService, public environmentsService: EnvironmentsService) {
-
-        environmentsService.getCurrentEnvironment().subscribe({
-            next: env => {
-                this.currentEnvironment = env.id;
-            }
-        });
     }
 
     ngOnChanges(changes: SimpleChanges): void {
@@ -53,7 +45,7 @@ export class ApplicationBlockComponent implements OnChanges {
                 const app = change.currentValue as UserApplicationInfoWithTopics;
                 this.buildPrefixes(app);
 
-                this.applicationApiKeys = this.apiKeyService.getApplicationApiKeys(app.id, this.currentEnvironment);
+                this.applicationApiKeys = this.apiKeyService.getApplicationApiKeys(app.id);
                 this.currentEnvApplicationApiKey = combineLatest([this.applicationApiKeys.getObservable(),
                     this.environmentsService.getCurrentEnvironment()]).pipe(map(
                     ([keys, env]) => keys.find(k => k.environmentId === env.id)));

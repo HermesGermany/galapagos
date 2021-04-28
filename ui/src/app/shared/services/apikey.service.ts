@@ -20,18 +20,18 @@ export class ApiKeyService {
     constructor(private http: HttpClient) {
     }
 
-    public getApplicationApiKeys(applicationId: string, environmentId: string): ReplayContainer<ApplicationApikey[]> {
+    public getApplicationApiKeys(applicationId: string): ReplayContainer<ApplicationApikey[]> {
         if (this.appApiKeys[applicationId]) {
             return this.appApiKeys[applicationId];
         }
 
         return this.appApiKeys[applicationId] = new ReplayContainer<ApplicationApikey[]>(() =>
-            this.http.get('/api/apikeys/' + applicationId + '/' + environmentId)
+            this.http.get('/api/apikeys/' + applicationId)
                 .pipe(map(val => val as ApplicationApikey[])));
     }
 
     public getApplicationApiKeysPromise(applicationId: string, environmentId: string): Promise<ApplicationApikey[]> {
-        return this.getApplicationApiKeys(applicationId, environmentId).getObservable().pipe(take(1)).toPromise();
+        return this.getApplicationApiKeys(applicationId).getObservable().pipe(take(1)).toPromise();
     }
 
     public async requestApiKey(applicationId: string, environmentId: string): Promise<ApplicationApikey> {
