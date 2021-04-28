@@ -74,10 +74,6 @@
                 </div>
                 <div class="card-body">
                     <div>
-                        <a class="quicklink" href="/files/truststore">
-                            <span class="link-icon"><i class="fa fa-award"></i> </span>
-                            <span class="link-text">{{ 'Download Kafka Truststore (for all environments)' | translate }}</span>
-                        </a><br /><br />
                         <div *ngFor="let link of customLinks | async">
                             <a class="quicklink" [href]="link.href">
                             <span class="link-icon"><i class="fa"

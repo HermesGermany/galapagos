@@ -132,7 +132,6 @@
     "Application Info": "Informationen zur Anwendung",
     "Latest Changes": "Letzte Änderungen",
     "Get me started!": "Erste Schritte",
-    "Download Kafka Truststore (for all environments)": "Kafka Truststore herunterladen (für alle Umgebungen)",
     "CERT_BUTTON_TITLE": "Client-Zertifikat für die Umgebung {{env}} erzeugen / verlängern",
     "SUBSCRIPTION_APPROVAL_REQUIRED_INFO_HTML": "Für dieses Topic ist eine <b>Freigabe</b> aller Abonnements durch den Topic-Owner erforderlich. Wenn Du ein Abonnement erstellst, werden die Topic-Owner informiert und zur Freigabe aufgefordert. Du wirst über die erteilte Freigabe per E-Mail informiert.",
     "(Pending Approval)": "(Wartet auf Freigabe)",
