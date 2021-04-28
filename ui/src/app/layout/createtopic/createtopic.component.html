@@ -35,7 +35,7 @@
                         <div class="form-group form-inline">
                             <label class="mr-3">{{ 'Owning Application' | translate }}</label>
                             <select class="form-control mr-3" name="appPicker" #appPicker
-                                    (change)="topicNameSpinner.while(suggestTopicName()); checkApplicationCertificate()"
+                                    (change)="topicNameSpinner.while(suggestTopicName()); checkApplicationApiKey()"
                                     [(ngModel)]="selectedApplication">
                                 <option *ngFor="let app of d.untilNext(availableApplications) | async"
                                         [ngValue]="app">{{ app.name }}

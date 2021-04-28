@@ -1,14 +1,12 @@
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { UserApplicationInfoWithTopics } from './applications.component';
 import { combineLatest, Observable, of } from 'rxjs';
-import { catchError, map, shareReplay, startWith } from 'rxjs/operators';
-import { ApplicationCertificate, CertificateService } from '../../shared/services/certificates.service';
+import { catchError, map, shareReplay } from 'rxjs/operators';
 import { EnvironmentsService, KafkaEnvironment } from '../../shared/services/environments.service';
-import { TranslateService } from '@ngx-translate/core';
-import * as moment from 'moment';
 import { ReplayContainer } from '../../shared/services/services-common';
+import { ApiKeyService, ApplicationApikey } from '../../shared/services/apikey.service';
 
-export interface OpenCertificateDialogEvent {
+export interface OpenApiKeyDialogEvent {
     application: UserApplicationInfoWithTopics;
 
     environment: KafkaEnvironment;
@@ -23,7 +21,9 @@ export class ApplicationBlockComponent implements OnChanges {
 
     @Input() application: UserApplicationInfoWithTopics;
 
-    @Output() openCertificateDialog = new EventEmitter<OpenCertificateDialogEvent>();
+    @Input() apiKey: string;
+
+    @Output() openApiKeyDialog = new EventEmitter<OpenApiKeyDialogEvent>();
 
     internalTopicPrefixes: Observable<string[]>;
 
@@ -31,14 +31,11 @@ export class ApplicationBlockComponent implements OnChanges {
 
     transactionIdPrefixes: Observable<string[]>;
 
-    currentEnvApplicationCertificate: Observable<ApplicationCertificate>;
+    currentEnvApplicationApiKey: Observable<ApplicationApikey>;
 
-    expiryDateString: Observable<string>;
+    applicationApiKeys: ReplayContainer<ApplicationApikey[]>;
 
-    private applicationCertificates: ReplayContainer<ApplicationCertificate[]>;
-
-    constructor(private certificateService: CertificateService, private translateService: TranslateService,
-                public environmentsService: EnvironmentsService) {
+    constructor(private apiKeyService: ApiKeyService, public environmentsService: EnvironmentsService) {
     }
 
     ngOnChanges(changes: SimpleChanges): void {
@@ -48,21 +45,15 @@ export class ApplicationBlockComponent implements OnChanges {
                 const app = change.currentValue as UserApplicationInfoWithTopics;
                 this.buildPrefixes(app);
 
-                this.applicationCertificates = this.certificateService.getApplicationCertificates(app.id);
-                this.currentEnvApplicationCertificate = combineLatest([this.applicationCertificates.getObservable(),
+                this.applicationApiKeys = this.apiKeyService.getApplicationApiKeys(app.id);
+                this.currentEnvApplicationApiKey = combineLatest([this.applicationApiKeys.getObservable(),
                     this.environmentsService.getCurrentEnvironment()]).pipe(map(
-                    ([certs, env]) => certs.find(cert => cert.environmentId === env.id)));
-
-                const currentLang = this.translateService.onLangChange.pipe(map(evt => evt.lang))
-                    .pipe(startWith(this.translateService.currentLang)).pipe(shareReplay(1));
-                this.expiryDateString = combineLatest([currentLang, this.currentEnvApplicationCertificate]).pipe(
-                    map(([lang, cert]) => moment(cert.expiresAt).locale(lang).format('L')));
+                    ([keys, env]) => keys.find(k => k.environmentId === env.id)));
             } else {
                 this.internalTopicPrefixes = of([]);
                 this.consumerGroupPrefixes = of([]);
                 this.transactionIdPrefixes = of([]);
-
-                this.currentEnvApplicationCertificate = null;
+                this.currentEnvApplicationApiKey = null;
             }
         }
     }

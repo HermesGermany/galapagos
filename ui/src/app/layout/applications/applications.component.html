@@ -3,8 +3,8 @@
     <hr/>
     <div class="row mb-4" *ngFor="let app of userApplications | async">
         <div class="col-md-12">
-            <app-application-block [application]="app"
-                                   (openCertificateDialog)="openCertDlg($event, certDlg)"></app-application-block>
+            <app-application-block [application]="app" [apiKey]="key"
+                                   (openApiKeyDialog)="openApiKeyDlg($event, keyDlg)"></app-application-block>
         </div>
     </div>
     <div *ngIf="(userApplications | async)?.length === 0">
@@ -94,84 +94,60 @@
     </div>
 </div>
 
-<ng-template #certDlg let-dlg>
+<ng-template #keyDlg let-keyDlg>
     <div class="modal-header">
-        <h4 class="modal-title">{{ 'Generate Application Client Certificate' | translate }}</h4>
-        <button type="button" class="close" aria-label="Close" (click)="dlg.dismiss()">
+        <h4 class="modal-title">{{ 'Generate API Key' | translate }}</h4>
+        <button type="button" class="close" aria-label="Close" (click)="keyDlg.dismiss()">
             <span aria-hidden="true">&times;</span>
         </button>
     </div>
     <div class="modal-body">
         <div class="alert alert-info mb-3">
             <!--suppress TypeScriptUnresolvedVariable -->
-            {{ 'Application' | translate }}: {{ certificateDlgData.applicationName }}
+            {{ 'Application' | translate }}: {{ apiKeyDlgData.applicationName }}
             , {{ 'Environment' | translate }}:
-            <b>{{ certificateDlgData.environment?.name }}</b>
+            <b>{{ apiKeyDlgData.environment?.name }}</b>
         </div>
-        <ul ngbNav #nav="ngbNav" [destroyOnHide]="false" (navChange)="handleDlgTabChange($event)" class="nav-tabs">
+        <ul ngbNav #nav="ngbNav" [destroyOnHide]="false" class="nav-tabs">
             <li [ngbNavItem]="'new'">
-                <a ngbNavLink>{{ 'Generate new Certificate' | translate }}</a>
+                <a ngbNavLink>{{ 'Generate new API Key' | translate }}</a>
                 <ng-template ngbNavContent>
-                    <div class="alert alert-danger mb-4 mt-3" *ngIf="certificateDlgData.existingCertificate">
+                    <div class="alert alert-danger mb-4 mt-3" *ngIf="true">
                         <!--suppress TypeScriptUnresolvedVariable -->
                         <span
-                            [innerHTML]="'CERTIFICATE_ALREADY_EXISTS_WARNING_HTML' | translate:{ env: certificateDlgData.environment?.name }"></span>
+                            [innerHTML]="'CERTIFICATE_ALREADY_EXISTS_WARNING_HTML' | translate:{ env: apiKeyDlgData.environment?.name }"></span>
                     </div>
-                    <div class="mt-3">
-                        <form role="form">
-                            <fieldset class="form-group">
-                                <div class="radio">
-                                    <label>
-                                        <input id="csrRadio" type="radio" name="hasCsr" value="hasCsr"
-                                               [(ngModel)]="certificateCreationType" #hasCsr/>&nbsp;<span
-                                        [innerHTML]=" 'CSR_LABEL_HTML' | translate"></span>
-                                    </label>
-                                </div>
-                                <p class="help-text small ml-4" *ngIf="hasCsr.checked">
-                                    <app-openssl-command [commonName]="certificateDlgData.commonName"
-                                                         [keyfileName]="certificateDlgData.keyfileName"
-                                                         [generateKey]="true"></app-openssl-command>
-                                </p>
-                                <div *ngIf="hasCsr.checked">
-                                    <label for="csrDataNew">{{ 'CSR_CODE_TEXT' | translate }}:</label>
-                                    <textarea id="csrDataNew" name="csrData" class="form-control"
-                                              style="font-family: 'Courier New', Courier, monospace" rows="6"
-                                              [(ngModel)]="certificateDlgData.csrData"
-                                              [placeholder]="'-----BEGIN CERTIFICATE REQUEST-----\n...\n-----END CERTIFICATE REQUEST-----'"></textarea>
-                                </div>
-                                <div class="radio">
-                                    <label>
-                                        <!--suppress TypeScriptUnresolvedVariable -->
-                                        <input id="noCsrRadio" type="radio" value="noCsr" name="noCsr"
-                                               [(ngModel)]="certificateCreationType"
-                                               [disabled]="certificateDlgData.environment?.production"/>&nbsp;<span
-                                        [innerHTML]="'CERT_WITH_PRIVATE_KEY_HTML' | translate"></span>
-                                    </label>
-                                </div>
-                            </fieldset>
-                        </form>
+                    <div class="text-center mb-4">
+                        <button id="certButton" type="button" class="btn btn-warning"
+                                (click)="generateApiKey()">
+                            <i class="fas fa-key"></i>&nbsp;{{ 'Generate API Key' | translate }}
+                        </button>
+
                     </div>
-                </ng-template>
-            </li>
-            <li [ngbNavItem]="'extend'" [disabled]="!certificateDlgData.existingCertificate">
-                <a ngbNavLink>{{ 'Extend existing Certificate' | translate }}</a>
-                <ng-template ngbNavContent>
-                    <ngb-alert class="mt-3" [type]="certificateDlgData.expiryWarningType" [dismissible]="false">
-                        <span [innerHTML]="certificateDlgData.expiryWarningHtml | async"></span>
-                    </ngb-alert>
-                    <div class="mt-3">
-                        <p [innerHTML]="'EXTEND_CERTIFICATE_HTML' | translate"></p>
-                        <p [innerHTML]="'EXTEND_CERTIFICATE_COMMAND_HTML' | translate: { keyfile: certificateDlgData.keyfileName }">
-                        </p>
-                        <app-openssl-command [commonName]="certificateDlgData.commonName"
-                                             [orgUnitName]="certificateDlgData.orgUnitName"
-                                             [keyfileName]="certificateDlgData.keyfileName"
-                                             [generateKey]="false"></app-openssl-command>
-                        <label class="mt-3" for="extendCsr">{{ 'CSR_CODE_TEXT' | translate }}:</label>
-                        <textarea id="extendCsr" name="csrData" class="form-control"
-                                  style="font-family: 'Courier New', Courier, monospace" rows="6"
-                                  [(ngModel)]="certificateDlgData.csrData"
-                                  [placeholder]="'-----BEGIN CERTIFICATE REQUEST-----\n...\n-----END CERTIFICATE REQUEST-----'"></textarea>
+                    <div *ngIf="showApiKeyTable">
+                        <ngb-alert [dismissible]="false">
+                            {{ 'SAVE_KEY_WARNING' | translate }}
+                        </ngb-alert>
+                        <table class="table table-striped table-bordered table-sm">
+                            <tbody>
+                            <tr>
+                                <th scope="row"><i class="fas fa-key"></i>&nbsp;Key</th>
+                                <td>{{key}}</td>
+                                <button (click)="copyValue(key)" class="btn btn-outline-secondary btn-sm ml-3"><i
+                                    class="fas fa-copy"></i>
+                                    <span class="ml-1" *ngIf="copiedKey"> {{ 'Copied!' | translate}}</span>
+                                </button>
+                            </tr>
+                            <tr>
+                                <th scope="row"><i class="fas fa-user-secret"></i>&nbsp;Secret</th>
+                                <td>{{secret}}</td>
+                                <button (click)="copyValue(secret)" class="btn btn-outline-secondary btn-sm ml-3"><i
+                                    class="fas fa-copy"></i>
+                                    <span class="ml-1" *ngIf="copiedSecret"> {{ 'Copied!' | translate}}</span>
+                                </button>
+                            </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </ng-template>
             </li>
@@ -179,12 +155,7 @@
         <div [ngbNavOutlet]="nav" class="mt-2"></div>
     </div>
     <div class="modal-footer">
-        <button id="certButton" type="button" class="btn btn-warning" (click)="generateCertificate(); dlg.dismiss()"
-                [disabled]="activeTab === 'new' ? (certificateCreationType === 'hasCsr' && !certificateDlgData.csrData)
-                || (certificateDlgData.environment?.production && certificateCreationType === 'noCsr' ) : !certificateDlgData.csrData">
-            <i class="fas fa-cogs"></i>&nbsp;{{ 'Generate Client Certificate' | translate }}
-        </button>
-        <button type="button" ngbAutofocus class="btn btn-danger" (click)="dlg.dismiss()"><i
+        <button type="button" ngbAutofocus class="btn btn-danger" (click)="handleDlgDismiss(); keyDlg.dismiss()"><i
             class="fas fa-times"></i>&nbsp;{{ 'Cancel' | translate }}</button>
     </div>
 </ng-template>

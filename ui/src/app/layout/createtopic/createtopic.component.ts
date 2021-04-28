@@ -6,10 +6,10 @@ import { TopicCreateParams, TopicsService, TopicType } from 'src/app/shared/serv
 import { EnvironmentsService, KafkaEnvironment } from 'src/app/shared/services/environments.service';
 import { map, shareReplay, take, tap } from 'rxjs/operators';
 import { ToastService } from 'src/app/shared/modules/toast/toast.service';
-import { CertificateService } from 'src/app/shared/services/certificates.service';
 import { CustomLink, ServerInfoService } from '../../shared/services/serverinfo.service';
 import { TopicSettingsData } from './datasettings/data-settings.component';
 import { Router } from '@angular/router';
+import { ApiKeyService } from '../../shared/services/apikey.service';
 
 @Component({
     selector: 'app-create-topic',
@@ -48,14 +48,14 @@ export class CreateTopicComponent implements OnInit {
     constructor(private topicsSerivce: TopicsService,
                 private applicationsService: ApplicationsService,
                 private environmentsService: EnvironmentsService,
-                private toasts: ToastService, private certificateService: CertificateService,
+                private toasts: ToastService, private apiKeyService: ApiKeyService,
                 private serverInfo: ServerInfoService, private router: Router) {
     }
 
     ngOnInit() {
         this.availableApplications = this.applicationsService.getUserApplications().getObservable();
         this.allEnvironments = this.environmentsService.getEnvironments();
-        this.selectedEnvironment = this.environmentsService.getCurrentEnvironment().pipe(tap(() => this.checkApplicationCertificate()))
+        this.selectedEnvironment = this.environmentsService.getCurrentEnvironment().pipe(tap(() => this.checkApplicationApiKey()))
             .pipe(shareReplay(1));
         this.topicsSerivce.getTopicCreateDefaults().pipe(take(1)).toPromise().then(
             val => this.createParams.partitionCount = val.defaultPartitionCount);
@@ -75,14 +75,14 @@ export class CreateTopicComponent implements OnInit {
         return Promise.resolve(null);
     }
 
-    async checkApplicationCertificate() {
+    async checkApplicationApiKey() {
         if (!this.selectedApplication || !this.selectedEnvironment) {
             return;
         }
         try {
-            const certificates = await this.certificateService.getApplicationCertificatesPromise(this.selectedApplication.id);
             const env = await this.selectedEnvironment.pipe(take(1)).toPromise();
-            this.showRegistrationWarning = !certificates.find(c => c.environmentId === env.id);
+            const apiKey = await this.apiKeyService.getApplicationApiKeysPromise(this.selectedApplication.id, env.id);
+            this.showRegistrationWarning = !apiKey.find(c => c.environmentId === env.id);
         } catch (e) {
             this.toasts.addHttpErrorToast('Could not check for application certificates', e);
         }

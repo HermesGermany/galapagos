@@ -15,12 +15,6 @@ export interface ApplicationCertificate {
     expiresAt: string;
 }
 
-export interface DeveloperCertificateInfo {
-    dn: string;
-
-    expiresAt: string;
-}
-
 const base64ToBlob = (b64Data: string, sliceSize: number = 512) => {
     const byteCharacters = atob(b64Data);
     const byteArrays = [];
@@ -42,6 +36,8 @@ const base64ToBlob = (b64Data: string, sliceSize: number = 512) => {
 
 @Injectable()
 export class CertificateService {
+
+    private envsWithDevCertSupport = new ReplayContainer<string[]>(() => this.http.get('/api/util/supported-devcert-environments'));
 
     private appCertificates: { [appId: string]: ReplayContainer<ApplicationCertificate[]> } = {};
 
@@ -65,8 +61,7 @@ export class CertificateService {
         return this.getApplicationCertificates(applicationId).getObservable().pipe(take(1)).toPromise();
     }
 
-    public async requestAndDownloadApplicationCertificate(applicationId: string, environmentId: string, csrData: string,
-        extendCertificate: boolean): Promise<any> {
+    public async requestAndDownloadApplicationCertificate(applicationId: string, environmentId: string, csrData: string, extendCertificate: boolean): Promise<any> {
         let body;
         if (csrData) {
             body = JSON.stringify({
