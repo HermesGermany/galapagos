@@ -7,8 +7,10 @@ import com.hermesworld.ais.galapagos.events.GalapagosEventContext;
 import com.hermesworld.ais.galapagos.events.SubscriptionEvent;
 import com.hermesworld.ais.galapagos.events.TopicCreatedEvent;
 import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
+import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.kafka.KafkaUser;
 import com.hermesworld.ais.galapagos.kafka.TopicCreateParams;
+import com.hermesworld.ais.galapagos.kafka.auth.KafkaAuthenticationModule;
 import com.hermesworld.ais.galapagos.subscriptions.SubscriptionMetadata;
 import com.hermesworld.ais.galapagos.subscriptions.service.SubscriptionService;
 import com.hermesworld.ais.galapagos.topics.TopicMetadata;
@@ -19,7 +21,9 @@ import org.apache.kafka.common.acl.AclOperation;
 import org.apache.kafka.common.acl.AclPermissionType;
 import org.apache.kafka.common.resource.PatternType;
 import org.apache.kafka.common.resource.ResourceType;
+import org.json.JSONObject;
 import org.junit.Test;
+import org.mockito.ArgumentMatchers;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -43,12 +47,20 @@ public class UpdateApplicationAclsListenerTest {
         TopicService topicService = mock(TopicService.class);
         ApplicationsService applicationsService = mock(ApplicationsService.class);
         SubscriptionService subscriptionService = mock(SubscriptionService.class);
-
-        UpdateApplicationAclsListener listener = new UpdateApplicationAclsListener(topicService, subscriptionService,
-                applicationsService);
+        KafkaClusters kafkaClusters = mock(KafkaClusters.class);
 
         KafkaCluster cluster = mock(KafkaCluster.class);
         when(cluster.getId()).thenReturn("_test");
+        when(kafkaClusters.getEnvironment("_test")).thenReturn(Optional.of(cluster));
+
+        KafkaAuthenticationModule module = mock(KafkaAuthenticationModule.class);
+        when(module.extractKafkaUserName(ArgumentMatchers.matches("app01"),
+                ArgumentMatchers.argThat(obj -> obj.getString("dn").equals("CN=testapp"))))
+                        .thenReturn("User:CN=testapp");
+        when(kafkaClusters.getAuthenticationModule("_test")).thenReturn(Optional.of(module));
+
+        UpdateApplicationAclsListener listener = new UpdateApplicationAclsListener(kafkaClusters, topicService,
+                subscriptionService, applicationsService);
 
         List<KafkaUser> users = new ArrayList<>();
 
@@ -61,7 +73,7 @@ public class UpdateApplicationAclsListenerTest {
 
         ApplicationMetadata metadata = new ApplicationMetadata();
         metadata.setApplicationId("app01");
-        metadata.setDn("CN=testapp");
+        metadata.setAuthenticationJson(new JSONObject(Map.of("dn", "CN=testapp")).toString());
         metadata.setConsumerGroupPrefixes(List.of("group.myapp.", "group2.myapp."));
         metadata.setInternalTopicPrefixes(List.of("de.myapp.", "de.myapp2."));
         metadata.setTransactionIdPrefixes(List.of("de.myapp."));
@@ -197,9 +209,21 @@ public class UpdateApplicationAclsListenerTest {
         TopicService topicService = mock(TopicService.class);
         ApplicationsService applicationsService = mock(ApplicationsService.class);
         SubscriptionService subscriptionService = mock(SubscriptionService.class);
+        KafkaClusters kafkaClusters = mock(KafkaClusters.class);
+
+        KafkaCluster cluster = mock(KafkaCluster.class);
+        when(cluster.getId()).thenReturn("_test");
+        when(kafkaClusters.getEnvironment("_test")).thenReturn(Optional.of(cluster));
+
+        KafkaAuthenticationModule module = mock(KafkaAuthenticationModule.class);
+        when(module.extractKafkaUserName(ArgumentMatchers.matches("app-1"),
+                ArgumentMatchers.argThat(obj -> obj.getString("dn").equals("CN=testapp"))))
+                        .thenReturn("User:CN=testapp");
+        when(kafkaClusters.getAuthenticationModule("_test")).thenReturn(Optional.of(module));
 
         ApplicationMetadata app1 = new ApplicationMetadata();
         app1.setApplicationId("app-1");
+        app1.setAuthenticationJson(new JSONObject(Map.of("dn", "CN=testapp")).toString());
         app1.setConsumerGroupPrefixes(List.of("groups."));
 
         TopicMetadata topic = new TopicMetadata();
@@ -209,7 +233,8 @@ public class UpdateApplicationAclsListenerTest {
 
         when(topicService.listTopics("_test")).thenReturn(List.of(topic));
 
-        UpdateApplicationAclsListener listener = new UpdateApplicationAclsListener(topicService, subscriptionService,
+        UpdateApplicationAclsListener listener = new UpdateApplicationAclsListener(kafkaClusters, topicService,
+                subscriptionService,
                 applicationsService);
 
         Collection<AclBinding> bindings = listener.getApplicationUser(app1, "_test").getRequiredAclBindings();

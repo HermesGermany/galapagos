@@ -4,7 +4,9 @@ import com.hermesworld.ais.galapagos.applications.ApplicationMetadata;
 import com.hermesworld.ais.galapagos.applications.ApplicationsService;
 import com.hermesworld.ais.galapagos.events.*;
 import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
+import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.kafka.KafkaUser;
+import com.hermesworld.ais.galapagos.kafka.auth.KafkaAuthenticationModule;
 import com.hermesworld.ais.galapagos.subscriptions.SubscriptionMetadata;
 import com.hermesworld.ais.galapagos.subscriptions.service.SubscriptionService;
 import com.hermesworld.ais.galapagos.topics.TopicType;
@@ -17,8 +19,11 @@ import org.apache.kafka.common.acl.AclPermissionType;
 import org.apache.kafka.common.resource.PatternType;
 import org.apache.kafka.common.resource.ResourcePattern;
 import org.apache.kafka.common.resource.ResourceType;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.thymeleaf.util.StringUtils;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -28,6 +33,8 @@ import java.util.stream.Stream;
 @Component
 public class UpdateApplicationAclsListener
         implements TopicEventsListener, ApplicationEventsListener, SubscriptionEventsListener {
+
+    private final KafkaClusters kafkaClusters;
 
     private final TopicService topicService;
 
@@ -42,8 +49,9 @@ public class UpdateApplicationAclsListener
             AclOperation.DESCRIBE_CONFIGS, AclOperation.READ, AclOperation.WRITE);
 
     @Autowired
-    public UpdateApplicationAclsListener(TopicService topicService, SubscriptionService subscriptionService,
-            ApplicationsService applicationsService) {
+    public UpdateApplicationAclsListener(KafkaClusters kafkaClusters, TopicService topicService,
+            SubscriptionService subscriptionService, ApplicationsService applicationsService) {
+        this.kafkaClusters = kafkaClusters;
         this.topicService = topicService;
         this.subscriptionService = subscriptionService;
         this.applicationsService = applicationsService;
@@ -192,11 +200,26 @@ public class UpdateApplicationAclsListener
 
         @Override
         public String getKafkaUserName() {
-            return "User:" + metadata.getDn();
+            KafkaAuthenticationModule module = kafkaClusters.getAuthenticationModule(environmentId).orElse(null);
+            String authJson = metadata.getAuthenticationJson();
+
+            if (module != null && !StringUtils.isEmpty(authJson)) {
+                try {
+                    return module.extractKafkaUserName(metadata.getApplicationId(), new JSONObject(authJson));
+                }
+                catch (JSONException e) {
+                    return null;
+                }
+            }
+            return null;
         }
 
         @Override
         public Collection<AclBinding> getRequiredAclBindings() {
+            String userName = getKafkaUserName();
+            if (userName == null) {
+                return List.of();
+            }
             String id = metadata.getApplicationId();
 
             List<AclBinding> result = new ArrayList<>();
@@ -204,23 +227,23 @@ public class UpdateApplicationAclsListener
             // every application gets the CLUSTER READ right (for now; should be moved to developer test certificates
             // ASAP)
             result.add(new AclBinding(new ResourcePattern(ResourceType.CLUSTER, "kafka-cluster", PatternType.LITERAL),
-                    new AccessControlEntry(getKafkaUserName(), "*", AclOperation.DESCRIBE_CONFIGS,
+                    new AccessControlEntry(userName, "*", AclOperation.DESCRIBE_CONFIGS,
                             AclPermissionType.ALLOW)));
 
             result.addAll(metadata.getConsumerGroupPrefixes().stream()
-                    .map(prefix -> prefixAcl(ResourceType.GROUP, prefix)).collect(Collectors.toList()));
+                    .map(prefix -> prefixAcl(userName, ResourceType.GROUP, prefix)).collect(Collectors.toList()));
             result.addAll(metadata.getInternalTopicPrefixes().stream()
-                    .map(prefix -> prefixAcl(ResourceType.TOPIC, prefix)).collect(Collectors.toList()));
+                    .map(prefix -> prefixAcl(userName, ResourceType.TOPIC, prefix)).collect(Collectors.toList()));
 
             result.addAll(metadata.getTransactionIdPrefixes().stream()
-                    .flatMap(prefix -> transactionAcls(prefix).stream()).collect(Collectors.toList()));
+                    .flatMap(prefix -> transactionAcls(userName, prefix).stream()).collect(Collectors.toList()));
 
             topicService.listTopics(environmentId).stream()
                     .filter(topic -> topic.getType() != TopicType.INTERNAL && id.equals(topic.getOwnerApplicationId()))
-                    .map(topic -> topicAcls(topic.getName(), WRITE_TOPIC_OPERATIONS)).forEach(result::addAll);
+                    .map(topic -> topicAcls(userName, topic.getName(), WRITE_TOPIC_OPERATIONS)).forEach(result::addAll);
 
             subscriptionService.getSubscriptionsOfApplication(environmentId, id, false).stream().map(sub -> topicAcls(
-                    sub.getTopicName(),
+                    userName, sub.getTopicName(),
                     topicService.getTopic(environmentId, sub.getTopicName()).map(
                             t -> t.getType() == TopicType.COMMANDS ? WRITE_TOPIC_OPERATIONS : READ_TOPIC_OPERATIONS)
                             .orElse(Collections.emptyList())))
@@ -229,26 +252,26 @@ public class UpdateApplicationAclsListener
             return result;
         }
 
-        private AclBinding prefixAcl(ResourceType resourceType, String prefix) {
+        private AclBinding prefixAcl(String userName, ResourceType resourceType, String prefix) {
             ResourcePattern pattern = new ResourcePattern(resourceType, prefix, PatternType.PREFIXED);
-            AccessControlEntry entry = new AccessControlEntry(getKafkaUserName(), "*", AclOperation.ALL,
+            AccessControlEntry entry = new AccessControlEntry(userName, "*", AclOperation.ALL,
                     AclPermissionType.ALLOW);
             return new AclBinding(pattern, entry);
         }
 
-        private Collection<AclBinding> topicAcls(String topicName, List<AclOperation> ops) {
+        private Collection<AclBinding> topicAcls(String userName, String topicName, List<AclOperation> ops) {
             ResourcePattern pattern = new ResourcePattern(ResourceType.TOPIC, topicName, PatternType.LITERAL);
             return ops.stream()
                     .map(op -> new AclBinding(pattern,
-                            new AccessControlEntry(getKafkaUserName(), "*", op, AclPermissionType.ALLOW)))
+                            new AccessControlEntry(userName, "*", op, AclPermissionType.ALLOW)))
                     .collect(Collectors.toList());
         }
 
-        private Collection<AclBinding> transactionAcls(String prefix) {
+        private Collection<AclBinding> transactionAcls(String userName, String prefix) {
             return Stream.of(AclOperation.DESCRIBE, AclOperation.WRITE)
                     .map(op -> new AclBinding(
                             new ResourcePattern(ResourceType.TRANSACTIONAL_ID, prefix, PatternType.PREFIXED),
-                            new AccessControlEntry(getKafkaUserName(), "*", op, AclPermissionType.ALLOW)))
+                            new AccessControlEntry(userName, "*", op, AclPermissionType.ALLOW)))
                     .collect(Collectors.toSet());
         }
     }
