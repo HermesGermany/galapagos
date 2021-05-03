@@ -4,7 +4,7 @@ import { combineLatest, Observable, of } from 'rxjs';
 import { catchError, map, shareReplay } from 'rxjs/operators';
 import { EnvironmentsService, KafkaEnvironment } from '../../shared/services/environments.service';
 import { ReplayContainer } from '../../shared/services/services-common';
-import { ApiKeyService, ApplicationApikey } from '../../shared/services/apikey.service';
+import { ApiKeyService, ApplicationApiKey, ApplicationApikeyAuthData } from '../../shared/services/apikey.service';
 
 export interface OpenApiKeyDialogEvent {
     application: UserApplicationInfoWithTopics;
@@ -31,9 +31,9 @@ export class ApplicationBlockComponent implements OnChanges {
 
     transactionIdPrefixes: Observable<string[]>;
 
-    currentEnvApplicationApiKey: Observable<ApplicationApikey>;
+    currentEnvApplicationApiKey: Observable<ApplicationApiKey>;
 
-    applicationApiKeys: ReplayContainer<ApplicationApikey[]>;
+    applicationApiKeys: ReplayContainer<ApplicationApikeyAuthData>;
 
     constructor(private apiKeyService: ApiKeyService, public environmentsService: EnvironmentsService) {
     }
@@ -45,10 +45,20 @@ export class ApplicationBlockComponent implements OnChanges {
                 const app = change.currentValue as UserApplicationInfoWithTopics;
                 this.buildPrefixes(app);
 
+                const extractApiKey = (keys: ApplicationApikeyAuthData, env: KafkaEnvironment) => {
+                    if (!keys.authentications[env.id]) {
+                        return null;
+                    }
+                    if (keys.authentications[env.id].authenticationType !== 'ccloud') {
+                        return null;
+                    }
+                    return keys.authentications[env.id].authentication as ApplicationApiKey;
+                };
+
                 this.applicationApiKeys = this.apiKeyService.getApplicationApiKeys(app.id);
                 this.currentEnvApplicationApiKey = combineLatest([this.applicationApiKeys.getObservable(),
                     this.environmentsService.getCurrentEnvironment()]).pipe(map(
-                    ([keys, env]) => keys.find(k => k.environmentId === env.id)));
+                    ([keys, env]) => extractApiKey(keys, env)));
             } else {
                 this.internalTopicPrefixes = of([]);
                 this.consumerGroupPrefixes = of([]);

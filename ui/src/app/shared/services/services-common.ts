@@ -14,7 +14,7 @@ export class ReplayContainer<T> {
     getObservable(): Observable<T> {
         if (!this.subject) {
             this.subject = new ReplaySubject<T>(1);
-            this.refresh();
+            this.refresh().then();
         }
         return this.subject;
     }

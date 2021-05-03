@@ -83,7 +83,7 @@
     "ACL_SUBTITLE_TEXT": "ACL analysis for Kafka environment",
     "ACL_INFO_TEXT": "No ACL differences present, or they're still loading...",
     "ACL_FIX_TEXT": "Correct the selected ones",
-    "CERTIFICATE_ALREADY_EXISTS_WARNING_HTML": "For this application a client certificate has already been issued for the environment <b>{{ env }}</b>! If you continue here, the previous certificate <strong>loses</strong> its assigned Kafka permissions and becomes <strong>unusable</strong>.<br>(Existing permissions are transferred to the new certificate.)<br>If you want to receive an <b>extension certificate</b> instead, click on \"Extend existing certificate\".",
+    "API_KEY_ALREADY_EXISTS_WARNING_HTML": "For this application a client certificate has already been issued for the environment <b>{{ env }}</b>! If you continue here, the previous certificate <strong>loses</strong> its assigned Kafka permissions and becomes <strong>unusable</strong>.<br>(Existing permissions are transferred to the new certificate.)<br>If you want to receive an <b>extension certificate</b> instead, click on \"Extend existing certificate\".",
     "CERT_FIRST_TEXT": "I'm creating a local",
     "recommended_TEXT": "(recommended)",
     "CSR_CODE_TEXT": "Please insert the Base64-encoded CSR here",

@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { map, take } from 'rxjs/operators';
 import { jsonHeader, ReplayContainer } from './services-common';
 
-export interface ApplicationApikey {
+export interface ApplicationApiKeyAndSecret {
     environmentId: string;
 
     apiKey: string;
@@ -12,33 +12,52 @@ export interface ApplicationApikey {
 
 }
 
+export interface ApplicationApiKey {
+    apiKey: string;
+
+    issuedAt: string;
+
+    userId: string;
+}
+
+export interface AuthenticationDetail {
+    authenticationType: string;
+
+    authentication: { [key: string]: string } | ApplicationApiKey;
+}
+
+export interface ApplicationApikeyAuthData {
+
+    authentications: { [key: string]: AuthenticationDetail };
+
+}
+
 @Injectable()
 export class ApiKeyService {
 
-    private appApiKeys: { [appId: string]: ReplayContainer<ApplicationApikey[]> } = {};
+    private appApiKeys: { [appId: string]: ReplayContainer<ApplicationApikeyAuthData> } = {};
 
     constructor(private http: HttpClient) {
     }
 
-    public getApplicationApiKeys(applicationId: string): ReplayContainer<ApplicationApikey[]> {
+    public getApplicationApiKeys(applicationId: string): ReplayContainer<ApplicationApikeyAuthData> {
         if (this.appApiKeys[applicationId]) {
             return this.appApiKeys[applicationId];
         }
 
-        return this.appApiKeys[applicationId] = new ReplayContainer<ApplicationApikey[]>(() =>
-            this.http.get('/api/apikeys/' + applicationId)
-                .pipe(map(val => val as ApplicationApikey[])));
+        return this.appApiKeys[applicationId] = new ReplayContainer<ApplicationApikeyAuthData>(() =>
+            this.http.get('/api/authentications/' + applicationId)
+                .pipe(map(val => val as ApplicationApikeyAuthData)));
     }
 
-    public getApplicationApiKeysPromise(applicationId: string, environmentId: string): Promise<ApplicationApikey[]> {
+    public getApplicationApiKeysPromise(applicationId: string): Promise<ApplicationApikeyAuthData> {
         return this.getApplicationApiKeys(applicationId).getObservable().pipe(take(1)).toPromise();
     }
 
-    public async requestApiKey(applicationId: string, environmentId: string): Promise<ApplicationApikey> {
-
-        return this.http.post<ApplicationApikey>('/api/apikeys/' + applicationId + '/' + environmentId, {}, { headers: jsonHeader() })
+    public async requestApiKey(applicationId: string, environmentId: string): Promise<ApplicationApiKeyAndSecret> {
+        return this.http.post<ApplicationApiKeyAndSecret>('/api/apikeys/' + applicationId + '/' + environmentId,
+            {}, { headers: jsonHeader() })
             .toPromise();
-
     }
 
 }
