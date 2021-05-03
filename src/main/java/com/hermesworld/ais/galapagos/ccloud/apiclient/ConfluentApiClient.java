@@ -168,7 +168,7 @@ public class ConfluentApiClient {
 
     private <T> Mono<T> doGet(String uri, Function<JSONObject, Object> jsonExtractor, JavaType resultType,
             String errorMessage) {
-        return assertLoggedIn().flatMap(b -> client.get().uri(uri).retrieve()
+        return assertLoggedIn().flatMap(b -> auth(client.get().uri(uri)).retrieve()
                 .onStatus(status -> status.isError(), errorResponseHandler(uri, errorMessage)).bodyToMono(String.class))
                 .map(body -> {
                     try {
