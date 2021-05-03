@@ -4,7 +4,7 @@
     </div>
     <div class="card-body">
         <div
-            *ngIf="(currentEnvApplicationApiKey | async) === undefined">
+            *ngIf="(currentEnvApplicationApiKey | async) === null">
             <i>{{ 'NO_API_KEY_FOR_APP' | translate }}&#32;
                 <a [routerLink]=""
                    (click)="openApiKeyDialog.emit({ application: application, environment: env });">{{ 'Create Api Key now' | translate }}</a>

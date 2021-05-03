@@ -81,8 +81,8 @@ export class CreateTopicComponent implements OnInit {
         }
         try {
             const env = await this.selectedEnvironment.pipe(take(1)).toPromise();
-            const apiKey = await this.apiKeyService.getApplicationApiKeysPromise(this.selectedApplication.id, env.id);
-            this.showRegistrationWarning = !apiKey.find(c => c.environmentId === env.id);
+            const apiKey = await this.apiKeyService.getApplicationApiKeysPromise(this.selectedApplication.id);
+            this.showRegistrationWarning = !apiKey.authentications[env.id];
         } catch (e) {
             this.toasts.addHttpErrorToast('Could not check for application certificates', e);
         }
