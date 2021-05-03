@@ -5,6 +5,7 @@ import com.hermesworld.ais.galapagos.ccloud.apiclient.ConfluentApiClient;
 import com.hermesworld.ais.galapagos.ccloud.apiclient.ServiceAccountInfo;
 import com.hermesworld.ais.galapagos.kafka.auth.CreateAuthenticationResult;
 import com.hermesworld.ais.galapagos.kafka.auth.KafkaAuthenticationModule;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.util.StringUtils;
 
@@ -19,6 +20,12 @@ public class ConfluentCloudAuthenticationModule implements KafkaAuthenticationMo
     private final static String APP_SERVICE_ACCOUNT_DESC = "APP_{0}";
 
     private final static String API_KEY_DESC = "Application {0}";
+
+    private final static String JSON_API_KEY = "apiKey";
+
+    private final static String JSON_ISSUED_AT = "issuedAt";
+
+    private final static String JSON_USER_ID = "userId";
 
     private final ConfluentApiClient client;
 
@@ -60,7 +67,7 @@ public class ConfluentCloudAuthenticationModule implements KafkaAuthenticationMo
 
     @Override
     public CompletableFuture<Void> deleteApplicationAuthentication(String applicationId, JSONObject existingAuthData) {
-        String apiKey = existingAuthData.optString("apiKey");
+        String apiKey = existingAuthData.optString(JSON_API_KEY);
         if (!StringUtils.isEmpty(apiKey)) {
             return client.listApiKeys(config.getEnvironmentId(), config.getClusterId()).toFuture()
                     .thenCompose(ls -> ls.stream().filter(info -> apiKey.equals(info.getKey())).findAny()
@@ -70,6 +77,16 @@ public class ConfluentCloudAuthenticationModule implements KafkaAuthenticationMo
         }
 
         return CompletableFuture.completedFuture(null);
+    }
+
+    @Override
+    public String extractKafkaUserName(String applicationId, JSONObject existingAuthData) throws JSONException {
+        String userId = existingAuthData.optString(JSON_USER_ID);
+        if (StringUtils.isEmpty(userId)) {
+            throw new JSONException("No userId set in application authentication data");
+        }
+
+        return "User:" + userId;
     }
 
     private CompletableFuture<Optional<ServiceAccountInfo>> findServiceAccountForApp(String applicationId) {
@@ -92,9 +109,9 @@ public class ConfluentCloudAuthenticationModule implements KafkaAuthenticationMo
 
     private CreateAuthenticationResult toCreateAuthResult(ApiKeyInfo keyInfo) {
         JSONObject info = new JSONObject();
-        info.put("apiKey", keyInfo.getKey());
-        info.put("userId", String.valueOf(keyInfo.getUserId()));
-        info.put("issuedAt", keyInfo.getCreated().toString());
+        info.put(JSON_API_KEY, keyInfo.getKey());
+        info.put(JSON_USER_ID, String.valueOf(keyInfo.getUserId()));
+        info.put(JSON_ISSUED_AT, keyInfo.getCreated().toString());
 
         return new CreateAuthenticationResult(info, keyInfo.getSecret().getBytes(StandardCharsets.UTF_8));
     }

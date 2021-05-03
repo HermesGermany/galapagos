@@ -78,7 +78,7 @@ public class GenerateToolingCertificateJobTest {
         when(testPrefixes.getConsumerGroupPrefixes()).thenReturn(List.of("galapagos."));
         when(namingService.getAllowedPrefixes(any())).thenReturn(testPrefixes);
 
-        aclListener = new UpdateApplicationAclsListener(null, null, null) {
+        aclListener = new UpdateApplicationAclsListener(kafkaClusters, null, null, null) {
             @Override
             public KafkaUser getApplicationUser(ApplicationMetadata metadata, String environmentId) {
                 return null;

@@ -2,6 +2,7 @@ package com.hermesworld.ais.galapagos.ccloud.apiclient;
 
 import com.auth0.jwt.JWT;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hermesworld.ais.galapagos.util.JsonUtil;
 import org.json.JSONArray;
@@ -45,13 +46,16 @@ public class ConfluentApiClient {
     private Integer userId;
 
     public ConfluentApiClient() {
-        // TODO make more dynamic to enable unit testing
-        this.client = WebClient.builder().baseUrl(BASE_URL)
-                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE).build();
+        this(WebClient.builder().baseUrl(BASE_URL)
+                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE).build());
+    }
+
+    public ConfluentApiClient(WebClient client) {
+        this.client = client;
     }
 
     public boolean isLoggedIn() {
-        if (sessionToken == null) {
+        if (sessionToken == null || userId == null) {
             return false;
         }
         // check if session token has expired
@@ -65,46 +69,23 @@ public class ConfluentApiClient {
         authData.put("email", userName);
         authData.put("password", password);
 
-        return client.post().uri(LOGIN_ENDPOINT).body(BodyInserters.fromValue(authData.toString())).retrieve()
-                .bodyToMono(String.class)
-                .handle((jsonErrorHandler(msg -> new LoginException("Could not log in to Confluent Cloud: " + msg))))
-                .flatMap(response -> {
-                    this.sessionToken = new JSONObject(response).getString("token");
-                    return getUserId();
-                });
+        return doMethod(WebClient::post, LOGIN_ENDPOINT, authData.toString(), response -> {
+            this.sessionToken = new JSONObject(response).getString("token");
+            return true;
+        }, "Could not log in to Confluent Cloud", false).flatMap(b -> getUserId());
     }
 
     public Mono<List<ApiKeyInfo>> listApiKeys(String envId, String clusterId) {
-        return assertLoggedIn()
-                .flatMap(b -> auth(client.get().uri(String.format(LIST_API_KEYS_ENDPOINT, envId, clusterId))).retrieve()
-                        .bodyToMono(String.class)
-                        .handle(jsonErrorHandler(msg -> new ConfluentApiException("Could not list API Keys: " + msg)))
-                        .map(response -> {
-                            try {
-                                String keys = new JSONObject(response).getJSONArray("api_keys").toString();
-                                return mapper.readValue(keys,
-                                        mapper.getTypeFactory().constructCollectionType(List.class, ApiKeyInfo.class));
-                            }
-                            catch (JSONException | JsonProcessingException e) {
-                                throw new ConfluentApiException("Could not read API keys from response", e);
-                            }
-                        }));
+        return doGet(String.format(LIST_API_KEYS_ENDPOINT, envId, clusterId),
+                response -> response.getJSONArray("api_keys"),
+                mapper.getTypeFactory().constructCollectionType(List.class, ApiKeyInfo.class),
+                "Could not list API Keys");
     }
 
     public Mono<List<ServiceAccountInfo>> listServiceAccounts() {
-        return assertLoggedIn().flatMap(b -> auth(client.get().uri(SERVICE_ACCOUNTS_ENDPOINT)).retrieve()
-                .bodyToMono(String.class)
-                .handle(jsonErrorHandler(msg -> new ConfluentApiException("Could not list Service Accounts: " + msg)))
-                .map(response -> {
-                    try {
-                        String accounts = new JSONObject(response).getJSONArray("users").toString();
-                        return mapper.readValue(accounts,
-                                mapper.getTypeFactory().constructCollectionType(List.class, ServiceAccountInfo.class));
-                    }
-                    catch (JSONException | JsonProcessingException e) {
-                        throw new ConfluentApiException("Could not read API keys from response", e);
-                    }
-                }));
+        return doGet(SERVICE_ACCOUNTS_ENDPOINT, response -> response.getJSONArray("users"),
+                mapper.getTypeFactory().constructCollectionType(List.class, ServiceAccountInfo.class),
+                "Could not list Service Accounts");
     }
 
     public Mono<ServiceAccountInfo> createServiceAccount(String accountName, String accountDescription) {
@@ -143,10 +124,6 @@ public class ConfluentApiClient {
         }, "Could not create API Key");
     }
 
-    public Mono<ApiKeyInfo> createSuperUserApiKey(String envId, String clusterId, String description) {
-        return createApiKey(envId, clusterId, description, this.userId);
-    }
-
     public Mono<Boolean> deleteApiKey(ApiKeyInfo apiKeyInfo) {
         JSONObject keyReq = new JSONObject();
         keyReq.put("account_id", apiKeyInfo.getAccountId());
@@ -154,8 +131,9 @@ public class ConfluentApiClient {
         keyReq.put("id", apiKeyInfo.getId());
         String keyReqJson = new JSONObject(Map.of("api_key", keyReq)).toString();
 
-        return doMethod(client -> client.method(HttpMethod.DELETE), String.format(DELETE_API_KEY_ENDPOINT, apiKeyInfo.getId()), keyReqJson, response -> true,
-                "Could not delete API Key");
+        return doMethod(client -> client.method(HttpMethod.DELETE),
+                String.format(DELETE_API_KEY_ENDPOINT, apiKeyInfo.getId()), keyReqJson, response -> true,
+                "Could not delete API Key", true);
     }
 
     private Mono<Boolean> getUserId() {
@@ -185,15 +163,32 @@ public class ConfluentApiClient {
     }
 
     private <T> Mono<T> doPost(String uri, String body, Function<String, T> responseBodyHandler, String errorMessage) {
-        return doMethod(WebClient::post, uri, body, responseBodyHandler, errorMessage);
+        return doMethod(WebClient::post, uri, body, responseBodyHandler, errorMessage, true);
+    }
+
+    private <T> Mono<T> doGet(String uri, Function<JSONObject, Object> jsonExtractor, JavaType resultType,
+            String errorMessage) {
+        return assertLoggedIn().flatMap(b -> client.get().uri(uri).retrieve()
+                .onStatus(status -> status.isError(), errorResponseHandler(uri, errorMessage)).bodyToMono(String.class))
+                .map(body -> {
+                    try {
+                        String json = jsonExtractor.apply(new JSONObject(body)).toString();
+                        return mapper.readValue(json, resultType);
+                    }
+                    catch (JSONException | JsonProcessingException e) {
+                        throw new ConfluentApiException("Could not read API keys from response", e);
+                    }
+                });
     }
 
     private <T> Mono<T> doMethod(Function<WebClient, WebClient.RequestBodyUriSpec> method, String uri, String body,
-            Function<String, T> responseBodyHandler, String errorMessage) {
-        return assertLoggedIn().flatMap(b -> auth(method.apply(client).uri(uri).body(BodyInserters.fromValue(body)))
+            Function<String, T> responseBodyHandler, String errorMessage, boolean checkLogin) {
+        return (checkLogin ? assertLoggedIn() : Mono.just(true))
+                .flatMap(b -> auth(method.apply(client).uri(uri).body(BodyInserters.fromValue(body)))
                 .retrieve().onStatus(status -> status.isError(), errorResponseHandler(uri, errorMessage))
                 .bodyToMono(String.class)).map(responseBodyHandler);
     }
+
 
     private BiConsumer<String, SynchronousSink<String>> jsonErrorHandler(
             Function<String, ? extends Exception> exceptionSupplier) {

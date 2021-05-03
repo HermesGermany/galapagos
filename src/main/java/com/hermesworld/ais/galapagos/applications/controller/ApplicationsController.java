@@ -7,6 +7,7 @@ import com.hermesworld.ais.galapagos.ccloud.apiclient.ConfluentApiException;
 import com.hermesworld.ais.galapagos.ccloud.auth.ConfluentCloudAuthUtil;
 import com.hermesworld.ais.galapagos.changes.Change;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
+import com.hermesworld.ais.galapagos.kafka.config.KafkaEnvironmentConfig;
 import com.hermesworld.ais.galapagos.naming.ApplicationPrefixes;
 import com.hermesworld.ais.galapagos.staging.Staging;
 import com.hermesworld.ais.galapagos.staging.StagingResult;
@@ -135,14 +136,6 @@ public class ApplicationsController {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 
-    @GetMapping(value = "/api/certificates/{applicationId}")
-    public List<ApplicationCertificateDto> getApplicationCertificates(@PathVariable String applicationId) {
-        return kafkaClusters.getEnvironmentsMetadata().stream()
-                .map(env -> applicationsService.getApplicationMetadata(env.getId(), applicationId)
-                        .map(meta -> toAppCertDto(env.getId(), meta)).orElse(null))
-                .filter(dto -> dto != null).collect(Collectors.toList());
-    }
-
     @PostMapping(value = "/api/certificates/{applicationId}/{environmentId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public CertificateResponseDto updateApplicationCertificate(@PathVariable String applicationId,
             @PathVariable String environmentId, @RequestBody CertificateRequestDto request) {
@@ -230,6 +223,29 @@ public class ApplicationsController {
         }
     }
 
+    @GetMapping(value = "/api/authentications/{applicationId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ApplicationAuthenticationsDto listApplicationAuthentications(@PathVariable String applicationId) {
+        if (!applicationsService.isUserAuthorizedFor(applicationId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
+
+        Map<String, AuthenticationDto> authPerEnv = new HashMap<>();
+        for (KafkaEnvironmentConfig env : kafkaClusters.getEnvironmentsMetadata()) {
+            ApplicationMetadata metadata = applicationsService.getApplicationMetadata(env.getId(), applicationId)
+                    .orElse(null);
+            if (metadata != null && metadata.getAuthenticationJson() != null) {
+                AuthenticationDto dto = new AuthenticationDto();
+                dto.setAuthenticationType(env.getAuthenticationMode());
+                dto.setAuthentication(new JSONObject(metadata.getAuthenticationJson()).toMap());
+                authPerEnv.put(env.getId(), dto);
+            }
+        }
+
+        ApplicationAuthenticationsDto result = new ApplicationAuthenticationsDto();
+        result.setAuthentications(authPerEnv);
+        return result;
+    }
+
     @GetMapping(value = "/api/environments/{environmentId}/staging/{applicationId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public Staging describeStaging(@PathVariable String environmentId, @PathVariable String applicationId) {
         if (!applicationsService.isUserAuthorizedFor(applicationId)) {
@@ -275,12 +291,6 @@ public class ApplicationsController {
         catch (InterruptedException e) {
             return Collections.emptyList();
         }
-    }
-
-    private ApplicationCertificateDto toAppCertDto(String environmentId, ApplicationMetadata metadata) {
-
-        return new ApplicationCertificateDto(environmentId, metadata.getDn(),
-                metadata.getCertificateExpiresAt().toInstant().toString());
     }
 
     private ResponseStatusException handleExecutionException(ExecutionException e, String msgPrefix) {

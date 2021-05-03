@@ -2,6 +2,7 @@ package com.hermesworld.ais.galapagos.certificates.auth;
 
 import com.hermesworld.ais.galapagos.kafka.auth.CreateAuthenticationResult;
 import com.hermesworld.ais.galapagos.kafka.auth.KafkaAuthenticationModule;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.Properties;
@@ -36,6 +37,12 @@ public class CertificatesAuthenticationModule implements KafkaAuthenticationModu
 
     @Override
     public void addRequiredKafkaProperties(Properties kafkaProperties) {
+        // TODO
+        throw new UnsupportedOperationException("Certificates authentication currently not supported");
+    }
+
+    @Override
+    public String extractKafkaUserName(String applicationId, JSONObject existingAuthData) throws JSONException {
         // TODO
         throw new UnsupportedOperationException("Certificates authentication currently not supported");
     }
