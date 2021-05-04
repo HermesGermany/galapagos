@@ -191,7 +191,6 @@ export class ApplicationsComponent implements OnInit {
         }
     }
 
-
     handleDlgDismiss(): void {
         this.showApiKeyTable = false;
         this.secret = null;
@@ -204,7 +203,6 @@ export class ApplicationsComponent implements OnInit {
         selBox.style.left = '0';
         selBox.style.top = '0';
         selBox.style.opacity = '0';
-        selBox.style.marginTop = '50px';
         selBox.value = value;
         document.body.appendChild(selBox);
         selBox.focus();

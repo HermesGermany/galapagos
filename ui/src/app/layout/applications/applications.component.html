@@ -95,11 +95,8 @@
 </div>
 
 <ng-template #keyDlg let-keyDlg>
-    <div class="modal-header">
+    <div class="modal-header data-backdrop='static' data-keyboard='false'">
         <h4 class="modal-title">{{ 'Generate API Key' | translate }}</h4>
-        <button type="button" class="close" aria-label="Close" (click)="keyDlg.dismiss()">
-            <span aria-hidden="true">&times;</span>
-        </button>
     </div>
     <div class="modal-body">
         <div class="alert alert-info mb-3">
