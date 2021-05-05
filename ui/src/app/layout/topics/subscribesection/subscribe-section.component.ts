@@ -44,7 +44,7 @@ export class SubscriptionSectionComponent implements OnInit {
         this.selectedEnvironment = this.environmentsService.getCurrentEnvironment();
     }
 
-    async checkApplicationCertificate() {
+    async checkApplicationApiKey() {
         if (!this.selectedApplication || !this.selectedEnvironment) {
             return;
         }

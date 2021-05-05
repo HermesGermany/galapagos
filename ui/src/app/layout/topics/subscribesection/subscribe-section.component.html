@@ -15,7 +15,7 @@
                         <label class="mr-3">{{ 'Subscribe for Application' | translate }}</label>
                         <select class="form-control mr-3" name="appPicker" #appPicker
                                 [(ngModel)]="selectedApplication"
-                                (change)="checkApplicationCertificate()">
+                                (change)="checkApplicationApiKey()">
                             <option *ngFor="let app of availableApplications"
                                     [ngValue]="app">{{ app.name }} </option>
                         </select>
