@@ -29,7 +29,8 @@ public class ConnectedKafkaClusters implements KafkaClusters {
 
     public ConnectedKafkaClusters(List<KafkaEnvironmentConfig> environmentMetadata,
             Map<String, KafkaAuthenticationModule> authenticationModules, String productionEnvironmentId,
-            String galapagosInternalPrefix, KafkaExecutorFactory executorFactory) {
+            String galapagosInternalPrefix, KafkaExecutorFactory executorFactory,
+            int topicRepositoryReplicationFactor) {
         this.environmentMetadata = environmentMetadata;
         this.productionEnvironmentId = productionEnvironmentId;
         this.authenticationModules = authenticationModules;
@@ -41,7 +42,7 @@ public class ConnectedKafkaClusters implements KafkaClusters {
 
         for (KafkaEnvironmentConfig envMeta : environmentMetadata) {
             KafkaRepositoryContainerImpl repoContainer = new KafkaRepositoryContainerImpl(connectionManager,
-                    envMeta.getId(), galapagosInternalPrefix);
+                    envMeta.getId(), galapagosInternalPrefix, topicRepositoryReplicationFactor);
             ConnectedKafkaCluster cluster = buildConnectedKafkaCluster(envMeta.getId(), connectionManager,
                     repoContainer, futureDecoupler);
             clusters.put(envMeta.getId(), cluster);

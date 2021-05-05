@@ -11,6 +11,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.bouncycastle.operator.OperatorException;
 import org.bouncycastle.pkcs.PKCSException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -46,7 +47,8 @@ public class KafkaEnvironmentsConfig {
     }
 
     @Bean(destroyMethod = "dispose")
-    public KafkaClusters kafkaClusters(KafkaExecutorFactory executorFactory)
+    public KafkaClusters kafkaClusters(KafkaExecutorFactory executorFactory,
+            @Value("${galapagos.topics.standardReplicationFactor}") int replicationFactor)
             throws IOException, PKCSException, OperatorException, GeneralSecurityException {
         validateConfig();
 
@@ -58,7 +60,7 @@ public class KafkaEnvironmentsConfig {
         }
 
         return new ConnectedKafkaClusters(new ArrayList<>(environments), authModules, productionEnvironment,
-                metadataTopicsPrefix, executorFactory);
+                metadataTopicsPrefix, executorFactory, replicationFactor);
     }
 
     private void validateConfig() {

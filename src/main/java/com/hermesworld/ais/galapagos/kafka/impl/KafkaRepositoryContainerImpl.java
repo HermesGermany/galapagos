@@ -55,13 +55,16 @@ public class KafkaRepositoryContainerImpl implements KafkaRepositoryContainer {
 
     private final String prefix;
 
+    private final int replicationFactor;
+
     public KafkaRepositoryContainerImpl(KafkaConnectionManager connectionManager, String environmentId,
-            String galapagosInternalPrefix) {
+            String galapagosInternalPrefix, int replicationFactor) {
         this.consumer = connectionManager.getConsumerFactory(environmentId).newConsumer();
         this.sender = connectionManager.getKafkaSender(environmentId);
         this.adminClient = connectionManager.getAdminClient(environmentId);
         this.environmentId = environmentId;
         this.prefix = galapagosInternalPrefix;
+        this.replicationFactor = replicationFactor;
 
         this.consumerThread = new Thread(this::consume);
         this.consumerThread.start();
@@ -117,13 +120,10 @@ public class KafkaRepositoryContainerImpl implements KafkaRepositoryContainer {
             if (desc.isEmpty()) {
                 log.info("Creating metadata topic " + topic + " on environment " + environmentId);
                 int nodeCount = this.adminClient.describeCluster().nodes().get().size();
+                int replicationFactor = Math.min(this.replicationFactor, nodeCount);
 
-                // short replicationFactor = (short) (nodeCount == 1 ? 1 : 2);
-                // FIXME this must be configurable
-                short replicationFactor = 3;
-
-                this.adminClient.createTopics(Collections.singleton(new NewTopic(topic, 3, replicationFactor))).all()
-                        .get();
+                this.adminClient.createTopics(Collections.singleton(new NewTopic(topic, 3, (short) replicationFactor)))
+                        .all().get();
 
                 // use Log Compaction instead of Retention time
                 ConfigResource res = new ConfigResource(Type.TOPIC, topic);
