@@ -18,7 +18,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.boot.ApplicationArguments;
-import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.util.StreamUtils;
 
 import java.io.*;
@@ -72,8 +72,8 @@ public class GenerateToolingCertificateJobTest {
 
         CertificatesAuthenticationConfig certConfig = new CertificatesAuthenticationConfig();
         certConfig.setApplicationCertificateValidity("P30D");
-        certConfig.setCaCertificateFile(new FileSystemResource("src/test/resources/certificates/ca.cer"));
-        certConfig.setCaKeyFile(new FileSystemResource("src/test/resources/certificates/ca.key"));
+        certConfig.setCaCertificateFile(new ClassPathResource("/certificates/ca.cer"));
+        certConfig.setCaKeyFile(new ClassPathResource("/certificates/ca.key"));
         certConfig.setCertificatesWorkdir("target/certificates");
         certConfig.setClientDn("cn=galapagos_test_user");
 
