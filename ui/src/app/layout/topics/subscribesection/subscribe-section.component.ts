@@ -44,14 +44,14 @@ export class SubscriptionSectionComponent implements OnInit {
         this.selectedEnvironment = this.environmentsService.getCurrentEnvironment();
     }
 
-    async checkApplicationCertificate() {
+    async checkApplicationApiKey() {
         if (!this.selectedApplication || !this.selectedEnvironment) {
             return;
         }
         try {
             const env = await this.selectedEnvironment.pipe(take(1)).toPromise();
-            const apikeys = await this.apiKeyService.getApplicationApiKeysPromise(this.selectedApplication.id, env.id);
-            this.showRegistrationWarning = !apikeys.find(c => c.environmentId === env.id);
+            const apikey = await this.apiKeyService.getApplicationApiKeysPromise(this.selectedApplication.id);
+            this.showRegistrationWarning = !apikey.authentications[env.id];
         } catch (e) {
             this.toasts.addHttpErrorToast('Could not check for application certificates', e);
         }

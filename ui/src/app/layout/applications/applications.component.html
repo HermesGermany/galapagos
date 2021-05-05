@@ -95,11 +95,8 @@
 </div>
 
 <ng-template #keyDlg let-keyDlg>
-    <div class="modal-header">
+    <div class="modal-header data-backdrop='static' data-keyboard='false'">
         <h4 class="modal-title">{{ 'Generate API Key' | translate }}</h4>
-        <button type="button" class="close" aria-label="Close" (click)="keyDlg.dismiss()">
-            <span aria-hidden="true">&times;</span>
-        </button>
     </div>
     <div class="modal-body">
         <div class="alert alert-info mb-3">
@@ -112,28 +109,28 @@
             <li [ngbNavItem]="'new'">
                 <a ngbNavLink>{{ 'Generate new API Key' | translate }}</a>
                 <ng-template ngbNavContent>
-                    <div class="alert alert-danger mb-4 mt-3" *ngIf="true">
+                    <div class="alert alert-danger mb-4 mt-3" *ngIf="apiKeyDlgData.existingApiKey">
                         <!--suppress TypeScriptUnresolvedVariable -->
                         <span
-                            [innerHTML]="'CERTIFICATE_ALREADY_EXISTS_WARNING_HTML' | translate:{ env: apiKeyDlgData.environment?.name }"></span>
+                            [innerHTML]="'API_KEY_ALREADY_EXISTS_WARNING_HTML' | translate:{ env: apiKeyDlgData.environment?.name }"></span>
                     </div>
-                    <div class="text-center mb-4">
-                        <button id="certButton" type="button" class="btn btn-warning"
-                                (click)="generateApiKey()">
+                    <div>
+                        <button appSpinnerWhile #d="appSpinnerWhile" id="apikeyButton" type="button"
+                                class="btn btn-warning btn-lg mb-4 mt-2"
+                                (click)="d.while(generateApiKey())">
                             <i class="fas fa-key"></i>&nbsp;{{ 'Generate API Key' | translate }}
                         </button>
-
                     </div>
                     <div *ngIf="showApiKeyTable">
-                        <ngb-alert [dismissible]="false">
-                            {{ 'SAVE_KEY_WARNING' | translate }}
+                        <ngb-alert [innerHTML]="'SAVE_KEY_WARNING' | translate" [dismissible]="false">
                         </ngb-alert>
-                        <table class="table table-striped table-bordered table-sm">
+                        <table class="table table-bordered table-sm">
                             <tbody>
                             <tr>
                                 <th scope="row"><i class="fas fa-key"></i>&nbsp;Key</th>
                                 <td>{{key}}</td>
-                                <button (click)="copyValue(key)" class="btn btn-outline-secondary btn-sm ml-3"><i
+                                <button (click)="copyValue(key)"
+                                        class="btn btn-outline-secondary btn-sm ml-3 mt-1 mb-1"><i
                                     class="fas fa-copy"></i>
                                     <span class="ml-1" *ngIf="copiedKey"> {{ 'Copied!' | translate}}</span>
                                 </button>
@@ -141,7 +138,8 @@
                             <tr>
                                 <th scope="row"><i class="fas fa-user-secret"></i>&nbsp;Secret</th>
                                 <td>{{secret}}</td>
-                                <button (click)="copyValue(secret)" class="btn btn-outline-secondary btn-sm ml-3"><i
+                                <button (click)="copyValue(secret)"
+                                        class="btn btn-outline-secondary btn-sm ml-3 mt-1 mb-1"><i
                                     class="fas fa-copy"></i>
                                     <span class="ml-1" *ngIf="copiedSecret"> {{ 'Copied!' | translate}}</span>
                                 </button>

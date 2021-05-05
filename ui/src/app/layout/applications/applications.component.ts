@@ -151,7 +151,7 @@ export class ApplicationsComponent implements OnInit {
         );
     }
 
-    openApiKeyDlg(event: OpenApiKeyDialogEvent, content: any) {
+    async openApiKeyDlg(event: OpenApiKeyDialogEvent, content: any) {
         const app = event.application;
         const env = event.environment;
 
@@ -161,24 +161,24 @@ export class ApplicationsComponent implements OnInit {
             environment: env,
             existingApiKey: null
         };
-        this.apiKeyService.getApplicationApiKeysPromise(app.id, env.id).then(keys => {
-            this.apiKeyDlgData.existingApiKey = keys.find(key => key.environmentId === env.id);
+        const apiKey = await this.apiKeyService.getApplicationApiKeysPromise(app.id);
+        this.apiKeyDlgData.existingApiKey = apiKey.authentications[env.id];
 
-            this.modalService.open(content, { ariaLabelledBy: 'modal-title', size: 'lg', windowClass: 'modal-xxl' }).result.then(result => {
-            }, reason => {
-                if (reason === ModalDismissReasons.BACKDROP_CLICK) {
-                    this.handleDlgDismiss();
-                }
-            });
+        this.modalService.open(content, { ariaLabelledBy: 'modal-title', size: 'lg', windowClass: 'modal-xxl' }).result.then(result => {
+        }, reason => {
+            if (reason === ModalDismissReasons.BACKDROP_CLICK || reason === ModalDismissReasons.ESC) {
+                this.handleDlgDismiss();
+            }
         });
+
     }
 
-    generateApiKey(): void {
+    generateApiKey(): Promise<any> {
         if (this.apiKeyDlgData.applicationId && this.apiKeyDlgData.environment) {
             const appId = this.apiKeyDlgData.applicationId;
             const envId = this.apiKeyDlgData.environment;
-            this.apiKeyService
-                .requestApiKey(appId, envId)
+            return this.apiKeyService
+                .requestApiKey(appId, envId.id)
                 .then(
                     apiKey => {
                         this.key = apiKey.apiKey;
@@ -190,7 +190,6 @@ export class ApplicationsComponent implements OnInit {
                 .then(() => this.apiKeyService.getApplicationApiKeys(appId).refresh());
         }
     }
-
 
     handleDlgDismiss(): void {
         this.showApiKeyTable = false;
@@ -210,8 +209,6 @@ export class ApplicationsComponent implements OnInit {
         selBox.select();
         document.execCommand('copy');
         document.body.removeChild(selBox);
-
-        console.log(value);
 
         if (value === this.key) {
             this.copiedKey = true;
