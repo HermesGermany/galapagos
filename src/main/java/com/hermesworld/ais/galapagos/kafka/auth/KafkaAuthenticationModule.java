@@ -3,6 +3,7 @@ package com.hermesworld.ais.galapagos.kafka.auth;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import javax.annotation.CheckReturnValue;
 import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
 
@@ -13,11 +14,18 @@ import java.util.concurrent.CompletableFuture;
  */
 public interface KafkaAuthenticationModule {
 
+    @CheckReturnValue
     CompletableFuture<Void> init();
 
+    @CheckReturnValue
     CompletableFuture<CreateAuthenticationResult> createApplicationAuthentication(String applicationId,
             String applicationNormalizedName, JSONObject createParameters);
 
+    @CheckReturnValue
+    CompletableFuture<CreateAuthenticationResult> updateApplicationAuthentication(String applicationId,
+            String applicationNormalizedName, JSONObject createParameters, JSONObject existingAuthData);
+
+    @CheckReturnValue
     CompletableFuture<Void> deleteApplicationAuthentication(String applicationId, JSONObject existingAuthData);
 
     void addRequiredKafkaProperties(Properties kafkaProperties);

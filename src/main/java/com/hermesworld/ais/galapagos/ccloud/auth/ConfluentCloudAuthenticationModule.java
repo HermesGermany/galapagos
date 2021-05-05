@@ -66,6 +66,13 @@ public class ConfluentCloudAuthenticationModule implements KafkaAuthenticationMo
     }
 
     @Override
+    public CompletableFuture<CreateAuthenticationResult> updateApplicationAuthentication(String applicationId,
+            String applicationNormalizedName, JSONObject createParameters, JSONObject existingAuthData) {
+        return deleteApplicationAuthentication(applicationId, existingAuthData).thenCompose(
+                o -> createApplicationAuthentication(applicationId, applicationNormalizedName, createParameters));
+    }
+
+    @Override
     public CompletableFuture<Void> deleteApplicationAuthentication(String applicationId, JSONObject existingAuthData) {
         String apiKey = existingAuthData.optString(JSON_API_KEY);
         if (!StringUtils.isEmpty(apiKey)) {

@@ -12,7 +12,6 @@ import com.hermesworld.ais.galapagos.kafka.util.TopicBasedRepository;
 import com.hermesworld.ais.galapagos.naming.ApplicationPrefixes;
 import com.hermesworld.ais.galapagos.naming.NamingService;
 import com.hermesworld.ais.galapagos.security.CurrentUserService;
-import com.hermesworld.ais.galapagos.util.FutureUtil;
 import com.hermesworld.ais.galapagos.util.TimeService;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
@@ -254,68 +253,25 @@ public class ApplicationsServiceImpl implements ApplicationsService, InitPerClus
         String applicationName = namingService.normalize(knownApplication.getName());
 
         ApplicationMetadata existing = getApplicationMetadata(environmentId, applicationId).orElse(null);
-        CompletableFuture<Void> deleteExisting = FutureUtil.noop();
+        CompletableFuture<CreateAuthenticationResult> updateOrCreateFuture = null;
 
-        // TODO deleteExisting (yes/no) should be determined by module, based on registerParams
         if (existing != null) {
             String json = existing.getAuthenticationJson();
             if (!StringUtils.isEmpty(json)) {
-                deleteExisting = authModule.deleteApplicationAuthentication(applicationId, new JSONObject(json));
+                updateOrCreateFuture = authModule.updateApplicationAuthentication(applicationId, applicationName,
+                        registerParams, new JSONObject(json));
             }
         }
+        if (updateOrCreateFuture == null) {
+            updateOrCreateFuture = authModule.createApplicationAuthentication(applicationId, applicationName,
+                    registerParams);
+        }
 
-        return deleteExisting
-                .thenCompose(
-                        o -> authModule.createApplicationAuthentication(applicationId, applicationName, registerParams))
+        return updateOrCreateFuture
                 .thenCompose(result -> updateApplicationMetadata(kafkaCluster, knownApplication, result)
                         .thenCompose(meta -> futureWrite(outputStreamForSecret, result.getPrivateAuthenticationData())
                                 .thenApply(o -> meta)));
     }
-
-//    @Override
-//    public CompletableFuture<ApplicationMetadata> createApplicationCertificateFromCsr(String environmentId,
-//            String applicationId, String csrData, boolean extendCertificate, OutputStream outputStreamForCerFile) {
-//
-//        Function<CertificateSignResult, CompletableFuture<CertificateSignResult>> resultHandler = result -> {
-//            try {
-//                outputStreamForCerFile.write(result.getCertificatePemData().getBytes(StandardCharsets.UTF_8));
-//            }
-//            catch (IOException e) {
-//                return CompletableFuture.failedFuture(e);
-//            }
-//            return CompletableFuture.completedFuture(result);
-//        };
-//
-//        if (extendCertificate) {
-//            ApplicationMetadata existing = getApplicationMetadata(environmentId, applicationId).orElse(null);
-//            if (existing == null) {
-//                return unknownApplication(applicationId);
-//            }
-//            return registerApplication((caManager, appl) -> caManager
-//                    .extendApplicationCertificate(existing.getDn(), csrData).thenCompose(resultHandler), environmentId,
-//                    applicationId);
-//        }
-//        else {
-//            return registerApplication((caManager, appl) -> caManager
-//                    .createApplicationCertificateFromCsr(applicationId, csrData, appl.getName())
-//                    .thenCompose(resultHandler), environmentId, applicationId);
-//        }
-//    }
-//
-//    @Override
-//    public CompletableFuture<ApplicationMetadata> createApplicationCertificateAndPrivateKey(String environmentId,
-//            String applicationId, OutputStream outputStreamForP12File) {
-//        return registerApplication((caManager, appl) -> caManager
-//                .createApplicationCertificateAndPrivateKey(applicationId, appl.getName()).thenCompose(result -> {
-//                    try {
-//                        outputStreamForP12File.write(result.getP12Data().orElse(new byte[0]));
-//                    }
-//                    catch (IOException e) {
-//                        return CompletableFuture.failedFuture(e);
-//                    }
-//                    return CompletableFuture.completedFuture(result);
-//                }), environmentId, applicationId);
-//    }
 
     @Override
     public CompletableFuture<ApplicationMetadata> resetApplicationPrefixes(String environmentId, String applicationId) {
@@ -404,22 +360,6 @@ public class ApplicationsServiceImpl implements ApplicationsService, InitPerClus
 //                });
 //    }
 //
-//    private CompletableFuture<ApplicationMetadata> updateApplicationMetadataFromCertificate(KafkaCluster kafkaCluster,
-//            ApplicationMetadata metadataOrNull, String applicationId, ApplicationPrefixes prefixes,
-//            CertificateSignResult result) {
-//        ApplicationMetadata newMetadata = metadataOrNull != null ? new ApplicationMetadata(metadataOrNull)
-//                : new ApplicationMetadata();
-//
-//        newMetadata.setApplicationId(applicationId);
-//        newMetadata.setDn(result.getDn());
-//        newMetadata.setCertificateExpiresAt(ZonedDateTime
-//                .ofInstant(Instant.ofEpochMilli(result.getCertificate().getNotAfter().getTime()), ZoneId.of("Z")));
-//        newMetadata.setInternalTopicPrefixes(prefixes.getInternalTopicPrefixes());
-//        newMetadata.setConsumerGroupPrefixes(prefixes.getConsumerGroupPrefixes());
-//        newMetadata.setTransactionIdPrefixes(prefixes.getTransactionIdPrefixes());
-//
-//        return getRepository(kafkaCluster).save(newMetadata).thenApply(o -> newMetadata);
-//    }
 
     @Scheduled(initialDelay = 30000, fixedDelayString = "PT6H")
     void removeOldRequests() {

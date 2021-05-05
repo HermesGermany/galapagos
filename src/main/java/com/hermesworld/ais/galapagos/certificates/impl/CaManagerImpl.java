@@ -1,20 +1,17 @@
 package com.hermesworld.ais.galapagos.certificates.impl;
 
-import com.hermesworld.ais.galapagos.certificates.CaManager;
-import com.hermesworld.ais.galapagos.certificates.CertificateSignResult;
 import com.hermesworld.ais.galapagos.certificates.auth.CertificatesAuthenticationConfig;
 import com.hermesworld.ais.galapagos.util.CertificateUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.asn1.ASN1Encoding;
+import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.DERBMPString;
-import org.bouncycastle.asn1.DERUTF8String;
-import org.bouncycastle.asn1.oiw.OIWObjectIdentifiers;
-import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
-import org.bouncycastle.asn1.x500.AttributeTypeAndValue;
-import org.bouncycastle.asn1.x500.RDN;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.X500NameBuilder;
-import org.bouncycastle.asn1.x509.*;
+import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
+import org.bouncycastle.asn1.x509.BasicConstraints;
+import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.asn1.x509.X509ObjectIdentifiers;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.X509ExtensionUtils;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
@@ -26,22 +23,25 @@ import org.bouncycastle.openssl.MiscPEMGenerator;
 import org.bouncycastle.openssl.PEMKeyPair;
 import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
-import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
-import org.bouncycastle.operator.*;
+import org.bouncycastle.operator.ContentSigner;
+import org.bouncycastle.operator.DefaultDigestAlgorithmIdentifierFinder;
+import org.bouncycastle.operator.DefaultSignatureAlgorithmIdentifierFinder;
+import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.bc.BcRSAContentSignerBuilder;
-import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
-import org.bouncycastle.pkcs.*;
-import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequestBuilder;
+import org.bouncycastle.pkcs.PKCS10CertificationRequest;
+import org.bouncycastle.pkcs.PKCS12PfxPduBuilder;
+import org.bouncycastle.pkcs.PKCS12SafeBag;
+import org.bouncycastle.pkcs.PKCSException;
+import org.bouncycastle.pkcs.bc.BcPKCS12MacCalculatorBuilder;
 import org.bouncycastle.pkcs.jcajce.JcaPKCS12SafeBagBuilder;
-import org.bouncycastle.pkcs.jcajce.JcePKCS12MacCalculatorBuilder;
-import org.bouncycastle.pkcs.jcajce.JcePKCSPBEOutputEncryptorBuilder;
 import org.bouncycastle.util.io.pem.PemWriter;
 import org.springframework.util.StringUtils;
 
 import java.io.*;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
-import java.security.*;
+import java.security.GeneralSecurityException;
+import java.security.KeyPair;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.CertificateParsingException;
@@ -49,7 +49,9 @@ import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -59,13 +61,11 @@ import java.util.concurrent.TimeUnit;
  * @author AlbrechtFlo
  */
 @Slf4j
-final class CaManagerImpl implements CaManager {
+public final class CaManagerImpl {
 
     private final CaData caData;
 
-    // OK to be no SecureRandom - only used for OU in certificate to be distinct from other OUs in other generated
-    // certificates
-    private final Random ouRandom = new Random();
+    private final String environmentId;
 
     private File p12File;
 
@@ -77,20 +77,20 @@ final class CaManagerImpl implements CaManager {
 
     private static final int PKCS12_PASSWORD_LENGTH = 8;
 
+    private static final ASN1ObjectIdentifier TRUSTED_KEY_USAGE = new ASN1ObjectIdentifier(
+            "2.16.840.1.113894.746875.1.1");
+    private static final ASN1ObjectIdentifier ANY_EXTENDED_KEY_USAGE = new ASN1ObjectIdentifier("2.5.29.37.0");
+
     private static final Random RANDOM = new Random();
 
-    public CaManagerImpl(String environmentId, CertificatesAuthenticationConfig config, File certificateWorkdir)
+    public CaManagerImpl(String environmentId, CertificatesAuthenticationConfig config)
             throws IOException, GeneralSecurityException, OperatorCreationException {
+        this.environmentId = environmentId;
         this.caData = buildCaData(environmentId, config);
-        generateGalapagosPkcs12ClientCertificate(environmentId, config.getClientDn(), certificateWorkdir);
+        generateGalapagosPkcs12ClientCertificate(environmentId, config.getClientDn(),
+                new File(config.getCertificatesWorkdir()));
     }
 
-    @Override
-    public X509Certificate getCaCertificate() {
-        return caData.getCaCertificate();
-    }
-
-    @Override
     public CompletableFuture<CertificateSignResult> createApplicationCertificateFromCsr(String applicationId,
             String csrData, String applicationName) {
         try (PEMParser parser = new PEMParser(new StringReader(csrData))) {
@@ -108,18 +108,15 @@ final class CaManagerImpl implements CaManager {
         }
     }
 
-    @Override
     public CompletableFuture<CertificateSignResult> createApplicationCertificateAndPrivateKey(String applicationId,
             String applicationName) {
         return createCertificateAndPrivateKey(applicationName, caData.getApplicationCertificateValidity());
     }
 
-    @Override
     public CompletableFuture<CertificateSignResult> createToolingCertificateAndPrivateKey() {
         return createCertificateAndPrivateKey("galapagos_tooling", TOOLING_VALIDITY);
     }
 
-    @Override
     public CompletableFuture<CertificateSignResult> extendApplicationCertificate(String dn, String csrData) {
         X500Name parsedDn = parseAndSortDn(dn);
 
@@ -143,12 +140,10 @@ final class CaManagerImpl implements CaManager {
         }
     }
 
-    @Override
     public boolean supportsDeveloperCertificates() {
         return caData.getDeveloperCertificateValidity() > 0;
     }
 
-    @Override
     public CompletableFuture<CertificateSignResult> createDeveloperCertificateAndPrivateKey(String userName) {
         if (!supportsDeveloperCertificates()) {
             return CompletableFuture.failedFuture(
@@ -157,25 +152,41 @@ final class CaManagerImpl implements CaManager {
         return createCertificateAndPrivateKey(userName, caData.getDeveloperCertificateValidity());
     }
 
+
+    public byte[] buildTrustStore() throws IOException, PKCSException {
+        PKCS12PfxPduBuilder keyStoreBuilder = new PKCS12PfxPduBuilder();
+
+        keyStoreBuilder.addData(new JcaPKCS12SafeBagBuilder(getCaCertificate())
+                .addBagAttribute(PKCS12SafeBag.friendlyNameAttribute,
+                        new DERBMPString("kafka_" + environmentId + "_ca"))
+                .addBagAttribute(TRUSTED_KEY_USAGE, ANY_EXTENDED_KEY_USAGE).build());
+
+        return keyStoreBuilder.build(new BcPKCS12MacCalculatorBuilder(), "changeit".toCharArray())
+                .getEncoded(ASN1Encoding.DL);
+    }
+
+    public File getClientPkcs12File() {
+        return p12File;
+    }
+
+    public String getClientPkcs12Password() {
+        return p12Password;
+    }
+
     private CompletableFuture<CertificateSignResult> createCertificateAndPrivateKey(String userOrAppName,
             long validityMs) {
         String cn = CertificateUtil.toAppCn(userOrAppName);
 
         try {
-            KeyPair pair = generateKeyPair();
+            KeyPair pair = CertificateUtil.generateKeyPair();
 
-            X500Name name = uniqueX500Name(cn);
-            PKCS10CertificationRequest csr = buildCsr(name, pair);
-
-            StringWriter sw = new StringWriter();
-            JcaPEMWriter pemWriter = new JcaPEMWriter(sw);
-            pemWriter.writeObject(pair.getPrivate());
-            pemWriter.close();
+            X500Name name = CertificateUtil.uniqueX500Name(cn);
+            PKCS10CertificationRequest csr = CertificateUtil.buildCsr(name, pair);
 
             return createCertificate(csr, cn, validityMs).thenCompose(result -> {
                 try {
                     return CompletableFuture.completedFuture(new CertificateSignResult(result.getCertificate(),
-                            result.getCertificatePemData(), result.getDn(), buildPrivateKeyStore(
+                            result.getCertificatePemData(), result.getDn(), CertificateUtil.buildPrivateKeyStore(
                                     result.getCertificate(), pair.getPrivate(), "changeit".toCharArray())));
                 }
                 catch (OperatorCreationException | PKCSException e) {
@@ -201,38 +212,14 @@ final class CaManagerImpl implements CaManager {
             return CompletableFuture
                     .failedFuture(new CertificateException("Could not generate internal CSR for certificate", e));
         }
-        catch (IOException e) {
-            // should not occur in-memory
-            return CompletableFuture.failedFuture(new RuntimeException("Exception when writing into memory", e));
-        }
-
-    }
-
-    @Override
-    public File getClientPkcs12File() {
-        return p12File;
-    }
-
-    @Override
-    public String getClientPkcs12Password() {
-        return p12Password;
-    }
-
-    private PKCS10CertificationRequest buildCsr(X500Name subject, KeyPair keyPair) throws OperatorCreationException {
-        PKCS10CertificationRequestBuilder csrBuilder = new JcaPKCS10CertificationRequestBuilder(subject,
-                keyPair.getPublic());
-        JcaContentSignerBuilder csBuilder = new JcaContentSignerBuilder("SHA256withRSA");
-        ContentSigner signer = csBuilder.build(keyPair.getPrivate());
-
-        return csrBuilder.build(signer);
     }
 
     private void generateGalapagosPkcs12ClientCertificate(String envId, String dn, File certificateWorkdir)
             throws GeneralSecurityException, OperatorCreationException {
-        KeyPair pair = generateKeyPair();
+        KeyPair pair = CertificateUtil.generateKeyPair();
         X500Name name = new X500Name(dn);
 
-        PKCS10CertificationRequest csr = buildCsr(name, pair);
+        PKCS10CertificationRequest csr = CertificateUtil.buildCsr(name, pair);
         X509CertificateHolder holder = signCertificateRequest(csr, name,
                 ChronoUnit.YEARS.getDuration().toMillis() * 10);
 
@@ -240,7 +227,7 @@ final class CaManagerImpl implements CaManager {
 
         try {
             String password = generatePkcs12Password();
-            byte[] data = buildPrivateKeyStore(publicCert, pair.getPrivate(), password.toCharArray());
+            byte[] data = CertificateUtil.buildPrivateKeyStore(publicCert, pair.getPrivate(), password.toCharArray());
             File fCertificate = new File(certificateWorkdir, "galapagos_" + envId + "_client.p12");
             try (FileOutputStream fos = new FileOutputStream(fCertificate)) {
                 fos.write(data);
@@ -269,7 +256,7 @@ final class CaManagerImpl implements CaManager {
                             + commonName + " as subject in the request."));
         }
 
-        return createCertificate(csr, uniqueX500Name(commonName), validityMs);
+        return createCertificate(csr, CertificateUtil.uniqueX500Name(commonName), validityMs);
     }
 
     private CompletableFuture<CertificateSignResult> createCertificate(PKCS10CertificationRequest csr, X500Name dn,
@@ -298,7 +285,7 @@ final class CaManagerImpl implements CaManager {
             try (PemWriter writer = new PemWriter(sw)) {
                 writer.writeObject(new MiscPEMGenerator(holder));
             }
-            pemDataHolder.append(sw.toString());
+            pemDataHolder.append(sw);
 
             return new JcaX509CertificateConverter().getCertificate(holder);
         }
@@ -347,21 +334,14 @@ final class CaManagerImpl implements CaManager {
         }
     }
 
-    private X500Name uniqueX500Name(String cn) {
-        String ouValue = "certification_" + Integer.toHexString(ouRandom.nextInt());
-
-        List<RDN> rdns = new ArrayList<>();
-        rdns.add(new RDN(
-                new AttributeTypeAndValue(X509ObjectIdentifiers.organizationalUnitName, new DERUTF8String(ouValue))));
-        rdns.add(new RDN(new AttributeTypeAndValue(X509ObjectIdentifiers.commonName, new DERUTF8String(cn))));
-
-        return new X500Name(rdns.toArray(new RDN[rdns.size()]));
-    }
-
     private BigInteger getSerial(X500Name name) {
         BigInteger millis = BigInteger.valueOf(System.currentTimeMillis());
         millis = millis.multiply(BigInteger.valueOf(Integer.MAX_VALUE));
         return millis.add(BigInteger.valueOf(name.toString().hashCode()));
+    }
+
+    private X509Certificate getCaCertificate() {
+        return caData.getCaCertificate();
     }
 
     private static CaData buildCaData(String environmentId, CertificatesAuthenticationConfig config)
@@ -417,43 +397,6 @@ final class CaManagerImpl implements CaManager {
         }
 
         return data;
-    }
-
-    private static byte[] buildPrivateKeyStore(X509Certificate publicCertificate, PrivateKey privateKey,
-            char[] password) throws IOException, PKCSException, NoSuchAlgorithmException, OperatorCreationException {
-        PKCS12PfxPduBuilder keyStoreBuilder = new PKCS12PfxPduBuilder();
-        JcaX509ExtensionUtils extUtils = new JcaX509ExtensionUtils();
-        SubjectKeyIdentifier pubKeyId = extUtils.createSubjectKeyIdentifier(publicCertificate.getPublicKey());
-
-        String cn = CertificateUtil.extractCn(publicCertificate.getSubjectX500Principal().getName());
-
-        PKCS12SafeBagBuilder certBagBuilder = new JcaPKCS12SafeBagBuilder(publicCertificate);
-        certBagBuilder.addBagAttribute(PKCS12SafeBag.friendlyNameAttribute, new DERBMPString(cn));
-        certBagBuilder.addBagAttribute(PKCS12SafeBag.localKeyIdAttribute, pubKeyId);
-
-        keyStoreBuilder
-                .addEncryptedData(new JcePKCSPBEOutputEncryptorBuilder(PKCSObjectIdentifiers.pbeWithSHAAnd128BitRC2_CBC)
-                        .setProvider("BC").build(password), certBagBuilder.build());
-
-        OutputEncryptor encOut = new JcePKCSPBEOutputEncryptorBuilder(PKCSObjectIdentifiers.pbeWithSHAAnd128BitRC2_CBC)
-                .setProvider("BC").build(password);
-        PKCS12SafeBagBuilder keyBagBuilder = new JcaPKCS12SafeBagBuilder(privateKey, encOut);
-        keyBagBuilder.addBagAttribute(PKCS12SafeBag.friendlyNameAttribute, new DERBMPString(cn));
-        keyBagBuilder.addBagAttribute(PKCS12SafeBag.localKeyIdAttribute, pubKeyId);
-
-        keyStoreBuilder.addData(keyBagBuilder.build());
-
-        byte[] pkcs12Bytes = keyStoreBuilder
-                .build(new JcePKCS12MacCalculatorBuilder(OIWObjectIdentifiers.idSHA1), password)
-                .getEncoded(ASN1Encoding.DL);
-        Arrays.fill(password, '*');
-        return pkcs12Bytes;
-    }
-
-    private static KeyPair generateKeyPair() throws GeneralSecurityException {
-        KeyPairGenerator gen = KeyPairGenerator.getInstance("RSA", "BC");
-        gen.initialize(2048);
-        return gen.generateKeyPair();
     }
 
     private static String generatePkcs12Password() {

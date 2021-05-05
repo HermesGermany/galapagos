@@ -12,10 +12,18 @@ public class CertificatesAuthenticationConfig {
 
     private Resource caKeyFile;
 
+    private String certificatesWorkdir;
+
+    private String truststoreFile;
+
+    private String truststorePassword;
+
     private String applicationCertificateValidity;
 
     private String developerCertificateValidity;
 
     private String clientDn;
+
+    private boolean allowPrivateKeyGeneration;
 
 }

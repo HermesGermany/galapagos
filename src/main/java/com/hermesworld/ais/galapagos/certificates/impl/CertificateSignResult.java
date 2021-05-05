@@ -1,20 +1,20 @@
-package com.hermesworld.ais.galapagos.certificates;
+package com.hermesworld.ais.galapagos.certificates.impl;
+
+import lombok.Getter;
 
 import java.security.cert.X509Certificate;
 import java.util.Optional;
 
-import lombok.Getter;
-
 @Getter
 public final class CertificateSignResult {
 
-    private X509Certificate certificate;
+    private final X509Certificate certificate;
 
-    private String certificatePemData;
+    private final String certificatePemData;
 
-    private Optional<byte[]> p12Data;
+    private final Optional<byte[]> p12Data;
 
-    private String dn;
+    private final String dn;
 
     public CertificateSignResult(X509Certificate certificate, String certificatePemData, String dn, byte[] p12Data) {
         this.certificate = certificate;

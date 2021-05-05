@@ -4,22 +4,32 @@ import com.hermesworld.ais.galapagos.applications.ApplicationMetadata;
 import com.hermesworld.ais.galapagos.applications.KnownApplication;
 import com.hermesworld.ais.galapagos.applications.impl.KnownApplicationImpl;
 import com.hermesworld.ais.galapagos.applications.impl.UpdateApplicationAclsListener;
-import com.hermesworld.ais.galapagos.certificates.CaManager;
-import com.hermesworld.ais.galapagos.certificates.CertificateService;
-import com.hermesworld.ais.galapagos.certificates.CertificateSignResult;
 import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
+import com.hermesworld.ais.galapagos.kafka.auth.CreateAuthenticationResult;
+import com.hermesworld.ais.galapagos.kafka.auth.KafkaAuthenticationModule;
 import com.hermesworld.ais.galapagos.kafka.config.KafkaEnvironmentConfig;
+import com.hermesworld.ais.galapagos.kafka.config.KafkaEnvironmentsConfig;
 import com.hermesworld.ais.galapagos.naming.ApplicationPrefixes;
 import com.hermesworld.ais.galapagos.naming.NamingService;
+import com.hermesworld.ais.galapagos.util.CertificateUtil;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.pkcs.PKCS10CertificationRequest;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+import java.io.ByteArrayInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.security.KeyPair;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 import java.util.Base64;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -32,6 +42,8 @@ import java.util.Optional;
  * <li><code>--kafka.environment=<i>&lt;id></i> - The ID of the Kafka Environment to generate the certificate for, as
  * configured for Galapagos.</li>
  * </ul>
+ * Note that this job can only generate certificates for environments using <code>certificates</code> authentication
+ * mode.
  *
  * @author AlbrechtFlo
  *
@@ -43,15 +55,15 @@ public class GenerateToolingCertificateJob extends SingleClusterAdminJob {
 
     private final NamingService namingService;
 
-    private final CertificateService certificateService;
+    private final KafkaEnvironmentsConfig kafkaConfig;
 
     @Autowired
     public GenerateToolingCertificateJob(KafkaClusters kafkaClusters, UpdateApplicationAclsListener aclUpdater,
-            NamingService namingService, CertificateService certificateService) {
+            NamingService namingService, KafkaEnvironmentsConfig kafkaConfig) {
         super(kafkaClusters);
         this.aclUpdater = aclUpdater;
         this.namingService = namingService;
-        this.certificateService = certificateService;
+        this.kafkaConfig = kafkaConfig;
     }
 
     @Override
@@ -65,6 +77,10 @@ public class GenerateToolingCertificateJob extends SingleClusterAdminJob {
                 .flatMap(ls -> ls.stream().findFirst()).orElse(null);
 
         KafkaEnvironmentConfig metadata = kafkaClusters.getEnvironmentMetadata(cluster.getId()).orElseThrow();
+        if (!"certificates".equals(metadata.getAuthenticationMode())) {
+            throw new IllegalStateException("Environment " + cluster.getId()
+                    + " does not use certificates for authentication. Cannot generate tooling certificate.");
+        }
 
         if (!StringUtils.isEmpty(outputFilename)) {
             try {
@@ -75,29 +91,44 @@ public class GenerateToolingCertificateJob extends SingleClusterAdminJob {
             }
         }
 
-        CaManager caManager = certificateService.getCaManager(cluster.getId()).orElseThrow();
+        KafkaAuthenticationModule authModule = kafkaClusters.getAuthenticationModule(cluster.getId()).orElseThrow();
 
-        CertificateSignResult result = caManager.createToolingCertificateAndPrivateKey().get();
+        // Create a CSR on the fly to enable certificate generation also on PROD environments
+        KeyPair keyPair = CertificateUtil.generateKeyPair();
+        X500Name name = CertificateUtil.uniqueX500Name("galapagos");
+        PKCS10CertificationRequest request = CertificateUtil.buildCsr(name, keyPair);
+        String csrData = CertificateUtil.toPemString(request);
 
-        // create pseudo Application and ApplicationMetadata to get KafkaUser for ACL update
-        KnownApplication galapagosApp = new KnownApplicationImpl("galapagos", "Galapagos");
-        ApplicationPrefixes prefixes = namingService.getAllowedPrefixes(galapagosApp);
+        CreateAuthenticationResult result = authModule.createApplicationAuthentication("galapagos", "galapagos",
+                new JSONObject(Map.of("generateKey", false, "csrData", csrData))).get();
+
+        // build P12 file from certificate and private key
+        CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
+        X509Certificate cert = (X509Certificate) certFactory
+                .generateCertificate(new ByteArrayInputStream(result.getPrivateAuthenticationData()));
+        byte[] p12Data = CertificateUtil.buildPrivateKeyStore(cert, keyPair.getPrivate(), "changeit".toCharArray());
+
         ApplicationMetadata toolMetadata = new ApplicationMetadata();
-        toolMetadata.setApplicationId("__GALAPAGOS_TOOLING__");
-        toolMetadata.setInternalTopicPrefixes(prefixes.getInternalTopicPrefixes());
+        toolMetadata.setApplicationId("galapagos_tooling");
+        toolMetadata.setAuthenticationJson(result.getPublicAuthenticationData().toString());
+        KnownApplication dummyApp = new KnownApplicationImpl("galapagos", "Galapagos");
+
+        ApplicationPrefixes prefixes = namingService.getAllowedPrefixes(dummyApp);
+
+        // intentionally use config value here - could differ e.g. for Galapagos test instance on same cluster
+        toolMetadata.setInternalTopicPrefixes(List.of(kafkaConfig.getMetadataTopicsPrefix()));
         toolMetadata.setConsumerGroupPrefixes(prefixes.getConsumerGroupPrefixes());
         toolMetadata.setTransactionIdPrefixes(prefixes.getTransactionIdPrefixes());
-        toolMetadata.setDn(result.getDn());
 
         cluster.updateUserAcls(aclUpdater.getApplicationUser(toolMetadata, cluster.getId())).get();
 
         if (!StringUtils.isEmpty(outputFilename)) {
             try (FileOutputStream fos = new FileOutputStream(outputFilename)) {
-                fos.write(result.getP12Data().orElseThrow());
+                fos.write(p12Data);
             }
         }
         else {
-            String base64Data = Base64.getEncoder().encodeToString(result.getP12Data().orElseThrow());
+            String base64Data = Base64.getEncoder().encodeToString(p12Data);
             System.out.println("CERTIFICATE DATA: " + base64Data);
         }
 
@@ -123,10 +154,11 @@ public class GenerateToolingCertificateJob extends SingleClusterAdminJob {
         System.out.println("Transactional IDs: " + toolMetadata.getTransactionIdPrefixes().get(0) + "*");
         System.out.println();
         System.out.println();
-        System.out.println("The certificate expires at " + result.getCertificate().getNotAfter());
+        System.out.println("The certificate expires at " + cert.getNotAfter());
         System.out.println();
         System.out.println("To remove ACLs for this certificate, run Galapagos admin task galapagos.jobs.delete-acls");
-        System.out.println("with --certificate.dn=" + result.getDn() + " --kafka.environment=" + cluster.getId());
+        System.out.println("with --certificate.dn=" + result.getPublicAuthenticationData().getString("dn")
+                + " --kafka.environment=" + cluster.getId());
         System.out.println();
         System.out.println("==============================================================================");
     }

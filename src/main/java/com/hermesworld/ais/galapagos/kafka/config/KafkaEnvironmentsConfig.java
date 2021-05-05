@@ -83,7 +83,7 @@ public class KafkaEnvironmentsConfig {
             return new ConfluentCloudAuthenticationModule(envConfig.getCcloud());
         }
         else if ("certificates".equals(envConfig.getAuthenticationMode())) {
-            return new CertificatesAuthenticationModule(envConfig.getCertificates());
+            return new CertificatesAuthenticationModule(envConfig.getId(), envConfig.getCertificates());
         }
         throw new IllegalArgumentException("Invalid authentication mode for environment " + envConfig.getId() + ": "
                 + envConfig.getAuthenticationMode());
