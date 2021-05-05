@@ -178,7 +178,7 @@ public class NotificationEventListener
     }
 
     @Override
-    public CompletableFuture<Void> handleApplicationCertificateChanged(ApplicationCertificateChangedEvent event) {
+    public CompletableFuture<Void> handleApplicationAuthenticationChanged(ApplicationAuthenticationChangeEvent event) {
         return FutureUtil.noop();
     }
 

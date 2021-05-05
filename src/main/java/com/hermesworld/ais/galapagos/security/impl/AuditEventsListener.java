@@ -1,9 +1,5 @@
 package com.hermesworld.ais.galapagos.security.impl;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-
 import com.hermesworld.ais.galapagos.applications.ApplicationOwnerRequest;
 import com.hermesworld.ais.galapagos.events.*;
 import com.hermesworld.ais.galapagos.kafka.TopicCreateParams;
@@ -15,10 +11,14 @@ import org.springframework.boot.actuate.audit.AuditEvent;
 import org.springframework.boot.actuate.audit.AuditEventRepository;
 import org.springframework.stereotype.Component;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+
 @Component
 public class AuditEventsListener implements TopicEventsListener, ApplicationEventsListener {
 
-    private AuditEventRepository auditRepository;
+    private final AuditEventRepository auditRepository;
 
     private static final String APPLICATION_ID = "applicationId";
 
@@ -106,15 +106,15 @@ public class AuditEventsListener implements TopicEventsListener, ApplicationEven
         Map<String, Object> auditData = new LinkedHashMap<>();
         auditData.put(APPLICATION_ID, event.getMetadata().getApplicationId());
         auditData.put(ENVIRONMENT_ID, event.getContext().getKafkaCluster().getId());
-        auditData.put("dn", event.getMetadata().getDn());
+        auditData.put("authentication", event.getMetadata().getAuthenticationJson());
 
         auditRepository.add(new AuditEvent(getUserName(event),
-                GalapagosAuditEventType.APPLICATION_CERTIFICATE_CREATED.name(), auditData));
+                GalapagosAuditEventType.APPLICATION_REGISTERED.name(), auditData));
         return FutureUtil.noop();
     }
 
     @Override
-    public CompletableFuture<Void> handleApplicationCertificateChanged(ApplicationCertificateChangedEvent event) {
+    public CompletableFuture<Void> handleApplicationAuthenticationChanged(ApplicationAuthenticationChangeEvent event) {
         return handleApplicationRegistered(event);
     }
 

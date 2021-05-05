@@ -1,9 +1,5 @@
 package com.hermesworld.ais.galapagos.events.impl;
 
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Function;
-
 import com.hermesworld.ais.galapagos.applications.ApplicationMetadata;
 import com.hermesworld.ais.galapagos.applications.ApplicationOwnerRequest;
 import com.hermesworld.ais.galapagos.events.*;
@@ -12,20 +8,25 @@ import com.hermesworld.ais.galapagos.kafka.TopicCreateParams;
 import com.hermesworld.ais.galapagos.subscriptions.SubscriptionMetadata;
 import com.hermesworld.ais.galapagos.topics.SchemaMetadata;
 import com.hermesworld.ais.galapagos.topics.TopicMetadata;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
+
 @Component
 public class GalapagosEventManagerImpl implements GalapagosEventManager {
 
-    private List<TopicEventsListener> topicListeners;
+    private final List<TopicEventsListener> topicListeners;
 
-    private List<SubscriptionEventsListener> subscriptionListeners;
+    private final List<SubscriptionEventsListener> subscriptionListeners;
 
-    private List<ApplicationEventsListener> applicationListeners;
+    private final List<ApplicationEventsListener> applicationListeners;
 
-    private List<EventContextSource> contextSources;
+    private final List<EventContextSource> contextSources;
 
     @Autowired
     public GalapagosEventManagerImpl(@Lazy List<TopicEventsListener> topicListeners,
@@ -44,7 +45,7 @@ public class GalapagosEventManagerImpl implements GalapagosEventManager {
 
     private class EventSinkImpl implements GalapagosEventSink {
 
-        private GalapagosEventContext eventContext;
+        private final GalapagosEventContext eventContext;
 
         public EventSinkImpl(KafkaCluster kafkaCluster) {
             this.eventContext = buildEventContext(kafkaCluster);
@@ -117,11 +118,11 @@ public class GalapagosEventManagerImpl implements GalapagosEventManager {
         }
 
         @Override
-        public CompletableFuture<Void> handleApplicationCertificateChanged(ApplicationMetadata metadata,
-                String previousDn) {
-            ApplicationCertificateChangedEvent event = new ApplicationCertificateChangedEvent(eventContext, metadata,
-                    previousDn);
-            return handleEvent(applicationListeners, l -> l.handleApplicationCertificateChanged(event));
+        public CompletableFuture<Void> handleApplicationAuthenticationChanged(ApplicationMetadata metadata,
+                JSONObject oldAuthentication, JSONObject newAuthentication) {
+            ApplicationAuthenticationChangeEvent event = new ApplicationAuthenticationChangeEvent(eventContext,
+                    metadata, oldAuthentication, newAuthentication);
+            return handleEvent(applicationListeners, l -> l.handleApplicationAuthenticationChanged(event));
         }
 
         @Override
@@ -169,9 +170,9 @@ public class GalapagosEventManagerImpl implements GalapagosEventManager {
 
     private static class EventContextImpl implements GalapagosEventContext {
 
-        private KafkaCluster kafkaCluster;
+        private final KafkaCluster kafkaCluster;
 
-        private Map<String, Object> context;
+        private final Map<String, Object> context;
 
         public EventContextImpl(KafkaCluster kafkaCluster, Map<String, Object> context) {
             this.kafkaCluster = kafkaCluster;

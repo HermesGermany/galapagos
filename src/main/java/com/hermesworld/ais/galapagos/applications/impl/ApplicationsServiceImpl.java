@@ -267,10 +267,23 @@ public class ApplicationsServiceImpl implements ApplicationsService, InitPerClus
                     registerParams);
         }
 
+        GalapagosEventSink eventSink = eventManager.newEventSink(kafkaCluster);
+
+        JSONObject oldAuthentication = existing != null && !StringUtils.isEmpty(existing.getAuthenticationJson())
+                ? new JSONObject(existing.getAuthenticationJson())
+                : new JSONObject();
+
         return updateOrCreateFuture
-                .thenCompose(result -> updateApplicationMetadata(kafkaCluster, knownApplication, result)
+                .thenCompose(result -> updateApplicationMetadata(kafkaCluster, knownApplication, existing, result)
                         .thenCompose(meta -> futureWrite(outputStreamForSecret, result.getPrivateAuthenticationData())
-                                .thenApply(o -> meta)));
+                                .thenApply(o -> meta)))
+                .thenCompose(meta -> {
+                    if (existing != null) {
+                        return eventSink.handleApplicationAuthenticationChanged(meta, oldAuthentication,
+                                new JSONObject(meta.getAuthenticationJson())).thenApply(o -> meta);
+                    }
+                    return eventSink.handleApplicationRegistered(meta).thenApply(o -> meta);
+                });
     }
 
     @Override
@@ -299,9 +312,13 @@ public class ApplicationsServiceImpl implements ApplicationsService, InitPerClus
     }
 
     private CompletableFuture<ApplicationMetadata> updateApplicationMetadata(KafkaCluster kafkaCluster,
-            KnownApplication application, CreateAuthenticationResult authenticationResult) {
+            KnownApplication application, ApplicationMetadata existingMetadata,
+            CreateAuthenticationResult authenticationResult) {
         ApplicationMetadata newMetadata = new ApplicationMetadata();
         ApplicationPrefixes prefixes = namingService.getAllowedPrefixes(application);
+        if (existingMetadata != null) {
+            prefixes = prefixes.combineWith(existingMetadata);
+        }
 
         newMetadata.setApplicationId(application.getId());
         newMetadata.setInternalTopicPrefixes(prefixes.getInternalTopicPrefixes());

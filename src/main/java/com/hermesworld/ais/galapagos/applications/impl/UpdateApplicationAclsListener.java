@@ -84,10 +84,9 @@ public class UpdateApplicationAclsListener
     }
 
     @Override
-    public CompletableFuture<Void> handleApplicationCertificateChanged(ApplicationCertificateChangedEvent event) {
+    public CompletableFuture<Void> handleApplicationAuthenticationChanged(ApplicationAuthenticationChangeEvent event) {
         ApplicationMetadata prevMetadata = new ApplicationMetadata(event.getMetadata());
-        prevMetadata.setDn(event.getPreviousDn());
-
+        prevMetadata.setAuthenticationJson(event.getOldAuthentication().toString());
         return getCluster(event).updateUserAcls(new ApplicationUser(event)).thenCompose(o -> getCluster(event)
                 .removeUserAcls(new ApplicationUser(prevMetadata, event.getContext().getKafkaCluster().getId())));
     }
