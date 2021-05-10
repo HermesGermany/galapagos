@@ -152,7 +152,6 @@ public final class CaManagerImpl {
         return createCertificateAndPrivateKey(userName, caData.getDeveloperCertificateValidity());
     }
 
-
     public byte[] buildTrustStore() throws IOException, PKCSException {
         PKCS12PfxPduBuilder keyStoreBuilder = new PKCS12PfxPduBuilder();
 

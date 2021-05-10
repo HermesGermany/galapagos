@@ -84,7 +84,7 @@
             </div>
         </div>
 
-        <app-data-settings #initialTopicSettings (setTopicSettings)="createTopic($event)" [topicType]="topicType"
+        <app-data-settings #initialTopicSettings [topicType]="topicType"
                            [selectedEnvironment]="selectedEnvironment | async"
                            [showSubscriptionApprovalRequired]="showSubscriptionApprovalRequired | async"></app-data-settings>
 
@@ -132,7 +132,7 @@
                     <div class="card-body">
                         <button type="button" class="btn btn-success" appSpinnerWhile #b="appSpinnerWhile"
                                 [disabled]="!selectedApplication || !topicType || !topicName || (topicType !== 'INTERNAL' && !selectedBusinessCapability) || (selectedEnvironment | async)?.stagingOnly"
-                                (click)="b.while(initialTopicSettings.prepareDataForParent())">
+                                (click)="b.while(createTopic(initialTopicSettings.prepareDataForParent()))">
                             <i class="fas fa-save"></i>&nbsp;{{ 'Create Topic' | translate }}
                         </button>
                     </div>

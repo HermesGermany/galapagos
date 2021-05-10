@@ -73,8 +73,8 @@ public class UISupportController {
 
     @Autowired
     public UISupportController(ApplicationsService applicationsService, TopicService topicService,
-            KafkaClusters kafkaClusters, NamingService namingService,
-            GalapagosTopicConfig topicConfig, CustomLinksConfig customLinksConfig) {
+            KafkaClusters kafkaClusters, NamingService namingService, GalapagosTopicConfig topicConfig,
+            CustomLinksConfig customLinksConfig) {
         this.applicationsService = applicationsService;
         this.topicService = topicService;
         this.kafkaClusters = kafkaClusters;

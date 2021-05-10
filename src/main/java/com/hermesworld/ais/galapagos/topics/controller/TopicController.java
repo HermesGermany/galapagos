@@ -394,7 +394,7 @@ public class TopicController {
         Throwable t = e.getCause();
         if (t instanceof IllegalArgumentException || t instanceof IllegalStateException
                 || t instanceof InvalidTopicNameException || t instanceof IncompatibleSchemaException) {
-            return new ResponseStatusException(HttpStatus.BAD_REQUEST, t.getMessage());
+            return new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
         if (t instanceof KafkaException) {
             log.error("Unexpected Kafka exception during handling Topic REST call", t);

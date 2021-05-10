@@ -234,8 +234,7 @@ public class UpdateApplicationAclsListenerTest {
         when(topicService.listTopics("_test")).thenReturn(List.of(topic));
 
         UpdateApplicationAclsListener listener = new UpdateApplicationAclsListener(kafkaClusters, topicService,
-                subscriptionService,
-                applicationsService);
+                subscriptionService, applicationsService);
 
         Collection<AclBinding> bindings = listener.getApplicationUser(app1, "_test").getRequiredAclBindings();
 
