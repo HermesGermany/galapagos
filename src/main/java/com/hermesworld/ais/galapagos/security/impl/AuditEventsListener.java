@@ -108,8 +108,8 @@ public class AuditEventsListener implements TopicEventsListener, ApplicationEven
         auditData.put(ENVIRONMENT_ID, event.getContext().getKafkaCluster().getId());
         auditData.put("authentication", event.getMetadata().getAuthenticationJson());
 
-        auditRepository.add(new AuditEvent(getUserName(event),
-                GalapagosAuditEventType.APPLICATION_REGISTERED.name(), auditData));
+        auditRepository.add(
+                new AuditEvent(getUserName(event), GalapagosAuditEventType.APPLICATION_REGISTERED.name(), auditData));
         return FutureUtil.noop();
     }
 

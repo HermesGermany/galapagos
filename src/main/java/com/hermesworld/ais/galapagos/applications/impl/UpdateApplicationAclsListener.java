@@ -226,8 +226,7 @@ public class UpdateApplicationAclsListener
             // every application gets the CLUSTER READ right (for now; should be moved to developer test certificates
             // ASAP)
             result.add(new AclBinding(new ResourcePattern(ResourceType.CLUSTER, "kafka-cluster", PatternType.LITERAL),
-                    new AccessControlEntry(userName, "*", AclOperation.DESCRIBE_CONFIGS,
-                            AclPermissionType.ALLOW)));
+                    new AccessControlEntry(userName, "*", AclOperation.DESCRIBE_CONFIGS, AclPermissionType.ALLOW)));
 
             result.addAll(metadata.getConsumerGroupPrefixes().stream()
                     .map(prefix -> prefixAcl(userName, ResourceType.GROUP, prefix)).collect(Collectors.toList()));
@@ -253,16 +252,14 @@ public class UpdateApplicationAclsListener
 
         private AclBinding prefixAcl(String userName, ResourceType resourceType, String prefix) {
             ResourcePattern pattern = new ResourcePattern(resourceType, prefix, PatternType.PREFIXED);
-            AccessControlEntry entry = new AccessControlEntry(userName, "*", AclOperation.ALL,
-                    AclPermissionType.ALLOW);
+            AccessControlEntry entry = new AccessControlEntry(userName, "*", AclOperation.ALL, AclPermissionType.ALLOW);
             return new AclBinding(pattern, entry);
         }
 
         private Collection<AclBinding> topicAcls(String userName, String topicName, List<AclOperation> ops) {
             ResourcePattern pattern = new ResourcePattern(ResourceType.TOPIC, topicName, PatternType.LITERAL);
-            return ops.stream()
-                    .map(op -> new AclBinding(pattern,
-                            new AccessControlEntry(userName, "*", op, AclPermissionType.ALLOW)))
+            return ops.stream().map(
+                    op -> new AclBinding(pattern, new AccessControlEntry(userName, "*", op, AclPermissionType.ALLOW)))
                     .collect(Collectors.toList());
         }
 

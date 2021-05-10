@@ -184,11 +184,11 @@ public class ConfluentApiClient {
     private <T> Mono<T> doMethod(Function<WebClient, WebClient.RequestBodyUriSpec> method, String uri, String body,
             Function<String, T> responseBodyHandler, String errorMessage, boolean checkLogin) {
         return (checkLogin ? assertLoggedIn() : Mono.just(true))
-                .flatMap(b -> auth(method.apply(client).uri(uri).body(BodyInserters.fromValue(body)))
-                .retrieve().onStatus(status -> status.isError(), errorResponseHandler(uri, errorMessage))
-                .bodyToMono(String.class)).map(responseBodyHandler);
+                .flatMap(b -> auth(method.apply(client).uri(uri).body(BodyInserters.fromValue(body))).retrieve()
+                        .onStatus(status -> status.isError(), errorResponseHandler(uri, errorMessage))
+                        .bodyToMono(String.class))
+                .map(responseBodyHandler);
     }
-
 
     private BiConsumer<String, SynchronousSink<String>> jsonErrorHandler(
             Function<String, ? extends Exception> exceptionSupplier) {
