@@ -143,6 +143,7 @@
     "SUBSCRIPTION_DESCRIPTION_LABEL": "Beschreibung (z.B. Zweck der Nutzung)",
     "Kafka Access Rights": "Kafka-Berechtigungen",
     "Client Access": "Client-Zugriff",
+    "Generate new API Key": "Neuen API Key erstellen",
     "NO_API_KEY_FOR_APP": "Für diese Anwendung wurde noch kein Api Key auf dieser Umgebung erstellt.",
     "Create Api Key now": "Jetzt API Key erstellen",
     "SAML Username": "SAML Benutzername",
