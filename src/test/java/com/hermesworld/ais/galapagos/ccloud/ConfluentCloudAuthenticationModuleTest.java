@@ -1,5 +1,6 @@
 package com.hermesworld.ais.galapagos.ccloud;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.hermesworld.ais.galapagos.applications.ApplicationMetadata;
 import com.hermesworld.ais.galapagos.ccloud.apiclient.ApiKeyInfo;
 import com.hermesworld.ais.galapagos.ccloud.apiclient.ConfluentApiClient;
@@ -16,6 +17,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.jupiter.api.BeforeEach;
+import org.springframework.test.util.ReflectionTestUtils;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
@@ -26,11 +28,11 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class ConfluentCloudAuthenticationModuleTest {
 
@@ -109,14 +111,14 @@ public class ConfluentCloudAuthenticationModuleTest {
 
     @Test
     public void fillCorrectProps_negative() {
-        ConfluentCloudAuthConfig config = new ConfluentCloudAuthConfig();
-        authenticationModule = new ConfluentCloudAuthenticationModule(config);
+
+        authenticationModule = new ConfluentCloudAuthenticationModule(new ConfluentCloudAuthConfig());
 
         Properties props = new Properties();
         authenticationModule.addRequiredKafkaProperties(props);
 
-        assertFalse(props.getProperty("sasl.jaas.config").contains("someApiKey"));
-        assertFalse(props.getProperty("sasl.jaas.config").contains("secretPassword"));
+        assertThat(props.getProperty("sasl.jaas.config"), StringContains.containsString("username='null'"));
+        assertThat(props.getProperty("sasl.jaas.config"), StringContains.containsString("password='null'"));
 
     }
 
@@ -126,7 +128,8 @@ public class ConfluentCloudAuthenticationModuleTest {
     }
 
     @Test
-    public void deleteApplicationAuthenticationTest_positive() throws ExecutionException, InterruptedException {
+    public void deleteApplicationAuthenticationTest_positive()
+            throws ExecutionException, InterruptedException, JsonProcessingException {
 
         client = mock(ConfluentApiClient.class);
 
@@ -134,6 +137,7 @@ public class ConfluentCloudAuthenticationModuleTest {
         config.setEnvironmentId("testEnv");
         config.setClusterId("testCluster");
         authenticationModule = new ConfluentCloudAuthenticationModule(config);
+        ReflectionTestUtils.setField(authenticationModule, "client", client);
 
         ApiKeyInfo apiKey1 = new ApiKeyInfo();
         apiKey1.setId(1);
@@ -147,17 +151,19 @@ public class ConfluentCloudAuthenticationModuleTest {
         apiKey2.setSecret("someSecret2");
         apiKey2.setUserId(324);
 
+
         ApplicationMetadata app = new ApplicationMetadata();
         app.setApplicationId("quattro-1");
-        app.setAuthenticationJson("{userId:1234}");
+        app.setAuthenticationJson("{userId:1234,apiKey:someKey1}");
         applicationMetadataRepository.save(app).get();
 
         when(client.listApiKeys("testEnv", "testCluster")).thenReturn(Mono.just(List.of(apiKey1, apiKey2)));
+        when(client.deleteApiKey(apiKey1)).thenReturn(Mono.just(true));
 
         String auth = app.getAuthenticationJson();
         authenticationModule.deleteApplicationAuthentication(app.getApplicationId(), new JSONObject(auth)).get();
+        verify(client).deleteApiKey(apiKey1);
 
-        // test still in work...
     }
 
 }
