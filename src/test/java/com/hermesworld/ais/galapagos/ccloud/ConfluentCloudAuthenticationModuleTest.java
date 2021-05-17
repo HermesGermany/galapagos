@@ -7,8 +7,6 @@ import com.hermesworld.ais.galapagos.ccloud.apiclient.ServiceAccountInfo;
 import com.hermesworld.ais.galapagos.ccloud.auth.ConfluentCloudAuthConfig;
 import com.hermesworld.ais.galapagos.ccloud.auth.ConfluentCloudAuthenticationModule;
 import com.hermesworld.ais.galapagos.kafka.auth.KafkaAuthenticationModule;
-import com.hermesworld.ais.galapagos.kafka.impl.TopicBasedRepositoryMock;
-import com.hermesworld.ais.galapagos.kafka.util.TopicBasedRepository;
 import org.hamcrest.core.StringContains;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -31,48 +29,27 @@ import static org.mockito.Mockito.*;
 
 public class ConfluentCloudAuthenticationModuleTest {
 
-    private TopicBasedRepository<ApplicationMetadata> applicationMetadataRepository;
-
     private KafkaAuthenticationModule authenticationModule;
 
     private ConfluentApiClient client;
 
     @BeforeEach
     public void init() {
-
         authenticationModule = new ConfluentCloudAuthenticationModule(new ConfluentCloudAuthConfig());
         client = mock(ConfluentApiClient.class);
-        applicationMetadataRepository = new TopicBasedRepositoryMock<>();
-
     }
 
     @Test
-    public void extractKafkaUserNameTest_positive() throws ExecutionException, InterruptedException {
-
-        ApplicationMetadata app = new ApplicationMetadata();
-        app.setApplicationId("quattro-1");
-        app.setAuthenticationJson("{userId:1234}");
-        applicationMetadataRepository.save(app).get();
-
-        String auth = app.getAuthenticationJson();
-        String kafkaUserName = authenticationModule.extractKafkaUserName("test", new JSONObject(auth));
+    public void extractKafkaUserNameTest_positive() {
+        String kafkaUserName = authenticationModule.extractKafkaUserName("test", new JSONObject("{userId:1234}"));
 
         assertEquals("User:1234", kafkaUserName);
-
     }
 
     @Test
-    public void extractKafkaUserNameTest_negative() throws ExecutionException, InterruptedException {
-
-        ApplicationMetadata app = new ApplicationMetadata();
-        app.setApplicationId("quattro-1");
-        app.setAuthenticationJson("{}");
-        applicationMetadataRepository.save(app).get();
-
-        String auth = app.getAuthenticationJson();
-
+    public void extractKafkaUserNameTest_negative() {
         assertThrows(JSONException.class,
-                () -> authenticationModule.extractKafkaUserName("test", new JSONObject(auth)));
+                () -> authenticationModule.extractKafkaUserName("test", new JSONObject("{}")));
     }
 
     @Test
@@ -86,26 +63,22 @@ public class ConfluentCloudAuthenticationModuleTest {
         authenticationModule.addRequiredKafkaProperties(props);
 
         assertEquals("PLAIN", props.getProperty("sasl.mechanism"));
-        assertThat(props.getProperty("sasl.jaas.config"), StringContains.containsString("someApiKey"));
-        assertThat(props.getProperty("sasl.jaas.config"), StringContains.containsString("secretPassword"));
-
+        assertThat(props.getProperty("sasl.jaas.config"), StringContains.containsString("username='someApiKey'"));
+        assertThat(props.getProperty("sasl.jaas.config"), StringContains.containsString("password='secretPassword'"));
     }
 
     @Test
     public void fillCorrectProps_negative() {
-
         Properties props = new Properties();
         authenticationModule.addRequiredKafkaProperties(props);
 
         assertThat(props.getProperty("sasl.jaas.config"), StringContains.containsString("username='null'"));
         assertThat(props.getProperty("sasl.jaas.config"), StringContains.containsString("password='null'"));
-
     }
 
     @Test
     public void deleteApplicationAuthenticationTest_positive()
             throws ExecutionException, InterruptedException {
-
         ConfluentCloudAuthConfig config = new ConfluentCloudAuthConfig();
         config.setEnvironmentId("testEnv");
         config.setClusterId("testCluster");
@@ -128,7 +101,6 @@ public class ConfluentCloudAuthenticationModuleTest {
         ApplicationMetadata app = new ApplicationMetadata();
         app.setApplicationId("quattro-1");
         app.setAuthenticationJson("{userId:1234,apiKey:someKey1}");
-        applicationMetadataRepository.save(app).get();
 
         when(client.listApiKeys("testEnv", "testCluster")).thenReturn(Mono.just(List.of(apiKey1, apiKey2)));
         when(client.deleteApiKey(apiKey1)).thenReturn(Mono.just(true));
@@ -136,12 +108,11 @@ public class ConfluentCloudAuthenticationModuleTest {
         String auth = app.getAuthenticationJson();
         authenticationModule.deleteApplicationAuthentication(app.getApplicationId(), new JSONObject(auth)).get();
         verify(client).deleteApiKey(apiKey1);
-
     }
 
     @Test
-    public void deleteApplicationAuthenticationTest_negative() throws ExecutionException, InterruptedException {
-
+    public void deleteApplicationAuthenticationTest_negativeNoApiKeyObjectInAuthJson()
+            throws ExecutionException, InterruptedException {
         ConfluentCloudAuthConfig config = new ConfluentCloudAuthConfig();
         config.setEnvironmentId("testEnv");
         config.setClusterId("testCluster");
@@ -163,20 +134,17 @@ public class ConfluentCloudAuthenticationModuleTest {
         ApplicationMetadata app = new ApplicationMetadata();
         app.setApplicationId("quattro-1");
         app.setAuthenticationJson("{userId:1234}");
-        applicationMetadataRepository.save(app).get();
 
         when(client.listApiKeys("testEnv", "testCluster")).thenReturn(Mono.just(List.of(apiKey1, apiKey2)));
 
         String auth = app.getAuthenticationJson();
         authenticationModule.deleteApplicationAuthentication(app.getApplicationId(), new JSONObject(auth)).get();
         verify(client, times(0)).deleteApiKey(any());
-
     }
 
     @Test
     public void createApplicationAuthenticationTest_createServiceAccForAppThatHasNoAcc()
             throws ExecutionException, InterruptedException {
-
         ConfluentCloudAuthConfig config = new ConfluentCloudAuthConfig();
         config.setEnvironmentId("testEnv");
         config.setClusterId("testCluster");
@@ -205,7 +173,6 @@ public class ConfluentCloudAuthenticationModuleTest {
         ApplicationMetadata app = new ApplicationMetadata();
         app.setApplicationId("quattro-1");
         app.setAuthenticationJson("{userId:1234}");
-        applicationMetadataRepository.save(app).get();
 
         ServiceAccountInfo testServiceAccount = new ServiceAccountInfo();
         testServiceAccount.setId(Integer.valueOf(1));
@@ -227,13 +194,11 @@ public class ConfluentCloudAuthenticationModuleTest {
 
         verify(client, times(1)).createServiceAccount("application-normalizedAppNameTest", "APP_quattro-1");
         verify(client, times(1)).createApiKey("testEnv", "testCluster", "Application normalizedAppNameTest", 1);
-
     }
 
     @Test
     public void createApplicationAuthenticationTest_reuseServiceAccIfExists()
             throws ExecutionException, InterruptedException {
-
         ConfluentCloudAuthConfig config = new ConfluentCloudAuthConfig();
         config.setEnvironmentId("testEnv");
         config.setClusterId("testCluster");
@@ -262,7 +227,6 @@ public class ConfluentCloudAuthenticationModuleTest {
         ApplicationMetadata app = new ApplicationMetadata();
         app.setApplicationId("quattro-1");
         app.setAuthenticationJson("{userId:1234}");
-        applicationMetadataRepository.save(app).get();
 
         ServiceAccountInfo testServiceAccount = new ServiceAccountInfo();
         testServiceAccount.setId(Integer.valueOf(1));
@@ -283,12 +247,10 @@ public class ConfluentCloudAuthenticationModuleTest {
 
         verify(client, times(0)).createServiceAccount(anyString(), anyString());
         verify(client, times(1)).createApiKey("testEnv", "testCluster", "Application normalizedAppNameTest", 1);
-
     }
 
     @Test
     public void updateApplicationAuthenticationTest() throws ExecutionException, InterruptedException {
-
         ConfluentCloudAuthConfig config = new ConfluentCloudAuthConfig();
         config.setEnvironmentId("testEnv");
         config.setClusterId("testCluster");
@@ -317,7 +279,6 @@ public class ConfluentCloudAuthenticationModuleTest {
         ApplicationMetadata app = new ApplicationMetadata();
         app.setApplicationId("quattro-1");
         app.setAuthenticationJson("{userId:1234,apiKey:someKey1}");
-        applicationMetadataRepository.save(app).get();
 
         ServiceAccountInfo testServiceAccount = new ServiceAccountInfo();
         testServiceAccount.setId(Integer.valueOf(1));
@@ -339,7 +300,6 @@ public class ConfluentCloudAuthenticationModuleTest {
 
         verify(client).deleteApiKey(apiKey1);
         verify(client, times(1)).createApiKey("testEnv", "testCluster", "Application normalizedAppNameTest", 1);
-
     }
 
 }
