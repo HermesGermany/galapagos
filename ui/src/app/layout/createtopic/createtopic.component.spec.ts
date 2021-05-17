@@ -12,10 +12,10 @@ import { FormsModule } from '@angular/forms';
 import { SpinnerWhileModule } from '../../shared/modules/spinner-while/spinner-while.module';
 import { TopicsService } from '../../shared/services/topics.service';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { CertificateService } from '../../shared/services/certificates.service';
 import { of } from 'rxjs';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterTestingModule } from '@angular/router/testing';
+import { ApiKeyService } from '../../shared/services/apikey.service';
 
 describe('CreateTopicComponent', () => {
 
@@ -39,7 +39,7 @@ describe('CreateTopicComponent', () => {
                 KeycloakService,
                 ToastService,
                 TopicsService,
-                CertificateService,
+                ApiKeyService,
                 EnvironmentsService,
                 ApplicationsService,
                 ServerInfoService

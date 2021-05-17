@@ -45,20 +45,31 @@ export class ApplicationBlockComponent implements OnChanges {
                 const app = change.currentValue as UserApplicationInfoWithTopics;
                 this.buildPrefixes(app);
 
-                const extractApiKey = (keys: ApplicationApikeyAuthData, env: KafkaEnvironment) => {
+                const extractApiKey = (keys: ApplicationApikeyAuthData, env: KafkaEnvironment): ApplicationApiKey => {
+
                     if (!keys.authentications[env.id]) {
+
                         return null;
                     }
                     if (keys.authentications[env.id].authenticationType !== 'ccloud') {
+
                         return null;
                     }
+                    console.log('logging!');
+
+                    console.log(keys.authentications[env.id].authentication as ApplicationApiKey);
                     return keys.authentications[env.id].authentication as ApplicationApiKey;
                 };
 
                 this.applicationApiKeys = this.apiKeyService.getApplicationApiKeys(app.id);
                 this.currentEnvApplicationApiKey = combineLatest([this.applicationApiKeys.getObservable(),
                     this.environmentsService.getCurrentEnvironment()]).pipe(map(
-                    ([keys, env]) => extractApiKey(keys, env)));
+                    ([keys, env]) => {
+                        console.log(keys);
+                        console.log(env);
+                        console.log('efew' + extractApiKey(keys, env));
+                        return extractApiKey(keys, env);
+                    }));
             } else {
                 this.internalTopicPrefixes = of([]);
                 this.consumerGroupPrefixes = of([]);

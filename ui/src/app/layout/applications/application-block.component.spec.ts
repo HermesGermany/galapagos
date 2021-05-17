@@ -3,7 +3,6 @@ import { RouterModule } from '@angular/router';
 import { TopicsService } from '../../shared/services/topics.service';
 import { EnvironmentsService } from '../../shared/services/environments.service';
 import { ApplicationsService } from '../../shared/services/applications.service';
-import { CertificateService } from '../../shared/services/certificates.service';
 import { ServerInfoService } from '../../shared/services/serverinfo.service';
 import { ToastService } from '../../shared/modules/toast/toast.service';
 import { TranslateService } from '@ngx-translate/core';
@@ -16,12 +15,12 @@ import { PageHeaderModule } from '../../shared/modules';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { SpinnerWhileModule } from '../../shared/modules/spinner-while/spinner-while.module';
-import { ReplayContainer } from '../../shared/services/services-common';
 import { of } from 'rxjs';
-import { OpensslCommandModule } from '../../shared/modules/openssl-command/openssl-command.module';
 import { ApplicationBlockComponent } from './application-block.component';
 import { SimpleChange } from '@angular/core';
 import { By } from '@angular/platform-browser';
+import { ApiKeyService } from '../../shared/services/apikey.service';
+import { ReplayContainer } from '../../shared/services/services-common';
 
 describe('ApplicationBlockComponent', () => {
 
@@ -41,15 +40,14 @@ describe('ApplicationBlockComponent', () => {
                 PageHeaderModule,
                 FormsModule,
                 CommonModule,
-                SpinnerWhileModule,
-                OpensslCommandModule
+                SpinnerWhileModule
             ],
             providers: [
                 RouterModule,
                 TopicsService,
                 EnvironmentsService,
                 ApplicationsService,
-                CertificateService,
+                ApiKeyService,
                 ServerInfoService,
                 ToastService,
                 TranslateService,
@@ -83,7 +81,6 @@ describe('ApplicationBlockComponent', () => {
             })
         };
 
-
     }));
 
     it('should create', () => {
@@ -92,16 +89,22 @@ describe('ApplicationBlockComponent', () => {
 
     it('should show correct Prefixes in table', (waitForAsync(() => {
 
-        const certificateService = fixture.debugElement.injector.get(CertificateService);
+        const apiKeyService = fixture.debugElement.injector.get(ApiKeyService);
         const environmentsService = fixture.debugElement.injector.get(EnvironmentsService);
 
-        const certificateSpy: jasmine.Spy = spyOn(certificateService, 'getApplicationCertificates')
-            .and.returnValue(new ReplayContainer(() => of([{
-                environmentId: 'prod',
-                dn: 'CN=My User;OU= A ou',
-                certificateDownloadUrl: 'url goes here',
-                expiresAt: 'some day'
-            }])));
+        const apiKeyServiceSpy: jasmine.Spy = spyOn(apiKeyService, 'getApplicationApiKeys')
+            .and.returnValue(new ReplayContainer(() => of({
+                authentications: {
+                    prod: {
+                        authenticationType: 'ccloud',
+                        authentication: {
+                            apiKey: 'myApiKey',
+                            issuedAt: 'someDay',
+                            userId: '1'
+                        }
+                    }
+                }
+            })));
 
         const envSpy: jasmine.Spy = spyOn(environmentsService, 'getCurrentEnvironment')
             .and.returnValue(of({
@@ -118,11 +121,10 @@ describe('ApplicationBlockComponent', () => {
             application: new SimpleChange(undefined, app, false)
         });
 
-        component.currentEnvApplicationCertificate = of({
-            environmentId: 'prod',
-            dn: 'CN=My User;OU= A ou',
-            certificateDownloadUrl: 'url goes here',
-            expiresAt: 'some day'
+        component.currentEnvApplicationApiKey = of({
+            apiKey: 'myKey',
+            issuedAt: 'some Day',
+            userId: '1'
         });
         fixture.detectChanges();
 
@@ -133,7 +135,7 @@ describe('ApplicationBlockComponent', () => {
         const listItemsTransactionIdPrefix = document.getElementById('transactionIdPrefixes').childNodes;
         const listItemsConsumerGroupPrefix = document.getElementById('consumerGroupPrefixes').childNodes;
         fixture.whenStable().then(() => {
-            expect(certificateSpy).toHaveBeenCalled();
+            expect(apiKeyServiceSpy).toHaveBeenCalled();
             expect(envSpy).toHaveBeenCalled();
             expect(listItemsInternal.item(0).childNodes.item(0).textContent).toEqual('a.internalTopic.prefix');
             expect(listItemsInternal.item(1).childNodes.item(0).textContent).toEqual('another.internalTopic.prefix');
