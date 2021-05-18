@@ -21,7 +21,6 @@ import { SimpleChange } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { ApiKeyService } from '../../shared/services/apikey.service';
 import { ReplayContainer } from '../../shared/services/services-common';
-import { ApplicationsComponent } from './applications.component';
 
 describe('ApplicationBlockComponent', () => {
 
@@ -31,7 +30,7 @@ describe('ApplicationBlockComponent', () => {
 
     beforeEach((() => {
         TestBed.configureTestingModule({
-            declarations: [ApplicationBlockComponent, ApplicationsComponent],
+            declarations: [ApplicationBlockComponent],
             imports: [
                 LanguageTranslationModule,
                 NgbModule,

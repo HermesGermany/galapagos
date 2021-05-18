@@ -127,7 +127,7 @@
                             </tr>
                             <tr>
                                 <td colspan="2">
-                                    <button id="apiKeyButton" type="button" class="btn btn-danger mr-2"
+                                    <button type="button" class="btn btn-danger mr-2"
                                             [title]=" 'KEY_BUTTON_TITLE' | translate:{ env: env.name }"
                                             (click)="openApiKeyDialog.emit({ application: application, environment: env })">
                                         <i class="fas fa-award"></i>&nbsp;{{ 'New login details' | translate }}
