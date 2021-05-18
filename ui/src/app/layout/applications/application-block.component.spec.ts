@@ -21,6 +21,7 @@ import { SimpleChange } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { ApiKeyService } from '../../shared/services/apikey.service';
 import { ReplayContainer } from '../../shared/services/services-common';
+import { ApplicationsComponent } from './applications.component';
 
 describe('ApplicationBlockComponent', () => {
 
@@ -30,7 +31,7 @@ describe('ApplicationBlockComponent', () => {
 
     beforeEach((() => {
         TestBed.configureTestingModule({
-            declarations: [ApplicationBlockComponent],
+            declarations: [ApplicationBlockComponent, ApplicationsComponent],
             imports: [
                 LanguageTranslationModule,
                 NgbModule,
@@ -144,5 +145,36 @@ describe('ApplicationBlockComponent', () => {
         });
 
     })));
+
+    it('should show correct SAML Username in Application Block', () => {
+
+        const environmentsService = fixture.debugElement.injector.get(EnvironmentsService);
+
+        spyOn(environmentsService, 'getCurrentEnvironment').and.returnValue(of({
+            id: 'prod',
+            name: 'prod',
+            bootstrapServers: 'myBootstrapServers',
+            production: true,
+            stagingOnly: true
+        }));
+
+        component.application = app;
+
+        component.currentEnvApplicationApiKey = of({
+            apiKey: 'myKey',
+            issuedAt: 'some Day',
+            userId: '1'
+        });
+
+        fixture.detectChanges();
+
+        const accordion = fixture.debugElement.query(By.directive(NgbAccordion)).componentInstance;
+        accordion.expand('_panel_apiKey');
+        const debugElement = fixture.debugElement;
+
+        expect(debugElement.query(By.css('#apiKey'))).toBeTruthy();
+        expect(debugElement.query(By.css('#apiKey')).nativeElement.innerHTML).toEqual('myKey');
+
+    });
 
 });

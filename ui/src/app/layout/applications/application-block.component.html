@@ -111,7 +111,7 @@
                         </table>
                     </ng-template>
                 </ngb-panel>
-                <ngb-panel [id]="'_panel_certificate'">
+                <ngb-panel [id]="'_panel_apiKey'">
                     <ng-template ngbPanelTitle>
                         <span><i class="fas fa-award mr-2"></i>{{ 'Client Access' | translate }}</span>
                     </ng-template>
@@ -122,12 +122,12 @@
                             <tr>
                                 <th>{{ 'SAML Username' | translate }}</th>
                                 <td>
-                                    <code>{{ (currentEnvApplicationApiKey | async).apiKey }}</code>
+                                    <code id="apiKey">{{ (currentEnvApplicationApiKey | async).apiKey }}</code>
                                 </td>
                             </tr>
                             <tr>
                                 <td colspan="2">
-                                    <button type="button" class="btn btn-danger mr-2"
+                                    <button id="apiKeyButton" type="button" class="btn btn-danger mr-2"
                                             [title]=" 'KEY_BUTTON_TITLE' | translate:{ env: env.name }"
                                             (click)="openApiKeyDialog.emit({ application: application, environment: env })">
                                         <i class="fas fa-award"></i>&nbsp;{{ 'New login details' | translate }}
