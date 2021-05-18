@@ -339,45 +339,6 @@ public class ApplicationsServiceImpl implements ApplicationsService, InitPerClus
         }
     }
 
-//    private CompletableFuture<ApplicationMetadata> registerApplication(
-//            BiFunction<CaManager, KnownApplication, CompletableFuture<CertificateSignResult>> signResultFutureFn,
-//            String environmentId, String applicationId) {
-//        KnownApplication application = getKnownApplication(applicationId).orElse(null);
-//        if (application == null) {
-//            return unknownApplication(applicationId);
-//        }
-//        KafkaCluster kafkaCluster = kafkaClusters.getEnvironment(environmentId).orElse(null);
-//        if (kafkaCluster == null) {
-//            return unknownEnvironment(environmentId);
-//        }
-//
-//        ApplicationMetadata existing = getApplicationMetadata(environmentId, applicationId).orElse(null);
-//
-//        // currently, we additionally use ALL previously assigned prefixes here, so extending a certificate does not
-//        // break running applications. In the future, supporting admin jobs could check for "orphaned" prefixes which
-//        // then can be removed after responsible team's approval.
-//        ApplicationPrefixes prefixes = namingService.getAllowedPrefixes(application)
-//                .combineWith(existing == null ? ApplicationPrefixes.EMPTY : existing);
-//
-//        GalapagosEventSink eventSink = eventManager.newEventSink(kafkaCluster);
-//
-//        return signResultFutureFn.apply(kafkaClusters.getCaManager(environmentId).orElseThrow(), application)
-//                .thenCompose(result -> updateApplicationMetadataFromCertificate(kafkaCluster, existing, applicationId,
-//                        prefixes, result))
-//                .thenCompose(a -> {
-//                    if (existing != null && !existing.getDn().equals(a.getDn())) {
-//                        return eventSink.handleApplicationCertificateChanged(a, existing.getDn()).thenApply(o -> a);
-//                    }
-//                    else if (existing == null) {
-//                        return eventSink.handleApplicationRegistered(a).thenApply(o -> a);
-//                    }
-//
-//                    // no event for certificate extension yet
-//                    return CompletableFuture.completedFuture(a);
-//                });
-//    }
-//
-
     @Scheduled(initialDelay = 30000, fixedDelayString = "PT6H")
     void removeOldRequests() {
         log.debug("removeOldRequests() by scheduler");
