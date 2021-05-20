@@ -56,7 +56,7 @@ public class ApplicationsControllerTest {
 
         when(applicationsService.registerApplicationOnEnvironment(any(), any(), any(), any())).then(inv -> {
             OutputStream os = inv.getArgument(3);
-            os.write(new byte[]{1, 2, 3, 4});
+            os.write(new byte[] { 1, 2, 3, 4 });
             os.flush();
             return FutureUtil.noop();
         });
