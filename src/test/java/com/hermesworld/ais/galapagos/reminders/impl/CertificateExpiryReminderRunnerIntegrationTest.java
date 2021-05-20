@@ -1,15 +1,5 @@
 package com.hermesworld.ais.galapagos.reminders.impl;
 
-import java.io.ByteArrayInputStream;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import javax.mail.MessagingException;
-import javax.mail.internet.MimeMessage;
-
 import com.hermesworld.ais.galapagos.applications.ApplicationMetadata;
 import com.hermesworld.ais.galapagos.applications.ApplicationOwnerRequest;
 import com.hermesworld.ais.galapagos.applications.ApplicationsService;
@@ -18,26 +8,40 @@ import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.reminders.CertificateExpiryReminder;
 import com.hermesworld.ais.galapagos.reminders.CertificateExpiryReminderService;
 import com.hermesworld.ais.galapagos.reminders.ReminderType;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.when;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.actuate.autoconfigure.mail.MailHealthContributorAutoConfiguration;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.context.junit4.SpringRunner;
+
+import javax.mail.MessagingException;
+import javax.mail.internet.MimeMessage;
+import java.io.ByteArrayInputStream;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.when;
 
 /**
  * This test mainly focuses on the "notification integration" part, i.e., that the mail templates do render correctly
  * and the correct e-mail recipients are determined and passed to the mail engine.
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
+@EnableAutoConfiguration(exclude = { MailHealthContributorAutoConfiguration.class })
 public class CertificateExpiryReminderRunnerIntegrationTest {
 
     @MockBean
