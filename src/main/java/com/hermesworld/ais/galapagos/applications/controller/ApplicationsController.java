@@ -149,7 +149,7 @@ public class ApplicationsController {
         kafkaClusters.getEnvironmentMetadata(environmentId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
-        String filename = CertificateUtil.toAppCn(app.getName());
+        String filename = CertificateUtil.toAppCn(app.getName()) + "_" + environmentId;
         if (!request.isGenerateKey()) {
             String csrData = request.getCsrData();
             if (StringUtils.isEmpty(csrData)) {
