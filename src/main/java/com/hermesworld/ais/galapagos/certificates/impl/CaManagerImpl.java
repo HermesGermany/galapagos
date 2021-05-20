@@ -227,6 +227,10 @@ public final class CaManagerImpl {
         try {
             String password = generatePkcs12Password();
             byte[] data = CertificateUtil.buildPrivateKeyStore(publicCert, pair.getPrivate(), password.toCharArray());
+            if (!certificateWorkdir.isDirectory() && !certificateWorkdir.mkdirs()) {
+                throw new IOException(
+                        "Could not create certificate working directory " + certificateWorkdir.getAbsolutePath());
+            }
             File fCertificate = new File(certificateWorkdir, "galapagos_" + envId + "_client.p12");
             try (FileOutputStream fos = new FileOutputStream(fCertificate)) {
                 fos.write(data);
