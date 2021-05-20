@@ -77,8 +77,7 @@ public class ConfluentCloudAuthenticationModuleTest {
     }
 
     @Test
-    public void deleteApplicationAuthenticationTest_positive()
-            throws ExecutionException, InterruptedException {
+    public void deleteApplicationAuthenticationTest_positive() throws ExecutionException, InterruptedException {
         ConfluentCloudAuthConfig config = new ConfluentCloudAuthConfig();
         config.setEnvironmentId("testEnv");
         config.setClusterId("testCluster");
@@ -96,7 +95,6 @@ public class ConfluentCloudAuthenticationModuleTest {
         apiKey2.setKey("someKey2");
         apiKey2.setSecret("someSecret2");
         apiKey2.setUserId(324);
-
 
         ApplicationMetadata app = new ApplicationMetadata();
         app.setApplicationId("quattro-1");
