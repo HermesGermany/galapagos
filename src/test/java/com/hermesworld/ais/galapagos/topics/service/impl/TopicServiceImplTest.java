@@ -16,6 +16,7 @@ import com.hermesworld.ais.galapagos.schemas.IncompatibleSchemaException;
 import com.hermesworld.ais.galapagos.security.CurrentUserService;
 import com.hermesworld.ais.galapagos.subscriptions.SubscriptionMetadata;
 import com.hermesworld.ais.galapagos.subscriptions.service.SubscriptionService;
+import com.hermesworld.ais.galapagos.topics.Criticality;
 import com.hermesworld.ais.galapagos.topics.SchemaMetadata;
 import com.hermesworld.ais.galapagos.topics.TopicMetadata;
 import com.hermesworld.ais.galapagos.topics.TopicType;
@@ -78,7 +79,7 @@ public class TopicServiceImplTest {
         when(kafkaTestCluster.getId()).thenReturn("test");
         when(kafkaTestCluster.getRepository("topics", TopicMetadata.class)).thenReturn(topicRepository);
         when(kafkaTestCluster.getRepository("schemas", SchemaMetadata.class)).thenReturn(schemaRepository);
-        when(kafkaTestCluster.getActiveBrokerCount()).thenReturn(CompletableFuture.completedFuture(2));
+        when(kafkaTestCluster.getActiveBrokerCount()).thenReturn(CompletableFuture.completedFuture(5));
 
         when(kafkaClusters.getEnvironment("test")).thenReturn(Optional.of(kafkaTestCluster));
 
@@ -94,6 +95,8 @@ public class TopicServiceImplTest {
 
         when(topicConfig.getMaxPartitionCount()).thenReturn(10);
         when(topicConfig.getDefaultPartitionCount()).thenReturn(6);
+        when(topicConfig.getStandardReplicationFactor()).thenReturn(2);
+        when(topicConfig.getCriticalReplicationFactor()).thenReturn(4);
     }
 
     @Test
@@ -128,7 +131,6 @@ public class TopicServiceImplTest {
 
         assertEquals("topic-1", createInvs.get(0).getArgument(0));
         TopicCreateParams params = createInvs.get(0).getArgument(1);
-        // replication factor must be 2, as we do not have three brokers
         assertEquals(2, params.getReplicationFactor());
         assertEquals(8, params.getNumberOfPartitions());
         assertEquals("some.value", params.getTopicConfigs().get("some.property"));
@@ -163,6 +165,67 @@ public class TopicServiceImplTest {
 
         // must be set to default partitions (see feedMocks)
         assertEquals(6, params.getNumberOfPartitions());
+    }
+
+    @Test
+    public void testCreateTopic_criticalReplicationFactor() throws Exception {
+        List<InvocationOnMock> createInvs = new ArrayList<>();
+
+        when(kafkaTestCluster.createTopic(any(), any())).then(inv -> {
+            createInvs.add(inv);
+            return FutureUtil.noop();
+        });
+
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
+                topicConfig, eventManager);
+
+        TopicMetadata topic1 = new TopicMetadata();
+        topic1.setName("topic-1");
+        topic1.setDescription("Desc");
+        topic1.setOwnerApplicationId("app-1");
+        topic1.setType(TopicType.EVENTS);
+        topic1.setCriticality(Criticality.CRITICAL);
+
+        service.createTopic("test", topic1, 3, Map.of()).get();
+
+        assertEquals(1, createInvs.size());
+
+        TopicCreateParams params = createInvs.get(0).getArgument(1);
+
+        // must be set to configured critical replication factor
+        assertEquals(4, params.getReplicationFactor());
+    }
+
+    @Test
+    public void testCreateTopic_replicationFactor_downToNumBrokers() throws Exception {
+        List<InvocationOnMock> createInvs = new ArrayList<>();
+
+        // 6 is more than the 5 brokers we have, so should be downed to 5
+        when(topicConfig.getCriticalReplicationFactor()).thenReturn(6);
+
+        when(kafkaTestCluster.createTopic(any(), any())).then(inv -> {
+            createInvs.add(inv);
+            return FutureUtil.noop();
+        });
+
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
+                topicConfig, eventManager);
+
+        TopicMetadata topic1 = new TopicMetadata();
+        topic1.setName("topic-1");
+        topic1.setDescription("Desc");
+        topic1.setOwnerApplicationId("app-1");
+        topic1.setType(TopicType.EVENTS);
+        topic1.setCriticality(Criticality.CRITICAL);
+
+        service.createTopic("test", topic1, 3, Map.of()).get();
+
+        assertEquals(1, createInvs.size());
+
+        TopicCreateParams params = createInvs.get(0).getArgument(1);
+
+        // must be equal to number of brokers, as higher is not allowed
+        assertEquals(5, params.getReplicationFactor());
     }
 
     @Test
