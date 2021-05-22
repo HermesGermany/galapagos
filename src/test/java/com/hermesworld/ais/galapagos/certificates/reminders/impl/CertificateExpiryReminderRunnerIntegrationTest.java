@@ -1,13 +1,13 @@
-package com.hermesworld.ais.galapagos.reminders.impl;
+package com.hermesworld.ais.galapagos.certificates.reminders.impl;
 
 import com.hermesworld.ais.galapagos.applications.ApplicationMetadata;
 import com.hermesworld.ais.galapagos.applications.ApplicationOwnerRequest;
 import com.hermesworld.ais.galapagos.applications.ApplicationsService;
 import com.hermesworld.ais.galapagos.applications.RequestState;
+import com.hermesworld.ais.galapagos.certificates.reminders.CertificateExpiryReminder;
+import com.hermesworld.ais.galapagos.certificates.reminders.CertificateExpiryReminderService;
+import com.hermesworld.ais.galapagos.certificates.reminders.ReminderType;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
-import com.hermesworld.ais.galapagos.reminders.CertificateExpiryReminder;
-import com.hermesworld.ais.galapagos.reminders.CertificateExpiryReminderService;
-import com.hermesworld.ais.galapagos.reminders.ReminderType;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

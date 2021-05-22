@@ -1,7 +1,7 @@
-package com.hermesworld.ais.galapagos.reminders.impl;
+package com.hermesworld.ais.galapagos.certificates.reminders.impl;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.hermesworld.ais.galapagos.reminders.ReminderType;
+import com.hermesworld.ais.galapagos.certificates.reminders.ReminderType;
 import com.hermesworld.ais.galapagos.util.HasKey;
 import lombok.Getter;
 import lombok.Setter;

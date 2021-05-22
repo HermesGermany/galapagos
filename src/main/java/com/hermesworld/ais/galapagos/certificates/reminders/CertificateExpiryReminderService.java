@@ -1,4 +1,4 @@
-package com.hermesworld.ais.galapagos.reminders;
+package com.hermesworld.ais.galapagos.certificates.reminders;
 
 import java.util.List;
 

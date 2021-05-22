@@ -1,21 +1,21 @@
-package com.hermesworld.ais.galapagos.reminders.impl;
+package com.hermesworld.ais.galapagos.certificates.reminders.impl;
+
+import com.hermesworld.ais.galapagos.applications.ApplicationsService;
+import com.hermesworld.ais.galapagos.certificates.reminders.CertificateExpiryReminder;
+import com.hermesworld.ais.galapagos.certificates.reminders.CertificateExpiryReminderService;
+import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
+import com.hermesworld.ais.galapagos.notifications.NotificationParams;
+import com.hermesworld.ais.galapagos.notifications.NotificationService;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
 
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-
-import com.hermesworld.ais.galapagos.applications.ApplicationsService;
-import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
-import com.hermesworld.ais.galapagos.notifications.NotificationParams;
-import com.hermesworld.ais.galapagos.notifications.NotificationService;
-import com.hermesworld.ais.galapagos.reminders.CertificateExpiryReminder;
-import com.hermesworld.ais.galapagos.reminders.CertificateExpiryReminderService;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
 
 /**
  * Scheduling component which checks every six hours for new certificate expiry notifications to be sent (first check is

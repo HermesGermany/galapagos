@@ -1,4 +1,15 @@
-package com.hermesworld.ais.galapagos.reminders.impl;
+package com.hermesworld.ais.galapagos.certificates.reminders.impl;
+
+import com.hermesworld.ais.galapagos.applications.ApplicationMetadata;
+import com.hermesworld.ais.galapagos.applications.ApplicationsService;
+import com.hermesworld.ais.galapagos.certificates.reminders.CertificateExpiryReminder;
+import com.hermesworld.ais.galapagos.certificates.reminders.ReminderType;
+import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
+import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
+import com.hermesworld.ais.galapagos.kafka.impl.TopicBasedRepositoryMock;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -6,16 +17,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import com.hermesworld.ais.galapagos.applications.ApplicationMetadata;
-import com.hermesworld.ais.galapagos.applications.ApplicationsService;
-import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
-import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
-import com.hermesworld.ais.galapagos.kafka.impl.TopicBasedRepositoryMock;
-import com.hermesworld.ais.galapagos.reminders.CertificateExpiryReminder;
-import com.hermesworld.ais.galapagos.reminders.ReminderType;
 import static org.junit.Assert.*;
-import org.junit.Before;
-import org.junit.Test;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -72,7 +74,7 @@ public class CertificateExpiryReminderServiceTest {
         assertEquals(1, reminders.size());
         assertEquals("123", reminders.get(0).getApplicationId());
         assertEquals("test", reminders.get(0).getEnvironmentId());
-        assertEquals(ReminderType.THREE_MONTHS, reminders.get(0).getReminderType());
+        Assert.assertEquals(ReminderType.THREE_MONTHS, reminders.get(0).getReminderType());
     }
 
     @Test

@@ -1,22 +1,23 @@
-package com.hermesworld.ais.galapagos.reminders.impl;
+package com.hermesworld.ais.galapagos.certificates.reminders.impl;
+
+import com.hermesworld.ais.galapagos.applications.ApplicationMetadata;
+import com.hermesworld.ais.galapagos.applications.ApplicationsService;
+import com.hermesworld.ais.galapagos.certificates.reminders.CertificateExpiryReminder;
+import com.hermesworld.ais.galapagos.certificates.reminders.CertificateExpiryReminderService;
+import com.hermesworld.ais.galapagos.certificates.reminders.ReminderType;
+import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
+import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
+import com.hermesworld.ais.galapagos.kafka.config.KafkaEnvironmentConfig;
+import com.hermesworld.ais.galapagos.kafka.util.InitPerCluster;
+import com.hermesworld.ais.galapagos.kafka.util.TopicBasedRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
-
-import com.hermesworld.ais.galapagos.applications.ApplicationMetadata;
-import com.hermesworld.ais.galapagos.applications.ApplicationsService;
-import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
-import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
-import com.hermesworld.ais.galapagos.kafka.util.InitPerCluster;
-import com.hermesworld.ais.galapagos.kafka.util.TopicBasedRepository;
-import com.hermesworld.ais.galapagos.reminders.CertificateExpiryReminder;
-import com.hermesworld.ais.galapagos.reminders.CertificateExpiryReminderService;
-import com.hermesworld.ais.galapagos.reminders.ReminderType;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 @Service
 public class CertificateExpiryReminderServiceImpl implements CertificateExpiryReminderService, InitPerCluster {
@@ -45,6 +46,10 @@ public class CertificateExpiryReminderServiceImpl implements CertificateExpiryRe
         Instant now = Instant.now();
 
         for (KafkaCluster cluster : kafkaClusters.getEnvironments()) {
+            KafkaEnvironmentConfig envMeta = kafkaClusters.getEnvironmentMetadata(cluster.getId()).orElse(null);
+            if (envMeta == null || !"certificates".equals(envMeta.getAuthenticationMode())) {
+                continue;
+            }
             List<ApplicationMetadata> allMetadata = applicationsService.getAllApplicationMetadata(cluster.getId());
 
             Collection<ReminderMetadata> sentReminders = getRepository(cluster).getObjects();
