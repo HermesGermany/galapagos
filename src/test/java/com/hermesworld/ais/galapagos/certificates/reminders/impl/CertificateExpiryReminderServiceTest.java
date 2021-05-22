@@ -6,16 +6,16 @@ import com.hermesworld.ais.galapagos.certificates.reminders.CertificateExpiryRem
 import com.hermesworld.ais.galapagos.certificates.reminders.ReminderType;
 import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
+import com.hermesworld.ais.galapagos.kafka.config.KafkaEnvironmentConfig;
 import com.hermesworld.ais.galapagos.kafka.impl.TopicBasedRepositoryMock;
+import org.json.JSONObject;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
@@ -39,9 +39,13 @@ public class CertificateExpiryReminderServiceTest {
 
         when(cluster.getId()).thenReturn("test");
 
+        KafkaEnvironmentConfig envMeta = mock(KafkaEnvironmentConfig.class);
+        when(envMeta.getAuthenticationMode()).thenReturn("certificates");
+
         when(clusters.getEnvironmentIds()).thenReturn(List.of("test"));
         when(clusters.getEnvironment("test")).thenReturn(Optional.of(cluster));
         when(clusters.getEnvironments()).thenCallRealMethod();
+        when(clusters.getEnvironmentMetadata("test")).thenReturn(Optional.of(envMeta));
 
         when(cluster.getRepository("reminders", ReminderMetadata.class)).thenReturn(reminderRepository);
 
@@ -52,8 +56,7 @@ public class CertificateExpiryReminderServiceTest {
     public void testNoReminder() {
         ApplicationMetadata metadata = new ApplicationMetadata();
         metadata.setApplicationId("123");
-        metadata.setCertificateExpiresAt(ZonedDateTime.now().plusDays(365));
-        metadata.setDn("CN=abc");
+        metadata.setAuthenticationJson(authJson("CN=abc", 365));
 
         when(applicationsService.getAllApplicationMetadata("test")).thenReturn(List.of(metadata));
 
@@ -65,8 +68,7 @@ public class CertificateExpiryReminderServiceTest {
     public void testSimpleCase() {
         ApplicationMetadata metadata = new ApplicationMetadata();
         metadata.setApplicationId("123");
-        metadata.setCertificateExpiresAt(ZonedDateTime.now().plusDays(40));
-        metadata.setDn("CN=abc");
+        metadata.setAuthenticationJson(authJson("CN=abc", 40));
 
         when(applicationsService.getAllApplicationMetadata("test")).thenReturn(List.of(metadata));
 
@@ -81,8 +83,7 @@ public class CertificateExpiryReminderServiceTest {
     public void testMultipleCallsWithoutMarkMustReturnSameReminders() {
         ApplicationMetadata metadata = new ApplicationMetadata();
         metadata.setApplicationId("123");
-        metadata.setCertificateExpiresAt(ZonedDateTime.now().plusDays(40));
-        metadata.setDn("CN=abc");
+        metadata.setAuthenticationJson(authJson("CN=abc", 40));
 
         when(applicationsService.getAllApplicationMetadata("test")).thenReturn(List.of(metadata));
 
@@ -99,14 +100,12 @@ public class CertificateExpiryReminderServiceTest {
         List<ApplicationMetadata> applications = new ArrayList<>();
         ApplicationMetadata metadata = new ApplicationMetadata();
         metadata.setApplicationId("123");
-        metadata.setCertificateExpiresAt(ZonedDateTime.now().plusDays(40));
-        metadata.setDn("CN=abc");
+        metadata.setAuthenticationJson(authJson("CN=abc", 40));
         applications.add(metadata);
 
         metadata = new ApplicationMetadata();
         metadata.setApplicationId("456");
-        metadata.setCertificateExpiresAt(ZonedDateTime.now().plusDays(10));
-        metadata.setDn("CN=def");
+        metadata.setAuthenticationJson(authJson("CN=def", 10));
         applications.add(metadata);
 
         when(applicationsService.getAllApplicationMetadata("test")).thenReturn(applications);
@@ -127,8 +126,7 @@ public class CertificateExpiryReminderServiceTest {
         List<ApplicationMetadata> applications = new ArrayList<>();
         ApplicationMetadata metadata = new ApplicationMetadata();
         metadata.setApplicationId("123");
-        metadata.setCertificateExpiresAt(ZonedDateTime.now().plusDays(5));
-        metadata.setDn("CN=abc");
+        metadata.setAuthenticationJson(authJson("CN=abc", 5));
         applications.add(metadata);
 
         ReminderMetadata shortReminder = new ReminderMetadata();
@@ -149,8 +147,7 @@ public class CertificateExpiryReminderServiceTest {
     public void testMultipleEnvironmentsWithExpiredEach() {
         ApplicationMetadata metadata = new ApplicationMetadata();
         metadata.setApplicationId("123");
-        metadata.setCertificateExpiresAt(ZonedDateTime.now().plusDays(5));
-        metadata.setDn("CN=abc");
+        metadata.setAuthenticationJson(authJson("CN=abc", 5));
 
         when(applicationsService.getAllApplicationMetadata("test")).thenReturn(List.of(metadata));
 
@@ -159,11 +156,13 @@ public class CertificateExpiryReminderServiceTest {
         when(env2.getRepository("reminders", ReminderMetadata.class)).thenReturn(new TopicBasedRepositoryMock<>());
         when(clusters.getEnvironment("test2")).thenReturn(Optional.of(env2));
         when(clusters.getEnvironmentIds()).thenReturn(Arrays.asList("test", "test2"));
+        KafkaEnvironmentConfig envMeta = mock(KafkaEnvironmentConfig.class);
+        when(envMeta.getAuthenticationMode()).thenReturn("certificates");
+        when(clusters.getEnvironmentMetadata("test2")).thenReturn(Optional.of(envMeta));
 
         metadata = new ApplicationMetadata();
         metadata.setApplicationId("123");
-        metadata.setCertificateExpiresAt(ZonedDateTime.now().plusDays(40));
-        metadata.setDn("CN=abc");
+        metadata.setAuthenticationJson(authJson("CN=abc", 40));
 
         when(applicationsService.getAllApplicationMetadata("test2")).thenReturn(List.of(metadata));
 
@@ -187,8 +186,7 @@ public class CertificateExpiryReminderServiceTest {
         List<ApplicationMetadata> applications = new ArrayList<>();
         ApplicationMetadata metadata = new ApplicationMetadata();
         metadata.setApplicationId("123");
-        metadata.setCertificateExpiresAt(ZonedDateTime.now().plusDays(5));
-        metadata.setDn("CN=abc");
+        metadata.setAuthenticationJson(authJson("CN=abc", 5));
         applications.add(metadata);
 
         when(applicationsService.getAllApplicationMetadata("test")).thenReturn(applications);
@@ -202,8 +200,7 @@ public class CertificateExpiryReminderServiceTest {
         applications = new ArrayList<>();
         metadata = new ApplicationMetadata();
         metadata.setApplicationId("123");
-        metadata.setCertificateExpiresAt(ZonedDateTime.now().plusDays(120));
-        metadata.setDn("CN=abc");
+        metadata.setAuthenticationJson(authJson("CN=abc", 120));
         applications.add(metadata);
 
         when(applicationsService.getAllApplicationMetadata("test2")).thenReturn(applications);
@@ -215,6 +212,11 @@ public class CertificateExpiryReminderServiceTest {
 
         assertEquals("test", rem.getEnvironmentId());
         assertEquals(ReminderType.ONE_WEEK, rem.getReminderType());
+    }
+
+    private static String authJson(String dn, int daysFromNow) {
+        return new JSONObject(
+                Map.of("dn", dn, "expiresAt", Instant.now().plus(daysFromNow, ChronoUnit.DAYS).toString())).toString();
     }
 
 }
