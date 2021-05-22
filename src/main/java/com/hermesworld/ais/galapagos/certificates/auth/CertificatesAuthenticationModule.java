@@ -19,6 +19,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.GeneralSecurityException;
 import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
@@ -34,6 +35,8 @@ public class CertificatesAuthenticationModule implements KafkaAuthenticationModu
     private String truststoreFile;
 
     private String truststorePassword;
+
+    private final static String EXPIRES_AT = "expiresAt";
 
     public CertificatesAuthenticationModule(String environmentId, CertificatesAuthenticationConfig config) {
         this.environmentId = environmentId;
@@ -188,6 +191,13 @@ public class CertificatesAuthenticationModule implements KafkaAuthenticationModu
 
     private JSONObject toAuthJson(CertificateSignResult result) {
         Instant expiresAt = Instant.ofEpochMilli(result.getCertificate().getNotAfter().getTime());
-        return new JSONObject(Map.of("dn", result.getDn(), "expiresAt", expiresAt));
+        return new JSONObject(Map.of("dn", result.getDn(), EXPIRES_AT, expiresAt.toString()));
+    }
+
+    public static Instant getExpiresAtFromJson(JSONObject authData) {
+        if (authData.has(EXPIRES_AT)) {
+            return Instant.from(DateTimeFormatter.ISO_INSTANT.parse(authData.getString(EXPIRES_AT)));
+        }
+        return null;
     }
 }
