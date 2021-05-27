@@ -223,9 +223,9 @@ public class UISupportController {
         return new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    private static String readConfigTemplate(String name) throws IOException {
+    private static String readConfigTemplate(String framework, String authenticationType) throws IOException {
         try (InputStream in = UISupportController.class.getClassLoader()
-                .getResourceAsStream("configtemplates/" + name)) {
+                .getResourceAsStream("configtemplates/" + framework + "." + authenticationType + ".template.yaml")) {
             return StreamUtils.copyToString(in, StandardCharsets.UTF_8);
         }
     }
@@ -241,7 +241,7 @@ public class UISupportController {
         }
 
         try {
-            return readConfigTemplate("spring.yaml.template").replace("${bootstrap.servers}",
+            return readConfigTemplate("spring", config.getAuthenticationMode()).replace("${bootstrap.servers}",
                     config.getBootstrapServers());
         }
         catch (IOException e) {
@@ -259,7 +259,7 @@ public class UISupportController {
         String[] bootstrapServers = config.getBootstrapServers().split(",");
 
         try {
-            String configFile = readConfigTemplate("micronaut.yaml.template");
+            String configFile = readConfigTemplate("micronaut", config.getAuthenticationMode());
             StringBuilder sbOut = new StringBuilder();
 
             String[] lines = configFile.split("\\r?\\n");
