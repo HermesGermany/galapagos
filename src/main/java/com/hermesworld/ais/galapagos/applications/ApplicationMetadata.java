@@ -7,7 +7,6 @@ import com.hermesworld.ais.galapagos.util.HasKey;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,11 +17,6 @@ import java.util.List;
 public class ApplicationMetadata implements HasKey, ApplicationPrefixes {
 
     private String applicationId;
-
-    private String dn;
-
-    // TODO should be Instant
-    private ZonedDateTime certificateExpiresAt;
 
     private List<String> consumerGroupPrefixes = new ArrayList<>();
 
@@ -39,8 +33,6 @@ public class ApplicationMetadata implements HasKey, ApplicationPrefixes {
 
     public ApplicationMetadata(ApplicationMetadata original) {
         this.applicationId = original.applicationId;
-        this.dn = original.dn;
-        this.certificateExpiresAt = original.certificateExpiresAt;
         this.consumerGroupPrefixes = List.copyOf(original.consumerGroupPrefixes);
         this.topicPrefix = original.topicPrefix;
         this.internalTopicPrefixes = List.copyOf(original.consumerGroupPrefixes);
@@ -53,13 +45,4 @@ public class ApplicationMetadata implements HasKey, ApplicationPrefixes {
         return applicationId;
     }
 
-    @Deprecated
-    public String getDn() {
-        return dn;
-    }
-
-    @Deprecated
-    public ZonedDateTime getCertificateExpiresAt() {
-        return certificateExpiresAt;
-    }
 }

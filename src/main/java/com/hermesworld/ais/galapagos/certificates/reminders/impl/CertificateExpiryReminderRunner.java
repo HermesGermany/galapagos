@@ -1,16 +1,25 @@
 package com.hermesworld.ais.galapagos.certificates.reminders.impl;
 
+import com.hermesworld.ais.galapagos.applications.ApplicationMetadata;
 import com.hermesworld.ais.galapagos.applications.ApplicationsService;
+import com.hermesworld.ais.galapagos.certificates.auth.CertificatesAuthenticationModule;
 import com.hermesworld.ais.galapagos.certificates.reminders.CertificateExpiryReminder;
 import com.hermesworld.ais.galapagos.certificates.reminders.CertificateExpiryReminderService;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.notifications.NotificationParams;
 import com.hermesworld.ais.galapagos.notifications.NotificationService;
 import lombok.extern.slf4j.Slf4j;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
+import java.time.DateTimeException;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Locale;
@@ -33,14 +42,17 @@ public class CertificateExpiryReminderRunner {
 
     private final KafkaClusters kafkaClusters;
 
+    private final String timezone;
+
     @Autowired
     public CertificateExpiryReminderRunner(CertificateExpiryReminderService reminderService,
             NotificationService notificationService, ApplicationsService applicationsService,
-            KafkaClusters kafkaClusters) {
+            KafkaClusters kafkaClusters, @Value("${galapagos.timezone:GMT}") String timezone) {
         this.reminderService = reminderService;
         this.notificationService = notificationService;
         this.applicationsService = applicationsService;
         this.kafkaClusters = kafkaClusters;
+        this.timezone = timezone;
     }
 
     /**
@@ -85,7 +97,30 @@ public class CertificateExpiryReminderRunner {
 
     private ZonedDateTime getDateOfExpiry(String applicationId, String environmentId) {
         return applicationsService.getApplicationMetadata(environmentId, applicationId)
-                .map(meta -> meta.getCertificateExpiresAt()).orElse(null);
+                .map(meta -> getDateOfExpiry(meta)).orElse(null);
+    }
+
+    private ZonedDateTime getDateOfExpiry(ApplicationMetadata metadata) {
+        if (StringUtils.isEmpty(metadata.getAuthenticationJson())) {
+            return null;
+        }
+        ZoneId tz;
+        try {
+            tz = ZoneId.of(timezone);
+        }
+        catch (DateTimeException e) {
+            tz = ZoneId.of("Z");
+        }
+
+        try {
+            Instant expAt = CertificatesAuthenticationModule
+                    .getExpiresAtFromJson(new JSONObject(metadata.getAuthenticationJson()));
+            return expAt == null ? null : ZonedDateTime.ofInstant(expAt, tz);
+        }
+        catch (JSONException e) {
+            log.error("Invalid Authentication JSON for application ID " + metadata.getApplicationId());
+            return null;
+        }
     }
 
 }

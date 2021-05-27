@@ -100,7 +100,6 @@ public class ApplicationsControllerTest {
 
         ApplicationMetadata appMetadata = new ApplicationMetadata();
         appMetadata.setApplicationId("app-1");
-        appMetadata.setDn("cn=app1");
         appMetadata.setInternalTopicPrefixes(List.of("app1.internal."));
 
         when(topicService.listTopics("dev")).thenReturn(List.of(topic1, topic2));

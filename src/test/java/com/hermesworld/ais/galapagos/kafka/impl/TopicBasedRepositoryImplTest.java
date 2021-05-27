@@ -1,20 +1,22 @@
 package com.hermesworld.ais.galapagos.kafka.impl;
 
-import java.time.Duration;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
-
 import com.hermesworld.ais.galapagos.applications.ApplicationMetadata;
 import com.hermesworld.ais.galapagos.kafka.KafkaSender;
 import com.hermesworld.ais.galapagos.util.FutureUtil;
 import com.hermesworld.ais.galapagos.util.JsonUtil;
 import org.json.JSONObject;
 import org.junit.After;
-import static org.junit.Assert.*;
 import org.junit.Test;
+
+import java.time.Duration;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
+
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -39,7 +41,7 @@ public class TopicBasedRepositoryImplTest {
 
         ApplicationMetadata metadata = new ApplicationMetadata();
         metadata.setApplicationId("app-1");
-        metadata.setDn("CN=app1");
+        metadata.setAuthenticationJson(new JSONObject(Map.of("dn", "CN=app1")).toString());
         JSONObject val = new JSONObject(JsonUtil.newObjectMapper().writeValueAsString(metadata));
         JSONObject obj = new JSONObject();
         obj.put("obj", val);
@@ -47,7 +49,8 @@ public class TopicBasedRepositoryImplTest {
         repository.messageReceived("galapagos.testtopic", "app-1", obj.toString());
         assertEquals(1, repository.getObjects().size());
         assertTrue(repository.containsObject("app-1"));
-        assertEquals("CN=app1", repository.getObject("app-1").orElseThrow().getDn());
+        assertEquals("CN=app1",
+                new JSONObject(repository.getObject("app-1").orElseThrow().getAuthenticationJson()).getString("dn"));
     }
 
     @Test

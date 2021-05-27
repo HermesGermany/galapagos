@@ -8,6 +8,7 @@ import com.hermesworld.ais.galapagos.certificates.reminders.CertificateExpiryRem
 import com.hermesworld.ais.galapagos.certificates.reminders.CertificateExpiryReminderService;
 import com.hermesworld.ais.galapagos.certificates.reminders.ReminderType;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
+import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -22,12 +23,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 import java.io.ByteArrayInputStream;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -77,7 +73,7 @@ public class CertificateExpiryReminderRunnerIntegrationTest {
 
         ApplicationMetadata metadata = new ApplicationMetadata();
         metadata.setApplicationId("123");
-        metadata.setCertificateExpiresAt(ZonedDateTime.of(2020, 11, 10, 10, 20, 0, 0, ZoneId.of("CET")));
+        metadata.setAuthenticationJson(new JSONObject(Map.of("expiresAt", "2020-11-10T10:20:00.000Z")).toString());
         when(applicationsService.getApplicationMetadata("test", "123")).thenReturn(Optional.of(metadata));
     }
 
