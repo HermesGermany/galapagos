@@ -1,9 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { routerTransition } from '../../router.animations';
 import { ApplicationInfo, ApplicationOwnerRequest, ApplicationsService } from '../../shared/services/applications.service';
-import { combineLatest, Observable } from 'rxjs';
+import { combineLatest, Observable, of } from 'rxjs';
 
-import { map } from 'rxjs/operators';
+import { map, take } from 'rxjs/operators';
 import { KeycloakService } from 'keycloak-angular';
 import { SortEvent } from './sortable.directive';
 import { toNiceTimestamp } from 'src/app/shared/util/time-util';
@@ -16,7 +16,7 @@ interface TranslatedApplicationOwnerRequest extends ApplicationOwnerRequest {
 // TODO I think this could be moved to applicationService
 const translateApps: (requests: ApplicationOwnerRequest[], apps: ApplicationInfo[]) => TranslatedApplicationOwnerRequest[] =
     (requests, apps) => {
-        const appMap = { };
+        const appMap = {};
         apps.forEach(app => appMap[app.id] = app);
         return requests.map(req => appMap[req.applicationId] ? { ...req, applicationName: appMap[req.applicationId].name || req.id,
             applicationInfoUrl: appMap[req.applicationId].infoUrl } : req);
@@ -66,8 +66,15 @@ export class AdminComponent implements OnInit {
         return this.applicationsService.updateApplicationOwnerRequest(request.id, newStatus);
     }
 
-    onSort({ column, direction }: SortEvent) {
-        // TODO
+    async onSort({ column, direction }: SortEvent) {
+        const requests = await this.allRequests.pipe(take(1)).toPromise();
+        if (direction === 'asc') {
+            this.allRequests = of(requests.sort((a, b) => a[column] < b[column] ? 1 : a[column] > b[column] ? -1 : 0));
+        }
+        if (direction === 'desc') {
+            this.allRequests = of(requests.sort((a, b) => a[column] > b[column] ? 1 : a[column] < b[column] ? -1 : 0));
+        }
+
     }
 
     lastChangeTitle(request: TranslatedApplicationOwnerRequest): string {
@@ -93,4 +100,5 @@ export class AdminComponent implements OnInit {
     escapeHtml(source: string) {
         return String(source).replace(/[&<>"'\/]/g, s => entityMap[s]);
     }
+
 }
