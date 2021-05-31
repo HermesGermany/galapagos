@@ -138,7 +138,9 @@
     "Subscriptions of this topic require approval": "Abonnements auf dieses Topic erfordern eine Freigabe",
     "Confirm Subscription Cancellation": "Abbruch des Abonnements bestätigen",
     "Cancel Subscription": "Abonnement abbrechen",
+    "Confirm Unsubscription": "Deabonnement bestätigen",
     "REJECT_CONFIRM_DLG_HTML": "Achtung! Wenn Du dieses Abonnement abbrichst, kann die Anwendung <b>{{clientApplicationName}}</b> auf dieser Umgebung nicht mehr auf dieses Topic zugreifen. Das kann die Anwendung in ihrer Funktionsweise stören, bin hin zum <b>Komplettausfall</b>. Du solltest dies nur tun, wenn <b>gewichtige Gründe der Datensicherheit</b> hierfür sprechen. Besser ist es, Kontakt mit dem Anwendungsteam aufzunehmen und diese das Abonnement kontrolliert kündigen zu lassen.<br><br>Das Anwendungsteam wird über den Abbruch ihres Abonnements informiert.",
+    "UNSUBSCRIBE_CONFIRM_DLG_HTML": "Achtung! Wenn Du dieses Abonnement abbrichst, kann die Anwendung <b>{{clientApplicationName}}</b> auf dieser Umgebung nicht mehr auf dieses Topic zugreifen. Das kann die Anwendung in ihrer Funktionsweise stören, bin hin zum <b>Komplettausfall</b>. Du solltest dies nur tun, wenn du dir wirklich sicher bist, dass deine Anwendung aus diesem Topic keine Daten mehr lesen muss.",
     "Copied!": "Kopiert!",
     "SUBSCRIPTION_DESCRIPTION_LABEL": "Beschreibung (z.B. Zweck der Nutzung)",
     "Kafka Access Rights": "Kafka-Berechtigungen",
@@ -162,5 +164,6 @@
     "TOPIC_SETTINGS_INTRO_HTML": "Hier kannst du weitere Einstellungen für dein Topic vornehmen. Auf Basis dieser Informationen werden entsprechende Kafka-Einstellungen für dein Topic vorgenommen, die du später aber am Topic anpassen kannst.",
     "CLEANUP_STRATEGY_TEXT_HTML": "Bitte wähle hier die sogenannte \"Cleanup-Strategie\" für dein Topic aus. \"Log Compaction\" sorgt dafür, dass zu jedem vorhandenen Key im Topic <b>mindestens</b> der neueste Wert dauerhaft vorhanden bleibt. \"Deletion\" löscht Datensätze auf dem Topic, wenn sie ein gewisses Alter erreicht haben. <br>Du kannst beide Strategien auch <b>kombinieren</b>, so dass Datensätze zunächst \"compacted\", dann irgendwann aber auch \"deleted\" werden. <br>\n<a href=\"https://kafka.apache.org/documentation/#compaction\">Kafka Log Compaction Dokumentation</a>",
     "CRITICALITY_TEXT_HTML": "Bitte gib hier die Kritikalität der Inhalte des Topics an, die auf die <b>Produktion</b> zutrifft. Auch \"normale\" Topics werden bereits repliziert (auf mehreren Brokern redundant gehalten). \"Kritische\" Topics werden <b>dreifach</b> redundant gehalten, so dass eine noch höhere Sicherheit im Falle des Ausfalls einzelner Kafka-Broker besteht.",
-    "SIZE_ESTIMATION_TEXT_HTML": "Schätze hier bitte Menge und Größe der zu erwartenden Datensätze auf dem Topic (in <b>Produktion</b>) ab. Dies wird aktuell <b>nicht</b> für Optimierungen der Kafka-Einstellungen genutzt, dient jedoch dem Betrieb als Indikator für eventuelle nötige Kapazitätserweiterungen."
+    "SIZE_ESTIMATION_TEXT_HTML": "Schätze hier bitte Menge und Größe der zu erwartenden Datensätze auf dem Topic (in <b>Produktion</b>) ab. Dies wird aktuell <b>nicht</b> für Optimierungen der Kafka-Einstellungen genutzt, dient jedoch dem Betrieb als Indikator für eventuelle nötige Kapazitätserweiterungen.",
+    "Close": "Schließen"
 }

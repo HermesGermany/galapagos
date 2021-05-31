@@ -139,7 +139,6 @@ export class TopicMetadataTableComponent implements OnInit {
     }
 
     async unsubscribe(subscription: TopicSubscription): Promise<any> {
-        // TODO confirmation box!
         const environment = await this.environmentsService.getCurrentEnvironment().pipe(take(1)).toPromise();
 
         return this.topicService.unsubscribeFromTopic(environment.id, subscription.clientApplication.id, subscription.id).then(
@@ -159,7 +158,6 @@ export class TopicMetadataTableComponent implements OnInit {
         this.selectedSubscription = subscription;
         this.modalService.open(content, { ariaLabelledBy: 'modal-title', size: 'lg' });
     }
-
 
     private async updateSubscription(sub: TopicSubscription, approve: boolean, successMessage: string, errorMessage: string) {
         const environment = await this.environmentsService.getCurrentEnvironment().pipe(take(1)).toPromise();
