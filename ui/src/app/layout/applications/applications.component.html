@@ -120,6 +120,10 @@
                                 (click)="d.while(generateApiKey())">
                             <i class="fas fa-key"></i>&nbsp;{{ 'Generate API Key' | translate }}
                         </button>
+                        <div *ngIf="apiKeyRequestError" class="alert alert-danger mb-4 mt-3">
+                            <span><b>{{'API_KEY_REQUEST_FAILED' | translate}}:</b>
+                                {{ apiKeyRequestError | json }}</span>
+                        </div>
                     </div>
                     <div *ngIf="showApiKeyTable">
                         <ngb-alert [innerHTML]="'SAVE_KEY_WARNING' | translate" [dismissible]="false">

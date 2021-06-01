@@ -75,6 +75,8 @@ export class ApplicationsComponent implements OnInit {
 
     currentLang: Observable<string>;
 
+    apiKeyRequestError: any;
+
     constructor(
         private modalService: NgbModal,
         private applicationsService: ApplicationsService,
@@ -186,7 +188,11 @@ export class ApplicationsComponent implements OnInit {
                         this.showApiKeyTable = true;
                         this.toasts.addSuccessToast('API Key erfolgreich erstellt');
                     },
-                    (err: HttpErrorResponse) => this.toasts.addHttpErrorToast('API Key konnte nicht erstellt werden', err))
+                    (err: HttpErrorResponse) => {
+                        this.apiKeyRequestError = err;
+                        this.toasts.addHttpErrorToast('API Key konnte nicht erstellt werden', err);
+                    }
+                )
                 .then(() => this.apiKeyService.getApplicationApiKeys(appId).refresh());
         }
     }
@@ -194,6 +200,7 @@ export class ApplicationsComponent implements OnInit {
     handleDlgDismiss(): void {
         this.showApiKeyTable = false;
         this.secret = null;
+        this.apiKeyRequestError = null;
 
     }
 
