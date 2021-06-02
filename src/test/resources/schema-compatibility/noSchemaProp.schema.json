@@ -1,0 +1,165 @@
+{
+  "$id": "http://example.com/example.json",
+  "type": "object",
+  "title": "The root schema",
+  "description": "The root schema comprises the entire JSON document.",
+  "default": {},
+  "examples": [
+    {
+      "id": "abcd1234efgh5678ijkl9101112mnop13141516",
+      "source": "/test/test",
+      "specversion": "1.0",
+      "type": "xy.hades.peter.model.v1.PeterSendung",
+      "datacontenttype": "application/json",
+      "time": "2020-07-31T10:38:09.167669Z",
+      "extensions": {},
+      "extensionsFormats": [],
+      "Moin": {
+        "auftragsart": "LOL",
+        "data": {}
+      }
+    }
+  ],
+  "required": [
+    "id",
+    "source",
+    "specversion",
+    "type",
+    "datacontenttype",
+    "time",
+    "extensions",
+    "extensionsFormats",
+    "Moin"
+  ],
+  "properties": {
+    "id": {
+      "$id": "#/properties/id",
+      "type": "string",
+      "title": "The id schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": "",
+      "examples": [
+        "abcd1234efgh5678ijkl9101112mnop13141516"
+      ]
+    },
+    "source": {
+      "$id": "#/properties/source",
+      "type": "string",
+      "title": "The source schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": "",
+      "examples": [
+        "/test/test"
+      ]
+    },
+    "specversion": {
+      "$id": "#/properties/specversion",
+      "type": "string",
+      "title": "The specversion schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": "",
+      "examples": [
+        "1.0"
+      ]
+    },
+    "type": {
+      "$id": "#/properties/type",
+      "type": "string",
+      "title": "The type schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": "",
+      "examples": [
+        "xy.hades.peter.model.v1.PeterSendung"
+      ]
+    },
+    "datacontenttype": {
+      "$id": "#/properties/datacontenttype",
+      "type": "string",
+      "title": "The datacontenttype schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": "",
+      "examples": [
+        "application/json"
+      ]
+    },
+    "time": {
+      "$id": "#/properties/time",
+      "type": "string",
+      "title": "The time schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": "",
+      "examples": [
+        "2020-07-31T10:38:09.167669Z"
+      ]
+    },
+    "extensions": {
+      "$id": "#/properties/extensions",
+      "type": "object",
+      "title": "The extensions schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": {},
+      "examples": [
+        {}
+      ],
+      "required": [],
+      "additionalProperties": true
+    },
+    "extensionsFormats": {
+      "$id": "#/properties/extensionsFormats",
+      "type": "array",
+      "title": "The extensionsFormats schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": [],
+      "examples": [
+        []
+      ],
+      "additionalItems": true,
+      "items": {
+        "$id": "#/properties/extensionsFormats/items"
+      }
+    },
+    "Moin": {
+      "$id": "#/properties/Moin",
+      "type": "object",
+      "title": "The Moin schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": {},
+      "examples": [
+        {
+          "auftragsart": "LOL",
+          "data": {}
+        }
+      ],
+      "required": [
+        "auftragsart",
+        "data"
+      ],
+      "properties": {
+        "auftragsart": {
+          "$id": "#/properties/Moin/properties/auftragsart",
+          "type": "string",
+          "title": "The auftragsart schema",
+          "description": "An explanation about the purpose of this instance.",
+          "default": "",
+          "examples": [
+            "LOL"
+          ]
+        },
+        "data": {
+          "$id": "#/properties/Moin/properties/data",
+          "type": "object",
+          "title": "The data schema",
+          "description": "An explanation about the purpose of this instance.",
+          "default": {},
+          "examples": [
+            {}
+          ],
+          "required": [],
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}
