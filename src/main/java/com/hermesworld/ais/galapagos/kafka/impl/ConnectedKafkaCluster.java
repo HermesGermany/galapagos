@@ -1,12 +1,5 @@
 package com.hermesworld.ais.galapagos.kafka.impl;
 
-import java.time.Duration;
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
 import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
 import com.hermesworld.ais.galapagos.kafka.KafkaUser;
 import com.hermesworld.ais.galapagos.kafka.TopicConfigEntry;
@@ -31,19 +24,26 @@ import org.apache.kafka.common.resource.PatternType;
 import org.apache.kafka.common.resource.ResourcePatternFilter;
 import org.apache.kafka.common.resource.ResourceType;
 
+import java.time.Duration;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
 public class ConnectedKafkaCluster implements KafkaCluster {
 
-    private String environmentId;
+    private final String environmentId;
 
     private AdminClient adminClient;
 
-    private KafkaRepositoryContainer repositoryContainer;
+    private final KafkaRepositoryContainer repositoryContainer;
 
-    private Map<String, TopicBasedRepository<?>> repositories = new ConcurrentHashMap<>();
+    private final Map<String, TopicBasedRepository<?>> repositories = new ConcurrentHashMap<>();
 
-    private KafkaConsumerFactory<String, String> kafkaConsumerFactory;
+    private final KafkaConsumerFactory<String, String> kafkaConsumerFactory;
 
-    private KafkaFutureDecoupler futureDecoupler;
+    private final KafkaFutureDecoupler futureDecoupler;
 
     private static final long MAX_POLL_TIME = Duration.ofSeconds(10).toMillis();
 
@@ -75,7 +75,7 @@ public class ConnectedKafkaCluster implements KafkaCluster {
 
     @Override
     public CompletableFuture<Void> updateUserAcls(KafkaUser user) {
-        List<AclBinding> createAcls = new ArrayList<AclBinding>();
+        List<AclBinding> createAcls = new ArrayList<>();
 
         return getUserAcls(user.getKafkaUserName()).thenCompose(acls -> {
             List<AclBinding> targetAcls = new ArrayList<>(user.getRequiredAclBindings());
@@ -293,8 +293,10 @@ public class ConnectedKafkaCluster implements KafkaCluster {
             return toCompletableFuture(
                     adminClient.describeConfigs(Collections.singleton(new ConfigResource(Type.BROKER, nodeName))).all())
                             .thenApply(map -> map.values().stream()
-                                    .map(config -> config.get("inter.broker.protocol.version").value()).findFirst()
-                                    .map(toVersionString).orElse("UNKNOWN_VERSION"));
+                                    .map(config -> config.get("inter.broker.protocol.version") == null
+                                            ? "UNKNOWN_VERSION"
+                                            : config.get("inter.broker.protocol.version").value())
+                                    .findFirst().map(toVersionString).orElse("UNKNOWN_VERSION"));
         });
     }
 
