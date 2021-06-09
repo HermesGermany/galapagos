@@ -22,8 +22,7 @@ import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
 /**
- * Admin job to generate a "tooling" certificate for one of the Kafka Clusters configured for Galapagos. <br>
- * Such "tooling" certificate is e.g. required for operating the Galapagos LeanIX synchronizer microservice. <br>
+ * Admin job for importing a backup into Galapagos.<br>
  * The job has two parameters:
  * <ul>
  * <li><code>--import.file=<i>&lt;json-file></i> - The name of a file from which the Objects are read and imported into
