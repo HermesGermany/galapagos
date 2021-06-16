@@ -353,10 +353,9 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
         }
 
         JSONObject json = new JSONObject(schemaMetadata.getJsonSchema());
-        Object prop = json.has("$schema") ? json.get("$schema") : null;
-        if (prop == null) {
+        if (!json.has("$schema")) {
             return CompletableFuture.failedFuture(
-                    new IllegalArgumentException("The JSON Schema must declare a \"schema\" object on first level."));
+                    new IllegalArgumentException("The JSON Schema must declare a \"$schema\" value on first level."));
         }
 
         if (newSchema.definesProperty("data")
