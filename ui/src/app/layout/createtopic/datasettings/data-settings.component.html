@@ -5,7 +5,7 @@
     <div class="card-body">
         <p [innerHTML]="'TOPIC_SETTINGS_INTRO_HTML' | translate"></p>
         <div class="form-group">
-            <ngb-accordion #acc="ngbAccordion">
+            <ngb-accordion #acc="ngbAccordion" [activeIds]="['_panel_estimates']">
                 <ngb-panel *ngIf="showSubscriptionApprovalRequired">
                     <ng-template ngbPanelTitle>
                         <span> <i class="fas fa-shield-alt fa-fw mr-1"></i>{{ 'Security Settings' | translate }}</span>
@@ -117,7 +117,7 @@
                         </div>
                     </ng-template>
                 </ngb-panel>
-                <ngb-panel>
+                <ngb-panel [id]="'_panel_estimates'">
                     <ng-template ngbPanelTitle>
                         <span> <i
                             class="fas fa-ruler fa-fw mr-1"></i>{{'Size estimates' | translate}}</span>

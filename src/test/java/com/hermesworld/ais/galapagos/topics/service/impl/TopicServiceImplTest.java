@@ -658,6 +658,31 @@ public class TopicServiceImplTest {
     }
 
     @Test
+    public void testAddSchemaVersion_NoSchemaProp() throws Exception {
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
+                topicConfig, eventManager);
+
+        TopicMetadata topic1 = new TopicMetadata();
+        topic1.setName("topic-1");
+        topic1.setOwnerApplicationId("app-1");
+        topic1.setType(TopicType.EVENTS);
+
+        String testJsonSchema = StreamUtils.copyToString(
+                new ClassPathResource("/schema-compatibility/noSchemaProp.schema.json").getInputStream(),
+                StandardCharsets.UTF_8);
+
+        topicRepository.save(topic1).get();
+
+        try {
+            service.addTopicSchemaVersion("test", "topic-1", testJsonSchema, null).get();
+            fail("addTopicSchemaVersion() should have failed because there is no schema prop in JSON Schema");
+        }
+        catch (ExecutionException e) {
+            assertTrue(e.getCause() instanceof IllegalArgumentException);
+        }
+    }
+
+    @Test
     public void testSetSubscriptionApprovalRequired_positive() throws Exception {
         TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
                 topicConfig, eventManager);
@@ -1087,6 +1112,7 @@ public class TopicServiceImplTest {
         }
 
         JSONObject schema = new JSONObject();
+        schema.put("$schema", "someUrl");
         schema.put("properties", props);
 
         return schema.toString();
