@@ -120,7 +120,7 @@ public class ImportBackupJobTest {
         // then
         job.run(args);
         assertTrue(topicRepository.getObject("de.hlg.events.sales.my-topic-nice").isPresent());
-        assertTrue(topicRepository.getObjects().size() == 2);
+        assertEquals(2, topicRepository.getObjects().size());
 
     }
 
@@ -138,7 +138,7 @@ public class ImportBackupJobTest {
         // then
         job.run(args);
         assertTrue(topicRepository.getObject("de.hlg.events.sales.my-topic-nice").isPresent());
-        assertTrue(topicRepository.getObjects().size() == 1);
+        assertEquals(1, topicRepository.getObjects().size());
 
     }
 
