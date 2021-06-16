@@ -290,13 +290,12 @@ public class ConnectedKafkaCluster implements KafkaCluster {
         return toCompletableFuture(adminClient.describeCluster().nodes()).thenCompose(coll -> {
             String nodeName = coll.iterator().next().idString();
 
-            return toCompletableFuture(
-                    adminClient.describeConfigs(Collections.singleton(new ConfigResource(Type.BROKER, nodeName))).all())
-                            .thenApply(map -> map.values().stream()
-                                    .map(config -> config.get("inter.broker.protocol.version") == null
-                                            ? "UNKNOWN_VERSION"
-                                            : config.get("inter.broker.protocol.version").value())
-                                    .findFirst().map(toVersionString).orElse("UNKNOWN_VERSION"));
+            return toCompletableFuture(adminClient.describeConfigs(
+                    Collections.singleton(new ConfigResource(Type.BROKER, nodeName))).all()).thenApply(map -> map
+                            .values().stream()
+                            .map(config -> config.get("inter.broker.protocol.version") == null ? "UNKNOWN_VERSION"
+                                    : config.get("inter.broker.protocol.version").value())
+                            .findFirst().map(toVersionString).orElse("UNKNOWN_VERSION"));
         });
     }
 
