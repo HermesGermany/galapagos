@@ -14,6 +14,7 @@ import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
@@ -57,15 +58,52 @@ public class ImportBackupJobTest {
     public void importBackupTest() throws Exception {
         // given
         ApplicationArguments args = mock(ApplicationArguments.class);
-        // when
         when(args.getOptionValues("import.file")).thenReturn(Collections.singletonList(testFile.getPath()));
         when(args.getOptionValues("clearRepos")).thenReturn(Collections.singletonList("false"));
         when(testCluster.getRepositories()).thenReturn(Collections.singletonList(topicRepository));
-        // then
+        // when
         job.run(args);
 
+        // then
         assertTrue(topicRepository.getObject("de.hlg.events.sales.my-topic-nice").isPresent());
+    }
 
+    @Test
+    @DisplayName("should not clear non-imported environments")
+    public void importBackup_noClearOnOtherEnv() throws Exception {
+        ApplicationArguments args = mock(ApplicationArguments.class);
+        when(args.getOptionValues("import.file")).thenReturn(Collections.singletonList(testFile.getPath()));
+        when(args.getOptionValues("clearRepos")).thenReturn(Collections.singletonList("true"));
+        when(testCluster.getRepositories()).thenReturn(Collections.singletonList(topicRepository));
+
+        KafkaCluster devCluster = mock(KafkaCluster.class);
+        when(devCluster.getId()).thenReturn("dev");
+        TopicBasedRepositoryMock<TopicMetadata> devRepository = new TopicBasedRepositoryMock<>() {
+            @Override
+            public Class<TopicMetadata> getValueClass() {
+                return TopicMetadata.class;
+            }
+
+            @Override
+            public String getTopicName() {
+                return "topics";
+            }
+
+            @Override
+            public CompletableFuture<Void> delete(TopicMetadata value) {
+                return CompletableFuture.failedFuture(
+                        new UnsupportedOperationException("Should not call delete() on dev environment during import"));
+            }
+        };
+        TopicMetadata meta = new TopicMetadata();
+        meta.setName("devtopic");
+        devRepository.save(meta).get();
+        when(devCluster.getRepositories()).thenReturn(List.of(devRepository));
+
+        when(kafkaClusters.getEnvironment("dev")).thenReturn(Optional.of(devCluster));
+        when(kafkaClusters.getEnvironmentIds()).thenReturn(List.of("dev", "prod"));
+
+        job.run(args);
     }
 
     @Test

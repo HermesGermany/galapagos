@@ -27,9 +27,10 @@ import java.util.concurrent.ExecutionException;
  * <ul>
  * <li><code>--import.file=<i>&lt;json-file></i> - The name of a file from which the Objects are read and imported into
  * Galapagos.</li>
- * <li><code>--clearRepos=<i>&lt;boolean></i> - A boolean value, which indicates, whether all Repositories should be
+ * <li><code>--clearRepos=<i>&lt;boolean></i> - A boolean value, which indicates whether all Repositories should be
  * emptied before performing the import. Set it to true, if Repositories should be emptied, otherwise to false, so the
- * old Objects in the Repositories will still be there and the new ones are added additionally.</li>
+ * old Objects in the Repositories will still be there and the new ones are added additionally. <br>
+ * Note that only repositories on environments which are present in the file to import are cleared.</li>
  * </ul>
  * 
  * @author PolatEmr
@@ -77,10 +78,6 @@ public class ImportBackupJob implements AdminJob {
             data = new JSONObject(StreamUtils.copyToString(fis, StandardCharsets.UTF_8));
         }
 
-        if (emptyRepos) {
-            emptyRepos();
-        }
-
         System.out.println();
         System.out.println("========================= Starting Backup Import ========================");
         System.out.println();
@@ -88,17 +85,26 @@ public class ImportBackupJob implements AdminJob {
         Iterator<String> envIds = data.keys();
 
         while (envIds.hasNext()) {
-
             String envId = envIds.next();
             KafkaCluster env = kafkaClusters.getEnvironment(envId).orElse(null);
             if (env == null) {
-                System.err.println("Skipping nonexisting environment " + envId + "...");
                 continue;
+            }
+
+            if (emptyRepos) {
+                System.out.println();
+                System.out.println("Clearing Repositories on Environment " + envId + "...");
+                System.out.println();
+                emptyRepos(env);
             }
 
             System.out.println("Importing environment " + envId + "...");
             importBackup(env, data.getJSONObject(envId));
         }
+
+        System.out.println();
+        System.out.println("========================= Backup Import COMPLETE ========================");
+        System.out.println();
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
@@ -136,23 +142,19 @@ public class ImportBackupJob implements AdminJob {
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    private void emptyRepos() {
-        System.out.println();
-        System.out.println("====================== Clearing Repos before Starting Backup ======================");
-        System.out.println();
-
-        kafkaClusters.getEnvironmentIds().forEach(envId -> {
-            KafkaCluster cluster = kafkaClusters.getEnvironment(envId).get();
-            for (TopicBasedRepository topicBasedRepository : cluster.getRepositories()) {
-                for (Object object : topicBasedRepository.getObjects()) {
-                    try {
-                        topicBasedRepository.delete((HasKey) object).get();
-                    }
-                    catch (InterruptedException | ExecutionException e) {
-                        e.printStackTrace();
-                    }
+    private void emptyRepos(KafkaCluster cluster) {
+        for (TopicBasedRepository topicBasedRepository : cluster.getRepositories()) {
+            for (Object object : topicBasedRepository.getObjects()) {
+                try {
+                    topicBasedRepository.delete((HasKey) object).get();
+                }
+                catch (InterruptedException e) {
+                    return;
+                }
+                catch (ExecutionException e) {
+                    throw new RuntimeException(e);
                 }
             }
-        });
+        }
     }
 }
