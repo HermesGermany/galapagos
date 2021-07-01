@@ -20,8 +20,6 @@ public class ApplicationMetadata implements HasKey, ApplicationPrefixes {
 
     private List<String> consumerGroupPrefixes = new ArrayList<>();
 
-    private String topicPrefix;
-
     private List<String> internalTopicPrefixes = new ArrayList<>();
 
     private List<String> transactionIdPrefixes = new ArrayList<>();
@@ -34,7 +32,6 @@ public class ApplicationMetadata implements HasKey, ApplicationPrefixes {
     public ApplicationMetadata(ApplicationMetadata original) {
         this.applicationId = original.applicationId;
         this.consumerGroupPrefixes = List.copyOf(original.consumerGroupPrefixes);
-        this.topicPrefix = original.topicPrefix;
         this.internalTopicPrefixes = List.copyOf(original.consumerGroupPrefixes);
         this.transactionIdPrefixes = List.copyOf(original.transactionIdPrefixes);
         this.authenticationJson = original.authenticationJson;
