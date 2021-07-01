@@ -95,8 +95,8 @@ public class UpdateApplicationAclsListener
             return getCluster(event).updateUserAcls(newUser);
         }
         else {
-            return getCluster(event).updateUserAcls(new ApplicationUser(event)).thenCompose(o -> getCluster(event)
-                    .removeUserAcls(new ApplicationUser(prevMetadata, event.getContext().getKafkaCluster().getId())));
+            return getCluster(event).updateUserAcls(newUser)
+                    .thenCompose(o -> getCluster(event).removeUserAcls(prevUser));
         }
     }
 
