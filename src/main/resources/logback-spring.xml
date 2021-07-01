@@ -5,10 +5,12 @@
     <springProperty scope="context" name="activeProfile" source="spring.profiles.active" defaultValue="not-set"/>
     <jmxconfigurator/>
 
-    <springProfile name="dev, local, not-set">
-        <root level="INFO">
-            <appender-ref ref="CONSOLE"/>
-        </root>
-    </springProfile>
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+
+    <logger name="org.apache.kafka.clients.consumer.internals" level="WARN" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+    </logger>
 
 </configuration>
