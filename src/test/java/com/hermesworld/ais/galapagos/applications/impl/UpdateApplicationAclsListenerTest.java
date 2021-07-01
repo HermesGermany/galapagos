@@ -2,10 +2,7 @@ package com.hermesworld.ais.galapagos.applications.impl;
 
 import com.hermesworld.ais.galapagos.applications.ApplicationMetadata;
 import com.hermesworld.ais.galapagos.applications.ApplicationsService;
-import com.hermesworld.ais.galapagos.events.ApplicationEvent;
-import com.hermesworld.ais.galapagos.events.GalapagosEventContext;
-import com.hermesworld.ais.galapagos.events.SubscriptionEvent;
-import com.hermesworld.ais.galapagos.events.TopicCreatedEvent;
+import com.hermesworld.ais.galapagos.events.*;
 import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.kafka.KafkaUser;
@@ -16,12 +13,14 @@ import com.hermesworld.ais.galapagos.subscriptions.service.SubscriptionService;
 import com.hermesworld.ais.galapagos.topics.TopicMetadata;
 import com.hermesworld.ais.galapagos.topics.TopicType;
 import com.hermesworld.ais.galapagos.topics.service.TopicService;
+import com.hermesworld.ais.galapagos.util.FutureUtil;
 import org.apache.kafka.common.acl.AclBinding;
 import org.apache.kafka.common.acl.AclOperation;
 import org.apache.kafka.common.acl.AclPermissionType;
 import org.apache.kafka.common.resource.PatternType;
 import org.apache.kafka.common.resource.ResourceType;
 import org.json.JSONObject;
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentMatchers;
 
@@ -31,8 +30,7 @@ import java.util.concurrent.ExecutionException;
 
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class UpdateApplicationAclsListenerTest {
 
@@ -42,17 +40,26 @@ public class UpdateApplicationAclsListenerTest {
     private static final List<AclOperation> READ_TOPIC_OPERATIONS = Arrays.asList(AclOperation.DESCRIBE,
             AclOperation.DESCRIBE_CONFIGS, AclOperation.READ);
 
-    @Test
-    public void testUpdateApplicationAcls() throws InterruptedException, ExecutionException {
-        TopicService topicService = mock(TopicService.class);
-        ApplicationsService applicationsService = mock(ApplicationsService.class);
-        SubscriptionService subscriptionService = mock(SubscriptionService.class);
-        KafkaClusters kafkaClusters = mock(KafkaClusters.class);
+    private KafkaClusters kafkaClusters;
+    private TopicService topicService;
+    private ApplicationsService applicationsService;
+    private SubscriptionService subscriptionService;
+    private KafkaCluster cluster;
 
-        KafkaCluster cluster = mock(KafkaCluster.class);
+    @Before
+    public void feedMocks() {
+        topicService = mock(TopicService.class);
+        applicationsService = mock(ApplicationsService.class);
+        subscriptionService = mock(SubscriptionService.class);
+        kafkaClusters = mock(KafkaClusters.class);
+
+        cluster = mock(KafkaCluster.class);
         when(cluster.getId()).thenReturn("_test");
         when(kafkaClusters.getEnvironment("_test")).thenReturn(Optional.of(cluster));
+    }
 
+    @Test
+    public void testUpdateApplicationAcls() throws InterruptedException, ExecutionException {
         KafkaAuthenticationModule module = mock(KafkaAuthenticationModule.class);
         when(module.extractKafkaUserName(ArgumentMatchers.matches("app01"),
                 ArgumentMatchers.argThat(obj -> obj.getString("dn").equals("CN=testapp"))))
@@ -206,15 +213,6 @@ public class UpdateApplicationAclsListenerTest {
 
     @Test
     public void testNoWriteAclsForInternalTopics() {
-        TopicService topicService = mock(TopicService.class);
-        ApplicationsService applicationsService = mock(ApplicationsService.class);
-        SubscriptionService subscriptionService = mock(SubscriptionService.class);
-        KafkaClusters kafkaClusters = mock(KafkaClusters.class);
-
-        KafkaCluster cluster = mock(KafkaCluster.class);
-        when(cluster.getId()).thenReturn("_test");
-        when(kafkaClusters.getEnvironment("_test")).thenReturn(Optional.of(cluster));
-
         KafkaAuthenticationModule module = mock(KafkaAuthenticationModule.class);
         when(module.extractKafkaUserName(ArgumentMatchers.matches("app-1"),
                 ArgumentMatchers.argThat(obj -> obj.getString("dn").equals("CN=testapp"))))
@@ -241,4 +239,36 @@ public class UpdateApplicationAclsListenerTest {
         assertEquals(2, bindings.size());
         assertFalse(bindings.stream().anyMatch(binding -> binding.pattern().resourceType() == ResourceType.TOPIC));
     }
+
+    @Test
+    public void testNoDeleteAclsWhenUserNameIsSame() throws Exception {
+        // tests that, when an AuthenticationChanged event occurs but the resulting Kafka User Name is the same, the
+        // listener does not delete the ACLs of the user after updating them (because that would result in zero ACLs).
+        GalapagosEventContext context = mock(GalapagosEventContext.class);
+        when(context.getKafkaCluster()).thenReturn(cluster);
+
+        ApplicationMetadata metadata = new ApplicationMetadata();
+        metadata.setApplicationId("app-1");
+        metadata.setAuthenticationJson("{ }");
+
+        JSONObject oldAuth = new JSONObject();
+        JSONObject newAuth = new JSONObject();
+
+        ApplicationAuthenticationChangeEvent event = new ApplicationAuthenticationChangeEvent(context, metadata,
+                oldAuth, newAuth);
+
+        KafkaAuthenticationModule authModule = mock(KafkaAuthenticationModule.class);
+        when(authModule.extractKafkaUserName(any(), any())).thenReturn("User:JohnDoe");
+        when(kafkaClusters.getAuthenticationModule("_test")).thenReturn(Optional.of(authModule));
+        when(cluster.updateUserAcls(any())).thenReturn(FutureUtil.noop());
+        when(cluster.removeUserAcls(any())).thenReturn(FutureUtil.noop());
+
+        UpdateApplicationAclsListener listener = new UpdateApplicationAclsListener(kafkaClusters, topicService,
+                subscriptionService, applicationsService);
+        listener.handleApplicationAuthenticationChanged(event).get();
+
+        verify(cluster).updateUserAcls(any());
+        verify(cluster, times(0)).removeUserAcls(any());
+    }
+
 }
