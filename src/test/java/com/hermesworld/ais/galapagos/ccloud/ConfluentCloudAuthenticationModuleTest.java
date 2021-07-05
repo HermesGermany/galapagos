@@ -100,6 +100,7 @@ public class ConfluentCloudAuthenticationModuleTest {
         app.setApplicationId("quattro-1");
         app.setAuthenticationJson("{userId:1234,apiKey:someKey1}");
 
+        when(client.login(any(), any())).thenReturn(Mono.just(true));
         when(client.listApiKeys("testEnv", "testCluster")).thenReturn(Mono.just(List.of(apiKey1, apiKey2)));
         when(client.deleteApiKey(apiKey1)).thenReturn(Mono.just(true));
 
@@ -173,7 +174,7 @@ public class ConfluentCloudAuthenticationModuleTest {
         app.setAuthenticationJson("{userId:1234}");
 
         ServiceAccountInfo testServiceAccount = new ServiceAccountInfo();
-        testServiceAccount.setId(Integer.valueOf(1));
+        testServiceAccount.setId(1);
         testServiceAccount.setEmail("testEmail");
         testServiceAccount.setServiceName("testName");
 
@@ -227,7 +228,7 @@ public class ConfluentCloudAuthenticationModuleTest {
         app.setAuthenticationJson("{userId:1234}");
 
         ServiceAccountInfo testServiceAccount = new ServiceAccountInfo();
-        testServiceAccount.setId(Integer.valueOf(1));
+        testServiceAccount.setId(1);
         testServiceAccount.setEmail("testEmail");
         testServiceAccount.setServiceName("testName");
         testServiceAccount.setServiceDescription("APP_quattro-1");
@@ -279,7 +280,7 @@ public class ConfluentCloudAuthenticationModuleTest {
         app.setAuthenticationJson("{userId:1234,apiKey:someKey1}");
 
         ServiceAccountInfo testServiceAccount = new ServiceAccountInfo();
-        testServiceAccount.setId(Integer.valueOf(1));
+        testServiceAccount.setId(1);
         testServiceAccount.setEmail("testEmail");
         testServiceAccount.setServiceName("testName");
         testServiceAccount.setServiceDescription("APP_quattro-1");
