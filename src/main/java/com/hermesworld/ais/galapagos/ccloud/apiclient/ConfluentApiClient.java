@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hermesworld.ais.galapagos.util.JsonUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -26,6 +27,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 @Component
+@Slf4j
 public class ConfluentApiClient {
 
     private final static String BASE_URL = "https://confluent.cloud/api";
@@ -152,6 +154,7 @@ public class ConfluentApiClient {
 
     private <S extends WebClient.RequestHeadersSpec<S>> WebClient.RequestHeadersSpec<S> auth(
             WebClient.RequestHeadersSpec<S> spec) {
+        log.debug("Authorizing Confluent API Request with session token {}", this.sessionToken);
         return spec.header("Authorization", "Bearer " + this.sessionToken);
     }
 
@@ -163,11 +166,13 @@ public class ConfluentApiClient {
     }
 
     private <T> Mono<T> doPost(String uri, String body, Function<String, T> responseBodyHandler, String errorMessage) {
+        log.debug("Confluent API POST Request: uri = {}, body = {}", uri, body);
         return doMethod(WebClient::post, uri, body, responseBodyHandler, errorMessage, true);
     }
 
     private <T> Mono<T> doGet(String uri, Function<JSONObject, Object> jsonExtractor, JavaType resultType,
             String errorMessage) {
+        log.debug("Confluent API GET Request: uri = {}", uri);
         return assertLoggedIn().flatMap(b -> auth(client.get().uri(uri)).retrieve()
                 .onStatus(status -> status.isError(), errorResponseHandler(uri, errorMessage)).bodyToMono(String.class))
                 .map(body -> {
