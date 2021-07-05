@@ -76,7 +76,8 @@ public class ConfluentCloudAuthenticationModule implements KafkaAuthenticationMo
     public CompletableFuture<Void> deleteApplicationAuthentication(String applicationId, JSONObject existingAuthData) {
         String apiKey = existingAuthData.optString(JSON_API_KEY);
         if (!StringUtils.isEmpty(apiKey)) {
-            return client.listApiKeys(config.getEnvironmentId(), config.getClusterId()).toFuture()
+            return ensureClientLoggedIn()
+                    .thenCompose(o -> client.listApiKeys(config.getEnvironmentId(), config.getClusterId()).toFuture())
                     .thenCompose(ls -> ls.stream().filter(info -> apiKey.equals(info.getKey())).findAny()
                             .map(info -> client.deleteApiKey(info).toFuture())
                             .orElse(CompletableFuture.completedFuture(true)))
