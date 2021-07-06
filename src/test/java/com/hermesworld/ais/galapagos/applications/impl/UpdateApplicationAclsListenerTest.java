@@ -8,6 +8,8 @@ import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.kafka.KafkaUser;
 import com.hermesworld.ais.galapagos.kafka.TopicCreateParams;
 import com.hermesworld.ais.galapagos.kafka.auth.KafkaAuthenticationModule;
+import com.hermesworld.ais.galapagos.kafka.config.DefaultAclConfig;
+import com.hermesworld.ais.galapagos.kafka.config.KafkaEnvironmentsConfig;
 import com.hermesworld.ais.galapagos.subscriptions.SubscriptionMetadata;
 import com.hermesworld.ais.galapagos.subscriptions.service.SubscriptionService;
 import com.hermesworld.ais.galapagos.topics.TopicMetadata;
@@ -45,6 +47,7 @@ public class UpdateApplicationAclsListenerTest {
     private ApplicationsService applicationsService;
     private SubscriptionService subscriptionService;
     private KafkaCluster cluster;
+    private KafkaEnvironmentsConfig kafkaConfig;
 
     @Before
     public void feedMocks() {
@@ -52,6 +55,7 @@ public class UpdateApplicationAclsListenerTest {
         applicationsService = mock(ApplicationsService.class);
         subscriptionService = mock(SubscriptionService.class);
         kafkaClusters = mock(KafkaClusters.class);
+        kafkaConfig = mock(KafkaEnvironmentsConfig.class);
 
         cluster = mock(KafkaCluster.class);
         when(cluster.getId()).thenReturn("_test");
@@ -67,7 +71,7 @@ public class UpdateApplicationAclsListenerTest {
         when(kafkaClusters.getAuthenticationModule("_test")).thenReturn(Optional.of(module));
 
         UpdateApplicationAclsListener listener = new UpdateApplicationAclsListener(kafkaClusters, topicService,
-                subscriptionService, applicationsService);
+                subscriptionService, applicationsService, kafkaConfig);
 
         List<KafkaUser> users = new ArrayList<>();
 
@@ -96,16 +100,22 @@ public class UpdateApplicationAclsListenerTest {
         assertEquals(1, users.size());
         Collection<AclBinding> createdAcls = users.get(0).getRequiredAclBindings();
 
-        assertEquals(7, createdAcls.size());
+        assertEquals(8, createdAcls.size());
 
-        // check that cluster DESCRIBE_CONFIGS right is included
+        // check that cluster DESCRIBE and DESCRIBE_CONFIGS right is included
         assertNotNull("No DESCRIBE_CONFIGS right for cluster included",
                 createdAcls.stream()
                         .filter(b -> b.pattern().resourceType() == ResourceType.CLUSTER
                                 && b.pattern().patternType() == PatternType.LITERAL
-                                && b.pattern().name().equals("kafka-cluster")
                                 && b.entry().permissionType() == AclPermissionType.ALLOW
                                 && b.entry().operation() == AclOperation.DESCRIBE_CONFIGS)
+                        .findAny().orElse(null));
+        assertNotNull("No DESCRIBE right for cluster included",
+                createdAcls.stream()
+                        .filter(b -> b.pattern().resourceType() == ResourceType.CLUSTER
+                                && b.pattern().patternType() == PatternType.LITERAL
+                                && b.entry().permissionType() == AclPermissionType.ALLOW
+                                && b.entry().operation() == AclOperation.DESCRIBE)
                         .findAny().orElse(null));
 
         // two ACL for groups and two for topic prefixes must have been created
@@ -232,11 +242,11 @@ public class UpdateApplicationAclsListenerTest {
         when(topicService.listTopics("_test")).thenReturn(List.of(topic));
 
         UpdateApplicationAclsListener listener = new UpdateApplicationAclsListener(kafkaClusters, topicService,
-                subscriptionService, applicationsService);
+                subscriptionService, applicationsService, kafkaConfig);
 
         Collection<AclBinding> bindings = listener.getApplicationUser(app1, "_test").getRequiredAclBindings();
 
-        assertEquals(2, bindings.size());
+        assertEquals(3, bindings.size());
         assertFalse(bindings.stream().anyMatch(binding -> binding.pattern().resourceType() == ResourceType.TOPIC));
     }
 
@@ -264,11 +274,55 @@ public class UpdateApplicationAclsListenerTest {
         when(cluster.removeUserAcls(any())).thenReturn(FutureUtil.noop());
 
         UpdateApplicationAclsListener listener = new UpdateApplicationAclsListener(kafkaClusters, topicService,
-                subscriptionService, applicationsService);
+                subscriptionService, applicationsService, kafkaConfig);
         listener.handleApplicationAuthenticationChanged(event).get();
 
         verify(cluster).updateUserAcls(any());
         verify(cluster, times(0)).removeUserAcls(any());
     }
 
+    @Test
+    public void testDefaultAcls() {
+        KafkaAuthenticationModule module = mock(KafkaAuthenticationModule.class);
+        when(module.extractKafkaUserName(ArgumentMatchers.matches("app-1"),
+                ArgumentMatchers.argThat(obj -> obj.getString("dn").equals("CN=testapp"))))
+                        .thenReturn("User:CN=testapp");
+        when(kafkaClusters.getAuthenticationModule("_test")).thenReturn(Optional.of(module));
+
+        ApplicationMetadata app1 = new ApplicationMetadata();
+        app1.setApplicationId("app-1");
+        app1.setAuthenticationJson(new JSONObject(Map.of("dn", "CN=testapp")).toString());
+        app1.setConsumerGroupPrefixes(List.of("groups."));
+
+        List<DefaultAclConfig> defaultAcls = new ArrayList<>();
+        defaultAcls.add(defaultAclConfig("test-group", ResourceType.GROUP, PatternType.PREFIXED, AclOperation.READ));
+        defaultAcls.add(defaultAclConfig("test-topic", ResourceType.TOPIC, PatternType.LITERAL, AclOperation.CREATE));
+        when(kafkaConfig.getDefaultAcls()).thenReturn(defaultAcls);
+
+        UpdateApplicationAclsListener listener = new UpdateApplicationAclsListener(kafkaClusters, topicService,
+                subscriptionService, applicationsService, kafkaConfig);
+
+        Collection<AclBinding> bindings = listener.getApplicationUser(app1, "_test").getRequiredAclBindings();
+
+        assertTrue(bindings.stream()
+                .anyMatch(b -> b.pattern().patternType() == PatternType.PREFIXED
+                        && b.pattern().name().equals("test-group") && b.pattern().resourceType() == ResourceType.GROUP
+                        && b.entry().operation() == AclOperation.READ
+                        && b.entry().permissionType() == AclPermissionType.ALLOW && b.entry().host().equals("*")));
+        assertTrue(bindings.stream()
+                .anyMatch(b -> b.pattern().patternType() == PatternType.LITERAL
+                        && b.pattern().name().equals("test-topic") && b.pattern().resourceType() == ResourceType.TOPIC
+                        && b.entry().operation() == AclOperation.CREATE
+                        && b.entry().permissionType() == AclPermissionType.ALLOW && b.entry().host().equals("*")));
+    }
+
+    private DefaultAclConfig defaultAclConfig(String name, ResourceType resourceType, PatternType patternType,
+            AclOperation operation) {
+        DefaultAclConfig config = new DefaultAclConfig();
+        config.setName(name);
+        config.setResourceType(resourceType);
+        config.setPatternType(patternType);
+        config.setOperation(operation);
+        return config;
+    }
 }

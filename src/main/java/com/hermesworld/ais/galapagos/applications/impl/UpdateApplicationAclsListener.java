@@ -7,6 +7,7 @@ import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.kafka.KafkaUser;
 import com.hermesworld.ais.galapagos.kafka.auth.KafkaAuthenticationModule;
+import com.hermesworld.ais.galapagos.kafka.config.KafkaEnvironmentsConfig;
 import com.hermesworld.ais.galapagos.subscriptions.SubscriptionMetadata;
 import com.hermesworld.ais.galapagos.subscriptions.service.SubscriptionService;
 import com.hermesworld.ais.galapagos.topics.TopicType;
@@ -42,6 +43,8 @@ public class UpdateApplicationAclsListener
 
     private final ApplicationsService applicationsService;
 
+    private final KafkaEnvironmentsConfig kafkaConfig;
+
     private static final List<AclOperation> READ_TOPIC_OPERATIONS = Arrays.asList(AclOperation.DESCRIBE,
             AclOperation.DESCRIBE_CONFIGS, AclOperation.READ);
 
@@ -50,11 +53,13 @@ public class UpdateApplicationAclsListener
 
     @Autowired
     public UpdateApplicationAclsListener(KafkaClusters kafkaClusters, TopicService topicService,
-            SubscriptionService subscriptionService, ApplicationsService applicationsService) {
+            SubscriptionService subscriptionService, ApplicationsService applicationsService,
+            KafkaEnvironmentsConfig kafkaConfig) {
         this.kafkaClusters = kafkaClusters;
         this.topicService = topicService;
         this.subscriptionService = subscriptionService;
         this.applicationsService = applicationsService;
+        this.kafkaConfig = kafkaConfig;
     }
 
     @Override
@@ -237,6 +242,15 @@ public class UpdateApplicationAclsListener
                     new AccessControlEntry(userName, "*", AclOperation.DESCRIBE, AclPermissionType.ALLOW)));
             result.add(new AclBinding(new ResourcePattern(ResourceType.CLUSTER, environmentId, PatternType.LITERAL),
                     new AccessControlEntry(userName, "*", AclOperation.DESCRIBE_CONFIGS, AclPermissionType.ALLOW)));
+
+            // add configured default ACLs, if any
+            if (kafkaConfig.getDefaultAcls() != null) {
+                result.addAll(kafkaConfig.getDefaultAcls().stream()
+                        .map(acl -> new AclBinding(
+                                new ResourcePattern(acl.getResourceType(), acl.getName(), acl.getPatternType()),
+                                new AccessControlEntry(userName, "*", acl.getOperation(), AclPermissionType.ALLOW)))
+                        .collect(Collectors.toList()));
+            }
 
             result.addAll(metadata.getConsumerGroupPrefixes().stream()
                     .map(prefix -> prefixAcl(userName, ResourceType.GROUP, prefix)).collect(Collectors.toList()));

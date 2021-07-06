@@ -42,6 +42,10 @@ public class KafkaEnvironmentsConfig {
     @Setter
     private String metadataTopicsPrefix;
 
+    @Getter
+    @Setter
+    private List<DefaultAclConfig> defaultAcls;
+
     public List<KafkaEnvironmentConfig> getEnvironments() {
         return new ArrayList<>(environments);
     }
