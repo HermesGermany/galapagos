@@ -232,9 +232,10 @@ public class UpdateApplicationAclsListener
 
             List<AclBinding> result = new ArrayList<>();
 
-            // every application gets the CLUSTER READ right (for now; should be moved to developer test certificates
-            // ASAP)
-            result.add(new AclBinding(new ResourcePattern(ResourceType.CLUSTER, "kafka-cluster", PatternType.LITERAL),
+            // every application gets the DESCRIBE CLUSTER right (and also DESCRIBE_CONFIGS, for now)
+            result.add(new AclBinding(new ResourcePattern(ResourceType.CLUSTER, environmentId, PatternType.LITERAL),
+                    new AccessControlEntry(userName, "*", AclOperation.DESCRIBE, AclPermissionType.ALLOW)));
+            result.add(new AclBinding(new ResourcePattern(ResourceType.CLUSTER, environmentId, PatternType.LITERAL),
                     new AccessControlEntry(userName, "*", AclOperation.DESCRIBE_CONFIGS, AclPermissionType.ALLOW)));
 
             result.addAll(metadata.getConsumerGroupPrefixes().stream()
