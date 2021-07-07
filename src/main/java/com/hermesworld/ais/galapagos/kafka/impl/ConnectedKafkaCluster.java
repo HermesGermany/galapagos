@@ -23,6 +23,7 @@ import org.apache.kafka.common.errors.WakeupException;
 import org.apache.kafka.common.resource.PatternType;
 import org.apache.kafka.common.resource.ResourcePatternFilter;
 import org.apache.kafka.common.resource.ResourceType;
+import org.springframework.util.StringUtils;
 
 import java.time.Duration;
 import java.util.*;
@@ -269,6 +270,9 @@ public class ConnectedKafkaCluster implements KafkaCluster {
     }
 
     private CompletableFuture<Collection<AclBinding>> getUserAcls(String username) {
+        if (StringUtils.isEmpty(username)) {
+            return CompletableFuture.completedFuture(List.of());
+        }
         return toCompletableFuture(adminClient.describeAcls(userAclFilter(username, ResourceType.ANY)).values());
     }
 
