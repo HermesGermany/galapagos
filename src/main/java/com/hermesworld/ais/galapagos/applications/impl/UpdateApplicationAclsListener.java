@@ -238,9 +238,9 @@ public class UpdateApplicationAclsListener
             List<AclBinding> result = new ArrayList<>();
 
             // every application gets the DESCRIBE CLUSTER right (and also DESCRIBE_CONFIGS, for now)
-            result.add(new AclBinding(new ResourcePattern(ResourceType.CLUSTER, environmentId, PatternType.LITERAL),
+            result.add(new AclBinding(new ResourcePattern(ResourceType.CLUSTER, "kafka-cluster", PatternType.LITERAL),
                     new AccessControlEntry(userName, "*", AclOperation.DESCRIBE, AclPermissionType.ALLOW)));
-            result.add(new AclBinding(new ResourcePattern(ResourceType.CLUSTER, environmentId, PatternType.LITERAL),
+            result.add(new AclBinding(new ResourcePattern(ResourceType.CLUSTER, "kafka-cluster", PatternType.LITERAL),
                     new AccessControlEntry(userName, "*", AclOperation.DESCRIBE_CONFIGS, AclPermissionType.ALLOW)));
 
             // add configured default ACLs, if any

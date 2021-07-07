@@ -107,6 +107,7 @@ public class UpdateApplicationAclsListenerTest {
                 createdAcls.stream()
                         .filter(b -> b.pattern().resourceType() == ResourceType.CLUSTER
                                 && b.pattern().patternType() == PatternType.LITERAL
+                                && b.pattern().name().equals("kafka-cluster")
                                 && b.entry().permissionType() == AclPermissionType.ALLOW
                                 && b.entry().operation() == AclOperation.DESCRIBE_CONFIGS)
                         .findAny().orElse(null));
@@ -114,6 +115,7 @@ public class UpdateApplicationAclsListenerTest {
                 createdAcls.stream()
                         .filter(b -> b.pattern().resourceType() == ResourceType.CLUSTER
                                 && b.pattern().patternType() == PatternType.LITERAL
+                                && b.pattern().name().equals("kafka-cluster")
                                 && b.entry().permissionType() == AclPermissionType.ALLOW
                                 && b.entry().operation() == AclOperation.DESCRIBE)
                         .findAny().orElse(null));
