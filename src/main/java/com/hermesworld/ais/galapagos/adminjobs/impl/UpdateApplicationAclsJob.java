@@ -6,6 +6,7 @@ import com.hermesworld.ais.galapagos.applications.KnownApplication;
 import com.hermesworld.ais.galapagos.applications.impl.UpdateApplicationAclsListener;
 import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
+import com.hermesworld.ais.galapagos.kafka.KafkaUser;
 import com.hermesworld.ais.galapagos.kafka.impl.ConnectedKafkaCluster;
 import org.apache.kafka.clients.admin.CreateAclsResult;
 import org.apache.kafka.clients.admin.DeleteAclsResult;
@@ -14,6 +15,7 @@ import org.apache.kafka.common.acl.AclBindingFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;
@@ -58,6 +60,9 @@ public class UpdateApplicationAclsJob extends SingleClusterAdminJob {
     @Override
     public void runOnCluster(KafkaCluster cluster, ApplicationArguments allArguments) throws Exception {
         boolean dryRun = allArguments.containsOption("dry.run");
+
+        System.out.println("Waiting additional 10 seconds to wait for additional Kafka connection initializations...");
+        Thread.sleep(10000);
 
         performUpdate(cluster, id -> applicationsService.getApplicationMetadata(cluster.getId(), id), dryRun);
 
@@ -117,6 +122,9 @@ public class UpdateApplicationAclsJob extends SingleClusterAdminJob {
 
     private void updateApplicationAcl(KafkaCluster cluster, ApplicationMetadata metadata)
             throws ExecutionException, InterruptedException {
-        cluster.updateUserAcls(aclUpdater.getApplicationUser(metadata, cluster.getId())).get();
+        KafkaUser user = aclUpdater.getApplicationUser(metadata, cluster.getId());
+        if (user != null && !StringUtils.isEmpty(user.getKafkaUserName())) {
+            cluster.updateUserAcls(user).get();
+        }
     }
 }
