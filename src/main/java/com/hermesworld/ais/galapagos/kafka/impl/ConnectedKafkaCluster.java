@@ -6,6 +6,7 @@ import com.hermesworld.ais.galapagos.kafka.TopicConfigEntry;
 import com.hermesworld.ais.galapagos.kafka.TopicCreateParams;
 import com.hermesworld.ais.galapagos.kafka.util.KafkaTopicConfigHelper;
 import com.hermesworld.ais.galapagos.kafka.util.TopicBasedRepository;
+import com.hermesworld.ais.galapagos.util.FutureUtil;
 import com.hermesworld.ais.galapagos.util.HasKey;
 import org.apache.kafka.clients.admin.*;
 import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
@@ -94,6 +95,9 @@ public class ConnectedKafkaCluster implements KafkaCluster {
 
     @Override
     public CompletableFuture<Void> removeUserAcls(KafkaUser user) {
+        if (user.getKafkaUserName() == null) {
+            return FutureUtil.noop();
+        }
         return toCompletableFuture(adminClient
                 .deleteAcls(Collections.singletonList(userAclFilter(user.getKafkaUserName(), ResourceType.ANY))).all())
                         .thenApply(o -> null);
