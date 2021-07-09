@@ -95,8 +95,8 @@ public class UpdateApplicationAclsListener
 
         ApplicationUser newUser = new ApplicationUser(event);
         ApplicationUser prevUser = new ApplicationUser(prevMetadata, event.getContext().getKafkaCluster().getId());
-        if (newUser.getKafkaUserName() != null && prevUser.getKafkaUserName() != null
-                && newUser.getKafkaUserName().equals(prevUser.getKafkaUserName())) {
+        if ((newUser.getKafkaUserName() != null && newUser.getKafkaUserName().equals(prevUser.getKafkaUserName()))
+                || prevUser.getKafkaUserName() == null) {
             // Cluster implementation will deal about ACL delta
             return getCluster(event).updateUserAcls(newUser);
         }

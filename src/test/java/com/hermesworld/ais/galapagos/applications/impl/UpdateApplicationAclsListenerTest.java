@@ -284,6 +284,38 @@ public class UpdateApplicationAclsListenerTest {
     }
 
     @Test
+    public void testNoDeleteAclsWhenUNoPreviousUser() throws Exception {
+        // tests that, when an AuthenticationChanged event occurs but the resulting Kafka User Name is the same, the
+        // listener does not delete the ACLs of the user after updating them (because that would result in zero ACLs).
+        GalapagosEventContext context = mock(GalapagosEventContext.class);
+        when(context.getKafkaCluster()).thenReturn(cluster);
+
+        ApplicationMetadata metadata = new ApplicationMetadata();
+        metadata.setApplicationId("app-1");
+        metadata.setAuthenticationJson("{\"foo\": \"bar\" }");
+
+        JSONObject newAuth = new JSONObject(metadata.getAuthenticationJson());
+
+        ApplicationAuthenticationChangeEvent event = new ApplicationAuthenticationChangeEvent(context, metadata,
+                new JSONObject(), newAuth);
+
+        KafkaAuthenticationModule authModule = mock(KafkaAuthenticationModule.class);
+        when(authModule.extractKafkaUserName(any(), argThat(arg -> arg != null && arg.has("foo"))))
+                .thenReturn("User:JohnDoe");
+        when(authModule.extractKafkaUserName(any(), argThat(arg -> arg == null || !arg.has("foo")))).thenReturn(null);
+        when(kafkaClusters.getAuthenticationModule("_test")).thenReturn(Optional.of(authModule));
+        when(cluster.updateUserAcls(any())).thenReturn(FutureUtil.noop());
+        when(cluster.removeUserAcls(any())).thenReturn(FutureUtil.noop());
+
+        UpdateApplicationAclsListener listener = new UpdateApplicationAclsListener(kafkaClusters, topicService,
+                subscriptionService, applicationsService, kafkaConfig);
+        listener.handleApplicationAuthenticationChanged(event).get();
+
+        verify(cluster).updateUserAcls(any());
+        verify(cluster, times(0)).removeUserAcls(any());
+    }
+
+    @Test
     public void testDefaultAcls() {
         KafkaAuthenticationModule module = mock(KafkaAuthenticationModule.class);
         when(module.extractKafkaUserName(ArgumentMatchers.matches("app-1"),
