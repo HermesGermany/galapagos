@@ -14,8 +14,6 @@ import { map } from 'rxjs/operators';
 export class HeaderComponent implements OnInit {
     public pushRightClass: string;
 
-    public userProfile: Promise<Keycloak.KeycloakProfile>;
-
     public userName: Promise<string>;
 
     public currentEnvironmentName: Observable<string>;
@@ -31,8 +29,9 @@ export class HeaderComponent implements OnInit {
 
     ngOnInit() {
         this.pushRightClass = 'push-right';
-        this.userProfile = this.keycloak.loadUserProfile();
-        this.userName = this.keycloak.loadUserProfile().then(profile => profile.firstName + ' ' + profile.lastName);
+
+        this.userName = this.keycloak.getKeycloakInstance().loadUserInfo().then(
+            info => (info as any).given_name + ' ' + (info as any).family_name);
 
         this.router.events.subscribe(val => {
             if (
