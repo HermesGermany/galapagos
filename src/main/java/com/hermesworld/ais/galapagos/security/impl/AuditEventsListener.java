@@ -4,6 +4,7 @@ import com.hermesworld.ais.galapagos.applications.ApplicationOwnerRequest;
 import com.hermesworld.ais.galapagos.events.*;
 import com.hermesworld.ais.galapagos.kafka.TopicCreateParams;
 import com.hermesworld.ais.galapagos.security.GalapagosAuditEventType;
+import com.hermesworld.ais.galapagos.subscriptions.SubscriptionMetadata;
 import com.hermesworld.ais.galapagos.topics.TopicMetadata;
 import com.hermesworld.ais.galapagos.util.FutureUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +17,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 @Component
-public class AuditEventsListener implements TopicEventsListener, ApplicationEventsListener {
+public class AuditEventsListener implements TopicEventsListener, SubscriptionEventsListener, ApplicationEventsListener {
 
     private final AuditEventRepository auditRepository;
 
@@ -133,6 +134,21 @@ public class AuditEventsListener implements TopicEventsListener, ApplicationEven
         return handleApplicationOwnerRequest(event, GalapagosAuditEventType.APPLICATION_OWNER_REQUEST_CANCELED, false);
     }
 
+    @Override
+    public CompletableFuture<Void> handleSubscriptionCreated(SubscriptionEvent event) {
+        return handleSubscriptionEvent(event, GalapagosAuditEventType.TOPIC_SUBSCRIBED);
+    }
+
+    @Override
+    public CompletableFuture<Void> handleSubscriptionDeleted(SubscriptionEvent event) {
+        return handleSubscriptionEvent(event, GalapagosAuditEventType.TOPIC_UNSUBSCRIBED);
+    }
+
+    @Override
+    public CompletableFuture<Void> handleSubscriptionUpdated(SubscriptionEvent event) {
+        return handleSubscriptionEvent(event, GalapagosAuditEventType.SUBSCRIPTION_UPDATED);
+    }
+
     private CompletableFuture<Void> handleApplicationOwnerRequest(ApplicationOwnerRequestEvent event,
             GalapagosAuditEventType type, boolean includeStatus) {
         ApplicationOwnerRequest request = event.getRequest();
@@ -168,6 +184,22 @@ public class AuditEventsListener implements TopicEventsListener, ApplicationEven
 
         auditRepository
                 .add(new AuditEvent(getUserName(event), GalapagosAuditEventType.TOPIC_UPDATED.name(), auditData));
+
+        return FutureUtil.noop();
+    }
+
+    private CompletableFuture<Void> handleSubscriptionEvent(SubscriptionEvent event,
+            GalapagosAuditEventType eventType) {
+        SubscriptionMetadata metadata = event.getMetadata();
+
+        Map<String, Object> auditData = new LinkedHashMap<>();
+        auditData.put(NAME, metadata.getTopicName());
+        auditData.put(ENVIRONMENT_ID, event.getContext().getKafkaCluster().getId());
+        auditData.put("description", metadata.getDescription());
+        auditData.put(APPLICATION_ID, metadata.getClientApplicationId());
+        auditData.put("state", metadata.getState() == null ? null : metadata.getState().toString());
+
+        auditRepository.add(new AuditEvent(getUserName(event), eventType.name(), auditData));
 
         return FutureUtil.noop();
     }
