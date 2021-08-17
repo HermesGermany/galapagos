@@ -1,5 +1,22 @@
 package com.hermesworld.ais.galapagos.changes.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.hermesworld.ais.galapagos.changes.Change;
+import com.hermesworld.ais.galapagos.changes.ChangeData;
+import com.hermesworld.ais.galapagos.changes.ChangesService;
+import com.hermesworld.ais.galapagos.events.*;
+import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
+import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
+import com.hermesworld.ais.galapagos.kafka.util.InitPerCluster;
+import com.hermesworld.ais.galapagos.kafka.util.TopicBasedRepository;
+import com.hermesworld.ais.galapagos.security.AuditPrincipal;
+import com.hermesworld.ais.galapagos.topics.TopicType;
+import com.hermesworld.ais.galapagos.util.FutureUtil;
+import com.hermesworld.ais.galapagos.util.JsonUtil;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.List;
@@ -8,35 +25,12 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.hermesworld.ais.galapagos.changes.Change;
-import com.hermesworld.ais.galapagos.changes.ChangeData;
-import com.hermesworld.ais.galapagos.changes.ChangesService;
-import com.hermesworld.ais.galapagos.events.AbstractGalapagosEvent;
-import com.hermesworld.ais.galapagos.events.SubscriptionEvent;
-import com.hermesworld.ais.galapagos.events.SubscriptionEventsListener;
-import com.hermesworld.ais.galapagos.events.TopicCreatedEvent;
-import com.hermesworld.ais.galapagos.events.TopicEvent;
-import com.hermesworld.ais.galapagos.events.TopicEventsListener;
-import com.hermesworld.ais.galapagos.events.TopicSchemaAddedEvent;
-import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
-import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
-import com.hermesworld.ais.galapagos.kafka.util.InitPerCluster;
-import com.hermesworld.ais.galapagos.kafka.util.TopicBasedRepository;
-import com.hermesworld.ais.galapagos.security.AuditPrincipal;
-import com.hermesworld.ais.galapagos.topics.TopicType;
-import com.hermesworld.ais.galapagos.util.JsonUtil;
-
 @Component
 @Slf4j
 public class ChangesServiceImpl
         implements ChangesService, TopicEventsListener, SubscriptionEventsListener, InitPerCluster {
 
-    private KafkaClusters kafkaClusters;
+    private final KafkaClusters kafkaClusters;
 
     @Autowired
     public ChangesServiceImpl(KafkaClusters kafkaClusters) {
@@ -80,6 +74,16 @@ public class ChangesServiceImpl
     public CompletableFuture<Void> handleTopicSubscriptionApprovalRequiredFlagChanged(TopicEvent event) {
         return logChange(ChangeBase.updateTopicSubscriptionApprovalRequiredFlag(event.getMetadata().getName(),
                 event.getMetadata().isSubscriptionApprovalRequired()), event);
+    }
+
+    @Override
+    public CompletableFuture<Void> handleAddTopicProducers(TopicAddProducersEvent event) {
+        return FutureUtil.noop();
+    }
+
+    @Override
+    public CompletableFuture<Void> handleRemoveTopicProducer(TopicRemoveProducerEvent event) {
+        return FutureUtil.noop();
     }
 
     @Override

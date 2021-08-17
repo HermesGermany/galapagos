@@ -146,6 +146,61 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
     }
 
     @Override
+    public CompletableFuture<Void> addTopicProducers(String environmentId, String topicName, List<String> producers) {
+
+        if (getTopic(environmentId, topicName).isEmpty()) {
+            return CompletableFuture
+                    .failedFuture(new IllegalStateException("Topic with name " + topicName + " does not exist!"));
+        }
+        TopicMetadata topic = getTopic(environmentId, topicName).get();
+
+        if (topic.getType() == TopicType.COMMANDS) {
+            return CompletableFuture.failedFuture(
+                    new IllegalStateException("For Command Topics, subscribe to the Topic to add a new Producer"));
+        }
+
+        KafkaCluster kafkaCluster = kafkaClusters.getEnvironment(environmentId).orElse(null);
+        if (kafkaCluster == null) {
+            return FutureUtil.noSuchEnvironment(environmentId);
+        }
+
+        TopicMetadata newTopic = new TopicMetadata(topic);
+        newTopic.addProducers(producers);
+
+        GalapagosEventSink eventSink = eventManager.newEventSink(kafkaCluster);
+
+        return getTopicRepository(kafkaCluster).save(newTopic)
+                .thenCompose(o -> eventSink.handleAddTopicProducers(producers, newTopic));
+    }
+
+    @Override
+    public CompletableFuture<Void> removeProducerFromTopic(String envId, String topicName, String appId) {
+        if (getTopic(envId, topicName).isEmpty()) {
+            return CompletableFuture
+                    .failedFuture(new IllegalStateException("Topic with name " + topicName + " does not exist!"));
+        }
+        TopicMetadata topic = getTopic(envId, topicName).get();
+
+        if (topic.getType() == TopicType.COMMANDS) {
+            return CompletableFuture.failedFuture(
+                    new IllegalStateException("For Command Topics, subscribe to the Topic to add a new Producer"));
+        }
+
+        KafkaCluster kafkaCluster = kafkaClusters.getEnvironment(envId).orElse(null);
+        if (kafkaCluster == null) {
+            return FutureUtil.noSuchEnvironment(envId);
+        }
+
+        TopicMetadata newTopic = new TopicMetadata(topic);
+        newTopic.removeProducer(appId);
+
+        GalapagosEventSink eventSink = eventManager.newEventSink(kafkaCluster);
+
+        return getTopicRepository(kafkaCluster).save(newTopic)
+                .thenCompose(o -> eventSink.handleRemoveProducerFromTopic(newTopic, appId));
+    }
+
+    @Override
     public boolean canDeleteTopic(String environmentId, String topicName) {
         // business checks in ValidatingTopicServiceImpl
         return getTopic(environmentId, topicName).isPresent();

@@ -53,7 +53,7 @@ export class SubscriptionSectionComponent implements OnInit {
             const apikey = await this.apiKeyService.getApplicationApiKeysPromise(this.selectedApplication.id);
             this.showRegistrationWarning = !apikey.authentications[env.id];
         } catch (e) {
-            this.toasts.addHttpErrorToast('Could not check for application certificates', e);
+            this.toasts.addHttpErrorToast('Could not check for application API Key', e);
         }
     }
 

@@ -243,6 +243,18 @@ public class ValidatingTopicServiceImpl implements ValidatingTopicService {
         return topicService.peekTopicData(environmentId, topicName, limit);
     }
 
+    @Override
+    public CompletableFuture<Void> addTopicProducers(String environmentId, String topicName, List<String> producers) {
+        return checkOnNonStaging(environmentId, "add producer", Void.class)
+                .orElseGet(() -> topicService.addTopicProducers(environmentId, topicName, producers));
+    }
+
+    @Override
+    public CompletableFuture<Void> removeProducerFromTopic(String envId, String topicName, String appId) {
+        return checkOnNonStaging(envId, "delete producer", Void.class)
+                .orElseGet(() -> topicService.removeProducerFromTopic(envId, topicName, appId));
+    }
+
     private boolean currentUserMayRead(String environmentId, TopicMetadata metadata) {
         Set<String> subscribedApplications = subscriptionService
                 .getSubscriptionsForTopic(environmentId, metadata.getName(), false).stream()

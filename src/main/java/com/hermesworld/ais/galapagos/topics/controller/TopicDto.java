@@ -5,6 +5,8 @@ import com.hermesworld.ais.galapagos.topics.MessagesPerDay;
 import com.hermesworld.ais.galapagos.topics.MessagesSize;
 import lombok.Getter;
 
+import java.util.List;
+
 @Getter
 public class TopicDto {
 
@@ -40,11 +42,13 @@ public class TopicDto {
 
     private final MessagesSize messagesSize;
 
+    private final List<String> producers;
+
     public TopicDto(String name, String topicType, String environmentId, String description,
             String externalInterfaceUrl, String ownerApplicationId, boolean deprecated, String deprecationText,
             String eolDate, boolean subscriptionApprovalRequired, boolean deletable, long compactionTimeMillis,
             long retentionTimeMillis, Criticality criticality, MessagesPerDay messagesPerDay,
-            MessagesSize messagesSize) {
+            MessagesSize messagesSize, List<String> producers) {
         this.name = name;
         this.topicType = topicType;
         this.environmentId = environmentId;
@@ -61,6 +65,7 @@ public class TopicDto {
         this.criticality = criticality;
         this.messagesPerDay = messagesPerDay;
         this.messagesSize = messagesSize;
+        this.producers = producers;
     }
 
 }

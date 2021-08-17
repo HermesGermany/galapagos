@@ -115,6 +115,16 @@ public class DevUserAclListener implements TopicEventsListener, SubscriptionEven
     }
 
     @Override
+    public CompletableFuture<Void> handleAddTopicProducers(TopicAddProducersEvent event) {
+        return FutureUtil.noop();
+    }
+
+    @Override
+    public CompletableFuture<Void> handleRemoveTopicProducer(TopicRemoveProducerEvent event) {
+        return FutureUtil.noop();
+    }
+
+    @Override
     public CompletableFuture<Void> handleTopicCreated(TopicCreatedEvent event) {
         return handleTopicDeleted(event);
     }

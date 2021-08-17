@@ -33,6 +33,9 @@ export interface Topic {
     subscriptionApprovalRequired: boolean;
 
     deletable: boolean;
+
+    producers: string[];
+
 }
 
 export interface TopicSubscription {
@@ -250,6 +253,21 @@ export class TopicsService {
         ));
     }
 
+    public addProducersToTopic(producerAppIds: string[], envId: string, topicName: string): Promise<any> {
+        const body = JSON.stringify({
+            producers: producerAppIds,
+            topicName: topicName
+        });
+
+        return this.http.post('/api/producers/' + envId, body, { headers: jsonHeader() }).pipe(take(1))
+            .toPromise().then(() => this.topicsList.refresh());
+    }
+
+    public deleteProducerFromTopic(envId: string, topicName: string, producerAppId: string): Promise<any> {
+        return this.http.delete(`/api/producers/${envId}/${topicName}/${producerAppId}`).pipe(take(1))
+            .toPromise().then(() => this.topicsList.refresh());
+    }
+
     public getTopicSchemas(topicName: string, environmentId: string): Promise<SchemaMetadata[]> {
         return this.http.get('/api/schemas/' + environmentId + '/' + topicName).pipe(map(d => d as SchemaMetadata[]))
             .pipe(map(schemas => this.markLatest(schemas))).toPromise();
@@ -344,7 +362,8 @@ export class TopicsService {
                 eolDate: a.eolDate,
                 ownerApplication: apps.find(app => app.id === a.ownerApplicationId) || null,
                 subscriptionApprovalRequired: a.subscriptionApprovalRequired,
-                deletable: a.deletable
+                deletable: a.deletable,
+                producers: a.producers
             }));
 
             return result;

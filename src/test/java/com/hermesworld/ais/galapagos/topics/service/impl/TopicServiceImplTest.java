@@ -21,11 +21,11 @@ import com.hermesworld.ais.galapagos.topics.SchemaMetadata;
 import com.hermesworld.ais.galapagos.topics.TopicMetadata;
 import com.hermesworld.ais.galapagos.topics.TopicType;
 import com.hermesworld.ais.galapagos.topics.config.GalapagosTopicConfig;
-import com.hermesworld.ais.galapagos.topics.service.ValidatingTopicService;
 import com.hermesworld.ais.galapagos.util.FutureUtil;
 import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.DisplayName;
 import org.mockito.invocation.InvocationOnMock;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.io.ClassPathResource;
@@ -61,8 +61,6 @@ public class TopicServiceImplTest {
     private TopicBasedRepositoryMock<TopicMetadata> topicRepository;
 
     private TopicBasedRepositoryMock<SchemaMetadata> schemaRepository;
-
-    private ValidatingTopicService topicService;
 
     @Before
     public void feedMocks() {
@@ -285,6 +283,97 @@ public class TopicServiceImplTest {
         }
 
         assertEquals(0, createInvs.size());
+    }
+
+    @Test
+    @DisplayName("should add producer to topic")
+    public void addTopicProducersTest_positive() throws Exception {
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
+                topicConfig, eventManager);
+
+        TopicMetadata topic1 = new TopicMetadata();
+        topic1.setName("topic-1");
+        topic1.setOwnerApplicationId("app-1");
+        topic1.setType(TopicType.EVENTS);
+        topicRepository.save(topic1);
+
+        service.addTopicProducers("test", "topic-1", List.of("producer1")).get();
+
+        TopicMetadata savedTopic = topicRepository.getObject("topic-1").get();
+
+        assertFalse(savedTopic.getProducers().isEmpty());
+        assertEquals("producer1", savedTopic.getProducers().get(0));
+
+    }
+
+    @Test
+    @DisplayName("should fail adding a producer to commands topic")
+    public void addTopicProducersTest_negative() throws Exception {
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
+                topicConfig, eventManager);
+
+        TopicMetadata topic1 = new TopicMetadata();
+        topic1.setName("topic-1");
+        topic1.setOwnerApplicationId("app-1");
+        topic1.setType(TopicType.COMMANDS);
+        topicRepository.save(topic1);
+
+        try {
+            service.addTopicProducers("test", "topic-1", List.of("producer1")).get();
+            fail("Expected exception when adding a producer to commands topic");
+        }
+        catch (ExecutionException e) {
+            assertTrue(e.getCause() instanceof IllegalStateException);
+        }
+
+    }
+
+    @Test
+    @DisplayName("should delete producer from topic")
+    public void deleteTopicProducersTest_positive() throws Exception {
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
+                topicConfig, eventManager);
+
+        TopicMetadata topic1 = new TopicMetadata();
+        topic1.setName("topic-1");
+        topic1.setProducers(List.of("producer1", "producer2", "producer3", "producer4"));
+        topic1.setOwnerApplicationId("app-1");
+        topic1.setType(TopicType.EVENTS);
+        topicRepository.save(topic1);
+
+        service.removeProducerFromTopic("test", "topic-1", "producer3").get();
+
+        TopicMetadata savedTopic = topicRepository.getObject("topic-1").get();
+
+        assertEquals(3, savedTopic.getProducers().size());
+        assertFalse(savedTopic.getProducers().contains("producer3"));
+
+    }
+
+    @Test
+    @DisplayName("should not be able to delete producer from commands topic")
+    public void deleteTopicProducersTest_negative() throws Exception {
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
+                topicConfig, eventManager);
+
+        TopicMetadata topic1 = new TopicMetadata();
+        topic1.setName("topic-1");
+        topic1.setProducers(List.of("producer1", "producer2", "producer3", "producer4"));
+        topic1.setOwnerApplicationId("app-1");
+        topic1.setType(TopicType.COMMANDS);
+        topicRepository.save(topic1);
+
+        try {
+            service.removeProducerFromTopic("test", "topic-1", "producer3").get();
+            fail("Expected exception when deleting producer from commands topic");
+        }
+        catch (ExecutionException e) {
+            assertTrue(e.getCause() instanceof IllegalStateException);
+            TopicMetadata savedTopic = topicRepository.getObject("topic-1").get();
+            assertEquals(4, savedTopic.getProducers().size());
+            assertTrue(savedTopic.getProducers().contains("producer3"));
+        }
+
     }
 
     @Test

@@ -6,7 +6,8 @@ import { ToastService } from '../../../shared/modules/toast/toast.service';
 import { Topic, TopicRecord, TopicsService, TopicSubscription } from '../../../shared/services/topics.service';
 import { EnvironmentsService, KafkaEnvironment } from '../../../shared/services/environments.service';
 import * as moment from 'moment';
-import { take } from 'rxjs/operators';
+import { map, take } from 'rxjs/operators';
+import { ApplicationInfo, ApplicationsService } from '../../../shared/services/applications.service';
 
 @Component({
     selector: 'app-topic-metadata-table',
@@ -41,21 +42,28 @@ export class TopicMetadataTableComponent implements OnInit {
 
     selectedSubscription: TopicSubscription;
 
+    selectedProducer: ApplicationInfo;
+
+    mappedProducers: ApplicationInfo[];
+
     constructor(
         private topicService: TopicsService,
         private environmentsService: EnvironmentsService,
         private translateService: TranslateService,
         private toasts: ToastService,
-        private modalService: NgbModal
+        private modalService: NgbModal,
+        private applicationsService: ApplicationsService
     ) {
 
     }
 
-    ngOnInit(): void {
+    async ngOnInit() {
+        this.mappedProducers = await Promise.all(this.topic.producers.map(producerId => this.applicationInfo(producerId)));
         this.selectedEnvironment = this.environmentsService.getCurrentEnvironment();
     }
 
     async openChangeDescDlg(content: any) {
+        console.log(this.topic.producers);
         this.updatedTopicDescription = this.topic.description;
         this.modalService.open(content, { ariaLabelledBy: 'modal-title', size: 'lg' });
     }
@@ -159,6 +167,16 @@ export class TopicMetadataTableComponent implements OnInit {
         this.modalService.open(content, { ariaLabelledBy: 'modal-title', size: 'lg' });
     }
 
+    async openDeleteProducerDlg(producer: ApplicationInfo, content: any) {
+        this.selectedProducer = producer;
+        this.modalService.open(content, { ariaLabelledBy: 'modal-title', size: 'lg' });
+    }
+
+    async deleteProducer(topicName: string, producerAppId: string): Promise<any> {
+        const environment = await this.environmentsService.getCurrentEnvironment().pipe(take(1)).toPromise();
+        return this.topicService.deleteProducerFromTopic(environment.id, topicName, producerAppId);
+    }
+
     private async updateSubscription(sub: TopicSubscription, approve: boolean, successMessage: string, errorMessage: string) {
         const environment = await this.environmentsService.getCurrentEnvironment().pipe(take(1)).toPromise();
 
@@ -170,5 +188,11 @@ export class TopicMetadataTableComponent implements OnInit {
             err => this.toasts.addHttpErrorToast(errorMessage, err)
         );
     }
+
+    private applicationInfo(applicationId: string): Promise<ApplicationInfo> {
+        return this.applicationsService.getAvailableApplications(false)
+            .pipe(map(apps => apps.find(app => app.id === applicationId))).pipe(take(1)).toPromise();
+    }
+
 
 }

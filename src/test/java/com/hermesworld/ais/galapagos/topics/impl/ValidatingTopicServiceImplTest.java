@@ -12,15 +12,16 @@ import com.hermesworld.ais.galapagos.topics.service.TopicService;
 import com.hermesworld.ais.galapagos.topics.service.impl.ValidatingTopicServiceImpl;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.DisplayName;
 
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -130,6 +131,71 @@ public class ValidatingTopicServiceImplTest {
                 mock(ApplicationsService.class), clusters, topicConfig, false);
 
         assertFalse(service.canDeleteTopic("_env1", "testtopic"));
+
+    }
+
+    @Test
+    @DisplayName("Should throw Exception when trying to add Producer to Topic on staging-only Stage")
+    public void addTopicProducerOnOnlyStagingEnv_negative() {
+
+        TopicService topicService = mock(TopicService.class);
+        SubscriptionService subscriptionService = mock(SubscriptionService.class);
+        KafkaClusters clusters = mock(KafkaClusters.class);
+
+        TopicMetadata meta1 = new TopicMetadata();
+        meta1.setName("testtopic");
+        meta1.setOwnerApplicationId("1");
+        meta1.setType(TopicType.EVENTS);
+        KafkaEnvironmentConfig envMeta = mock(KafkaEnvironmentConfig.class);
+
+        when(envMeta.isStagingOnly()).thenReturn(true);
+        when(topicService.getTopic("_env1", "testtopic")).thenReturn(Optional.of(meta1));
+        when(clusters.getEnvironmentIds()).thenReturn(List.of("_env1"));
+        when(clusters.getEnvironmentMetadata("_env1")).thenReturn(Optional.of(envMeta));
+
+        ValidatingTopicServiceImpl service = new ValidatingTopicServiceImpl(topicService, subscriptionService,
+                mock(ApplicationsService.class), clusters, topicConfig, false);
+
+        try {
+            service.addTopicProducers("_env1", "testtopic", List.of("producer1")).get();
+            fail("Expected exception trying to add Producer to Topic on staging-only Stage");
+        }
+        catch (ExecutionException | InterruptedException e) {
+            assertTrue(e.getCause() instanceof IllegalStateException);
+        }
+    }
+
+    @Test
+    @DisplayName("Should throw Exception when trying to delete Producer from Topic on staging-only Stage")
+    public void deleteProducerFromTopicOnOnlyStagingEnv_negative() {
+
+        TopicService topicService = mock(TopicService.class);
+        SubscriptionService subscriptionService = mock(SubscriptionService.class);
+        KafkaClusters clusters = mock(KafkaClusters.class);
+
+        TopicMetadata meta1 = new TopicMetadata();
+        meta1.setName("testtopic");
+        meta1.setOwnerApplicationId("1");
+        meta1.setType(TopicType.EVENTS);
+        meta1.setProducers(List.of("producer1"));
+        KafkaEnvironmentConfig envMeta = mock(KafkaEnvironmentConfig.class);
+
+        when(envMeta.isStagingOnly()).thenReturn(true);
+        when(topicService.getTopic("_env1", "testtopic")).thenReturn(Optional.of(meta1));
+        when(clusters.getEnvironmentIds()).thenReturn(List.of("_env1"));
+        when(clusters.getEnvironmentMetadata("_env1")).thenReturn(Optional.of(envMeta));
+
+        ValidatingTopicServiceImpl service = new ValidatingTopicServiceImpl(topicService, subscriptionService,
+                mock(ApplicationsService.class), clusters, topicConfig, false);
+
+        try {
+            service.removeProducerFromTopic("_env1", "testtopic", "producer1").get();
+            fail("Expected exception trying to remove Producer from Topic on staging-only Stage");
+        }
+        catch (ExecutionException | InterruptedException e) {
+            assertTrue(e.getCause() instanceof IllegalStateException);
+
+        }
 
     }
 

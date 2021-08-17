@@ -224,6 +224,16 @@ public class TopicServiceImplIntegrationTest {
         public CompletableFuture<Void> handleTopicSubscriptionApprovalRequiredFlagChanged(TopicEvent event) {
             throw new UnsupportedOperationException("Unexpected event received during test");
         }
+
+        @Override
+        public CompletableFuture<Void> handleAddTopicProducers(TopicAddProducersEvent event) {
+            throw new UnsupportedOperationException("Unexpected event received during test");
+        }
+
+        @Override
+        public CompletableFuture<Void> handleRemoveTopicProducer(TopicRemoveProducerEvent event) {
+            throw new UnsupportedOperationException("Unexpected event received during test");
+        }
     }
 
     /**

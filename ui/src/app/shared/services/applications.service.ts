@@ -113,7 +113,8 @@ export class ApplicationsService {
 
     private allRequests = new ReplayContainer<ApplicationOwnerRequest[]>(() => this.http.get('/api/admin/requests'));
 
-    constructor(private http: HttpClient) { }
+    constructor(private http: HttpClient) {
+    }
 
     public getAvailableApplications(excludeUserApps: boolean): Observable<ApplicationInfo[]> {
         return excludeUserApps ? this.availableAppsExcl.getObservable() : this.availableAppsIncl.getObservable();
@@ -121,6 +122,10 @@ export class ApplicationsService {
 
     public getUserApplications(): ReplayContainer<UserApplicationInfo[]> {
         return this.userApplications;
+    }
+
+    public getAvailableApplicationMetadata(environmentId: string, topicOwnerAppId: string, topicName: string): Observable<any> {
+        return this.http.get(`/api/applicationsmetadata/${environmentId}/${topicName}/?topicOwnerId=${topicOwnerAppId}`);
     }
 
     public getUserApplicationOwnerRequests(): Observable<ApplicationOwnerRequest[]> {

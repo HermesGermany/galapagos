@@ -77,14 +77,18 @@ public class ConnectedKafkaCluster implements KafkaCluster {
 
     @Override
     public CompletableFuture<Void> updateUserAcls(KafkaUser user) {
+
         List<AclBinding> createAcls = new ArrayList<>();
 
         return getUserAcls(user.getKafkaUserName()).thenCompose(acls -> {
             List<AclBinding> targetAcls = new ArrayList<>(user.getRequiredAclBindings());
+
             List<AclBinding> deleteAcls = new ArrayList<>(acls);
+
             createAcls.addAll(targetAcls);
             createAcls.removeAll(acls);
             deleteAcls.removeAll(targetAcls);
+
             return deleteAcls.isEmpty() ? CompletableFuture.completedFuture(null)
                     : toCompletableFuture(adminClient
                             .deleteAcls(deleteAcls.stream().map(acl -> acl.toFilter()).collect(Collectors.toList()))

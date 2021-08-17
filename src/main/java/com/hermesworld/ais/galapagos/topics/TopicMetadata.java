@@ -9,6 +9,9 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @JsonSerialize
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -48,6 +51,8 @@ public class TopicMetadata implements HasKey {
 
     private MessagesSize messagesSize;
 
+    private List<String> producers = new ArrayList<>();
+
     public TopicMetadata() {
     }
 
@@ -66,6 +71,16 @@ public class TopicMetadata implements HasKey {
         this.criticality = original.criticality;
         this.messagesPerDay = original.messagesPerDay;
         this.messagesSize = original.messagesSize;
+        this.producers = original.producers;
+    }
+
+    public void addProducers(List<String> producers) {
+        this.producers.addAll(producers);
+    }
+
+    public void removeProducer(String producerAppIdToBeRemoved) {
+        this.producers = this.producers.stream().filter(id -> !id.equals(producerAppIdToBeRemoved))
+                .collect(Collectors.toList());
     }
 
     @Override
