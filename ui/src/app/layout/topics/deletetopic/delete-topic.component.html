@@ -11,12 +11,14 @@
                     <i class="fas fa-wrench mr-3"></i>{{ 'Advanced Configuration' | translate }}
                 </button>
                 <hr>
-                <p>Hier kannst du mehrere Produzenten für dieses Topic hinzufügen</p>
-                <button class="btn btn-warning"
-                        (click)="openAddProducerDlg(producerAddDlg)">
-                    <i class="fas fa-plus mr-1"></i>{{ 'Add Producer' | translate }}
-                </button>
-                <hr>
+                <div *ngIf="topic.topicType !== 'COMMANDS' && !selectedEnvironment.stagingOnly">
+                    <p>Hier kannst du mehrere Produzenten für dieses Topic hinzufügen</p>
+                    <button class="btn btn-warning"
+                            (click)="openAddProducerDlg(producerAddDlg)">
+                        <i class="fas fa-plus mr-1"></i>{{ 'Add Producer' | translate }}
+                    </button>
+                    <hr>
+                </div>
                 <p>{{ 'DELETE_TOPIC_TEXT' | translate }}</p>
                 <button class="btn btn-danger" (click)="openDeleteConfirmDlg(deleteDlg)"
                         [disabled]="!topic?.deletable"><i
@@ -71,7 +73,7 @@
         </div>
     </div>
     <div class="modal-footer">
-        <button type="button" class="btn btn-success" (click)="dlg.dismiss()"><i
+        <button type="button" class="btn btn-danger" (click)="dlg.dismiss()"><i
             class="fas fa-times"></i>&nbsp;{{ 'Cancel' | translate }}
         </button>
     </div>

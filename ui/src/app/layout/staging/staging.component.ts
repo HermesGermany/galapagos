@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { routerTransition } from '../../router.animations';
-import { ApplicationsService, UserApplicationInfo } from '../../shared/services/applications.service';
+import { ApplicationInfo, ApplicationsService, UserApplicationInfo } from '../../shared/services/applications.service';
 import { Observable } from 'rxjs';
 import { Change, EnvironmentsService, KafkaEnvironment, Staging, StagingResult } from '../../shared/services/environments.service';
 import { map, take } from 'rxjs/operators';
@@ -38,10 +38,15 @@ export class StagingComponent implements OnInit {
 
     stagingResult: StagingResult[] = [];
 
-    translateParams: any = { };
+    translateParams: any = {};
+
+    mappedDeleteProducerIds: ApplicationInfo[] = [];
+
+    mappedAddProducerIds: ApplicationInfo[] = [];
 
     constructor(private applicationsService: ApplicationsService, private environmentsService: EnvironmentsService,
-        private toasts: ToastService) { }
+                private toasts: ToastService) {
+    }
 
     ngOnInit() {
         this.availableApplications = this.applicationsService.getUserApplications().getObservable();
@@ -71,10 +76,23 @@ export class StagingComponent implements OnInit {
     async prepareStaging(): Promise<any> {
         this.staging = null;
         this.stagingResult = [];
-        return this.environmentsService.prepareStaging(this.selectedApplication.id, this.selectedEnvironment).then(s => {
-            this.staging = s;
-            this.changes = s.changes.map(change => ({ change: change, selected: true }));
-        },
+        return this.environmentsService.prepareStaging(this.selectedApplication.id, this.selectedEnvironment).then(async s => {
+
+                this.staging = s;
+                this.changes = s.changes.map(change => ({ change: change, selected: true }));
+
+                const producerRemovedChange = this.changes.filter(change => change.change.changeType === 'TOPIC_PRODUCER_APPLICATION_REMOVED');
+                if (producerRemovedChange.length) {
+                    this.mappedDeleteProducerIds = await Promise.all(
+                        producerRemovedChange[0].change.topicProducerIds.map(ids => this.applicationInfo(ids)));
+                }
+
+                const producerAddChange = this.changes.filter(change => change.change.changeType === 'TOPIC_PRODUCER_APPLICATION_ADDED');
+                if (producerAddChange.length) {
+                    this.mappedAddProducerIds = await Promise.all(
+                        producerAddChange[0].change.topicProducerIds.map(ids => this.applicationInfo(ids)));
+                }
+            },
         err => this.toasts.addHttpErrorToast('Could not calculate staging for this application', err));
     }
 
@@ -120,20 +138,32 @@ export class StagingComponent implements OnInit {
             return 'Abonnement von Topic <code>' + change.subscriptionMetadata.topicName + '</code> kündigen';
         case 'TOPIC_DELETED':
             return 'Topic <code>' + change.topicName + '</code> löschen';
-        case 'TOPIC_DESCRIPTION_CHANGED':
-            return 'Beschreibung von Topic <code>' + change.topicName + '</code> aktualisieren';
-        case 'TOPIC_DEPRECATED':
-            return 'Topic <code>' + change.topicName + '</code> als deprecated markieren';
-        case 'TOPIC_UNDEPRECATED':
-            return 'Deprecated-Markierung von Topic <code>' + change.topicName + '</code> entfernen';
-        case 'TOPIC_SCHEMA_VERSION_PUBLISHED':
-            return 'Schema Version <code>' + change.schemaMetadata.schemaVersion
+            case 'TOPIC_DESCRIPTION_CHANGED':
+                return 'Beschreibung von Topic <code>' + change.topicName + '</code> aktualisieren';
+            case 'TOPIC_DEPRECATED':
+                return 'Topic <code>' + change.topicName + '</code> als deprecated markieren';
+            case 'TOPIC_UNDEPRECATED':
+                return 'Deprecated-Markierung von Topic <code>' + change.topicName + '</code> entfernen';
+            case 'TOPIC_SCHEMA_VERSION_PUBLISHED':
+                return 'Schema Version <code>' + change.schemaMetadata.schemaVersion
                     + '</code> für Topic <code>' + change.topicName + '</code> veröffentlichen';
-        case 'TOPIC_SUBSCRIPTION_APPROVAL_REQUIRED_FLAG_UPDATED':
-            return 'Für Topic <code>' + change.topicMetadata.name + '</code> die Freigabe von Abonnements erforderlich machen';
-        case 'COMPOUND_CHANGE':
-            return this.stagingText(change.mainChange);
+            case 'TOPIC_PRODUCER_APPLICATION_ADDED':
+                return `Produzent(en) <code> ` + ` ${this.mappedAddProducerIds.map(app => app.name).join(', ')} ` +
+                    `</code> hinzufügen für topic ` + `<code>` + change.topicName + `  </code>\n`;
+            case 'TOPIC_PRODUCER_APPLICATION_REMOVED':
+                return `Produzent(en) <code> ` + ` ${this.mappedDeleteProducerIds.map(app => app.name).join(', ')} ` +
+                    `</code> entfernen für topic ` + `<code>` + change.topicName + `  </code>\n`;
+            case 'TOPIC_SUBSCRIPTION_APPROVAL_REQUIRED_FLAG_UPDATED':
+                return 'Für Topic <code>' + change.topicMetadata.name + '</code> die Freigabe von Abonnements erforderlich machen';
+            case 'COMPOUND_CHANGE':
+                return this.stagingText(change.mainChange);
         }
         return 'Änderung vom Typ <code>' + changeType + '</code> durchführen';
     }
+
+    private applicationInfo(applicationId): Promise<ApplicationInfo> {
+        return this.applicationsService.getAvailableApplications(false)
+            .pipe(map(apps => apps.find(app => app.id === applicationId))).pipe(take(1)).toPromise();
+    };
+
 }

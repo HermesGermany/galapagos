@@ -270,7 +270,6 @@ public class ApplicationsController {
         if (!applicationsService.isUserAuthorizedFor(applicationId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
-
         List<Change> stagingFilter = null;
         if (!StringUtils.isEmpty(stagingFilterRaw)) {
             try {

@@ -1,12 +1,5 @@
 package com.hermesworld.ais.galapagos.changes.impl;
 
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
-
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.hermesworld.ais.galapagos.applications.ApplicationMetadata;
 import com.hermesworld.ais.galapagos.changes.ApplicableChange;
@@ -17,6 +10,13 @@ import com.hermesworld.ais.galapagos.kafka.TopicCreateParams;
 import com.hermesworld.ais.galapagos.subscriptions.SubscriptionMetadata;
 import com.hermesworld.ais.galapagos.topics.SchemaMetadata;
 import com.hermesworld.ais.galapagos.topics.TopicMetadata;
+
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 
 public abstract class ChangeBase implements ApplicableChange {
 
@@ -104,6 +104,14 @@ public abstract class ChangeBase implements ApplicableChange {
         return new PublishTopicSchemaVersionChange(topicName, schemaVersion);
     }
 
+    public static ChangeBase TopicProducerAddChange(String topicName, List<String> topicProducerIds) {
+        return new TopicProducerAddChange(topicName, topicProducerIds);
+    }
+
+    public static ChangeBase TopicProducerRemoveChange(String topicName, List<String> topicProducerRemoveId) {
+        return new TopicProducerRemoveChange(topicName, topicProducerRemoveId);
+    }
+
     /**
      * @deprecated Is no longer signalled by a "change", but as a Galapagos Event.
      */
@@ -133,9 +141,9 @@ public abstract class ChangeBase implements ApplicableChange {
 @JsonSerialize
 final class CreateTopicChange extends ChangeBase {
 
-    private TopicMetadata topicMetadata;
+    private final TopicMetadata topicMetadata;
 
-    private TopicCreateParamsDto createParams;
+    private final TopicCreateParamsDto createParams;
 
     CreateTopicChange(TopicMetadata topicMetadata, TopicCreateParams createParams) {
         super(ChangeType.TOPIC_CREATED);
@@ -168,9 +176,9 @@ final class CreateTopicChange extends ChangeBase {
 @JsonSerialize
 final class DeleteTopicChange extends ChangeBase {
 
-    private String topicName;
+    private final String topicName;
 
-    private boolean internalTopic;
+    private final boolean internalTopic;
 
     public DeleteTopicChange(String topicName, boolean internalTopic) {
         super(ChangeType.TOPIC_DELETED);
@@ -235,7 +243,7 @@ final class UpdateSubscriptionChange extends ChangeBase {
         this.subscriptionMetadata = new SubscriptionMetadata(subscriptionMetadata);
     }
 
-    private SubscriptionMetadata subscriptionMetadata;
+    private final SubscriptionMetadata subscriptionMetadata;
 
     public SubscriptionMetadata getSubscriptionMetadata() {
         return subscriptionMetadata;
@@ -260,7 +268,7 @@ final class UpdateSubscriptionChange extends ChangeBase {
 @JsonSerialize
 final class UnsubscribeFromTopicChange extends ChangeBase {
 
-    private SubscriptionMetadata subscriptionMetadata;
+    private final SubscriptionMetadata subscriptionMetadata;
 
     UnsubscribeFromTopicChange(SubscriptionMetadata subscriptionMetadata) {
         super(ChangeType.TOPIC_UNSUBSCRIBED);
@@ -300,11 +308,11 @@ final class UnsubscribeFromTopicChange extends ChangeBase {
 @JsonSerialize
 final class UpdateTopicDescriptionChange extends ChangeBase {
 
-    private String topicName;
+    private final String topicName;
 
-    private String newDescription;
+    private final String newDescription;
 
-    private boolean internalTopic;
+    private final boolean internalTopic;
 
     public UpdateTopicDescriptionChange(String topicName, String newDescription, boolean internalTopic) {
         super(ChangeType.TOPIC_DESCRIPTION_CHANGED);
@@ -334,6 +342,79 @@ final class UpdateTopicDescriptionChange extends ChangeBase {
     public CompletableFuture<?> applyTo(ApplyChangeContext context) {
         return context.getTopicService().updateTopicDescription(context.getTargetEnvironmentId(), topicName,
                 newDescription);
+    }
+
+}
+
+@JsonSerialize
+final class TopicProducerAddChange extends ChangeBase {
+
+    private final String topicName;
+
+    private final List<String> topicProducerIds;
+
+    public TopicProducerAddChange(String topicName, List<String> topicProducerIds) {
+        super(ChangeType.TOPIC_PRODUCER_APPLICATION_ADDED);
+        this.topicName = topicName;
+        this.topicProducerIds = topicProducerIds;
+
+    }
+
+    public String getTopicName() {
+        return topicName;
+    }
+
+    public List<String> getTopicProducerIds() {
+        return topicProducerIds;
+    }
+
+    @Override
+    protected boolean isEqualTo(ChangeBase other) {
+        return Objects.equals(topicName, ((TopicProducerAddChange) other).topicName);
+    }
+
+    @Override
+    public CompletableFuture<?> applyTo(ApplyChangeContext context) {
+        return context.getTopicService().addTopicProducers(context.getTargetEnvironmentId(), topicName,
+                topicProducerIds);
+    }
+
+}
+
+@JsonSerialize
+final class TopicProducerRemoveChange extends ChangeBase {
+
+    private final String topicName;
+
+    private final List<String> topicProducerDeleteId;
+
+    public TopicProducerRemoveChange(String topicName, List<String> topicProducerDeleteId) {
+        super(ChangeType.TOPIC_PRODUCER_APPLICATION_REMOVED);
+        this.topicName = topicName;
+        this.topicProducerDeleteId = topicProducerDeleteId;
+
+    }
+
+    public String getTopicName() {
+        return topicName;
+    }
+
+    public List<String> getTopicProducerIds() {
+        return topicProducerDeleteId;
+    }
+
+    @Override
+    protected boolean isEqualTo(ChangeBase other) {
+        return Objects.equals(topicName, ((TopicProducerRemoveChange) other).topicName);
+    }
+
+    @Override
+    public CompletableFuture<?> applyTo(ApplyChangeContext context) {
+
+        topicProducerDeleteId.forEach(deleteId -> context.getTopicService()
+                .removeProducerFromTopic(context.getTargetEnvironmentId(), topicName, deleteId));
+
+        return CompletableFuture.completedFuture(null);
     }
 
 }
@@ -406,9 +487,9 @@ final class UndeprecateTopicChange extends ChangeBase {
 @JsonSerialize
 final class UpdateSubscriptionApprovalRequiredFlagChange extends ChangeBase {
 
-    private String topicName;
+    private final String topicName;
 
-    private boolean subscriptionApprovalRequired;
+    private final boolean subscriptionApprovalRequired;
 
     public UpdateSubscriptionApprovalRequiredFlagChange(String topicName, boolean subscriptionApprovalRequired) {
         super(ChangeType.TOPIC_SUBSCRIPTION_APPROVAL_REQUIRED_FLAG_UPDATED);
@@ -441,9 +522,9 @@ final class UpdateSubscriptionApprovalRequiredFlagChange extends ChangeBase {
 @JsonSerialize
 final class PublishTopicSchemaVersionChange extends ChangeBase {
 
-    private String topicName;
+    private final String topicName;
 
-    private SchemaMetadata schemaMetadata;
+    private final SchemaMetadata schemaMetadata;
 
     public PublishTopicSchemaVersionChange(String topicName, SchemaMetadata schemaMetadata) {
         super(ChangeType.TOPIC_SCHEMA_VERSION_PUBLISHED);
@@ -476,9 +557,9 @@ final class PublishTopicSchemaVersionChange extends ChangeBase {
 @JsonSerialize
 final class RegisterApplicationChange extends ChangeBase {
 
-    private String applicationId;
+    private final String applicationId;
 
-    private ApplicationMetadata applicationMetadata;
+    private final ApplicationMetadata applicationMetadata;
 
     @SuppressWarnings("deprecation")
     public RegisterApplicationChange(String applicationId, ApplicationMetadata applicationMetadata) {
@@ -511,9 +592,9 @@ final class RegisterApplicationChange extends ChangeBase {
 @JsonSerialize
 final class CompoundChange extends ChangeBase {
 
-    private ChangeBase mainChange;
+    private final ChangeBase mainChange;
 
-    private List<ChangeBase> additionalChanges;
+    private final List<ChangeBase> additionalChanges;
 
     public CompoundChange(ChangeBase mainChange, List<ChangeBase> additionalChanges) {
         super(ChangeType.COMPOUND_CHANGE);

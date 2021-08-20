@@ -38,6 +38,7 @@ public class StagingServiceImpl implements StagingService {
     @Override
     public CompletableFuture<Staging> prepareStaging(String applicationId, String environmentIdFrom,
             List<Change> changesFilter) {
+
         List<? extends KafkaEnvironmentConfig> environmentMetadata = kafkaClusters.getEnvironmentsMetadata();
 
         String targetEnvironmentId = null;

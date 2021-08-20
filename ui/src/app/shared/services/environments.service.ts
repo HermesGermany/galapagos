@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import { Observable, ReplaySubject, empty, EMPTY, pipe } from 'rxjs';
-import { ReplayContainer, jsonHeader } from './services-common';
+import { EMPTY, Observable, ReplaySubject } from 'rxjs';
+import { jsonHeader, ReplayContainer } from './services-common';
 import { HttpClient } from '@angular/common/http';
-import { take, map } from 'rxjs/operators';
+import { map, take } from 'rxjs/operators';
 import { ToastService } from '../modules/toast/toast.service';
 
 const LOCAL_STORAGE_ENV_KEY = 'galapagos.environment';

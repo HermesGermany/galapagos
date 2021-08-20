@@ -255,7 +255,7 @@ public class UpdateApplicationAclsListenerTest {
     @Test
     public void addedProducerGetsCorrectAcls() throws ExecutionException, InterruptedException {
         KafkaAuthenticationModule module = mock(KafkaAuthenticationModule.class);
-        when(module.extractKafkaUserName(any(), any())).thenReturn("producer1");
+        when(module.extractKafkaUserName(any(), any())).thenReturn("User:12345");
         when(kafkaClusters.getAuthenticationModule("_test")).thenReturn(Optional.of(module));
         GalapagosEventContext context = mock(GalapagosEventContext.class);
         when(context.getKafkaCluster()).thenReturn(cluster);
@@ -296,14 +296,15 @@ public class UpdateApplicationAclsListenerTest {
                         .filter(binding -> binding.pattern().resourceType() == ResourceType.TOPIC
                                 && binding.pattern().patternType() == PatternType.LITERAL
                                 && binding.pattern().name().equals("topic1")
-                                && binding.entry().operation().equals(AclOperation.WRITE))
+                                && binding.entry().operation() == op
+                                && binding.entry().principal().equals("User:12345"))
                         .findAny().orElse(null)));
     }
 
     @Test
     public void deletedProducerHasNoAcls() throws ExecutionException, InterruptedException {
         KafkaAuthenticationModule module = mock(KafkaAuthenticationModule.class);
-        when(module.extractKafkaUserName(any(), any())).thenReturn("producer1");
+        when(module.extractKafkaUserName(any(), any())).thenReturn("User:12345");
         when(kafkaClusters.getAuthenticationModule("_test")).thenReturn(Optional.of(module));
         GalapagosEventContext context = mock(GalapagosEventContext.class);
         when(context.getKafkaCluster()).thenReturn(cluster);
@@ -338,10 +339,10 @@ public class UpdateApplicationAclsListenerTest {
 
         listener.handleRemoveTopicProducer(event).get();
 
-        Collection<AclBinding> acls = users.get(0).getRequiredAclBindings();
+        Collection<AclBinding> bindings = users.get(0).getRequiredAclBindings();
 
         verify(cluster, times(1)).updateUserAcls(any());
-        assertFalse(acls.stream().anyMatch(binding -> binding.pattern().resourceType() == ResourceType.TOPIC));
+        assertFalse(bindings.stream().anyMatch(binding -> binding.pattern().resourceType() == ResourceType.TOPIC));
 
     }
 

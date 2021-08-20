@@ -1,10 +1,5 @@
 package com.hermesworld.ais.galapagos.changes.impl;
 
-import java.io.IOException;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
@@ -20,6 +15,11 @@ import com.hermesworld.ais.galapagos.subscriptions.SubscriptionMetadata;
 import com.hermesworld.ais.galapagos.topics.SchemaMetadata;
 import com.hermesworld.ais.galapagos.topics.TopicMetadata;
 import lombok.extern.slf4j.Slf4j;
+
+import java.io.IOException;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Slf4j
 public class ChangeDeserizalizer extends StdDeserializer<Change> {
@@ -92,6 +92,12 @@ public class ChangeDeserizalizer extends StdDeserializer<Change> {
                         mapper.treeToValue(tree.findValue("eolDate"), LocalDate.class));
             case TOPIC_UNDEPRECATED:
                 return ChangeBase.unmarkTopicDeprecated(tree.findValue(TOPIC_NAME).asText());
+            case TOPIC_PRODUCER_APPLICATION_ADDED:
+                return ChangeBase.TopicProducerAddChange(tree.findValue(TOPIC_NAME).asText(),
+                        mapper.treeToValue(tree.findValue("topicProducerIds"), ArrayList.class));
+            case TOPIC_PRODUCER_APPLICATION_REMOVED:
+                return ChangeBase.TopicProducerRemoveChange(tree.findValue(TOPIC_NAME).asText(),
+                        mapper.treeToValue(tree.findValue("topicProducerIds"), ArrayList.class));
             case TOPIC_SUBSCRIPTION_APPROVAL_REQUIRED_FLAG_UPDATED:
                 return ChangeBase.updateTopicSubscriptionApprovalRequiredFlag(tree.findValue(TOPIC_NAME).asText(),
                         tree.findValue("subscriptionApprovalRequired").asBoolean());
@@ -136,7 +142,7 @@ public class ChangeDeserizalizer extends StdDeserializer<Change> {
     @JsonSerialize
     static class V010CreateTopicChange implements Change {
 
-        private TopicMetadata topicMetadata;
+        private final TopicMetadata topicMetadata;
 
         public V010CreateTopicChange(TopicMetadata topicMetadata) {
             this.topicMetadata = topicMetadata;

@@ -1,14 +1,5 @@
 package com.hermesworld.ais.galapagos.staging.impl;
 
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.ExecutionException;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -28,6 +19,15 @@ import com.hermesworld.ais.galapagos.topics.TopicType;
 import com.hermesworld.ais.galapagos.topics.service.TopicService;
 import com.hermesworld.ais.galapagos.util.JsonUtil;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Slf4j
 public final class StagingImpl implements Staging, ApplyChangeContext {
@@ -159,6 +159,7 @@ public final class StagingImpl implements Staging, ApplyChangeContext {
                     s -> changes.add(ChangeBase.publishTopicSchemaVersion(topic.getName(), s)), null, null);
         }
 
+
         if (changesFilter != null && !changesFilter.isEmpty()) {
             addVirtualChanges(changesFilter, changes);
 
@@ -167,6 +168,7 @@ public final class StagingImpl implements Staging, ApplyChangeContext {
         }
 
         staging.changes = changes;
+
         return CompletableFuture.completedFuture(staging);
     }
 
@@ -218,6 +220,24 @@ public final class StagingImpl implements Staging, ApplyChangeContext {
         if (oldTopic.isSubscriptionApprovalRequired() != newTopic.isSubscriptionApprovalRequired()) {
             result.add(ChangeBase.updateTopicSubscriptionApprovalRequiredFlag(newTopic.getName(),
                     newTopic.isSubscriptionApprovalRequired()));
+        }
+
+        if (!oldTopic.getProducers().equals(newTopic.getProducers())) {
+            List<String> producerIdsToBeAdded = newTopic.getProducers().stream()
+                    .filter(producer -> !oldTopic.getProducers().contains(producer)).collect(Collectors.toList());
+
+            if (!producerIdsToBeAdded.isEmpty()) {
+                result.add(ChangeBase.TopicProducerAddChange(newTopic.getName(), producerIdsToBeAdded));
+            }
+
+            List<String> ids = new ArrayList<>(oldTopic.getProducers());
+            ids.removeAll(newTopic.getProducers());
+            List<String> toBeDeletedIds = new ArrayList<>(ids);
+
+            if (!toBeDeletedIds.isEmpty()) {
+                result.add(ChangeBase.TopicProducerRemoveChange(newTopic.getName(), toBeDeletedIds));
+            }
+
         }
 
         return result;

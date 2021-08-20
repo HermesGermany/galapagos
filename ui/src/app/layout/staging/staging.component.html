@@ -21,14 +21,18 @@
 
                     <div class="form-group form-inline mt-3">
                         <label class="mr-3">{{ 'Kafka Environment' | translate }}</label>
-                        <select class="form-control mr-3" name="appPicker" #appPicker [(ngModel)]="selectedEnvironment" (change)="updateTargetEnvironment()">
+                        <select class="form-control mr-3" name="appPicker" #appPicker [(ngModel)]="selectedEnvironment"
+                                (change)="updateTargetEnvironment()">
                             <option *ngFor="let env of availableEnvironments | async" [ngValue]="env">{{ env.name }}
                             </option>
                         </select>
                         &nbsp;{{ 'to' | translate }}&nbsp;{{ targetEnvironment }}
                     </div>
 
-                    <button class="btn btn-success mt-4" [disabled]="!selectedApplication || !selectedEnvironment || performing" appSpinnerWhile #c="appSpinnerWhile" (click)="c.while(prepareStaging())"><i class="fas fa-calculator mr-3"></i>{{ 'Analyze Changes' | translate }}</button>
+                    <button class="btn btn-success mt-4"
+                            [disabled]="!selectedApplication || !selectedEnvironment || performing"
+                            appSpinnerWhile #c="appSpinnerWhile" (click)="c.while(prepareStaging())">
+                        <i class="fas fa-calculator mr-3"></i>{{ 'Analyze Changes' | translate }}</button>
                 </div>
             </div>
         </div>
@@ -87,6 +91,4 @@
                 </div>
             </div>
         </div>
-    
-
 </div>

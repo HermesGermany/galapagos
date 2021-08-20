@@ -60,7 +60,7 @@
                         <ng-template #infoUrlTextSub>
                             <span>{{ producer.name }}</span>
                         </ng-template>
-                        <span *ngIf="isOwnerOfTopic" class="ml-3">
+                        <span *ngIf="isOwnerOfTopic && !(selectedEnvironment | async)?.stagingOnly" class="ml-3">
                             <button class="btn btn-sm btn-danger" appSpinnerWhile #del="appSpinnerWhile"
                                     (click)="openDeleteProducerDlg(producer,deleteProducerDlg)">
                                 <i class="fas fa-eraser mr-1"></i>{{ 'Delete Producer' | translate }}

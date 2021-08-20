@@ -166,5 +166,12 @@
     "CRITICALITY_TEXT_HTML": "Bitte gib hier die Kritikalität der Inhalte des Topics an, die auf die <b>Produktion</b> zutrifft. Auch \"normale\" Topics werden bereits repliziert (auf mehreren Brokern redundant gehalten). \"Kritische\" Topics werden <b>dreifach</b> redundant gehalten, so dass eine noch höhere Sicherheit im Falle des Ausfalls einzelner Kafka-Broker besteht.",
     "SIZE_ESTIMATION_TEXT_HTML": "Schätze hier bitte Menge und Größe der zu erwartenden Datensätze auf dem Topic (in <b>Produktion</b>) ab. Dies wird aktuell <b>nicht</b> für Optimierungen der Kafka-Einstellungen genutzt, dient jedoch dem Betrieb als Indikator für eventuelle nötige Kapazitätserweiterungen.",
     "Close": "Schließen",
-    "API_KEY_REQUEST_FAILED": "Request fehlgeschlagen"
+    "API_KEY_REQUEST_FAILED": "Request fehlgeschlagen",
+    "Producers": "Produzenten",
+    "Add Producer": "Produzenten hinzufügen",
+    "Delete Producer": "Produzenten entfernen",
+    "Producer Selection": "Produzenten Auswahl",
+    "Add as Producer": "Als Produzenten Hinzufügen",
+    "Select Producer": "Produzenten Auswählen",
+    "Confirm Producer deletion": "Produzenten Entfernung bestätigen"
 }

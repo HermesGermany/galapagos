@@ -1,11 +1,5 @@
 package com.hermesworld.ais.galapagos.staging.impl;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-
 import com.hermesworld.ais.galapagos.changes.ApplicableChange;
 import com.hermesworld.ais.galapagos.changes.Change;
 import com.hermesworld.ais.galapagos.changes.ChangeType;
@@ -17,8 +11,16 @@ import com.hermesworld.ais.galapagos.topics.TopicMetadata;
 import com.hermesworld.ais.galapagos.topics.TopicType;
 import com.hermesworld.ais.galapagos.topics.service.TopicService;
 import com.hermesworld.ais.galapagos.util.JsonUtil;
-import static org.junit.Assert.*;
 import org.junit.Test;
+import org.junit.jupiter.api.DisplayName;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -65,6 +67,72 @@ public class StagingImplTest {
         staging = StagingImpl.build("app-1", "dev", "int", null, topicService, subscriptionService).get();
         changes = staging.getChanges();
         assertEquals(0, changes.size());
+    }
+
+    @Test
+    @DisplayName("should stage new added producer to next stage")
+    public void testProducerAddStaging() throws Exception {
+        TopicService topicService = mock(TopicService.class);
+
+        TopicMetadata topic1 = new TopicMetadata();
+        topic1.setName("topic-1");
+        topic1.setOwnerApplicationId("app-1");
+        topic1.setType(TopicType.EVENTS);
+        topic1.setProducers(List.of("producer1"));
+
+        TopicMetadata topic2 = new TopicMetadata();
+        topic2.setName("topic-1");
+        topic2.setOwnerApplicationId("app-1");
+        topic2.setType(TopicType.EVENTS);
+
+        when(topicService.listTopics("dev")).thenReturn(Collections.singletonList(topic1));
+        when(topicService.listTopics("int")).thenReturn(Collections.singletonList(topic2));
+
+        StagingImpl staging = StagingImpl
+                .build("app-1", "dev", "int", null, topicService, mock(SubscriptionService.class)).get();
+
+        List<? extends Change> changes = staging.getChanges();
+        assertEquals(1, staging.getChanges().size());
+        Change change = changes.get(0);
+        assertEquals(ChangeType.TOPIC_PRODUCER_APPLICATION_ADDED, change.getChangeType());
+
+        topic2.setProducers(List.of("producer1"));
+
+        staging = StagingImpl.build("app-1", "dev", "int", null, topicService, mock(SubscriptionService.class)).get();
+        changes = staging.getChanges();
+        assertEquals(0, changes.size());
+    }
+
+    @Test
+    @DisplayName("should stage removed producer to next stage")
+    public void testProducerRemoveStaging() throws Exception {
+        TopicService topicService = mock(TopicService.class);
+
+        TopicMetadata topic1 = new TopicMetadata();
+        topic1.setName("topic-1");
+        topic1.setOwnerApplicationId("app-1");
+        topic1.setType(TopicType.EVENTS);
+        topic1.setProducers(List.of("producer1"));
+
+        TopicMetadata topic2 = new TopicMetadata();
+        topic2.setName("topic-1");
+        topic2.setOwnerApplicationId("app-1");
+        topic2.setType(TopicType.EVENTS);
+        topic2.setProducers(List.of("producer1"));
+
+        when(topicService.listTopics("dev")).thenReturn(Collections.singletonList(topic1));
+        when(topicService.listTopics("int")).thenReturn(Collections.singletonList(topic2));
+
+        topic1.removeProducer("producer1");
+
+        StagingImpl staging = StagingImpl
+                .build("app-1", "dev", "int", null, topicService, mock(SubscriptionService.class)).get();
+
+        List<? extends Change> changes = staging.getChanges();
+        assertEquals(1, staging.getChanges().size());
+        Change change = changes.get(0);
+        assertEquals(ChangeType.TOPIC_PRODUCER_APPLICATION_REMOVED, change.getChangeType());
+
     }
 
     @Test
