@@ -93,7 +93,7 @@ export class StagingComponent implements OnInit {
                         producerAddChange[0].change.topicProducerIds.map(ids => this.applicationInfo(ids)));
                 }
             },
-        err => this.toasts.addHttpErrorToast('Could not calculate staging for this application', err));
+            err => this.toasts.addHttpErrorToast('Could not calculate staging for this application', err));
     }
 
     async performStaging(): Promise<any> {
@@ -130,14 +130,14 @@ export class StagingComponent implements OnInit {
         // TODO i18n
         const changeType = change.changeType;
         switch (changeType) {
-        case 'TOPIC_CREATED':
-            return 'Topic <code>' + change.topicMetadata.name + '</code> anlegen';
-        case 'TOPIC_SUBSCRIBED':
-            return 'Topic <code>' + change.subscriptionMetadata.topicName + '</code> abonnieren';
-        case 'TOPIC_UNSUBSCRIBED':
-            return 'Abonnement von Topic <code>' + change.subscriptionMetadata.topicName + '</code> kündigen';
-        case 'TOPIC_DELETED':
-            return 'Topic <code>' + change.topicName + '</code> löschen';
+            case 'TOPIC_CREATED':
+                return 'Topic <code>' + change.topicMetadata.name + '</code> anlegen';
+            case 'TOPIC_SUBSCRIBED':
+                return 'Topic <code>' + change.subscriptionMetadata.topicName + '</code> abonnieren';
+            case 'TOPIC_UNSUBSCRIBED':
+                return 'Abonnement von Topic <code>' + change.subscriptionMetadata.topicName + '</code> kündigen';
+            case 'TOPIC_DELETED':
+                return 'Topic <code>' + change.topicName + '</code> löschen';
             case 'TOPIC_DESCRIPTION_CHANGED':
                 return 'Beschreibung von Topic <code>' + change.topicName + '</code> aktualisieren';
             case 'TOPIC_DEPRECATED':
