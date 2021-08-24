@@ -157,7 +157,7 @@ public class ValidatingTopicServiceImplTest {
                 mock(ApplicationsService.class), clusters, topicConfig, false);
 
         try {
-            service.addTopicProducers("_env1", "testtopic", List.of("producer1")).get();
+            service.addTopicProducer("_env1", "testtopic", "producer1").get();
             fail("Expected exception trying to add Producer to Topic on staging-only Stage");
         }
         catch (ExecutionException | InterruptedException e) {

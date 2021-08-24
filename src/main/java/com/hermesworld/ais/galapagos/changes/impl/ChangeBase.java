@@ -104,11 +104,11 @@ public abstract class ChangeBase implements ApplicableChange {
         return new PublishTopicSchemaVersionChange(topicName, schemaVersion);
     }
 
-    public static ChangeBase TopicProducerAddChange(String topicName, List<String> topicProducerIds) {
-        return new TopicProducerAddChange(topicName, topicProducerIds);
+    public static ChangeBase TopicProducerAddChange(String topicName, String topicProducerId) {
+        return new TopicProducerAddChange(topicName, topicProducerId);
     }
 
-    public static ChangeBase TopicProducerRemoveChange(String topicName, List<String> topicProducerRemoveId) {
+    public static ChangeBase TopicProducerRemoveChange(String topicName, String topicProducerRemoveId) {
         return new TopicProducerRemoveChange(topicName, topicProducerRemoveId);
     }
 
@@ -351,12 +351,12 @@ final class TopicProducerAddChange extends ChangeBase {
 
     private final String topicName;
 
-    private final List<String> topicProducerIds;
+    private final String topicProducerId;
 
-    public TopicProducerAddChange(String topicName, List<String> topicProducerIds) {
+    public TopicProducerAddChange(String topicName, String topicProducerId) {
         super(ChangeType.TOPIC_PRODUCER_APPLICATION_ADDED);
         this.topicName = topicName;
-        this.topicProducerIds = topicProducerIds;
+        this.topicProducerId = topicProducerId;
 
     }
 
@@ -364,19 +364,19 @@ final class TopicProducerAddChange extends ChangeBase {
         return topicName;
     }
 
-    public List<String> getTopicProducerIds() {
-        return topicProducerIds;
+    public String getTopicProducerIds() {
+        return topicProducerId;
     }
 
     @Override
     protected boolean isEqualTo(ChangeBase other) {
-        return Objects.equals(topicName, ((TopicProducerAddChange) other).topicName);
+        return Objects.equals(topicName, ((TopicProducerAddChange) other).topicName)
+                && topicProducerId.equals(((TopicProducerAddChange) other).topicProducerId);
     }
 
     @Override
     public CompletableFuture<?> applyTo(ApplyChangeContext context) {
-        return context.getTopicService().addTopicProducers(context.getTargetEnvironmentId(), topicName,
-                topicProducerIds);
+        return context.getTopicService().addTopicProducer(context.getTargetEnvironmentId(), topicName, topicProducerId);
     }
 
 }
@@ -386,35 +386,32 @@ final class TopicProducerRemoveChange extends ChangeBase {
 
     private final String topicName;
 
-    private final List<String> topicProducerDeleteId;
+    private final String topicProducerDeleteId;
 
-    public TopicProducerRemoveChange(String topicName, List<String> topicProducerDeleteId) {
+    public TopicProducerRemoveChange(String topicName, String topicProducerDeleteId) {
         super(ChangeType.TOPIC_PRODUCER_APPLICATION_REMOVED);
         this.topicName = topicName;
         this.topicProducerDeleteId = topicProducerDeleteId;
-
     }
 
     public String getTopicName() {
         return topicName;
     }
 
-    public List<String> getTopicProducerIds() {
+    public String getTopicProducerIds() {
         return topicProducerDeleteId;
     }
 
     @Override
     protected boolean isEqualTo(ChangeBase other) {
-        return Objects.equals(topicName, ((TopicProducerRemoveChange) other).topicName);
+        return Objects.equals(topicName, ((TopicProducerRemoveChange) other).topicName)
+                && topicProducerDeleteId.equals(((TopicProducerRemoveChange) other).topicProducerDeleteId);
     }
 
     @Override
     public CompletableFuture<?> applyTo(ApplyChangeContext context) {
-
-        topicProducerDeleteId.forEach(deleteId -> context.getTopicService()
-                .removeProducerFromTopic(context.getTargetEnvironmentId(), topicName, deleteId));
-
-        return CompletableFuture.completedFuture(null);
+        return context.getTopicService().removeProducerFromTopic(context.getTargetEnvironmentId(), topicName,
+                topicProducerDeleteId);
     }
 
 }

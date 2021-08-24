@@ -280,12 +280,12 @@ public class UpdateApplicationAclsListenerTest {
 
         when(applicationsService.getApplicationMetadata("_test", "producer1")).thenReturn(Optional.of(producer1));
 
-        TopicAddProducersEvent event = new TopicAddProducersEvent(context, Collections.singletonList("producer1"),
+        TopicAddProducersEvent event = new TopicAddProducersEvent(context, "producer1",
                 topic);
         UpdateApplicationAclsListener listener = new UpdateApplicationAclsListener(kafkaClusters, topicService,
                 subscriptionService, applicationsService, kafkaConfig);
 
-        listener.handleAddTopicProducers(event).get();
+        listener.handleAddTopicProducer(event).get();
 
         Collection<AclBinding> createdAcls = users.get(0).getRequiredAclBindings();
 

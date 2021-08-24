@@ -146,58 +146,33 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
     }
 
     @Override
-    public CompletableFuture<Void> addTopicProducers(String environmentId, String topicName, List<String> producers) {
+    public CompletableFuture<Void> addTopicProducer(String environmentId, String topicName, String producerId) {
+        return doWithClusterAndTopic(environmentId, topicName, (kafkaCluster, metadata, eventSink) -> {
+            if (metadata.getType() == TopicType.COMMANDS) {
+                return CompletableFuture.failedFuture(
+                        new IllegalStateException("For Command Topics, subscribe to the Topic to add a new Producer"));
+            }
+            TopicMetadata newTopic = new TopicMetadata(metadata);
+            newTopic.getProducers().add(producerId);
+            return getTopicRepository(kafkaCluster).save(newTopic)
+                    .thenCompose(o -> eventSink.handleAddTopicProducer(newTopic, producerId));
+        });
 
-        if (getTopic(environmentId, topicName).isEmpty()) {
-            return CompletableFuture
-                    .failedFuture(new IllegalStateException("Topic with name " + topicName + " does not exist!"));
-        }
-        TopicMetadata topic = getTopic(environmentId, topicName).get();
-
-        if (topic.getType() == TopicType.COMMANDS) {
-            return CompletableFuture.failedFuture(
-                    new IllegalStateException("For Command Topics, subscribe to the Topic to add a new Producer"));
-        }
-
-        KafkaCluster kafkaCluster = kafkaClusters.getEnvironment(environmentId).orElse(null);
-        if (kafkaCluster == null) {
-            return FutureUtil.noSuchEnvironment(environmentId);
-        }
-
-        TopicMetadata newTopic = new TopicMetadata(topic);
-        newTopic.addProducers(producers);
-
-        GalapagosEventSink eventSink = eventManager.newEventSink(kafkaCluster);
-
-        return getTopicRepository(kafkaCluster).save(newTopic)
-                .thenCompose(o -> eventSink.handleAddTopicProducers(producers, newTopic));
     }
 
     @Override
-    public CompletableFuture<Void> removeProducerFromTopic(String envId, String topicName, String appId) {
-        if (getTopic(envId, topicName).isEmpty()) {
-            return CompletableFuture
-                    .failedFuture(new IllegalStateException("Topic with name " + topicName + " does not exist!"));
-        }
-        TopicMetadata topic = getTopic(envId, topicName).get();
+    public CompletableFuture<Void> removeProducerFromTopic(String envId, String topicName, String producerId) {
+        return doWithClusterAndTopic(envId, topicName, (kafkaCluster, metadata, eventSink) -> {
+            if (metadata.getType() == TopicType.COMMANDS) {
+                return CompletableFuture.failedFuture(
+                        new IllegalStateException("For Command Topics, subscribe to the Topic to remove a Producer"));
+            }
+            TopicMetadata newTopic = new TopicMetadata(metadata);
+            newTopic.getProducers().remove(producerId);
+            return getTopicRepository(kafkaCluster).save(newTopic)
+                    .thenCompose(o -> eventSink.handleRemoveProducer(newTopic, producerId));
+        });
 
-        if (topic.getType() == TopicType.COMMANDS) {
-            return CompletableFuture.failedFuture(
-                    new IllegalStateException("For Command Topics, subscribe to the Topic to add a new Producer"));
-        }
-
-        KafkaCluster kafkaCluster = kafkaClusters.getEnvironment(envId).orElse(null);
-        if (kafkaCluster == null) {
-            return FutureUtil.noSuchEnvironment(envId);
-        }
-
-        TopicMetadata newTopic = new TopicMetadata(topic);
-        newTopic.removeProducer(appId);
-
-        GalapagosEventSink eventSink = eventManager.newEventSink(kafkaCluster);
-
-        return getTopicRepository(kafkaCluster).save(newTopic)
-                .thenCompose(o -> eventSink.handleRemoveProducerFromTopic(newTopic, appId));
     }
 
     @Override

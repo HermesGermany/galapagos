@@ -124,10 +124,6 @@ export class ApplicationsService {
         return this.userApplications;
     }
 
-    public getAvailableApplicationMetadata(environmentId: string, topicOwnerAppId: string, topicName: string): Observable<any> {
-        return this.http.get(`/api/applicationsmetadata/${environmentId}/${topicName}/?topicOwnerId=${topicOwnerAppId}`);
-    }
-
     public getUserApplicationOwnerRequests(): Observable<ApplicationOwnerRequest[]> {
         return this.userRequests.getObservable();
     }

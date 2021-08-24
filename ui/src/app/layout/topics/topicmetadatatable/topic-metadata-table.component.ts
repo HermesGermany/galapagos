@@ -44,7 +44,7 @@ export class TopicMetadataTableComponent implements OnInit {
 
     selectedProducer: ApplicationInfo;
 
-    mappedProducers: ApplicationInfo[];
+    producerApps: Observable<ApplicationInfo[]>;
 
     constructor(
         private topicService: TopicsService,
@@ -57,8 +57,9 @@ export class TopicMetadataTableComponent implements OnInit {
 
     }
 
-    async ngOnInit() {
-        this.mappedProducers = await Promise.all(this.topic.producers.map(producerId => this.applicationInfo(producerId)));
+    ngOnInit() {
+        this.producerApps = this.applicationsService.getAvailableApplications(false)
+            .pipe(map(apps => apps.filter(app => this.topic.producers.includes(app.id)))).pipe(take(1));
         this.selectedEnvironment = this.environmentsService.getCurrentEnvironment();
     }
 
@@ -174,7 +175,11 @@ export class TopicMetadataTableComponent implements OnInit {
 
     async deleteProducer(topicName: string, producerAppId: string): Promise<any> {
         const environment = await this.environmentsService.getCurrentEnvironment().pipe(take(1)).toPromise();
-        return this.topicService.deleteProducerFromTopic(environment.id, topicName, producerAppId);
+        return this.topicService.deleteProducerFromTopic(environment.id, topicName, producerAppId).then(
+            () => {
+                this.toasts.addSuccessToast('Producer wurde erfolgreich entfernt.');
+            },
+            err => this.toasts.addHttpErrorToast('Producer konnte nicht entfernt werden.', err));
     }
 
     private async updateSubscription(sub: TopicSubscription, approve: boolean, successMessage: string, errorMessage: string) {
@@ -188,11 +193,5 @@ export class TopicMetadataTableComponent implements OnInit {
             err => this.toasts.addHttpErrorToast(errorMessage, err)
         );
     }
-
-    private applicationInfo(applicationId: string): Promise<ApplicationInfo> {
-        return this.applicationsService.getAvailableApplications(false)
-            .pipe(map(apps => apps.find(app => app.id === applicationId))).pipe(take(1)).toPromise();
-    }
-
 
 }

@@ -115,12 +115,10 @@ public class DevUserAclListener implements TopicEventsListener, SubscriptionEven
     }
 
     @Override
-    public CompletableFuture<Void> handleAddTopicProducers(TopicAddProducersEvent event) {
+    public CompletableFuture<Void> handleAddTopicProducer(TopicAddProducersEvent event) {
         Set<DevCertificateMetadata> validDevCertificatesForApplication = new HashSet<>();
-        for (String appId : event.getProducerApplicationIds()) {
-            validDevCertificatesForApplication
-                    .addAll(getValidDevCertificatesForApplication(event.getContext().getKafkaCluster(), appId));
-        }
+        validDevCertificatesForApplication.addAll(getValidDevCertificatesForApplication(
+                event.getContext().getKafkaCluster(), event.getProducerApplicationId()));
 
         return updateAcls(event.getContext().getKafkaCluster(), validDevCertificatesForApplication);
     }
@@ -128,7 +126,7 @@ public class DevUserAclListener implements TopicEventsListener, SubscriptionEven
     @Override
     public CompletableFuture<Void> handleRemoveTopicProducer(TopicRemoveProducerEvent event) {
         return updateAcls(event.getContext().getKafkaCluster(), getValidDevCertificatesForApplication(
-                event.getContext().getKafkaCluster(), event.getProducerToBeDeletedId()));
+                event.getContext().getKafkaCluster(), event.getProducerApplicationId()));
     }
 
     @Override

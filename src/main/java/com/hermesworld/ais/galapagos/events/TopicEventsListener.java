@@ -18,7 +18,7 @@ public interface TopicEventsListener {
 
     CompletableFuture<Void> handleTopicSubscriptionApprovalRequiredFlagChanged(TopicEvent event);
 
-    CompletableFuture<Void> handleAddTopicProducers(TopicAddProducersEvent event);
+    CompletableFuture<Void> handleAddTopicProducer(TopicAddProducersEvent event);
 
     CompletableFuture<Void> handleRemoveTopicProducer(TopicRemoveProducerEvent event);
 

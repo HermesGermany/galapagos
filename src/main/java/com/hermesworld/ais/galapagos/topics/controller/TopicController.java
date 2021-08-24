@@ -1,8 +1,6 @@
 package com.hermesworld.ais.galapagos.topics.controller;
 
 import com.hermesworld.ais.galapagos.applications.*;
-import com.hermesworld.ais.galapagos.applications.controller.BusinessCapabilityDto;
-import com.hermesworld.ais.galapagos.applications.controller.KnownApplicationDto;
 import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.kafka.TopicConfigEntry;
@@ -30,7 +28,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -99,38 +96,28 @@ public class TopicController {
         }
     }
 
-    @GetMapping(value = "/api/applicationsmetadata/{envId}/{topicName}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public List<KnownApplicationDto> getAvailableApplicationMetadata(@PathVariable String envId,
-            @PathVariable String topicName,
-            @RequestParam(name = "topicOwnerId", required = false) String topicOwnerId) {
-        TopicMetadata topic = topicService.getTopic(envId, topicName).orElseThrow(notFound);
-        List<String> producerIds = topic.getProducers();
-
-        return applicationsService.getAllApplicationMetadata(envId).stream().map(ApplicationMetadata::getApplicationId)
-                .filter(id -> !id.equals(topicOwnerId))
-                .filter(idsWithoutOwnerid -> !producerIds.contains(idsWithoutOwnerid))
-                .map(id -> toKnownAppDto(applicationsService.getKnownApplication(id)
-                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND))))
-                .collect(Collectors.toList());
-    }
-
-    @PostMapping(value = "/api/producers/{environmentId}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public CompletableFuture<Void> addProducerToTopic(@PathVariable String environmentId,
-            @RequestBody AddProducerDto producers) {
-        if (producers.getProducers().stream().anyMatch(appId -> !applicationsService.isUserAuthorizedFor(appId))) {
+    @PostMapping(value = "/api/producers/{environmentId}/{topicName:.+}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public void addProducerToTopic(@PathVariable String environmentId, @PathVariable String topicName,
+            @RequestBody AddProducerDto producer) throws InterruptedException {
+        if (!applicationsService.isUserAuthorizedFor(producer.getProducerApplicationId())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
 
-        if (producers.getProducers().isEmpty()) {
+        if (StringUtils.isEmpty(producer.getProducerApplicationId())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
 
-        return topicService.addTopicProducers(environmentId, producers.getTopicName(), producers.getProducers());
+        try {
+            topicService.addTopicProducer(environmentId, topicName, producer.getProducerApplicationId()).get();
+        }
+        catch (ExecutionException e) {
+            throw handleExecutionException(e);
+        }
     }
 
     @DeleteMapping(value = "/api/producers/{envId}/{topicName}/{producerApplicationId}")
-    public CompletableFuture<Void> removeProducerFromTopic(@PathVariable String envId, @PathVariable String topicName,
-            @PathVariable String producerApplicationId) {
+    public ResponseEntity<Void> removeProducerFromTopic(@PathVariable String envId, @PathVariable String topicName,
+            @PathVariable String producerApplicationId) throws InterruptedException {
         if (envId.isEmpty() || topicName.isEmpty() || producerApplicationId.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
@@ -139,7 +126,14 @@ public class TopicController {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
 
-        return topicService.removeProducerFromTopic(envId, topicName, producerApplicationId);
+        try {
+            topicService.removeProducerFromTopic(envId, topicName, producerApplicationId).get();
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+
+        }
+        catch (ExecutionException e) {
+            throw handleExecutionException(e);
+        }
     }
 
     @PostMapping(value = "/api/topics/{environmentId}/{topicName:.+}", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -434,17 +428,6 @@ public class TopicController {
                 .collect(Collectors.toMap(Header::key, h -> new String(h.value(), StandardCharsets.UTF_8)));
         return new ConsumerRecordDto(record.key(), record.value(), record.offset(), record.timestamp(),
                 record.partition(), headers);
-    }
-
-    private KnownApplicationDto toKnownAppDto(KnownApplication app) {
-        return new KnownApplicationDto(app.getId(), app.getName(),
-                app.getInfoUrl() == null ? null : app.getInfoUrl().toString(), toCapDtos(app.getBusinessCapabilities()),
-                new ArrayList<>(app.getAliases()));
-    }
-
-    private List<BusinessCapabilityDto> toCapDtos(List<? extends BusinessCapability> caps) {
-        return caps.stream().map(cap -> new BusinessCapabilityDto(cap.getId(), cap.getName()))
-                .collect(Collectors.toList());
     }
 
     private ResponseStatusException handleExecutionException(ExecutionException e) {

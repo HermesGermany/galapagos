@@ -161,23 +161,17 @@ public class UpdateApplicationAclsListener
     }
 
     @Override
-    public CompletableFuture<Void> handleAddTopicProducers(TopicAddProducersEvent event) {
+    public CompletableFuture<Void> handleAddTopicProducer(TopicAddProducersEvent event) {
         KafkaCluster cluster = getCluster(event);
-        CompletableFuture<Void> result = FutureUtil.noop();
-        for (String producerAppId : event.getProducerApplicationIds()) {
-            ApplicationMetadata appMeta = applicationsService
-                    .getApplicationMetadata(getCluster(event).getId(), producerAppId).orElse(null);
-            if (appMeta != null) {
-                result = result.thenCompose(o -> cluster.updateUserAcls(new ApplicationUser(appMeta, cluster.getId())));
-            }
-        }
+        return applicationsService.getApplicationMetadata(cluster.getId(), event.getProducerApplicationId()).map(
+                metadata -> getCluster(event).updateUserAcls(new ApplicationUser(metadata, getCluster(event).getId())))
+                .orElse(FutureUtil.noop());
 
-        return result;
     }
 
     @Override
     public CompletableFuture<Void> handleRemoveTopicProducer(TopicRemoveProducerEvent event) {
-        return applicationsService.getApplicationMetadata(getCluster(event).getId(), event.getProducerToBeDeletedId())
+        return applicationsService.getApplicationMetadata(getCluster(event).getId(), event.getProducerApplicationId())
                 .map(metadata -> getCluster(event)
                         .updateUserAcls(new ApplicationUser(metadata, getCluster(event).getId())))
                 .orElse(FutureUtil.noop());
@@ -285,12 +279,8 @@ public class UpdateApplicationAclsListener
                     .flatMap(prefix -> transactionAcls(userName, prefix).stream()).collect(Collectors.toList()));
 
             topicService.listTopics(environmentId).stream()
-                    .filter(topic -> topic.getType() != TopicType.INTERNAL && id.equals(topic.getOwnerApplicationId()))
-                    .map(topic -> topicAcls(userName, topic.getName(), WRITE_TOPIC_OPERATIONS)).forEach(result::addAll);
-
-            topicService.listTopics(environmentId).stream()
-                    .filter(topic -> topic.getType() != TopicType.INTERNAL && topic.getProducers() != null
-                            && topic.getProducers().contains(id))
+                    .filter(topic -> topic.getType() != TopicType.INTERNAL && (id.equals(topic.getOwnerApplicationId())
+                            || topic.getProducers() != null && topic.getProducers().contains(id)))
                     .map(topic -> topicAcls(userName, topic.getName(), WRITE_TOPIC_OPERATIONS)).forEach(result::addAll);
 
             subscriptionService.getSubscriptionsOfApplication(environmentId, id, false).stream().map(sub -> topicAcls(

@@ -65,7 +65,7 @@ public class TopicDto {
         this.criticality = criticality;
         this.messagesPerDay = messagesPerDay;
         this.messagesSize = messagesSize;
-        this.producers = producers;
+        this.producers = List.copyOf(producers);
     }
 
 }

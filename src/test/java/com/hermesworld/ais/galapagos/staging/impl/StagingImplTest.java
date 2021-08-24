@@ -123,7 +123,7 @@ public class StagingImplTest {
         when(topicService.listTopics("dev")).thenReturn(Collections.singletonList(topic1));
         when(topicService.listTopics("int")).thenReturn(Collections.singletonList(topic2));
 
-        topic1.removeProducer("producer1");
+        topic1.getProducers().remove("producer1");
 
         StagingImpl staging = StagingImpl
                 .build("app-1", "dev", "int", null, topicService, mock(SubscriptionService.class)).get();

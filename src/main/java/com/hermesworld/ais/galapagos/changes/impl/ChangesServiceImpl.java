@@ -11,7 +11,6 @@ import com.hermesworld.ais.galapagos.kafka.util.InitPerCluster;
 import com.hermesworld.ais.galapagos.kafka.util.TopicBasedRepository;
 import com.hermesworld.ais.galapagos.security.AuditPrincipal;
 import com.hermesworld.ais.galapagos.topics.TopicType;
-import com.hermesworld.ais.galapagos.util.FutureUtil;
 import com.hermesworld.ais.galapagos.util.JsonUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,13 +76,17 @@ public class ChangesServiceImpl
     }
 
     @Override
-    public CompletableFuture<Void> handleAddTopicProducers(TopicAddProducersEvent event) {
-        return FutureUtil.noop();
+    public CompletableFuture<Void> handleAddTopicProducer(TopicAddProducersEvent event) {
+        return logChange(
+                ChangeBase.TopicProducerAddChange(event.getMetadata().getName(), event.getProducerApplicationId()),
+                event);
     }
 
     @Override
     public CompletableFuture<Void> handleRemoveTopicProducer(TopicRemoveProducerEvent event) {
-        return FutureUtil.noop();
+        return logChange(
+                ChangeBase.TopicProducerRemoveChange(event.getMetadata().getName(), event.getProducerApplicationId()),
+                event);
     }
 
     @Override

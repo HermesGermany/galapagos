@@ -13,9 +13,9 @@
                     <button class="btn btn-outline-primary" ngbDropdownToggle><i
                         class="fas fa-fw"></i>{{ selectedProducer?.name || 'Select Producer' | translate }}</button>
                     <div class="dropdown-menu" ngbDropdownMenu>
-                        <button *ngFor="let app of userApplications | async"
-                                (click)="d.while(addProducer(app))"
-                                ngbDropdownItem>{{ app.name }}</button>
+                        <button *ngFor="let producerApp of selectableProducerApps"
+                                (click)="d.while(addProducer(producerApp))"
+                                ngbDropdownItem>{{ producerApp.name }}</button>
                     </div>
                 </div>
             </div>

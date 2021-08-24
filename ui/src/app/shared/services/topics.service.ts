@@ -253,13 +253,18 @@ export class TopicsService {
         ));
     }
 
-    public addProducersToTopic(producerAppIds: string[], envId: string, topicName: string): Promise<any> {
+    public getRegisteredApplications(environmentId: string): Promise<ApplicationInfo[]> {
+        return this.http.get<ApplicationInfo[]>('/api/registered-applications/' + environmentId).toPromise();
+
+    }
+
+    public addProducersToTopic(producerAppId: string, envId: string, topicName: string): Promise<any> {
+        console.log(topicName);
         const body = JSON.stringify({
-            producers: producerAppIds,
-            topicName: topicName
+            producerApplicationId: producerAppId
         });
 
-        return this.http.post('/api/producers/' + envId, body, { headers: jsonHeader() }).pipe(take(1))
+        return this.http.post('/api/producers/' + envId + '/' + topicName, body, { headers: jsonHeader() }).pipe(take(1))
             .toPromise().then(() => this.topicsList.refresh());
     }
 

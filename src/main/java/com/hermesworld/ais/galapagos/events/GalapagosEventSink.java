@@ -8,7 +8,6 @@ import com.hermesworld.ais.galapagos.topics.SchemaMetadata;
 import com.hermesworld.ais.galapagos.topics.TopicMetadata;
 import org.json.JSONObject;
 
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public interface GalapagosEventSink {
@@ -44,8 +43,8 @@ public interface GalapagosEventSink {
 
     CompletableFuture<Void> handleApplicationOwnerRequestCanceled(ApplicationOwnerRequest request);
 
-    CompletableFuture<Void> handleAddTopicProducers(List<String> producers, TopicMetadata metadata);
+    CompletableFuture<Void> handleAddTopicProducer(TopicMetadata metadata, String producerId);
 
-    CompletableFuture<Void> handleRemoveProducerFromTopic(TopicMetadata metadata, String appDeleteId);
+    CompletableFuture<Void> handleRemoveProducer(TopicMetadata metadata, String producerId);
 
 }

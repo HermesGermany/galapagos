@@ -103,13 +103,13 @@ public class AuditEventsListener implements TopicEventsListener, SubscriptionEve
     }
 
     @Override
-    public CompletableFuture<Void> handleAddTopicProducers(TopicAddProducersEvent event) {
-        return FutureUtil.noop();
+    public CompletableFuture<Void> handleAddTopicProducer(TopicAddProducersEvent event) {
+        return handleTopicEvent(event, "TOPIC_PRODUCER_APPLICATION_ADDED");
     }
 
     @Override
     public CompletableFuture<Void> handleRemoveTopicProducer(TopicRemoveProducerEvent event) {
-        return FutureUtil.noop();
+        return handleTopicEvent(event, "TOPIC_PRODUCER_APPLICATION_REMOVED");
     }
 
     @Override
@@ -189,6 +189,9 @@ public class AuditEventsListener implements TopicEventsListener, SubscriptionEve
         auditData.put("deprecationText", topic.getDeprecationText());
         if (topic.getEolDate() != null) {
             auditData.put("endOfLife", topic.getEolDate().toString());
+        }
+        if (topic.getProducers() != null) {
+            auditData.put("producers", topic.getProducers());
         }
         auditData.put("topicEventType", topicEventType);
 

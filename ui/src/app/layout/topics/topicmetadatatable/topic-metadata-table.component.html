@@ -49,11 +49,11 @@
                 </ng-template>
             </td>
         </tr>
-        <tr>
-            <th scope="row">{{ 'Producers' | translate }}</th>
+        <tr *ngIf="topic.producers?.length > 0">
+            <th scope="row">{{ 'Additional producers' | translate }}</th>
             <td>
-                <ul *ngIf="mappedProducers?.length">
-                    <li *ngFor="let producer of mappedProducers ">
+                <ul *ngIf="(producerApps| async)?.length">
+                    <li *ngFor="let producer of producerApps | async ">
                         <a *ngIf="producer.infoUrl; else infoUrlTextSub"
                            [href]="producer.infoUrl"
                            target="_blank">{{ producer.name }}</a>
@@ -68,9 +68,6 @@
                         </span>
                     </li>
                 </ul>
-                <span *ngIf="!topic.producers?.length"
-                ><i>{{ 'None' | translate }}</i></span
-                >
             </td>
         </tr>
         <tr>
@@ -299,7 +296,9 @@
     </div>
     <div class="modal-body">
         <div class="mt-3">
-            <ngb-alert type="danger" [innerHTML]="'Producer wirklich löschen?' | translate" [dismissible]="false">
+            <ngb-alert type="danger"
+                       [innerHTML]="'DELETE_PRODUCER_PROMPT' | translate:{producerName: selectedProducer.name}"
+                       [dismissible]="false">
 
             </ngb-alert>
         </div>

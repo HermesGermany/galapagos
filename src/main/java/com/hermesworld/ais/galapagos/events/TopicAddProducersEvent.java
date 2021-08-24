@@ -3,17 +3,15 @@ package com.hermesworld.ais.galapagos.events;
 import com.hermesworld.ais.galapagos.topics.TopicMetadata;
 import lombok.Getter;
 
-import java.util.List;
-
 @Getter
 public class TopicAddProducersEvent extends TopicEvent {
 
-    private final List<String> producerApplicationIds;
+    private final String producerApplicationId;
 
-    public TopicAddProducersEvent(GalapagosEventContext context, List<String> producerApplicationIds,
+    public TopicAddProducersEvent(GalapagosEventContext context, String producerApplicationId,
             TopicMetadata metadata) {
         super(context, metadata);
-        this.producerApplicationIds = List.copyOf(producerApplicationIds);
+        this.producerApplicationId = producerApplicationId;
     }
 
 }

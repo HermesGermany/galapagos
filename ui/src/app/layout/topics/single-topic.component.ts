@@ -104,7 +104,6 @@ export class SingleTopicComponent implements OnInit {
     }
 
     private loadSubscribers(topic: Topic, environmentId: string) {
-
         this.loadingSubscribers = true;
         this.topicSubscribers = this.topicService
             .getTopicSubscribers(topic.name, environmentId)

@@ -226,7 +226,7 @@ public class TopicServiceImplIntegrationTest {
         }
 
         @Override
-        public CompletableFuture<Void> handleAddTopicProducers(TopicAddProducersEvent event) {
+        public CompletableFuture<Void> handleAddTopicProducer(TopicAddProducersEvent event) {
             throw new UnsupportedOperationException("Unexpected event received during test");
         }
 

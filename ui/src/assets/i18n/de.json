@@ -173,5 +173,6 @@
     "Producer Selection": "Produzenten Auswahl",
     "Add as Producer": "Als Produzenten Hinzufügen",
     "Select Producer": "Produzenten Auswählen",
-    "Confirm Producer deletion": "Produzenten Entfernung bestätigen"
+    "Confirm Producer deletion": "Produzenten Entfernung bestätigen",
+    "DELETE_PRODUCER_PROMPT": "Producer <b>{{ producerName }}</b> wirklich löschen?"
 }

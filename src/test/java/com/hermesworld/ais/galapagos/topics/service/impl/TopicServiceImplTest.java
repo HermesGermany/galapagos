@@ -287,7 +287,7 @@ public class TopicServiceImplTest {
 
     @Test
     @DisplayName("should add producer to topic")
-    public void addTopicProducersTest_positive() throws Exception {
+    public void addTopicProducerTest_positive() throws Exception {
         TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
                 topicConfig, eventManager);
 
@@ -297,7 +297,7 @@ public class TopicServiceImplTest {
         topic1.setType(TopicType.EVENTS);
         topicRepository.save(topic1);
 
-        service.addTopicProducers("test", "topic-1", List.of("producer1")).get();
+        service.addTopicProducer("test", "topic-1", "producer1").get();
 
         TopicMetadata savedTopic = topicRepository.getObject("topic-1").get();
 
@@ -308,7 +308,7 @@ public class TopicServiceImplTest {
 
     @Test
     @DisplayName("should fail adding a producer to commands topic")
-    public void addTopicProducersTest_negative() throws Exception {
+    public void addTopicProducerTest_negative() throws Exception {
         TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
                 topicConfig, eventManager);
 
@@ -319,7 +319,7 @@ public class TopicServiceImplTest {
         topicRepository.save(topic1);
 
         try {
-            service.addTopicProducers("test", "topic-1", List.of("producer1")).get();
+            service.addTopicProducer("test", "topic-1", "producer1").get();
             fail("Expected exception when adding a producer to commands topic");
         }
         catch (ExecutionException e) {

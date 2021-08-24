@@ -159,7 +159,6 @@ public final class StagingImpl implements Staging, ApplyChangeContext {
                     s -> changes.add(ChangeBase.publishTopicSchemaVersion(topic.getName(), s)), null, null);
         }
 
-
         if (changesFilter != null && !changesFilter.isEmpty()) {
             addVirtualChanges(changesFilter, changes);
 
@@ -222,21 +221,22 @@ public final class StagingImpl implements Staging, ApplyChangeContext {
                     newTopic.isSubscriptionApprovalRequired()));
         }
 
-        if (!oldTopic.getProducers().equals(newTopic.getProducers())) {
-            List<String> producerIdsToBeAdded = newTopic.getProducers().stream()
-                    .filter(producer -> !oldTopic.getProducers().contains(producer)).collect(Collectors.toList());
+        List<String> oldProducers = Optional.ofNullable(oldTopic.getProducers()).orElse(List.of());
+        List<String> newProducers = Optional.ofNullable(newTopic.getProducers()).orElse(List.of());
 
-            if (!producerIdsToBeAdded.isEmpty()) {
-                result.add(ChangeBase.TopicProducerAddChange(newTopic.getName(), producerIdsToBeAdded));
-            }
+        if (!oldProducers.equals(newProducers)) {
+            List<String> producerIdsToBeAdded = newProducers.stream()
+                    .filter(producer -> !oldProducers.contains(producer)).collect(Collectors.toList());
 
-            List<String> ids = new ArrayList<>(oldTopic.getProducers());
-            ids.removeAll(newTopic.getProducers());
+            producerIdsToBeAdded.forEach(
+                    producerId -> result.add(ChangeBase.TopicProducerAddChange(newTopic.getName(), producerId)));
+
+            List<String> ids = new ArrayList<>(oldProducers);
+            ids.removeAll(newProducers);
             List<String> toBeDeletedIds = new ArrayList<>(ids);
 
-            if (!toBeDeletedIds.isEmpty()) {
-                result.add(ChangeBase.TopicProducerRemoveChange(newTopic.getName(), toBeDeletedIds));
-            }
+            toBeDeletedIds.forEach(
+                    producerId -> result.add(ChangeBase.TopicProducerRemoveChange(newTopic.getName(), producerId)));
 
         }
 

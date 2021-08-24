@@ -116,7 +116,7 @@ public interface TopicService {
             int limit);
 
     @CheckReturnValue
-    CompletableFuture<Void> addTopicProducers(String environmentId, String topicName, List<String> producers);
+    CompletableFuture<Void> addTopicProducer(String environmentId, String topicName, String producerId);
 
     @CheckReturnValue
     CompletableFuture<Void> removeProducerFromTopic(String envId, String topicName, String appId);

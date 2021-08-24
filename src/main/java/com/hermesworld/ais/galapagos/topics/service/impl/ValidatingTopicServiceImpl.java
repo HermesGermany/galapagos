@@ -244,9 +244,9 @@ public class ValidatingTopicServiceImpl implements ValidatingTopicService {
     }
 
     @Override
-    public CompletableFuture<Void> addTopicProducers(String environmentId, String topicName, List<String> producers) {
+    public CompletableFuture<Void> addTopicProducer(String environmentId, String topicName, String producerId) {
         return checkOnNonStaging(environmentId, "add producer", Void.class)
-                .orElseGet(() -> topicService.addTopicProducers(environmentId, topicName, producers));
+                .orElseGet(() -> topicService.addTopicProducer(environmentId, topicName, producerId));
     }
 
     @Override

@@ -77,7 +77,6 @@ public class ConnectedKafkaCluster implements KafkaCluster {
 
     @Override
     public CompletableFuture<Void> updateUserAcls(KafkaUser user) {
-
         List<AclBinding> createAcls = new ArrayList<>();
 
         return getUserAcls(user.getKafkaUserName()).thenCompose(acls -> {
@@ -297,7 +296,6 @@ public class ConnectedKafkaCluster implements KafkaCluster {
 
     @Override
     public CompletableFuture<String> getKafkaServerVersion() {
-
         Function<String, String> toVersionString = s -> !s.contains("-") ? s : s.substring(0, s.indexOf('-'));
         return toCompletableFuture(adminClient.describeCluster().nodes()).thenCompose(coll -> {
             String nodeName = coll.iterator().next().idString();

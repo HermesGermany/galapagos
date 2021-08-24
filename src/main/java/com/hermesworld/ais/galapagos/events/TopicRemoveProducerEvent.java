@@ -6,12 +6,12 @@ import lombok.Getter;
 @Getter
 public class TopicRemoveProducerEvent extends TopicEvent {
 
-    private final String producerToBeDeletedId;
+    private final String producerApplicationId;
 
-    public TopicRemoveProducerEvent(GalapagosEventContext context, String producerToBeDeletedId,
+    public TopicRemoveProducerEvent(GalapagosEventContext context, String producerApplicationId,
             TopicMetadata metadata) {
         super(context, metadata);
-        this.producerToBeDeletedId = producerToBeDeletedId;
+        this.producerApplicationId = producerApplicationId;
 
     }
 }
