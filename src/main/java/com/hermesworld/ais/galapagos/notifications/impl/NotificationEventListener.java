@@ -173,7 +173,7 @@ public class NotificationEventListener
     }
 
     @Override
-    public CompletableFuture<Void> handleAddTopicProducer(TopicAddProducersEvent event) {
+    public CompletableFuture<Void> handleAddTopicProducer(TopicAddProducerEvent event) {
         return FutureUtil.noop();
     }
 

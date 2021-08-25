@@ -98,7 +98,7 @@ public class TopicController {
 
     @PostMapping(value = "/api/producers/{environmentId}/{topicName:.+}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public void addProducerToTopic(@PathVariable String environmentId, @PathVariable String topicName,
-            @RequestBody AddProducerDto producer) throws InterruptedException {
+            @RequestBody AddProducerDto producer) {
         if (!applicationsService.isUserAuthorizedFor(producer.getProducerApplicationId())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
@@ -113,11 +113,14 @@ public class TopicController {
         catch (ExecutionException e) {
             throw handleExecutionException(e);
         }
+        catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
     }
 
     @DeleteMapping(value = "/api/producers/{envId}/{topicName}/{producerApplicationId}")
     public ResponseEntity<Void> removeProducerFromTopic(@PathVariable String envId, @PathVariable String topicName,
-            @PathVariable String producerApplicationId) throws InterruptedException {
+            @PathVariable String producerApplicationId) {
         if (envId.isEmpty() || topicName.isEmpty() || producerApplicationId.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
@@ -127,13 +130,19 @@ public class TopicController {
         }
 
         try {
-            topicService.removeProducerFromTopic(envId, topicName, producerApplicationId).get();
+            topicService.removeTopicProducer(envId, topicName, producerApplicationId).get();
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 
         }
         catch (ExecutionException e) {
             throw handleExecutionException(e);
         }
+        catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+
+        return ResponseEntity.noContent().build();
+
     }
 
     @PostMapping(value = "/api/topics/{environmentId}/{topicName:.+}", consumes = MediaType.APPLICATION_JSON_VALUE)

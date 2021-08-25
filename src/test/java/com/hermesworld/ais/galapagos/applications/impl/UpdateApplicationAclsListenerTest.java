@@ -280,7 +280,7 @@ public class UpdateApplicationAclsListenerTest {
 
         when(applicationsService.getApplicationMetadata("_test", "producer1")).thenReturn(Optional.of(producer1));
 
-        TopicAddProducersEvent event = new TopicAddProducersEvent(context, "producer1",
+        TopicAddProducerEvent event = new TopicAddProducerEvent(context, "producer1",
                 topic);
         UpdateApplicationAclsListener listener = new UpdateApplicationAclsListener(kafkaClusters, topicService,
                 subscriptionService, applicationsService, kafkaConfig);

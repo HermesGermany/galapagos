@@ -253,18 +253,21 @@ export class TopicsService {
         ));
     }
 
-    public getRegisteredApplications(environmentId: string): Observable<ApplicationInfo[]> {
-        return this.http.get<ApplicationInfo[]>('/api/registered-applications/' + environmentId);
-
-    }
-
-    public addProducersToTopic(producerAppId: string, envId: string, topicName: string): Promise<any> {
-        console.log(topicName);
+    public addProducerToTopic(producerAppId: string, envId: string, topicName: string): Promise<any> {
         const body = JSON.stringify({
             producerApplicationId: producerAppId
         });
 
         return this.http.post('/api/producers/' + envId + '/' + topicName, body, { headers: jsonHeader() }).pipe(take(1))
+            .toPromise().then(() => this.topicsList.refresh());
+    }
+
+    public changeTopicOwner(envId: string, topicName: string, newOwnerId: string) {
+        const body = JSON.stringify({
+            newOwnerId: newOwnerId
+        });
+
+        return this.http.post('/api/change-owner/' + envId + '/' + topicName, body, { headers: jsonHeader() }).pipe(take(1))
             .toPromise().then(() => this.topicsList.refresh());
     }
 

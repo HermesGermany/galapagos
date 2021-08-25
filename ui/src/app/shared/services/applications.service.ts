@@ -132,6 +132,10 @@ export class ApplicationsService {
         return this.allRequests.getObservable();
     }
 
+    public getRegisteredApplications(environmentId: string): Promise<ApplicationInfo[]> {
+        return this.http.get<ApplicationInfo[]>('/api/registered-applications/' + environmentId).toPromise();
+    }
+
     public getApplicationSubscriptions(appId: string, envId: string): Observable<ApplicationTopicSubscription[]> {
         return this.http.get<ApplicationTopicSubscription[]>('/api/applications/' + appId + '/subscriptions/' + envId);
     }

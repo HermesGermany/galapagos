@@ -103,13 +103,13 @@ public class AuditEventsListener implements TopicEventsListener, SubscriptionEve
     }
 
     @Override
-    public CompletableFuture<Void> handleAddTopicProducer(TopicAddProducersEvent event) {
-        return handleTopicEvent(event, "TOPIC_PRODUCER_APPLICATION_ADDED");
+    public CompletableFuture<Void> handleAddTopicProducer(TopicAddProducerEvent event) {
+        return handleTopicEvent(event, GalapagosAuditEventType.TOPIC_PRODUCER_APPLICATION_ADDED.name());
     }
 
     @Override
     public CompletableFuture<Void> handleRemoveTopicProducer(TopicRemoveProducerEvent event) {
-        return handleTopicEvent(event, "TOPIC_PRODUCER_APPLICATION_REMOVED");
+        return handleTopicEvent(event, GalapagosAuditEventType.TOPIC_PRODUCER_APPLICATION_REMOVED.name());
     }
 
     @Override

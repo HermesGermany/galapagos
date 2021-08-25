@@ -115,7 +115,7 @@ public class DevUserAclListener implements TopicEventsListener, SubscriptionEven
     }
 
     @Override
-    public CompletableFuture<Void> handleAddTopicProducer(TopicAddProducersEvent event) {
+    public CompletableFuture<Void> handleAddTopicProducer(TopicAddProducerEvent event) {
         Set<DevCertificateMetadata> validDevCertificatesForApplication = new HashSet<>();
         validDevCertificatesForApplication.addAll(getValidDevCertificatesForApplication(
                 event.getContext().getKafkaCluster(), event.getProducerApplicationId()));

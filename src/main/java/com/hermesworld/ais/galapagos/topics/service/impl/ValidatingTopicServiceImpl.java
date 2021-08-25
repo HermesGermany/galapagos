@@ -250,9 +250,9 @@ public class ValidatingTopicServiceImpl implements ValidatingTopicService {
     }
 
     @Override
-    public CompletableFuture<Void> removeProducerFromTopic(String envId, String topicName, String appId) {
+    public CompletableFuture<Void> removeTopicProducer(String envId, String topicName, String appId) {
         return checkOnNonStaging(envId, "delete producer", Void.class)
-                .orElseGet(() -> topicService.removeProducerFromTopic(envId, topicName, appId));
+                .orElseGet(() -> topicService.removeTopicProducer(envId, topicName, appId));
     }
 
     private boolean currentUserMayRead(String environmentId, TopicMetadata metadata) {

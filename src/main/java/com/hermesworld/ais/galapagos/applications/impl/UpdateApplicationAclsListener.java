@@ -161,7 +161,7 @@ public class UpdateApplicationAclsListener
     }
 
     @Override
-    public CompletableFuture<Void> handleAddTopicProducer(TopicAddProducersEvent event) {
+    public CompletableFuture<Void> handleAddTopicProducer(TopicAddProducerEvent event) {
         KafkaCluster cluster = getCluster(event);
         return applicationsService.getApplicationMetadata(cluster.getId(), event.getProducerApplicationId()).map(
                 metadata -> cluster.updateUserAcls(new ApplicationUser(metadata, cluster.getId())))
@@ -280,7 +280,7 @@ public class UpdateApplicationAclsListener
 
             topicService.listTopics(environmentId).stream()
                     .filter(topic -> topic.getType() != TopicType.INTERNAL && (id.equals(topic.getOwnerApplicationId())
-                            || topic.getProducers() != null && topic.getProducers().contains(id)))
+                            || (topic.getProducers() != null && topic.getProducers().contains(id))))
                     .map(topic -> topicAcls(userName, topic.getName(), WRITE_TOPIC_OPERATIONS)).forEach(result::addAll);
 
             subscriptionService.getSubscriptionsOfApplication(environmentId, id, false).stream().map(sub -> topicAcls(

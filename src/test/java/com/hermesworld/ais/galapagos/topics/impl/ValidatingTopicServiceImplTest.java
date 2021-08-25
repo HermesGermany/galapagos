@@ -189,7 +189,7 @@ public class ValidatingTopicServiceImplTest {
                 mock(ApplicationsService.class), clusters, topicConfig, false);
 
         try {
-            service.removeProducerFromTopic("_env1", "testtopic", "producer1").get();
+            service.removeTopicProducer("_env1", "testtopic", "producer1").get();
             fail("Expected exception trying to remove Producer from Topic on staging-only Stage");
         }
         catch (ExecutionException | InterruptedException e) {

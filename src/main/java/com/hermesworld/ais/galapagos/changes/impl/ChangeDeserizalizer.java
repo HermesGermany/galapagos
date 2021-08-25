@@ -93,11 +93,11 @@ public class ChangeDeserizalizer extends StdDeserializer<Change> {
             case TOPIC_UNDEPRECATED:
                 return ChangeBase.unmarkTopicDeprecated(tree.findValue(TOPIC_NAME).asText());
             case TOPIC_PRODUCER_APPLICATION_ADDED:
-                return ChangeBase.TopicProducerAddChange(tree.findValue(TOPIC_NAME).asText(),
-                        tree.findValue("topicProducerIds").asText());
+                return ChangeBase.addTopicProducer(tree.findValue(TOPIC_NAME).asText(),
+                        tree.findValue("producerApplicationId").asText());
             case TOPIC_PRODUCER_APPLICATION_REMOVED:
-                return ChangeBase.TopicProducerRemoveChange(tree.findValue(TOPIC_NAME).asText(),
-                        tree.findValue("topicProducerIds").asText());
+                return ChangeBase.removeTopicProducer(tree.findValue(TOPIC_NAME).asText(),
+                        tree.findValue("producerApplicationId").asText());
             case TOPIC_SUBSCRIPTION_APPROVAL_REQUIRED_FLAG_UPDATED:
                 return ChangeBase.updateTopicSubscriptionApprovalRequiredFlag(tree.findValue(TOPIC_NAME).asText(),
                         tree.findValue("subscriptionApprovalRequired").asBoolean());

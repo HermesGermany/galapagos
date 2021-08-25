@@ -145,12 +145,12 @@ public class GalapagosEventManagerImpl implements GalapagosEventManager {
 
         @Override
         public CompletableFuture<Void> handleAddTopicProducer(TopicMetadata metadata, String producerId) {
-            TopicAddProducersEvent event = new TopicAddProducersEvent(eventContext, producerId, metadata);
+            TopicAddProducerEvent event = new TopicAddProducerEvent(eventContext, producerId, metadata);
             return handleEvent(topicListeners, l -> l.handleAddTopicProducer(event));
         }
 
         @Override
-        public CompletableFuture<Void> handleRemoveProducer(TopicMetadata metadata, String appDeleteId) {
+        public CompletableFuture<Void> handleRemoveTopicProducer(TopicMetadata metadata, String appDeleteId) {
             TopicRemoveProducerEvent event = new TopicRemoveProducerEvent(eventContext, appDeleteId, metadata);
             return handleEvent(topicListeners, l -> l.handleRemoveTopicProducer(event));
         }

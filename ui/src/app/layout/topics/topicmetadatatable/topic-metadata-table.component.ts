@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, TemplateRef } from '@angular/core';
 import { Observable } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
@@ -46,6 +46,8 @@ export class TopicMetadataTableComponent implements OnInit {
 
     producerApps: Observable<ApplicationInfo[]>;
 
+    newTopicOwner: ApplicationInfo;
+
     constructor(
         private topicService: TopicsService,
         private environmentsService: EnvironmentsService,
@@ -59,12 +61,11 @@ export class TopicMetadataTableComponent implements OnInit {
 
     ngOnInit() {
         this.producerApps = this.applicationsService.getAvailableApplications(false)
-            .pipe(map(apps => apps.filter(app => this.topic.producers.includes(app.id)))).pipe(take(1));
+            .pipe(map(apps => apps.filter(app => this.topic.producers.includes(app.id))));
         this.selectedEnvironment = this.environmentsService.getCurrentEnvironment();
     }
 
     async openChangeDescDlg(content: any) {
-        console.log(this.topic.producers);
         this.updatedTopicDescription = this.topic.description;
         this.modalService.open(content, { ariaLabelledBy: 'modal-title', size: 'lg' });
     }
@@ -171,6 +172,20 @@ export class TopicMetadataTableComponent implements OnInit {
     async openDeleteProducerDlg(producer: ApplicationInfo, content: any) {
         this.selectedProducer = producer;
         this.modalService.open(content, { ariaLabelledBy: 'modal-title', size: 'lg' });
+    }
+
+    openChangeOwnerDlg(producer: ApplicationInfo, content: TemplateRef<any>) {
+        this.newTopicOwner = producer;
+        this.modalService.open(content, { ariaLabelledBy: 'modal-title', size: 'lg' });
+    }
+
+    async changeTopicOwner(topicName: string, newOwnerId: string): Promise<any> {
+        const environment = await this.environmentsService.getCurrentEnvironment().pipe(take(1)).toPromise();
+        return this.topicService.changeTopicOwner(environment.id, topicName, newOwnerId).then(
+            () => {
+                this.toasts.addSuccessToast('Producer wurde erfolgreich zum neuen Topic Besitzer befördert.');
+            },
+            err => this.toasts.addHttpErrorToast('Producer konnte nicht zum neuen Topic Besitzer befördert werden.', err));
     }
 
     async deleteProducer(topicName: string, producerAppId: string): Promise<any> {

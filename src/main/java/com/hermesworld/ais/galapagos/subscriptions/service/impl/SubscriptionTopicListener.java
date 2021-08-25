@@ -87,7 +87,7 @@ public class SubscriptionTopicListener implements TopicEventsListener {
     }
 
     @Override
-    public CompletableFuture<Void> handleAddTopicProducer(TopicAddProducersEvent event) {
+    public CompletableFuture<Void> handleAddTopicProducer(TopicAddProducerEvent event) {
         return FutureUtil.noop();
     }
 

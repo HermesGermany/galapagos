@@ -104,12 +104,12 @@ public abstract class ChangeBase implements ApplicableChange {
         return new PublishTopicSchemaVersionChange(topicName, schemaVersion);
     }
 
-    public static ChangeBase TopicProducerAddChange(String topicName, String topicProducerId) {
-        return new TopicProducerAddChange(topicName, topicProducerId);
+    public static ChangeBase addTopicProducer(String topicName, String producerApplicationId) {
+        return new TopicProducerAddChange(topicName, producerApplicationId);
     }
 
-    public static ChangeBase TopicProducerRemoveChange(String topicName, String topicProducerRemoveId) {
-        return new TopicProducerRemoveChange(topicName, topicProducerRemoveId);
+    public static ChangeBase removeTopicProducer(String topicName, String producerApplicationId) {
+        return new TopicProducerRemoveChange(topicName, producerApplicationId);
     }
 
     /**
@@ -351,12 +351,12 @@ final class TopicProducerAddChange extends ChangeBase {
 
     private final String topicName;
 
-    private final String topicProducerId;
+    private final String producerApplicationId;
 
-    public TopicProducerAddChange(String topicName, String topicProducerId) {
+    public TopicProducerAddChange(String topicName, String producerApplicationId) {
         super(ChangeType.TOPIC_PRODUCER_APPLICATION_ADDED);
         this.topicName = topicName;
-        this.topicProducerId = topicProducerId;
+        this.producerApplicationId = producerApplicationId;
 
     }
 
@@ -364,19 +364,20 @@ final class TopicProducerAddChange extends ChangeBase {
         return topicName;
     }
 
-    public String getTopicProducerIds() {
-        return topicProducerId;
+    public String getTopicProducerId() {
+        return producerApplicationId;
     }
 
     @Override
     protected boolean isEqualTo(ChangeBase other) {
         return Objects.equals(topicName, ((TopicProducerAddChange) other).topicName)
-                && topicProducerId.equals(((TopicProducerAddChange) other).topicProducerId);
+                && producerApplicationId.equals(((TopicProducerAddChange) other).producerApplicationId);
     }
 
     @Override
     public CompletableFuture<?> applyTo(ApplyChangeContext context) {
-        return context.getTopicService().addTopicProducer(context.getTargetEnvironmentId(), topicName, topicProducerId);
+        return context.getTopicService().addTopicProducer(context.getTargetEnvironmentId(), topicName,
+                producerApplicationId);
     }
 
 }
@@ -386,32 +387,32 @@ final class TopicProducerRemoveChange extends ChangeBase {
 
     private final String topicName;
 
-    private final String topicProducerDeleteId;
+    private final String producerApplicationId;
 
-    public TopicProducerRemoveChange(String topicName, String topicProducerDeleteId) {
+    public TopicProducerRemoveChange(String topicName, String producerApplicationId) {
         super(ChangeType.TOPIC_PRODUCER_APPLICATION_REMOVED);
         this.topicName = topicName;
-        this.topicProducerDeleteId = topicProducerDeleteId;
+        this.producerApplicationId = producerApplicationId;
     }
 
     public String getTopicName() {
         return topicName;
     }
 
-    public String getTopicProducerIds() {
-        return topicProducerDeleteId;
+    public String getTopicProducerId() {
+        return producerApplicationId;
     }
 
     @Override
     protected boolean isEqualTo(ChangeBase other) {
         return Objects.equals(topicName, ((TopicProducerRemoveChange) other).topicName)
-                && topicProducerDeleteId.equals(((TopicProducerRemoveChange) other).topicProducerDeleteId);
+                && producerApplicationId.equals(((TopicProducerRemoveChange) other).producerApplicationId);
     }
 
     @Override
     public CompletableFuture<?> applyTo(ApplyChangeContext context) {
-        return context.getTopicService().removeProducerFromTopic(context.getTargetEnvironmentId(), topicName,
-                topicProducerDeleteId);
+        return context.getTopicService().removeTopicProducer(context.getTargetEnvironmentId(), topicName,
+                producerApplicationId);
     }
 
 }

@@ -76,7 +76,7 @@ export class StagingComponent implements OnInit {
         this.staging = null;
         this.stagingResult = [];
 
-        this.registeredApplicationsSnapshot = await this.environmentsService.getRegisteredApplications(this.selectedEnvironment.id);
+        this.registeredApplicationsSnapshot = await this.applicationsService.getRegisteredApplications(this.selectedEnvironment.id);
 
         return this.environmentsService.prepareStaging(this.selectedApplication.id, this.selectedEnvironment).then(
             s => {
@@ -138,11 +138,11 @@ export class StagingComponent implements OnInit {
             return 'Schema Version <code>' + change.schemaMetadata.schemaVersion + '</code> für Topic <code>'
                     + change.topicName + '</code> veröffentlichen';
         case 'TOPIC_PRODUCER_APPLICATION_ADDED':
-            return `Produzent <code>${this.applicationInfo(change.topicProducerIds).name} ` +
-                    `</code> hinzufügen für Topic ` + `<code>` + change.topicName + `  </code>`;
+            return `Produzent <code>${this.applicationInfo(change.topicProducerId).name} ` +
+                `</code> hinzufügen für Topic ` + `<code>` + change.topicName + `  </code>`;
         case 'TOPIC_PRODUCER_APPLICATION_REMOVED':
-            return `Produzent <code>${this.applicationInfo(change.topicProducerIds).name} ` + `</code> entfernen für Topic `
-                    + `<code>` + change.topicName + `  </code>`;
+            return `Produzent <code>${this.applicationInfo(change.topicProducerId).name} ` + `</code> entfernen für Topic `
+                + `<code>` + change.topicName + `  </code>`;
         case 'TOPIC_SUBSCRIPTION_APPROVAL_REQUIRED_FLAG_UPDATED':
             return 'Für Topic <code>' + change.topicMetadata.name + '</code> die Freigabe von Abonnements erforderlich machen';
         case 'COMPOUND_CHANGE':

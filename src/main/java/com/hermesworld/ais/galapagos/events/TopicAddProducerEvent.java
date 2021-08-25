@@ -4,11 +4,11 @@ import com.hermesworld.ais.galapagos.topics.TopicMetadata;
 import lombok.Getter;
 
 @Getter
-public class TopicAddProducersEvent extends TopicEvent {
+public class TopicAddProducerEvent extends TopicEvent {
 
     private final String producerApplicationId;
 
-    public TopicAddProducersEvent(GalapagosEventContext context, String producerApplicationId,
+    public TopicAddProducerEvent(GalapagosEventContext context, String producerApplicationId,
             TopicMetadata metadata) {
         super(context, metadata);
         this.producerApplicationId = producerApplicationId;

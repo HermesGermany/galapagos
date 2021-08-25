@@ -341,7 +341,7 @@ public class TopicServiceImplTest {
         topic1.setType(TopicType.EVENTS);
         topicRepository.save(topic1);
 
-        service.removeProducerFromTopic("test", "topic-1", "producer3").get();
+        service.removeTopicProducer("test", "topic-1", "producer3").get();
 
         TopicMetadata savedTopic = topicRepository.getObject("topic-1").get();
 
@@ -364,7 +364,7 @@ public class TopicServiceImplTest {
         topicRepository.save(topic1);
 
         try {
-            service.removeProducerFromTopic("test", "topic-1", "producer3").get();
+            service.removeTopicProducer("test", "topic-1", "producer3").get();
             fail("Expected exception when deleting producer from commands topic");
         }
         catch (ExecutionException e) {

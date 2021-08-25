@@ -105,6 +105,8 @@
     "CRITICALITY_TEXT_HTML": "Please indicate here the criticality of the content of the topic that applies to the <b> production </b>. Even \"normal\" topics are already replicated (kept redundant on several brokers). \"Critical\" topics are <b> triple </b> redundant, so that there is even greater security in the event of failure of individual Kafka brokers.",
     "SIZE_ESTIMATION_TEXT_HTML": "Please estimate the amount and size of the expected data records on the topic (in <b> production </b>). This is currently <b> not </b> used to optimize the Kafka settings, but serves as an indicator for the company for any necessary capacity expansions.",
     "API_KEY_REQUEST_FAILED": "Request failed",
-    "DELETE_PRODUCER_PROMPT": "Delete Producer <b>{{ producerName }}</b>?"
+    "DELETE_PRODUCER_PROMPT": "Delete Producer <b>{{ producerName }}</b>?",
+    "CHANGE_OWNER_TEXT": "Promote this Producer to owner",
+    "CHANGE_OWNER_PROMPT": "Promote Producer <b>{{ newTopicOwner }}</b> to new owner?"
 }
 

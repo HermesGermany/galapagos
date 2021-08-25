@@ -173,5 +173,9 @@
     "Producer Selection": "Produzenten Auswahl",
     "Select Producer": "Produzenten auswählen",
     "Confirm Producer deletion": "Produzenten Entfernung bestätigen",
-    "DELETE_PRODUCER_PROMPT": "Producer <b>{{ producerName }}</b> wirklich löschen?"
+    "DELETE_PRODUCER_PROMPT": "Producer <b>{{ producerName }}</b> wirklich löschen?",
+    "CHANGE_OWNER_PROMPT": "Producer <b>{{ newTopicOwner }}</b> zum neuen Topic besitzer befördern?",
+    "CHANGE_OWNER_TEXT": "Diesen Producer zum Owner machen",
+    "Change Owner": "Besitzer wechseln",
+    "Topic owner change": "Topic Besitzer wechseln"
 }

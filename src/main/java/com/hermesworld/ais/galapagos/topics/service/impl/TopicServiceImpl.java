@@ -161,7 +161,7 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
     }
 
     @Override
-    public CompletableFuture<Void> removeProducerFromTopic(String envId, String topicName, String producerId) {
+    public CompletableFuture<Void> removeTopicProducer(String envId, String topicName, String producerId) {
         return doWithClusterAndTopic(envId, topicName, (kafkaCluster, metadata, eventSink) -> {
             if (metadata.getType() == TopicType.COMMANDS) {
                 return CompletableFuture.failedFuture(
@@ -170,7 +170,7 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
             TopicMetadata newTopic = new TopicMetadata(metadata);
             newTopic.getProducers().remove(producerId);
             return getTopicRepository(kafkaCluster).save(newTopic)
-                    .thenCompose(o -> eventSink.handleRemoveProducer(newTopic, producerId));
+                    .thenCompose(o -> eventSink.handleRemoveTopicProducer(newTopic, producerId));
         });
 
     }

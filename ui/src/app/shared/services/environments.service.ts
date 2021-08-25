@@ -4,7 +4,6 @@ import { jsonHeader, ReplayContainer } from './services-common';
 import { HttpClient } from '@angular/common/http';
 import { map, take } from 'rxjs/operators';
 import { ToastService } from '../modules/toast/toast.service';
-import { ApplicationInfo } from './applications.service';
 
 const LOCAL_STORAGE_ENV_KEY = 'galapagos.environment';
 
@@ -115,11 +114,6 @@ export class EnvironmentsService {
         return this.http.get('/api/environments/' + environmentId + '/changelog?limit=100').pipe(map(d => d as ChangelogEntry[]));
     }
 
-    public getRegisteredApplications(environmentId: string): Promise<ApplicationInfo[]> {
-        return this.http.get<ApplicationInfo[]>('/api/registered-applications/' + environmentId).toPromise();
-
-    }
-
     public prepareStaging(applicationId: string, environment: KafkaEnvironment): Promise<Staging> {
         return this.http.get('/api/environments/' + environment.id + '/staging/' + applicationId)
             .pipe(map(data => data as Staging)).toPromise();
@@ -127,7 +121,6 @@ export class EnvironmentsService {
 
     public performStaging(applicationId: string, environment: KafkaEnvironment, selectedChanges: Change[]): Promise<StagingResult[]> {
         const body = JSON.stringify(selectedChanges);
-        console.log(selectedChanges);
         return this.http.post('/api/environments/' + environment.id + '/staging/' + applicationId, body, { headers: jsonHeader() })
             .pipe(map(data => data as StagingResult[])).toPromise();
     }
