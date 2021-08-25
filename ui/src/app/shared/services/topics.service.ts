@@ -253,8 +253,8 @@ export class TopicsService {
         ));
     }
 
-    public getRegisteredApplications(environmentId: string): Promise<ApplicationInfo[]> {
-        return this.http.get<ApplicationInfo[]>('/api/registered-applications/' + environmentId).toPromise();
+    public getRegisteredApplications(environmentId: string): Observable<ApplicationInfo[]> {
+        return this.http.get<ApplicationInfo[]>('/api/registered-applications/' + environmentId);
 
     }
 

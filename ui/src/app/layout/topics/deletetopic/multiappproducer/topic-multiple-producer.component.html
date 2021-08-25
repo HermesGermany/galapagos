@@ -3,22 +3,16 @@
         <div class="col-md-12 mb-5">
             <div>
                 <p>some nice text goes here...</p>
-                <button appSpinnerWhile #d="appSpinnerWhile" (click)="d.while(submitSelectedProducer())"
-                        type="button"
-                        class="btn btn-outline-success"><i
-                    class="fas fa-fw"></i>{{ 'Add as Producer' | translate }}
-                </button>
-                <div class="btn-group" ngbDropdown role="group"
-                     aria-label="Button group with nested dropdown">
-                    <button class="btn btn-outline-primary" ngbDropdownToggle><i
-                        class="fas fa-fw"></i>{{ selectedProducer?.name || 'Select Producer' | translate }}</button>
-                    <div class="dropdown-menu" ngbDropdownMenu>
-                        <button *ngFor="let producerApp of selectableProducerApps"
-                                (click)="d.while(addProducer(producerApp))"
-                                ngbDropdownItem>{{ producerApp.name }}</button>
-                    </div>
+                <div appSpinnerWhile #d="appSpinnerWhile" class="form-group form-inline mt-3">
+                    <label class="mr-3">{{ 'Select Producer' | translate }}</label>
+                    <select class="form-control mr-3" name="appPicker" [(ngModel)]="selectedProducer">
+                        <option *ngFor="let producerApp of selectableProducerApps | async" [ngValue]="producerApp"
+                        >{{ producerApp.name }}
+                        </option>
+                    </select>
                 </div>
             </div>
         </div>
     </div>
 </div>
+

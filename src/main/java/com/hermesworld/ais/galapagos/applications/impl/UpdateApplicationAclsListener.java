@@ -164,7 +164,7 @@ public class UpdateApplicationAclsListener
     public CompletableFuture<Void> handleAddTopicProducer(TopicAddProducersEvent event) {
         KafkaCluster cluster = getCluster(event);
         return applicationsService.getApplicationMetadata(cluster.getId(), event.getProducerApplicationId()).map(
-                metadata -> getCluster(event).updateUserAcls(new ApplicationUser(metadata, getCluster(event).getId())))
+                metadata -> cluster.updateUserAcls(new ApplicationUser(metadata, cluster.getId())))
                 .orElse(FutureUtil.noop());
 
     }

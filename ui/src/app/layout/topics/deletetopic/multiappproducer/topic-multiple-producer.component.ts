@@ -3,6 +3,8 @@ import { Topic, TopicsService } from '../../../../shared/services/topics.service
 import { EnvironmentsService, KafkaEnvironment } from '../../../../shared/services/environments.service';
 import { ToastService } from '../../../../shared/modules/toast/toast.service';
 import { ApplicationInfo } from '../../../../shared/services/applications.service';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 @Component({
     selector: 'app-topic-multiple-producer',
@@ -18,9 +20,9 @@ export class TopicMultipleProducerComponent implements OnInit {
 
     showRegistrationWarning = false;
 
-    selectedProducer: ApplicationInfo;
+    selectedProducer: ApplicationInfo = null;
 
-    selectableProducerApps: ApplicationInfo[];
+    selectableProducerApps: Observable<ApplicationInfo[]>;
 
     constructor(
         private topicService: TopicsService,
@@ -30,16 +32,11 @@ export class TopicMultipleProducerComponent implements OnInit {
 
     }
 
-    async ngOnInit() {
+    ngOnInit() {
         const topicOwnerAppId = this.topic.ownerApplication ? this.topic.ownerApplication.id : null;
-        this.selectableProducerApps = await this.topicService.getRegisteredApplications(this.selectedEnvironment.id);
-        this.selectableProducerApps = this.selectableProducerApps
-            .filter(producerApp => producerApp.id !== topicOwnerAppId && !this.topic.producers.includes(producerApp.id));
-    }
-
-    addProducer(selectedProducer: ApplicationInfo): Promise<any> {
-        this.selectedProducer = selectedProducer;
-        return Promise.resolve();
+        this.selectableProducerApps = this.topicService.getRegisteredApplications(this.selectedEnvironment.id).pipe(
+            map(producerApps => producerApps.filter(producerApp => producerApp.id !== topicOwnerAppId
+                && !this.topic.producers.includes(producerApp.id))));
     }
 
     submitSelectedProducer(): Promise<any> {
