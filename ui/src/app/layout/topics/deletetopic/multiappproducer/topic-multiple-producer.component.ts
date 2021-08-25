@@ -20,7 +20,7 @@ export class TopicMultipleProducerComponent implements OnInit {
 
     showRegistrationWarning = false;
 
-    selectedProducer: ApplicationInfo = null;
+    selectedProducer: ApplicationInfo;
 
     selectableProducerApps: Observable<ApplicationInfo[]>;
 
