@@ -82,7 +82,6 @@ export class StagingComponent implements OnInit {
             s => {
                 this.staging = s;
                 this.changes = s.changes.map(change => ({ change: change, selected: true }));
-                console.log(this.changes);
             },
             err => this.toasts.addHttpErrorToast('Could not calculate staging for this application', err));
     }
@@ -144,8 +143,6 @@ export class StagingComponent implements OnInit {
         case 'TOPIC_PRODUCER_APPLICATION_REMOVED':
             return `Produzent <code>${this.applicationInfo(change.producerApplicationId).name} ` + `</code> entfernen für Topic `
                     + `<code>` + change.topicName + `  </code>`;
-        case 'TOPIC_OWNER_CHANGED':
-            return 'id changed';
         case 'TOPIC_SUBSCRIPTION_APPROVAL_REQUIRED_FLAG_UPDATED':
             return 'Für Topic <code>' + change.topicMetadata.name + '</code> die Freigabe von Abonnements erforderlich machen';
         case 'COMPOUND_CHANGE':
