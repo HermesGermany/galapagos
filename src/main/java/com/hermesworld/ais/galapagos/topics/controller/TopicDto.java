@@ -47,8 +47,8 @@ public class TopicDto {
     public TopicDto(String name, String topicType, String environmentId, String description,
             String externalInterfaceUrl, String ownerApplicationId, boolean deprecated, String deprecationText,
             String eolDate, boolean subscriptionApprovalRequired, boolean deletable, long compactionTimeMillis,
-            long retentionTimeMillis, Criticality criticality, MessagesPerDay messagesPerDay,
-            MessagesSize messagesSize, List<String> producers) {
+            long retentionTimeMillis, Criticality criticality, MessagesPerDay messagesPerDay, MessagesSize messagesSize,
+            List<String> producers) {
         this.name = name;
         this.topicType = topicType;
         this.environmentId = environmentId;

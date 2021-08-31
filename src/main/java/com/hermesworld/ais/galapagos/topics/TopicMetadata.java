@@ -10,7 +10,6 @@ import lombok.Setter;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 @JsonSerialize
@@ -51,7 +50,7 @@ public class TopicMetadata implements HasKey {
 
     private MessagesSize messagesSize;
 
-    private List<String> producers = Collections.unmodifiableList(new ArrayList<>());
+    private List<String> producers = new ArrayList<>();
 
     public TopicMetadata() {
     }

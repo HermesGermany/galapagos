@@ -130,6 +130,11 @@ public class DevUserAclListener implements TopicEventsListener, SubscriptionEven
     }
 
     @Override
+    public CompletableFuture<Void> handleTopicOwnerChanged(TopicOwnerChangeEvent event) {
+        return FutureUtil.noop();
+    }
+
+    @Override
     public CompletableFuture<Void> handleTopicCreated(TopicCreatedEvent event) {
         return handleTopicDeleted(event);
     }

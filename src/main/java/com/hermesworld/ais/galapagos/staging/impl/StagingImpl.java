@@ -228,16 +228,20 @@ public final class StagingImpl implements Staging, ApplyChangeContext {
             List<String> producerIdsToBeAdded = newProducers.stream()
                     .filter(producer -> !oldProducers.contains(producer)).collect(Collectors.toList());
 
-            producerIdsToBeAdded.forEach(
-                    producerId -> result.add(ChangeBase.addTopicProducer(newTopic.getName(), producerId)));
+            producerIdsToBeAdded
+                    .forEach(producerId -> result.add(ChangeBase.addTopicProducer(newTopic.getName(), producerId)));
 
             List<String> ids = new ArrayList<>(oldProducers);
             ids.removeAll(newProducers);
             List<String> toBeDeletedIds = new ArrayList<>(ids);
 
-            toBeDeletedIds.forEach(
-                    producerId -> result.add(ChangeBase.removeTopicProducer(newTopic.getName(), producerId)));
+            toBeDeletedIds
+                    .forEach(producerId -> result.add(ChangeBase.removeTopicProducer(newTopic.getName(), producerId)));
 
+        }
+
+        if (!oldTopic.getOwnerApplicationId().equals(newTopic.getOwnerApplicationId())) {
+            result.add(ChangeBase.changeTopicOwner(newTopic.getName(), newTopic.getOwnerApplicationId()));
         }
 
         return result;

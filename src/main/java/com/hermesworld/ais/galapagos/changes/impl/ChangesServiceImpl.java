@@ -77,15 +77,19 @@ public class ChangesServiceImpl
 
     @Override
     public CompletableFuture<Void> handleAddTopicProducer(TopicAddProducerEvent event) {
-        return logChange(
-                ChangeBase.addTopicProducer(event.getMetadata().getName(), event.getProducerApplicationId()),
+        return logChange(ChangeBase.addTopicProducer(event.getMetadata().getName(), event.getProducerApplicationId()),
                 event);
     }
 
     @Override
     public CompletableFuture<Void> handleRemoveTopicProducer(TopicRemoveProducerEvent event) {
         return logChange(
-                ChangeBase.removeTopicProducer(event.getMetadata().getName(), event.getProducerApplicationId()),
+                ChangeBase.removeTopicProducer(event.getMetadata().getName(), event.getProducerApplicationId()), event);
+    }
+
+    @Override
+    public CompletableFuture<Void> handleTopicOwnerChanged(TopicOwnerChangeEvent event) {
+        return logChange(ChangeBase.changeTopicOwner(event.getMetadata().getName(), event.getNewOwnerApplicationId()),
                 event);
     }
 

@@ -22,4 +22,6 @@ public interface TopicEventsListener {
 
     CompletableFuture<Void> handleRemoveTopicProducer(TopicRemoveProducerEvent event);
 
+    CompletableFuture<Void> handleTopicOwnerChanged(TopicOwnerChangeEvent event);
+
 }

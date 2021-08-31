@@ -113,6 +113,11 @@ public class AuditEventsListener implements TopicEventsListener, SubscriptionEve
     }
 
     @Override
+    public CompletableFuture<Void> handleTopicOwnerChanged(TopicOwnerChangeEvent event) {
+        return handleTopicEvent(event, GalapagosAuditEventType.TOPIC_OWNER_CHANGED.name());
+    }
+
+    @Override
     public CompletableFuture<Void> handleApplicationRegistered(ApplicationEvent event) {
         Map<String, Object> auditData = new LinkedHashMap<>();
         auditData.put(APPLICATION_ID, event.getMetadata().getApplicationId());

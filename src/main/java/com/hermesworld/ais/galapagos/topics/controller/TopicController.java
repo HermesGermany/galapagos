@@ -77,7 +77,7 @@ public class TopicController {
                 .collect(Collectors.toList());
     }
 
-    @GetMapping(value = "/api/topicconfigs/{environmentId}/{topicName:.+}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/api/topicconfigs/{environmentId}/{topicName}", produces = MediaType.APPLICATION_JSON_VALUE)
     public List<TopicConfigEntryDto> getTopicConfig(@PathVariable String environmentId,
             @PathVariable String topicName) {
         KafkaCluster cluster = kafkaEnvironments.getEnvironment(environmentId).orElseThrow(notFound);
@@ -96,7 +96,7 @@ public class TopicController {
         }
     }
 
-    @PostMapping(value = "/api/producers/{environmentId}/{topicName:.+}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/api/producers/{environmentId}/{topicName}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public void addProducerToTopic(@PathVariable String environmentId, @PathVariable String topicName,
             @RequestBody AddProducerDto producer) {
         if (!applicationsService.isUserAuthorizedFor(producer.getProducerApplicationId())) {
@@ -131,8 +131,31 @@ public class TopicController {
 
         try {
             topicService.removeTopicProducer(envId, topicName, producerApplicationId).get();
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            return ResponseEntity.noContent().build();
 
+        }
+        catch (ExecutionException e) {
+            throw handleExecutionException(e);
+        }
+        catch (InterruptedException e) {
+            return null;
+        }
+
+    }
+
+    @PostMapping(value = "/api/change-owner/{envId}/{topicName}/{producerApplicationId}")
+    public void changeTopicOwner(@PathVariable String envId, @PathVariable String topicName,
+            @PathVariable String producerApplicationId) {
+        if (envId.isEmpty() || topicName.isEmpty() || producerApplicationId.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
+
+        if (!applicationsService.isUserAuthorizedFor(producerApplicationId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
+
+        try {
+            topicService.changeTopicOwner(envId, topicName, producerApplicationId).get();
         }
         catch (ExecutionException e) {
             throw handleExecutionException(e);
@@ -141,11 +164,9 @@ public class TopicController {
             Thread.currentThread().interrupt();
         }
 
-        return ResponseEntity.noContent().build();
-
     }
 
-    @PostMapping(value = "/api/topics/{environmentId}/{topicName:.+}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/api/topics/{environmentId}/{topicName}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public void updateTopic(@PathVariable String environmentId, @PathVariable String topicName,
             @RequestBody UpdateTopicDto request) {
 
@@ -155,37 +176,39 @@ public class TopicController {
                         && topic.getOwnerApplicationId().equals(req.getApplicationId()))) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
+        try {
 
-        if (request.isUpdateDescription()) {
-            topicService.updateTopicDescription(environmentId, topicName, request.getDescription());
-            return;
-        }
-
-        if (!StringUtils.isEmpty(request.getDeprecationText())) {
-            if (request.getEolDate() == null) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "eolDate must be set for Topic deprecation");
+            if (request.isUpdateDescription()) {
+                topicService.updateTopicDescription(environmentId, topicName, request.getDescription()).get();
+                return;
             }
-            try {
+
+            if (!StringUtils.isEmpty(request.getDeprecationText())) {
+                if (request.getEolDate() == null) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                            "eolDate must be set for Topic deprecation");
+                }
+
                 topicService.markTopicDeprecated(topicName, request.getDeprecationText(), request.getEolDate()).get();
-            }
-            catch (ExecutionException e) {
-                throw handleExecutionException(e);
-            }
-            catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-        }
-        else {
-            if (!topic.isDeprecated()) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                        "Cannot remove deprecation from a topic that was not deprecated");
-            }
-            topicService.unmarkTopicDeprecated(topicName);
-        }
 
+            }
+            else {
+                if (!topic.isDeprecated()) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                            "Cannot remove deprecation from a topic that was not deprecated");
+                }
+                topicService.unmarkTopicDeprecated(topicName).get();
+            }
+        }
+        catch (ExecutionException e) {
+            throw handleExecutionException(e);
+        }
+        catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
     }
 
-    @PostMapping(value = "/api/topicconfigs/{environmentId}/{topicName:.+}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/api/topicconfigs/{environmentId}/{topicName}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public void updateTopicConfig(@PathVariable String environmentId, @PathVariable String topicName,
             @RequestBody List<UpdateTopicConfigEntryDto> configs) throws InterruptedException {
         KafkaCluster cluster = kafkaEnvironments.getEnvironment(environmentId).orElseThrow(notFound);
@@ -279,7 +302,7 @@ public class TopicController {
         }
     }
 
-    @DeleteMapping(value = "/api/topics/{environmentId}/{topicName:.+}")
+    @DeleteMapping(value = "/api/topics/{environmentId}/{topicName}")
     public ResponseEntity<Void> deleteTopic(@PathVariable String environmentId, @PathVariable String topicName) {
         TopicMetadata metadata = topicService.listTopics(environmentId).stream()
                 .filter(topic -> topicName.equals(topic.getName())).findAny().orElseThrow(notFound);
@@ -307,7 +330,7 @@ public class TopicController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping(value = "/api/schemas/{environmentId}/{topicName:.+}")
+    @GetMapping(value = "/api/schemas/{environmentId}/{topicName}")
     public List<SchemaMetadata> getTopicSchemas(@PathVariable String environmentId, @PathVariable String topicName) {
         if (topicService.getTopic(environmentId, topicName).isEmpty()) {
             throw notFound.get();
@@ -333,7 +356,7 @@ public class TopicController {
         throw notFound.get();
     }
 
-    @PutMapping(value = "/api/schemas/{environmentId}/{topicName:.+}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping(value = "/api/schemas/{environmentId}/{topicName}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> addTopicSchemaVersion(@PathVariable String environmentId,
             @PathVariable String topicName, @RequestBody AddSchemaVersionDto schemaVersionDto) {
         TopicMetadata topic = topicService.listTopics(environmentId).stream().filter(t -> topicName.equals(t.getName()))
@@ -365,7 +388,7 @@ public class TopicController {
         }
     }
 
-    @DeleteMapping(value = "/api/schemas/{environmentId}/{topicName:.+}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @DeleteMapping(value = "/api/schemas/{environmentId}/{topicName}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> deleteLatestTopicSchemaVersion(@PathVariable String environmentId,
             @PathVariable String topicName) {
 
@@ -388,7 +411,7 @@ public class TopicController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/api/util/peek-data/{environmentId}/{topicName:.+}")
+    @GetMapping("/api/util/peek-data/{environmentId}/{topicName}")
     public List<ConsumerRecordDto> peekTopicData(@PathVariable String environmentId, @PathVariable String topicName) {
         try {
             return topicService.peekTopicData(environmentId, topicName, PEEK_LIMIT).get().stream()

@@ -163,8 +163,8 @@ public class UpdateApplicationAclsListener
     @Override
     public CompletableFuture<Void> handleAddTopicProducer(TopicAddProducerEvent event) {
         KafkaCluster cluster = getCluster(event);
-        return applicationsService.getApplicationMetadata(cluster.getId(), event.getProducerApplicationId()).map(
-                metadata -> cluster.updateUserAcls(new ApplicationUser(metadata, cluster.getId())))
+        return applicationsService.getApplicationMetadata(cluster.getId(), event.getProducerApplicationId())
+                .map(metadata -> cluster.updateUserAcls(new ApplicationUser(metadata, cluster.getId())))
                 .orElse(FutureUtil.noop());
 
     }
@@ -175,6 +175,11 @@ public class UpdateApplicationAclsListener
                 .map(metadata -> getCluster(event)
                         .updateUserAcls(new ApplicationUser(metadata, getCluster(event).getId())))
                 .orElse(FutureUtil.noop());
+    }
+
+    @Override
+    public CompletableFuture<Void> handleTopicOwnerChanged(TopicOwnerChangeEvent event) {
+        return FutureUtil.noop();
     }
 
     @Override

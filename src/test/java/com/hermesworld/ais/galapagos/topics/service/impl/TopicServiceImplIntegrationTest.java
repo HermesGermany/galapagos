@@ -234,6 +234,11 @@ public class TopicServiceImplIntegrationTest {
         public CompletableFuture<Void> handleRemoveTopicProducer(TopicRemoveProducerEvent event) {
             throw new UnsupportedOperationException("Unexpected event received during test");
         }
+
+        @Override
+        public CompletableFuture<Void> handleTopicOwnerChanged(TopicOwnerChangeEvent event) {
+            throw new UnsupportedOperationException("Unexpected event received during test");
+        }
     }
 
     /**

@@ -8,8 +8,7 @@ public class TopicAddProducerEvent extends TopicEvent {
 
     private final String producerApplicationId;
 
-    public TopicAddProducerEvent(GalapagosEventContext context, String producerApplicationId,
-            TopicMetadata metadata) {
+    public TopicAddProducerEvent(GalapagosEventContext context, String producerApplicationId, TopicMetadata metadata) {
         super(context, metadata);
         this.producerApplicationId = producerApplicationId;
     }

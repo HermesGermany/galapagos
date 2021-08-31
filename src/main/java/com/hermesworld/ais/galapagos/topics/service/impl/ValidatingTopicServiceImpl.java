@@ -255,6 +255,13 @@ public class ValidatingTopicServiceImpl implements ValidatingTopicService {
                 .orElseGet(() -> topicService.removeTopicProducer(envId, topicName, appId));
     }
 
+    @Override
+    public CompletableFuture<Void> changeTopicOwner(String environmentId, String topicName,
+            String newApplicationOwnerId) {
+        return checkOnNonStaging(environmentId, "change Topic owner", Void.class)
+                .orElseGet(() -> topicService.changeTopicOwner(environmentId, topicName, newApplicationOwnerId));
+    }
+
     private boolean currentUserMayRead(String environmentId, TopicMetadata metadata) {
         Set<String> subscribedApplications = subscriptionService
                 .getSubscriptionsForTopic(environmentId, metadata.getName(), false).stream()

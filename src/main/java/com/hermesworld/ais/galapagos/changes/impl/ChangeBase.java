@@ -112,6 +112,10 @@ public abstract class ChangeBase implements ApplicableChange {
         return new TopicProducerRemoveChange(topicName, producerApplicationId);
     }
 
+    public static ChangeBase changeTopicOwner(String topicName, String producerApplicationId) {
+        return new TopicOwnerChange(topicName, producerApplicationId);
+    }
+
     /**
      * @deprecated Is no longer signalled by a "change", but as a Galapagos Event.
      */
@@ -364,7 +368,7 @@ final class TopicProducerAddChange extends ChangeBase {
         return topicName;
     }
 
-    public String getTopicProducerId() {
+    public String getProducerApplicationId() {
         return producerApplicationId;
     }
 
@@ -378,6 +382,41 @@ final class TopicProducerAddChange extends ChangeBase {
     public CompletableFuture<?> applyTo(ApplyChangeContext context) {
         return context.getTopicService().addTopicProducer(context.getTargetEnvironmentId(), topicName,
                 producerApplicationId);
+    }
+
+}
+
+@JsonSerialize
+final class TopicOwnerChange extends ChangeBase {
+
+    private final String topicName;
+
+    private final String newApplicationOwnerId;
+
+    public TopicOwnerChange(String topicName, String newApplicationOwnerId) {
+        super(ChangeType.TOPIC_OWNER_CHANGED);
+        this.topicName = topicName;
+        this.newApplicationOwnerId = newApplicationOwnerId;
+    }
+
+    public String getTopicName() {
+        return topicName;
+    }
+
+    public String getNewApplicationOwnerId() {
+        return newApplicationOwnerId;
+    }
+
+    @Override
+    protected boolean isEqualTo(ChangeBase other) {
+        return Objects.equals(topicName, ((TopicOwnerChange) other).topicName)
+                && newApplicationOwnerId.equals(((TopicOwnerChange) other).newApplicationOwnerId);
+    }
+
+    @Override
+    public CompletableFuture<?> applyTo(ApplyChangeContext context) {
+        return context.getTopicService().changeTopicOwner(context.getTargetEnvironmentId(), topicName,
+                newApplicationOwnerId);
     }
 
 }
@@ -399,7 +438,7 @@ final class TopicProducerRemoveChange extends ChangeBase {
         return topicName;
     }
 
-    public String getTopicProducerId() {
+    public String getProducerApplicationId() {
         return producerApplicationId;
     }
 

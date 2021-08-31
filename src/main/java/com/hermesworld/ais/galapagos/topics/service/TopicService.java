@@ -119,6 +119,9 @@ public interface TopicService {
     CompletableFuture<Void> addTopicProducer(String environmentId, String topicName, String producerId);
 
     @CheckReturnValue
-    CompletableFuture<Void> removeTopicProducer(String envId, String topicName, String appId);
+    CompletableFuture<Void> removeTopicProducer(String environmentId, String topicName, String producerId);
+
+    @CheckReturnValue
+    CompletableFuture<Void> changeTopicOwner(String environmentId, String topicName, String newApplicationOwnerId);
 
 }

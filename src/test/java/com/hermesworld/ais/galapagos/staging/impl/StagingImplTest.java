@@ -14,6 +14,7 @@ import com.hermesworld.ais.galapagos.util.JsonUtil;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -112,7 +113,7 @@ public class StagingImplTest {
         topic1.setName("topic-1");
         topic1.setOwnerApplicationId("app-1");
         topic1.setType(TopicType.EVENTS);
-        topic1.setProducers(List.of("producer1"));
+        topic1.setProducers(new ArrayList<>(List.of("producer1")));
 
         TopicMetadata topic2 = new TopicMetadata();
         topic2.setName("topic-1");
@@ -132,7 +133,6 @@ public class StagingImplTest {
         assertEquals(1, staging.getChanges().size());
         Change change = changes.get(0);
         assertEquals(ChangeType.TOPIC_PRODUCER_APPLICATION_REMOVED, change.getChangeType());
-
     }
 
     @Test

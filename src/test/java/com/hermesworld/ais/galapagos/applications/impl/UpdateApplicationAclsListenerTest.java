@@ -280,8 +280,7 @@ public class UpdateApplicationAclsListenerTest {
 
         when(applicationsService.getApplicationMetadata("_test", "producer1")).thenReturn(Optional.of(producer1));
 
-        TopicAddProducerEvent event = new TopicAddProducerEvent(context, "producer1",
-                topic);
+        TopicAddProducerEvent event = new TopicAddProducerEvent(context, "producer1", topic);
         UpdateApplicationAclsListener listener = new UpdateApplicationAclsListener(kafkaClusters, topicService,
                 subscriptionService, applicationsService, kafkaConfig);
 
@@ -291,14 +290,12 @@ public class UpdateApplicationAclsListenerTest {
 
         verify(cluster, times(1)).updateUserAcls(any());
 
-        WRITE_TOPIC_OPERATIONS.forEach(op -> assertNotNull("Did not find expected write ACL for topic",
-                createdAcls.stream()
-                        .filter(binding -> binding.pattern().resourceType() == ResourceType.TOPIC
+        WRITE_TOPIC_OPERATIONS
+                .forEach(op -> assertNotNull("Did not find expected write ACL for topic",
+                        createdAcls.stream().filter(binding -> binding.pattern().resourceType() == ResourceType.TOPIC
                                 && binding.pattern().patternType() == PatternType.LITERAL
-                                && binding.pattern().name().equals("topic1")
-                                && binding.entry().operation() == op
-                                && binding.entry().principal().equals("User:12345"))
-                        .findAny().orElse(null)));
+                                && binding.pattern().name().equals("topic1") && binding.entry().operation() == op
+                                && binding.entry().principal().equals("User:12345")).findAny().orElse(null)));
     }
 
     @Test

@@ -107,6 +107,8 @@
     "API_KEY_REQUEST_FAILED": "Request failed",
     "DELETE_PRODUCER_PROMPT": "Delete Producer <b>{{ producerName }}</b>?",
     "CHANGE_OWNER_TEXT": "Promote this Producer to owner",
-    "CHANGE_OWNER_PROMPT": "Promote Producer <b>{{ newTopicOwner }}</b> to new owner?"
+    "CHANGE_OWNER_PROMPT": "Promote Producer <b>{{ newTopicOwner }}</b> to new owner?",
+    "OWNER_CHANGE_ALL_STAGES_ALERT_HTML": "The new Owner <code>{{newTopicOwner}}</code> for Topic <code>{{topicName}}</code> will be used on <b>all</b> stages <b>immediately</b>!",
+    "CHANGELOG_PRODUCER_ADDED_HTML": "added Producer {{ producerName }} to Topic <b><a href='{{ topicLink }}'>{{ topicName }}</a></b>."
 }
 

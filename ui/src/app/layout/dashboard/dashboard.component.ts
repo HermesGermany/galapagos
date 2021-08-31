@@ -8,7 +8,7 @@ import {
     KafkaEnvironment
 } from '../../shared/services/environments.service';
 import { Observable } from 'rxjs';
-import { flatMap, map, shareReplay, take } from 'rxjs/operators';
+import { flatMap, map, mergeMap, shareReplay, take } from 'rxjs/operators';
 import { CustomLink, ServerInfo, ServerInfoService } from '../../shared/services/serverinfo.service';
 import * as moment from 'moment';
 import { TranslateService } from '@ngx-translate/core';
@@ -150,6 +150,17 @@ export class DashboardComponent implements OnInit {
                     return this.translate.stream('CHANGELOG_TOPIC_UNSUBSCRIBED_HTML',
                         { topicName: topicName, topicLink: topicLink, appInfo: app });
                 }));
+            case 'TOPIC_PRODUCER_APPLICATION_ADDED':
+                topicName = change.topicName;
+                topicLink = this.urlForRouterLink('/topics/' + topicName);
+                const producerApplicationId = change.producerApplicationId;
+                return this.applicationInfo(producerApplicationId).pipe(mergeMap(
+                    producer => this.translate.stream('CHANGELOG_PRODUCER_ADDED_HTML', {
+                        topicName: topicName,
+                        topicLink: topicLink,
+                        producerName: producer.name
+                    })
+                ));
         }
         return null;
     }

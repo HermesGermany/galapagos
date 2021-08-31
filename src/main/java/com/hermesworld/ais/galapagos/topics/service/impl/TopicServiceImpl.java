@@ -176,6 +176,19 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
     }
 
     @Override
+    public CompletableFuture<Void> changeTopicOwner(String environmentId, String topicName,
+            String newApplicationOwnerId) {
+        return doDeprecationAction(topicName, (kafkaCluster, metadata, eventSink) -> {
+            TopicMetadata newTopic = new TopicMetadata(metadata);
+            newTopic.getProducers().add(newTopic.getOwnerApplicationId());
+            newTopic.setOwnerApplicationId(newApplicationOwnerId);
+            newTopic.getProducers().remove(newTopic.getOwnerApplicationId());
+            return getTopicRepository(kafkaCluster).save(newTopic)
+                    .thenCompose(o -> eventSink.handleTopicOwnerChange(newTopic, newApplicationOwnerId));
+        });
+    }
+
+    @Override
     public boolean canDeleteTopic(String environmentId, String topicName) {
         // business checks in ValidatingTopicServiceImpl
         return getTopic(environmentId, topicName).isPresent();

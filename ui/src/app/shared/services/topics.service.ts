@@ -263,11 +263,8 @@ export class TopicsService {
     }
 
     public changeTopicOwner(envId: string, topicName: string, newOwnerId: string) {
-        const body = JSON.stringify({
-            newOwnerId: newOwnerId
-        });
 
-        return this.http.post('/api/change-owner/' + envId + '/' + topicName, body, { headers: jsonHeader() }).pipe(take(1))
+        return this.http.post('/api/change-owner/' + envId + '/' + topicName + '/' + newOwnerId, {}, { headers: jsonHeader() }).pipe(take(1))
             .toPromise().then(() => this.topicsList.refresh());
     }
 

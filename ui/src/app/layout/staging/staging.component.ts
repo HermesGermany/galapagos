@@ -82,6 +82,7 @@ export class StagingComponent implements OnInit {
             s => {
                 this.staging = s;
                 this.changes = s.changes.map(change => ({ change: change, selected: true }));
+                console.log(this.changes);
             },
             err => this.toasts.addHttpErrorToast('Could not calculate staging for this application', err));
     }
@@ -132,21 +133,23 @@ export class StagingComponent implements OnInit {
             return 'Beschreibung von Topic <code>' + change.topicName + '</code> aktualisieren';
         case 'TOPIC_DEPRECATED':
             return 'Topic <code>' + change.topicName + '</code> als deprecated markieren';
-        case 'TOPIC_UNDEPRECATED':
-            return 'Deprecated-Markierung von Topic <code>' + change.topicName + '</code> entfernen';
-        case 'TOPIC_SCHEMA_VERSION_PUBLISHED':
-            return 'Schema Version <code>' + change.schemaMetadata.schemaVersion + '</code> für Topic <code>'
+            case 'TOPIC_UNDEPRECATED':
+                return 'Deprecated-Markierung von Topic <code>' + change.topicName + '</code> entfernen';
+            case 'TOPIC_SCHEMA_VERSION_PUBLISHED':
+                return 'Schema Version <code>' + change.schemaMetadata.schemaVersion + '</code> für Topic <code>'
                     + change.topicName + '</code> veröffentlichen';
-        case 'TOPIC_PRODUCER_APPLICATION_ADDED':
-            return `Produzent <code>${this.applicationInfo(change.topicProducerId).name} ` +
-                `</code> hinzufügen für Topic ` + `<code>` + change.topicName + `  </code>`;
-        case 'TOPIC_PRODUCER_APPLICATION_REMOVED':
-            return `Produzent <code>${this.applicationInfo(change.topicProducerId).name} ` + `</code> entfernen für Topic `
-                + `<code>` + change.topicName + `  </code>`;
-        case 'TOPIC_SUBSCRIPTION_APPROVAL_REQUIRED_FLAG_UPDATED':
-            return 'Für Topic <code>' + change.topicMetadata.name + '</code> die Freigabe von Abonnements erforderlich machen';
-        case 'COMPOUND_CHANGE':
-            return this.stagingText(change.mainChange);
+            case 'TOPIC_PRODUCER_APPLICATION_ADDED':
+                return `Produzent <code>${this.applicationInfo(change.producerApplicationId).name} ` +
+                    `</code> hinzufügen für Topic ` + `<code>` + change.topicName + `  </code>`;
+            case 'TOPIC_PRODUCER_APPLICATION_REMOVED':
+                return `Produzent <code>${this.applicationInfo(change.producerApplicationId).name} ` + `</code> entfernen für Topic `
+                    + `<code>` + change.topicName + `  </code>`;
+            case 'TOPIC_OWNER_CHANGED':
+                return 'id changed';
+            case 'TOPIC_SUBSCRIPTION_APPROVAL_REQUIRED_FLAG_UPDATED':
+                return 'Für Topic <code>' + change.topicMetadata.name + '</code> die Freigabe von Abonnements erforderlich machen';
+            case 'COMPOUND_CHANGE':
+                return this.stagingText(change.mainChange);
         }
         return 'Änderung vom Typ <code>' + changeType + '</code> durchführen';
     }
