@@ -391,32 +391,31 @@ final class TopicOwnerChange extends ChangeBase {
 
     private final String topicName;
 
-    private final String newApplicationOwnerId;
+    private final String previousOwnerApplicationId;
 
-    public TopicOwnerChange(String topicName, String newApplicationOwnerId) {
+    public TopicOwnerChange(String topicName, String previousOwnerApplicationId) {
         super(ChangeType.TOPIC_OWNER_CHANGED);
         this.topicName = topicName;
-        this.newApplicationOwnerId = newApplicationOwnerId;
+        this.previousOwnerApplicationId = previousOwnerApplicationId;
     }
 
     public String getTopicName() {
         return topicName;
     }
 
-    public String getNewApplicationOwnerId() {
-        return newApplicationOwnerId;
+    public String getPreviousOwnerApplicationId() {
+        return previousOwnerApplicationId;
     }
 
     @Override
     protected boolean isEqualTo(ChangeBase other) {
         return Objects.equals(topicName, ((TopicOwnerChange) other).topicName)
-                && newApplicationOwnerId.equals(((TopicOwnerChange) other).newApplicationOwnerId);
+                && previousOwnerApplicationId.equals(((TopicOwnerChange) other).previousOwnerApplicationId);
     }
 
     @Override
     public CompletableFuture<?> applyTo(ApplyChangeContext context) {
-        return context.getTopicService().changeTopicOwner(context.getTargetEnvironmentId(), topicName,
-                newApplicationOwnerId);
+        throw new UnsupportedOperationException("Topic Owner changes cannot be applied");
     }
 
 }

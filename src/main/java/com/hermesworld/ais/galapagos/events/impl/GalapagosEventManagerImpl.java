@@ -156,8 +156,9 @@ public class GalapagosEventManagerImpl implements GalapagosEventManager {
         }
 
         @Override
-        public CompletableFuture<Void> handleTopicOwnerChange(TopicMetadata metadata, String newOwnerApplicationId) {
-            TopicOwnerChangeEvent event = new TopicOwnerChangeEvent(eventContext, newOwnerApplicationId, metadata);
+        public CompletableFuture<Void> handleTopicOwnerChanged(TopicMetadata metadata,
+                String previousOwnerApplicationId) {
+            TopicOwnerChangeEvent event = new TopicOwnerChangeEvent(eventContext, previousOwnerApplicationId, metadata);
             return handleEvent(topicListeners, l -> l.handleTopicOwnerChanged(event));
         }
 

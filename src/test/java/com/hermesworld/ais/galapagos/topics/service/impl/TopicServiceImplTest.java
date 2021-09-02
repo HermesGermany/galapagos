@@ -336,7 +336,7 @@ public class TopicServiceImplTest {
 
         TopicMetadata topic1 = new TopicMetadata();
         topic1.setName("topic-1");
-        topic1.setProducers(buildProducersList());
+        topic1.setProducers(List.of("producer1", "producer2", "producer3", "producer4"));
         topic1.setOwnerApplicationId("app-1");
         topic1.setType(TopicType.EVENTS);
         topicRepository.save(topic1).get();
@@ -358,7 +358,7 @@ public class TopicServiceImplTest {
 
         TopicMetadata topic1 = new TopicMetadata();
         topic1.setName("topic-1");
-        topic1.setProducers(buildProducersList());
+        topic1.setProducers(List.of("producer1", "producer2", "producer3", "producer4"));
         topic1.setOwnerApplicationId("app-1");
         topic1.setType(TopicType.COMMANDS);
         topicRepository.save(topic1).get();
@@ -386,7 +386,7 @@ public class TopicServiceImplTest {
         topic1.setName("topic-1");
         topic1.setOwnerApplicationId("app-1");
         topic1.setType(TopicType.EVENTS);
-        topic1.setProducers(buildProducersList());
+        topic1.setProducers(List.of("producer1", "producer2", "producer3", "producer4"));
         topicRepository.save(topic1).get();
         when(kafkaClusters.getEnvironmentIds()).thenReturn(List.of("test", "test2", "test3"));
 
@@ -397,6 +397,30 @@ public class TopicServiceImplTest {
         assertEquals(4, savedTopic.getProducers().size());
         assertEquals("producer1", savedTopic.getOwnerApplicationId());
         assertTrue(savedTopic.getProducers().contains("app-1"));
+    }
+
+    @Test
+    @DisplayName("should not promote a producer to new Topic owner for internal topics")
+    public void changeOwnerOfTopicTest_negative() throws Exception {
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
+                topicConfig, eventManager);
+
+        TopicMetadata topic1 = new TopicMetadata();
+        topic1.setName("topic-1");
+        topic1.setOwnerApplicationId("app-1");
+        topic1.setType(TopicType.INTERNAL);
+        topic1.setProducers(List.of("producer1", "producer2", "producer3", "producer4"));
+        topicRepository.save(topic1).get();
+        when(kafkaClusters.getEnvironmentIds()).thenReturn(List.of("test", "test2", "test3"));
+
+        try {
+            service.changeTopicOwner("test", "topic-1", "producer1").get();
+            fail("exception expected when trying no change owner of internal topic");
+        }
+        catch (Exception e) {
+            assertTrue(e.getCause() instanceof IllegalStateException);
+        }
+
     }
 
     @Test
@@ -1242,16 +1266,6 @@ public class TopicServiceImplTest {
         catch (Exception e) {
             assertTrue(e.getCause() instanceof IllegalStateException);
         }
-    }
-
-    private List<String> buildProducersList() {
-        List<String> producers = new ArrayList<>();
-        producers.add("producer1");
-        producers.add("producer2");
-        producers.add("producer3");
-        producers.add("producer4");
-
-        return producers;
     }
 
     private static String buildJsonSchema(List<String> propertyNames, List<String> propertyTypes) {

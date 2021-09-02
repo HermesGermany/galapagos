@@ -89,7 +89,8 @@ public class ChangesServiceImpl
 
     @Override
     public CompletableFuture<Void> handleTopicOwnerChanged(TopicOwnerChangeEvent event) {
-        return logChange(ChangeBase.changeTopicOwner(event.getMetadata().getName(), event.getNewOwnerApplicationId()),
+        return logChange(
+                ChangeBase.changeTopicOwner(event.getMetadata().getName(), event.getPreviousOwnerApplicationId()),
                 event);
     }
 

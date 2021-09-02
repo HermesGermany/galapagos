@@ -113,18 +113,23 @@ public class StagingImplTest {
         topic1.setName("topic-1");
         topic1.setOwnerApplicationId("app-1");
         topic1.setType(TopicType.EVENTS);
-        topic1.setProducers(new ArrayList<>(List.of("producer1")));
+        List<String> producers = new ArrayList<>(topic1.getProducers());
+        producers.add("producer1");
+        topic1.setProducers(producers);
 
         TopicMetadata topic2 = new TopicMetadata();
         topic2.setName("topic-1");
         topic2.setOwnerApplicationId("app-1");
         topic2.setType(TopicType.EVENTS);
-        topic2.setProducers(List.of("producer1"));
+        List<String> producers2 = new ArrayList<>(topic2.getProducers());
+        producers2.add("producer1");
+        topic2.setProducers(producers2);
 
         when(topicService.listTopics("dev")).thenReturn(Collections.singletonList(topic1));
         when(topicService.listTopics("int")).thenReturn(Collections.singletonList(topic2));
 
-        topic1.getProducers().remove("producer1");
+        producers.remove("producer1");
+        topic1.setProducers(producers);
 
         StagingImpl staging = StagingImpl
                 .build("app-1", "dev", "int", null, topicService, mock(SubscriptionService.class)).get();

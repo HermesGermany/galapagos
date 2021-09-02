@@ -138,24 +138,28 @@ public class TopicController {
             throw handleExecutionException(e);
         }
         catch (InterruptedException e) {
-            return null;
+            Thread.currentThread().interrupt();
         }
 
+        return ResponseEntity.noContent().build();
     }
 
-    @PostMapping(value = "/api/change-owner/{envId}/{topicName}/{producerApplicationId}")
+    @PostMapping(value = "/api/change-owner/{envId}/{topicName}")
     public void changeTopicOwner(@PathVariable String envId, @PathVariable String topicName,
-            @PathVariable String producerApplicationId) {
-        if (envId.isEmpty() || topicName.isEmpty() || producerApplicationId.isEmpty()) {
+            @RequestBody ChangeTopicOwnerDto request) {
+        if (envId.isEmpty() || topicName.isEmpty() || request.getProducerApplicationId().isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
 
-        if (!applicationsService.isUserAuthorizedFor(producerApplicationId)) {
+        TopicMetadata topic = topicService.getTopic(envId, topicName).orElseThrow(notFound);
+        if (applicationsService.getUserApplicationOwnerRequests().stream()
+                .noneMatch(req -> req.getState() == RequestState.APPROVED
+                        && topic.getOwnerApplicationId().equals(req.getApplicationId()))) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
 
         try {
-            topicService.changeTopicOwner(envId, topicName, producerApplicationId).get();
+            topicService.changeTopicOwner(envId, topicName, request.getProducerApplicationId()).get();
         }
         catch (ExecutionException e) {
             throw handleExecutionException(e);

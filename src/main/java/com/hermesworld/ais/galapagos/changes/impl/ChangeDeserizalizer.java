@@ -100,7 +100,7 @@ public class ChangeDeserizalizer extends StdDeserializer<Change> {
                         tree.findValue("producerApplicationId").asText());
             case TOPIC_OWNER_CHANGED:
                 return ChangeBase.changeTopicOwner(tree.findValue(TOPIC_NAME).asText(),
-                        tree.findValue("newApplicationOwnerId").asText());
+                        tree.findValue("previousOwnerApplicationId").asText());
             case TOPIC_SUBSCRIPTION_APPROVAL_REQUIRED_FLAG_UPDATED:
                 return ChangeBase.updateTopicSubscriptionApprovalRequiredFlag(tree.findValue(TOPIC_NAME).asText(),
                         tree.findValue("subscriptionApprovalRequired").asBoolean());

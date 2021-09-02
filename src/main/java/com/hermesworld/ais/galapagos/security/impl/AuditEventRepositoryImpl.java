@@ -7,9 +7,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import lombok.extern.slf4j.Slf4j;
 import org.keycloak.KeycloakSecurityContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.actuate.audit.AuditEvent;
 import org.springframework.boot.actuate.audit.AuditEventRepository;
 import org.springframework.boot.actuate.audit.InMemoryAuditEventRepository;
@@ -33,9 +32,8 @@ import java.util.Map;
  *
  */
 @Component
+@Slf4j
 public class AuditEventRepositoryImpl extends InMemoryAuditEventRepository {
-
-    private static final Logger LOG = LoggerFactory.getLogger(AuditEventRepositoryImpl.class.getName());
 
     private final ObjectMapper objectMapper;
 
@@ -71,7 +69,7 @@ public class AuditEventRepositoryImpl extends InMemoryAuditEventRepository {
         logEntry.put("event", event);
 
         try {
-            LOG.info(this.objectMapper.writeValueAsString(logEntry));
+            log.info(this.objectMapper.writeValueAsString(logEntry));
         }
         catch (JsonProcessingException e) {
             // critical, as Audit log entry missing

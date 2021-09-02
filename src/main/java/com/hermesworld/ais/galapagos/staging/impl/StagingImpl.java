@@ -240,10 +240,6 @@ public final class StagingImpl implements Staging, ApplyChangeContext {
 
         }
 
-        if (!oldTopic.getOwnerApplicationId().equals(newTopic.getOwnerApplicationId())) {
-            result.add(ChangeBase.changeTopicOwner(newTopic.getName(), newTopic.getOwnerApplicationId()));
-        }
-
         return result;
     }
 
