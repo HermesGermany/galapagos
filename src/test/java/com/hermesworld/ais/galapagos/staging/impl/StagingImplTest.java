@@ -113,21 +113,18 @@ public class StagingImplTest {
         topic1.setName("topic-1");
         topic1.setOwnerApplicationId("app-1");
         topic1.setType(TopicType.EVENTS);
-        List<String> producers = new ArrayList<>(topic1.getProducers());
-        producers.add("producer1");
-        topic1.setProducers(producers);
+        topic1.setProducers(List.of("producer1"));
 
         TopicMetadata topic2 = new TopicMetadata();
         topic2.setName("topic-1");
         topic2.setOwnerApplicationId("app-1");
         topic2.setType(TopicType.EVENTS);
-        List<String> producers2 = new ArrayList<>(topic2.getProducers());
-        producers2.add("producer1");
-        topic2.setProducers(producers2);
+        topic2.setProducers(List.of("producer1"));
 
         when(topicService.listTopics("dev")).thenReturn(Collections.singletonList(topic1));
         when(topicService.listTopics("int")).thenReturn(Collections.singletonList(topic2));
 
+        List<String> producers = new ArrayList<>(topic1.getProducers());
         producers.remove("producer1");
         topic1.setProducers(producers);
 

@@ -192,10 +192,6 @@ public class AuditEventsListener implements TopicEventsListener, SubscriptionEve
         auditData.put("subscriptionApprovalRequired", topic.isSubscriptionApprovalRequired());
         auditData.put("deprecated", topic.isDeprecated());
         auditData.put("deprecationText", topic.getDeprecationText());
-
-        if (topicEventType.equals(GalapagosAuditEventType.TOPIC_OWNER_CHANGED.name())) {
-            auditData.put(APPLICATION_ID, topic.getOwnerApplicationId());
-        }
         if (topic.getEolDate() != null) {
             auditData.put("endOfLife", topic.getEolDate().toString());
         }

@@ -138,10 +138,9 @@ public class TopicController {
             throw handleExecutionException(e);
         }
         catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
+            return null;
         }
 
-        return ResponseEntity.noContent().build();
     }
 
     @PostMapping(value = "/api/change-owner/{envId}/{topicName}")
