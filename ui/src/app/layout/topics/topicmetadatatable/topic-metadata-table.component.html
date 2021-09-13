@@ -61,7 +61,7 @@
                             <span>{{ producer.name }}</span>
                         </ng-template>
                         <span *ngIf="isOwnerOfTopic && !(selectedEnvironment | async)?.stagingOnly" class="ml-3">
-                            <button class="btn btn-sm btn-danger" appSpinnerWhile #del="appSpinnerWhile"
+                            <button class="btn btn-sm btn-danger mt-1 mb-1" appSpinnerWhile #del="appSpinnerWhile"
                                     (click)="openDeleteProducerDlg(producer,deleteProducerDlg)">
                                 <i class="fas fa-eraser mr-1"></i>{{ 'Delete Producer' | translate }}
                             </button>
@@ -90,7 +90,7 @@
                             *ngIf="sub.canDelete"
                             class="ml-3">
                                                     <button
-                                                        class="btn btn-sm btn-danger"
+                                                        class="btn btn-sm btn-danger mt-1 mb-1"
                                                         appSpinnerWhile
                                                         #del="appSpinnerWhile"
                                                         (click)="openRejectConfirmDlg(sub, rejectConfirmDlgNoApprove)"

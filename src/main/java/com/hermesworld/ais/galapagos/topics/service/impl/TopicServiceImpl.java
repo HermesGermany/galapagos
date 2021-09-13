@@ -191,7 +191,7 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
             List<String> producerList = new ArrayList<>(metadata.getProducers());
             producerList.add(metadata.getOwnerApplicationId());
             metadata.setOwnerApplicationId(newApplicationOwnerId);
-            producerList.remove(metadata.getOwnerApplicationId());
+            producerList.remove(newApplicationOwnerId);
             metadata.setProducers(producerList);
             TopicMetadata newTopic = new TopicMetadata(metadata);
             return getTopicRepository(kafkaCluster).save(newTopic)

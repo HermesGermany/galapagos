@@ -24,6 +24,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import javax.validation.Valid;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
@@ -145,15 +146,13 @@ public class TopicController {
 
     @PostMapping(value = "/api/change-owner/{envId}/{topicName}")
     public void changeTopicOwner(@PathVariable String envId, @PathVariable String topicName,
-            @RequestBody ChangeTopicOwnerDto request) {
-        if (envId.isEmpty() || topicName.isEmpty() || request.getProducerApplicationId().isEmpty()) {
+            @RequestBody @Valid ChangeTopicOwnerDto request) {
+        if (envId.isEmpty() || topicName.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
 
         TopicMetadata topic = topicService.getTopic(envId, topicName).orElseThrow(notFound);
-        if (applicationsService.getUserApplicationOwnerRequests().stream()
-                .noneMatch(req -> req.getState() == RequestState.APPROVED
-                        && topic.getOwnerApplicationId().equals(req.getApplicationId()))) {
+        if (!applicationsService.isUserAuthorizedFor(topic.getOwnerApplicationId())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
 
