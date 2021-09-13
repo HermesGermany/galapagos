@@ -68,12 +68,13 @@ On the dashboard (see screenshot above) you will find the following elements:
   
 ## Become a topic administrator
 
-   In order to be able to do more extensive actions with Galapagos (especially create or subscribe to topics), you have to
-   become "Topic Administrator" of at least one application. To do this, switch to "My Applications" via the menu
-   on the left. Here you can make a request to become a topic administrator of an application. Then select an application 
-   in the "Request" section. Optionally enter a comment why you should get this right (e.g. "Developer in Team XYZ"). The comment 
-   makes it easier for the Galapagos admins to check whether to grant the Topic Administrator role or not. Then click on "Submit Request". 
-   Your request will be saved, and the Galapagos admins will receive an email to review and approve the request.
+In order to be able to do more extensive actions with Galapagos (especially create or subscribe to topics), you have to
+become "Topic Administrator" of at least one application. To do this, switch to "My Applications" via the menu on the
+left. Here you can make a request to become a topic administrator of an application. Then select an application in the "
+Request" section. Optionally enter a comment why you should get this right (e.g. "Developer in Team XYZ"). The comment
+makes it easier for the Galapagos admins to check whether to grant the Topic Administrator role or not. Then click on "
+Submit Request". Your request will be saved, and the Galapagos admins will receive an email to review and approve the
+request.
       
    <p align="center">
    <img alt="Topic Administrator" src="./galapagos_user_guide_images/AOR.png" width="600" height="300">
@@ -350,101 +351,130 @@ winpty openssl pkcs12 -in <myclientkeystore.p12> -nocerts -nodes -out <myprivate
    
    With a click on "Apply changes to xy" the individual changes are carried out to the target environment. Galapagos will
    then show you which changes are successfully staged and which possibly not.
-   
+
 ## Delete Topic
 
-   Sometimes you certainly want to delete a topic. Of course, it's not that simple in a system that is intended for
-   decoupled communication between different applications. Therefore, strict rules are in place regarding when and where a
-   topic can be deleted:   
+Sometimes you certainly want to delete a topic. Of course, it's not that simple in a system that is intended for
+decoupled communication between different applications. Therefore, strict rules are in place regarding when and where a
+topic can be deleted:
 
 ### Delete internal Topic
 
-   If you want to delete an internal topic that you (or someone else from your team) created using Galapagos, you always
-   have to do this on the DEV stage first. There you can search for your topic via "Search Topics", click on it 
-   and find the "Danger Zone" at the bottom of the page to delete the topic. To confirm the deletion, enter
-   the entire topic name into the input field:
-      
+If you want to delete an internal topic that you (or someone else from your team) created using Galapagos, you always
+have to do this on the DEV stage first. There you can search for your topic via "Search Topics", click on it and find
+the "Danger Zone" at the bottom of the page to delete the topic. To confirm the deletion, enter the entire topic name
+into the input field:
+
    <p align="center">
    <img alt="Delete Topic" src="./galapagos_user_guide_images/delete-topic.png" width="770" height="300">
    </p>  
-   
+
    <p align="center">
    <img alt="Delete Topic" src="./galapagos_user_guide_images/delete-topic2.png" width="770" height="300">
    </p>
-      
-   Then you can stage this "change" (deleting the topic) from DEV to PROD (see previous section).
-   You should of course pay attention to whether you put an ongoing
-   productive instance of your application in danger... Galapagos does not stop you from doing that!
-   
+
+Then you can stage this "change" (deleting the topic) from DEV to PROD (see previous section). You should of course pay
+attention to whether you put an ongoing productive instance of your application in danger... Galapagos does not stop you
+from doing that!
+
 ### Delete API Topics
-   
-   The API topic works the other way around. You can only delete API topics if they do not **exist** on the **next** stage.
-   You can delete API topics in Production ... if they are no longer subscribed to by any application! If there are still subscribers,
-   you have to get in touch with them and tell them to stop subscribing to your topic. As soon as there are no subscribers,
-   the "Danger Zone" appears for the Production environment and allows you to delete your topic. You can then delete it
-   on DEV if there are no more subscribers of course.
-   
+
+The API topic works the other way around. You can only delete API topics if they do not **exist** on the **next** stage.
+You can delete API topics in Production ... if they are no longer subscribed to by any application! If there are still
+subscribers, you have to get in touch with them and tell them to stop subscribing to your topic. As soon as there are no
+subscribers, the "Danger Zone" appears for the Production environment and allows you to delete your topic. You can then
+delete it on DEV if there are no more subscribers of course.
+
 ## Deprecation of API Topics
 
-   To inform other teams that an API topic should no longer be used, you can mark it as "deprecated". To do this,
-   go to the respective topic via the "Browse Topics" tab. If your application owns the topic and it is not an internal
-   topic, a new area appears to mark topics as deprecated:
-      
+To inform other teams that an API topic should no longer be used, you can mark it as "deprecated". To do this, go to the
+respective topic via the "Browse Topics" tab. If your application owns the topic and it is not an internal topic, a new
+area appears to mark topics as deprecated:
+
    <p align="center">
    <img alt="Deprecation" src="./galapagos_user_guide_images/deprecation1.png" width="600" height="300">
    </p>
-   
-   Here you state why the topic should no longer be used and when it will be deprecated. Then click the yellow button to
-   mark the respective topic as deprecated. All subscribers to this topic will be informed of the deactivation by email.
 
-   After a topic is marked as deprecated, it becomes visible on the surface. On the overview of the individual topic,
-   a note appears next to the name of the topic that this topic can no longer be used in the near future:
-   
+Here you state why the topic should no longer be used and when it will be deprecated. Then click the yellow button to
+mark the respective topic as deprecated. All subscribers to this topic will be informed of the deactivation by email.
+
+After a topic is marked as deprecated, it becomes visible on the surface. On the overview of the individual topic, a
+note appears next to the name of the topic that this topic can no longer be used in the near future:
+
    <p align="center">
    <img alt="Deprecation" src="./galapagos_user_guide_images/deprecation2.png" width="700" height="150">
    </p>   
-   
-   In addition, under the "Browse Topics" tab, deprecated topics are crossed out:
+
+In addition, under the "Browse Topics" tab, deprecated topics are crossed out:
 
    <p align="center">
    <img alt="Deprecation" src="./galapagos_user_guide_images/deprecation3.png" width="600" height="300">
    </p>
-      
-   In addition to the description of the topic, there is another indication that the topic is deprecated,
-   followed by the deprecation text.
+
+In addition to the description of the topic, there is another indication that the topic is deprecated, followed by the
+deprecation text.
 
 ## Undeprecation of API Topics
 
-   If you decide that a topic should no longer be marked as deprecated, you can remove this marking. To do
-   this, go to the topic via "Browse Topics".
-   
-   If you own the topic and it is marked as deprecated, the following button appears in the "Usable until"
-   row to remove it:
-   
+If you decide that a topic should no longer be marked as deprecated, you can remove this marking. To do this, go to the
+topic via "Browse Topics".
+
+If you own the topic and it is marked as deprecated, the following button appears in the "Usable until"
+row to remove it:
+
    <p align="center">
    <img alt="Deprecation" src="./galapagos_user_guide_images/deprecation4.png" width="600" height="300">
    </p>
 
-   After you have clicked the button, the "Usable until" row disappears and the topic is no longer deprecated.
+After you have clicked the button, the "Usable until" row disappears and the topic is no longer deprecated.
+
+## Additional producers for a Topic
+
+In Addition to the owning Application, you can add several other Applications, that are privileged to write to a
+specific topic. To do so, scroll down to the "Danger Zone". There you will find a button "add additional producers". By
+clicking this button, the following dialogue opens:
+
+Here you can select all registered Applications on the current environment. After the selection a new row in the Table
+on the single topic page with the name "additional producers" will appear. There you can see all producers that you have
+added. This means, those producer applications got the correct ACLs, such that they can produce messages on a given
+topic. By deleting a given producer, the ACLs are removed. This way the producer cannot write to the topic anymore.
+
+When you don't want that a producers writes data into a topic, then you can simply delete the producer by clicking the "
+delete producer" button. This button will appear next to the producer applications name. The moment you remove a
+producer from the producers list of a topic, this applications
+
+## Change Owner of Topic
+
+After adding a producer there will appear another Button next to the "delete producer" Button, which is called "change
+owner of topic". Using this Button you can promote a producer to the new Owner of the current Topic. The former Owner
+will be "just" a producer, so it will still be able to produce messages on the topic. By clicking it, the following
+dialogue opens:
+
+Here you will be again asked whether you are sure to change the owning Application. By confirming, the roles of the
+producer and the old Owner will change. Of course, you can just use the button again, if you want the former Owner to be
+again the owning Application of the topic. Please note that it is only possible to change the owner for API Topics, so
+the Owner of a internal Topic cannot be changed.
+
+What about staging? Well, if you are changing
 
 ## Change advanced topic settings
 
-   In Galapagos you can change settings for your topics, like retention time or cleanup policy, as a "convenience" function.
-   You can also do this via the Kafka AdminClient API or with another Kafka tool! Here Galapagos is "just" a tool
-   with a view to the Kafka configuration.
-   
-   To change the advanced settings for your topic, search for your topic using "Browse Topics". Check the box next
-   to "Show internal topics of my applications" if it is an internal topic. Click on the desired topic.
-   
-   In the info view for your topic, scroll down to the "Danger Zone". There you will find a button, "Advanced Configuration".
-   Click on it and you get to the configuration editor for your topic:
+In Galapagos you can change settings for your topics, like retention time or cleanup policy, as a "convenience"
+function. You can also do this via the Kafka AdminClient API or with another Kafka tool! Here Galapagos is "just" a tool
+with a view to the Kafka configuration.
+
+To change the advanced settings for your topic, search for your topic using "Browse Topics". Check the box next to "Show
+internal topics of my applications" if it is an internal topic. Click on the desired topic.
+
+In the info view for your topic, scroll down to the "Danger Zone". There you will find a button, "Advanced
+Configuration". Click on it and you get to the configuration editor for your topic:
 
    <p align="center">
    <img alt="Topic Settings" src="./galapagos_user_guide_images/settingTopic.png" width="600" height="300">
    </p>
-   
-   You can change each setting separately for each environment in which your topic exists. With the green "Standard" button
-   you can restore the cluster-side standard value (Warning: This could theoretically differ between the different clusters!).
-   To apply your changes, scroll all the way down on the page and click "Update Topic Configuration". When you stage a topic
-   in a new environment for the first time the settings from the previous environment are used. After staging you can of 
-   course change it again.
+
+You can change each setting separately for each environment in which your topic exists. With the green "Standard" button
+you can restore the cluster-side standard value (Warning: This could theoretically differ between the different
+clusters!). To apply your changes, scroll all the way down on the page and click "Update Topic Configuration". When you
+stage a topic in a new environment for the first time the settings from the previous environment are used. After staging
+you can of course change it again.
