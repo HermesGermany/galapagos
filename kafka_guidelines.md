@@ -44,7 +44,8 @@ Business Event Type "Master Data of Type XY has changed". Usually, they make use
 amount of time, the _history_ of a single Master Data object is known, but afterwards, only the _latest_ state of the
 object is stored (unlimited). To delete a Master Data object, it is **recommended** to provide some kind of "deletion"
 marker in the used data format, so a deletion is represented by publishing a record on this topic with the deletion
-marker set to `true`.
+marker set to `true`. You can also use Kafka's _tombstone_ markers if you are familiar with the concept, its side
+effects, and required topic settings.
 
 Most rules of Event Topics also apply to Data Topics, but the _Data Format_ requirements are a bit relaxed. Also, 
 instead of a descriptive event name, they shall contain the name of the Master Data object type, e.g. 
@@ -161,13 +162,18 @@ A more detailed per-company guideline on consumer group names should be document
 ### Encryption / Authentication / Authorizaion
 
 To ensure privacy and data security considerations, **all** communication with the Apache Kafka cluster serving topics 
-like described above **must** be encrypted, i.e., use TLS encryption. Also, **Client SSL certificates** shall be used 
-for authentication purposes. Each application shall receive **one** client certificate per Apache Kafka cluster. 
-Developers **may** receive special developer certificates with limited associated rights and / or limited certificate 
-lifetime.
+like described above **must** be encrypted, i.e., use TLS encryption. Also, a reliable **authentication** machanism 
+must be used to assign each **application** exactly one _identity_ (Kafka user name) on **each** cluster.
+Developers **may** receive special authentication tokens with limited associated rights and / or limited lifetime of
+the authentication token, e.g. for analyzing issues directly on the cluster with special tools.
 
-The rights for each application shall be configured explicitly using Apache Kafka's _ACLs_. The DN of the SSL client
-certificate **may** be used as the principal name.
+The rights for each application shall be configured explicitly using Apache Kafka's _ACLs_. Every application must only
+have the rights required for accessing configured topics, e.g.
+
+* Write access to owned topics
+* Read access to subscribed topics
+* Full access to the prefix for their _internal_ topics
+* Access to the prefix for their _consumer group IDs_.
 
 ### Sensitive data
 
