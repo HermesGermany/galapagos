@@ -16,6 +16,7 @@ import { TopicMetadataTableComponent } from './topicmetadatatable/topic-metadata
 import { SubscriptionSectionComponent } from './subscribesection/subscribe-section.component';
 import { DeprecationComponent } from './deprecation/deprecation.component';
 import { DeleteTopicComponent } from './deletetopic/delete-topic.component';
+import { TopicMultipleProducerComponent } from './deletetopic/multiappproducer/topic-multiple-producer.component';
 
 export const getHighlightLanguages = () => ({
     json: () => import('highlight.js/lib/languages/json')
@@ -26,7 +27,7 @@ export const getHighlightLanguages = () => ({
         SpinnerWhileModule, HighlightModule],
     declarations: [TopicsComponent, TableSortDirective, SingleTopicComponent,
         TopicConfigEditorComponent, SchemaSectionComponent, TopicMetadataTableComponent,
-        SubscriptionSectionComponent, DeprecationComponent, DeleteTopicComponent]
+        SubscriptionSectionComponent, DeprecationComponent, DeleteTopicComponent, TopicMultipleProducerComponent]
 })
 export class TopicsModule {
 }

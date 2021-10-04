@@ -17,13 +17,16 @@ import com.hermesworld.ais.galapagos.topics.service.impl.TopicServiceImpl;
 import com.hermesworld.ais.galapagos.topics.service.impl.ValidatingTopicServiceImpl;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.DisplayName;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -58,9 +61,9 @@ public class TopicControllerTest {
         topicRepository = new TopicBasedRepositoryMock<>();
 
         when(kafkaTestCluster.getId()).thenReturn("test");
+        when(kafkaClusters.getEnvironmentIds()).thenReturn(List.of("test"));
         when(kafkaTestCluster.getRepository("topics", TopicMetadata.class)).thenReturn(topicRepository);
         when(kafkaClusters.getEnvironment("test")).thenReturn(Optional.of(kafkaTestCluster));
-
     }
 
     @Test
@@ -97,6 +100,79 @@ public class TopicControllerTest {
         TopicMetadata savedTopic = topicRepository.getObject("topic-1").get();
 
         assertTrue(savedTopic.isDeprecated());
+    }
+
+    @Test
+    @DisplayName("it should change the owner if current user is authorized")
+    public void testChangeTopicOwner_positive() throws Exception {
+        SubscriptionService subscriptionService = mock(SubscriptionService.class);
+
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
+                topicConfig, eventManager);
+        ValidatingTopicServiceImpl validatingService = new ValidatingTopicServiceImpl(service, subscriptionService,
+                applicationsService, kafkaClusters, topicConfig, false);
+
+        TopicMetadata topic = new TopicMetadata();
+        topic.setName("topic-1");
+        topic.setOwnerApplicationId("app-1");
+        topic.setType(TopicType.EVENTS);
+        topicRepository.save(topic).get();
+
+        ApplicationOwnerRequest req = new ApplicationOwnerRequest();
+        req.setApplicationId("app-1");
+        req.setState(RequestState.APPROVED);
+
+        when(applicationsService.getUserApplicationOwnerRequests()).thenReturn((List.of(req)));
+
+        TopicController controller = new TopicController(validatingService, kafkaClusters, applicationsService,
+                namingService);
+
+        ChangeTopicOwnerDto dto = new ChangeTopicOwnerDto();
+        dto.setProducerApplicationId("producer1");
+        controller.changeTopicOwner("test", "topic-1", dto);
+        TopicMetadata savedTopic = topicRepository.getObject("topic-1").get();
+
+        assertEquals("producer1", savedTopic.getOwnerApplicationId());
+    }
+
+    @Test
+    @DisplayName("it should not change the owner if current user is not authorized")
+    public void testChangeTopicOwner_negative() throws Exception {
+        SubscriptionService subscriptionService = mock(SubscriptionService.class);
+
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
+                topicConfig, eventManager);
+        ValidatingTopicServiceImpl validatingService = new ValidatingTopicServiceImpl(service, subscriptionService,
+                applicationsService, kafkaClusters, topicConfig, false);
+
+        TopicMetadata topic = new TopicMetadata();
+        topic.setName("topic-1");
+        topic.setOwnerApplicationId("app-1");
+        topic.setType(TopicType.EVENTS);
+        topicRepository.save(topic).get();
+
+        ApplicationOwnerRequest req = new ApplicationOwnerRequest();
+        req.setApplicationId("app-2");
+        req.setState(RequestState.APPROVED);
+
+        when(applicationsService.getUserApplicationOwnerRequests()).thenReturn((List.of(req)));
+
+        TopicController controller = new TopicController(validatingService, kafkaClusters, applicationsService,
+                namingService);
+
+        ChangeTopicOwnerDto dto = new ChangeTopicOwnerDto();
+        dto.setProducerApplicationId("producer1");
+
+        try {
+            controller.changeTopicOwner("test", "topic-1", dto);
+            fail("should fail because current user is not authorized");
+        }
+        catch (ResponseStatusException e) {
+            TopicMetadata savedTopic = topicRepository.getObject("topic-1").get();
+            assertEquals(HttpStatus.FORBIDDEN, e.getStatus());
+            assertEquals("app-1", savedTopic.getOwnerApplicationId());
+        }
+
     }
 
 }

@@ -166,5 +166,21 @@
     "CRITICALITY_TEXT_HTML": "Bitte gib hier die Kritikalität der Inhalte des Topics an, die auf die <b>Produktion</b> zutrifft. Auch \"normale\" Topics werden bereits repliziert (auf mehreren Brokern redundant gehalten). \"Kritische\" Topics werden <b>dreifach</b> redundant gehalten, so dass eine noch höhere Sicherheit im Falle des Ausfalls einzelner Kafka-Broker besteht.",
     "SIZE_ESTIMATION_TEXT_HTML": "Schätze hier bitte Menge und Größe der zu erwartenden Datensätze auf dem Topic (in <b>Produktion</b>) ab. Dies wird aktuell <b>nicht</b> für Optimierungen der Kafka-Einstellungen genutzt, dient jedoch dem Betrieb als Indikator für eventuelle nötige Kapazitätserweiterungen.",
     "Close": "Schließen",
-    "API_KEY_REQUEST_FAILED": "Request fehlgeschlagen"
+    "API_KEY_REQUEST_FAILED": "Request fehlgeschlagen",
+    "Producers": "Produzenten",
+    "Add Producer": "Produzenten hinzufügen",
+    "Additional producers": "Zusätzliche Produzenten",
+    "Delete Producer": "Produzenten entfernen",
+    "Producer Selection": "Produzenten Auswahl",
+    "Select Producer": "Produzenten auswählen",
+    "Confirm Producer deletion": "Produzenten Entfernung bestätigen",
+    "DELETE_PRODUCER_PROMPT": "Producer <b>{{ producerName }}</b> wirklich löschen?",
+    "CHANGE_OWNER_PROMPT": "Producer <b>{{ newTopicOwner }}</b> zum neuen Topic-Besitzer befördern?",
+    "CHANGE_OWNER_TEXT": "Diesen Producer zum Owner machen",
+    "Change Owner": "Besitzer wechseln",
+    "Change topic owner": "Topic-Besitzer wechseln",
+    "OWNER_CHANGE_ALL_STAGES_ALERT_HTML": "Der neue Besitzer <code>{{newTopicOwner}}</code> für das Topic <code>{{topicName}}</code> wird auf <b>allen</b> Stages <b>sofort</b> übernommen!",
+    "CHANGELOG_PRODUCER_ADDED_HTML": "hat Producer {{ producerName }} zum Topic <b><a href='{{ topicLink }}'>{{ topicName }}</a></b> hinzugefügt.",
+    "ADD_PRODUCER_HTML": "Hier kannst du zusätzliche Produzenten für dieses Topic hinzufügen.",
+    "ADD_PRODUCER_TEXT_HTML": "Hier kannst du einen Produzenten auswählen, der in der Lage sein soll, in das Topic <code>{{topicName}}</code> Daten zu produzieren. Galapagos legt dazu die nötigen Rechte in den Kafka Brokern an."
 }

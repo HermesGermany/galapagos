@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { SchemaSectionComponent } from './schema-section.component';
 import { RouterModule } from '@angular/router';
-import { Topic, TopicsService } from '../../../shared/services/topics.service';
+import { TopicsService } from '../../../shared/services/topics.service';
 import { EnvironmentsService } from '../../../shared/services/environments.service';
 import { ApplicationsService } from '../../../shared/services/applications.service';
 import { CertificateService } from '../../../shared/services/certificates.service';
@@ -24,7 +24,11 @@ import { SpinnerWhileModule } from '../../../shared/modules/spinner-while/spinne
 describe('SchemaSectionComponent', () => {
     let component: SchemaSectionComponent;
     let fixture: ComponentFixture<SchemaSectionComponent>;
-    let topic: Topic;
+    let topic: {
+        eolDate: string; environmentId: string; subscriptionApprovalRequired: boolean; createdTimestamp: string; deprecated: boolean;
+        name: string; ownerApplication: { aliases: string[]; name: string; id: string };
+        deletable: boolean; description: string; deprecationText: string; topicType: string;
+    };
 
     beforeEach((() => {
         TestBed.configureTestingModule({

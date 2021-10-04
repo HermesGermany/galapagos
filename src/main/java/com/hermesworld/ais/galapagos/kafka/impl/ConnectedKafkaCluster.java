@@ -81,10 +81,13 @@ public class ConnectedKafkaCluster implements KafkaCluster {
 
         return getUserAcls(user.getKafkaUserName()).thenCompose(acls -> {
             List<AclBinding> targetAcls = new ArrayList<>(user.getRequiredAclBindings());
+
             List<AclBinding> deleteAcls = new ArrayList<>(acls);
+
             createAcls.addAll(targetAcls);
             createAcls.removeAll(acls);
             deleteAcls.removeAll(targetAcls);
+
             return deleteAcls.isEmpty() ? CompletableFuture.completedFuture(null)
                     : toCompletableFuture(adminClient
                             .deleteAcls(deleteAcls.stream().map(acl -> acl.toFilter()).collect(Collectors.toList()))
@@ -293,7 +296,6 @@ public class ConnectedKafkaCluster implements KafkaCluster {
 
     @Override
     public CompletableFuture<String> getKafkaServerVersion() {
-
         Function<String, String> toVersionString = s -> !s.contains("-") ? s : s.substring(0, s.indexOf('-'));
         return toCompletableFuture(adminClient.describeCluster().nodes()).thenCompose(coll -> {
             String nodeName = coll.iterator().next().idString();

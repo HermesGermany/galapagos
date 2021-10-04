@@ -103,6 +103,21 @@ public class AuditEventsListener implements TopicEventsListener, SubscriptionEve
     }
 
     @Override
+    public CompletableFuture<Void> handleAddTopicProducer(TopicAddProducerEvent event) {
+        return handleTopicEvent(event, GalapagosAuditEventType.TOPIC_PRODUCER_APPLICATION_ADDED.name());
+    }
+
+    @Override
+    public CompletableFuture<Void> handleRemoveTopicProducer(TopicRemoveProducerEvent event) {
+        return handleTopicEvent(event, GalapagosAuditEventType.TOPIC_PRODUCER_APPLICATION_REMOVED.name());
+    }
+
+    @Override
+    public CompletableFuture<Void> handleTopicOwnerChanged(TopicOwnerChangeEvent event) {
+        return handleTopicEvent(event, GalapagosAuditEventType.TOPIC_OWNER_CHANGED.name());
+    }
+
+    @Override
     public CompletableFuture<Void> handleApplicationRegistered(ApplicationEvent event) {
         Map<String, Object> auditData = new LinkedHashMap<>();
         auditData.put(APPLICATION_ID, event.getMetadata().getApplicationId());
@@ -179,6 +194,9 @@ public class AuditEventsListener implements TopicEventsListener, SubscriptionEve
         auditData.put("deprecationText", topic.getDeprecationText());
         if (topic.getEolDate() != null) {
             auditData.put("endOfLife", topic.getEolDate().toString());
+        }
+        if (topic.getProducers() != null) {
+            auditData.put("producers", topic.getProducers());
         }
         auditData.put("topicEventType", topicEventType);
 

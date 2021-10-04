@@ -12,7 +12,7 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { LanguageTranslationModule } from '../../shared/modules/language-translation/language-translation.module';
 import { SingleTopicComponent } from './single-topic.component';
 import { RouterModule } from '@angular/router';
-import { Topic, TopicsService } from '../../shared/services/topics.service';
+import { TopicsService } from '../../shared/services/topics.service';
 import { CertificateService } from '../../shared/services/certificates.service';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -24,7 +24,11 @@ import { ReplayContainer } from '../../shared/services/services-common';
 describe('SingleTopicComponent', () => {
     let component: SingleTopicComponent;
     let fixture: ComponentFixture<SingleTopicComponent>;
-    let testTopic: Topic;
+    let testTopic: {
+        eolDate: string; environmentId: string; subscriptionApprovalRequired: boolean; createdTimestamp: string;
+        deprecated: boolean; name: string; ownerApplication: { aliases: string[]; name: string; id: string }; deletable: boolean;
+        description: string; deprecationText: string; topicType: string;
+    };
     let deprecationText: string;
     let eolDate: string;
 

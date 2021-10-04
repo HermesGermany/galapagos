@@ -43,4 +43,10 @@ public interface GalapagosEventSink {
 
     CompletableFuture<Void> handleApplicationOwnerRequestCanceled(ApplicationOwnerRequest request);
 
+    CompletableFuture<Void> handleAddTopicProducer(TopicMetadata metadata, String producerApplicationId);
+
+    CompletableFuture<Void> handleRemoveTopicProducer(TopicMetadata metadata, String producerApplicationId);
+
+    CompletableFuture<Void> handleTopicOwnerChanged(TopicMetadata metadata, String previousOwnerApplicationId);
+
 }

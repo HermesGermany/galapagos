@@ -91,6 +91,14 @@ public class ApplicationsController {
         }
     }
 
+    @GetMapping(value = "/api/registered-applications/{envId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<KnownApplicationDto> getRegisteredApplications(@PathVariable String envId) {
+        return applicationsService.getAllApplicationMetadata(envId).stream().map(ApplicationMetadata::getApplicationId)
+                .map(id -> toKnownAppDto(applicationsService.getKnownApplication(id)
+                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND))))
+                .collect(Collectors.toList());
+    }
+
     @GetMapping(value = "/api/admin/requests", produces = MediaType.APPLICATION_JSON_VALUE)
     @Secured("ROLE_ADMIN")
     public List<ApplicationOwnerRequest> getAllApplicationOwnerRequests() {

@@ -253,6 +253,97 @@ public class UpdateApplicationAclsListenerTest {
     }
 
     @Test
+    public void addedProducerGetsCorrectAcls() throws ExecutionException, InterruptedException {
+        KafkaAuthenticationModule module = mock(KafkaAuthenticationModule.class);
+        when(module.extractKafkaUserName(any(), any())).thenReturn("User:12345");
+        when(kafkaClusters.getAuthenticationModule("_test")).thenReturn(Optional.of(module));
+        GalapagosEventContext context = mock(GalapagosEventContext.class);
+        when(context.getKafkaCluster()).thenReturn(cluster);
+        when(cluster.getId()).thenReturn("_test");
+
+        List<KafkaUser> users = new ArrayList<>();
+
+        when(cluster.updateUserAcls(any())).then(inv -> {
+            users.add(inv.getArgument(0));
+            return CompletableFuture.completedFuture(null);
+        });
+
+        ApplicationMetadata producer1 = new ApplicationMetadata();
+        producer1.setApplicationId("producer1");
+        producer1.setAuthenticationJson(new JSONObject("{}").toString());
+
+        TopicMetadata topic = new TopicMetadata();
+        topic.setName("topic1");
+        topic.setType(TopicType.EVENTS);
+        topic.setProducers(List.of("producer1"));
+        when(topicService.listTopics("_test")).thenReturn(List.of(topic));
+
+        when(applicationsService.getApplicationMetadata("_test", "producer1")).thenReturn(Optional.of(producer1));
+
+        TopicAddProducerEvent event = new TopicAddProducerEvent(context, "producer1", topic);
+        UpdateApplicationAclsListener listener = new UpdateApplicationAclsListener(kafkaClusters, topicService,
+                subscriptionService, applicationsService, kafkaConfig);
+
+        listener.handleAddTopicProducer(event).get();
+
+        Collection<AclBinding> createdAcls = users.get(0).getRequiredAclBindings();
+
+        verify(cluster, times(1)).updateUserAcls(any());
+
+        WRITE_TOPIC_OPERATIONS
+                .forEach(op -> assertNotNull("Did not find expected write ACL for topic",
+                        createdAcls.stream().filter(binding -> binding.pattern().resourceType() == ResourceType.TOPIC
+                                && binding.pattern().patternType() == PatternType.LITERAL
+                                && binding.pattern().name().equals("topic1") && binding.entry().operation() == op
+                                && binding.entry().principal().equals("User:12345")).findAny().orElse(null)));
+    }
+
+    @Test
+    public void deletedProducerHasNoAcls() throws ExecutionException, InterruptedException {
+        KafkaAuthenticationModule module = mock(KafkaAuthenticationModule.class);
+        when(module.extractKafkaUserName(any(), any())).thenReturn("User:12345");
+        when(kafkaClusters.getAuthenticationModule("_test")).thenReturn(Optional.of(module));
+        GalapagosEventContext context = mock(GalapagosEventContext.class);
+        when(context.getKafkaCluster()).thenReturn(cluster);
+        when(cluster.getId()).thenReturn("_test");
+
+        List<KafkaUser> users = new ArrayList<>();
+
+        when(cluster.updateUserAcls(any())).then(inv -> {
+            users.add(inv.getArgument(0));
+            return CompletableFuture.completedFuture(null);
+        });
+
+        ApplicationMetadata app = new ApplicationMetadata();
+        app.setApplicationId("app1");
+        app.setAuthenticationJson(new JSONObject("{}").toString());
+
+        ApplicationMetadata producer1 = new ApplicationMetadata();
+        producer1.setApplicationId("producer1");
+        producer1.setAuthenticationJson(new JSONObject("{}").toString());
+
+        TopicMetadata topic = new TopicMetadata();
+        topic.setName("topic1");
+        topic.setType(TopicType.EVENTS);
+        topic.setOwnerApplicationId("app1");
+        when(topicService.listTopics("_test")).thenReturn(List.of(topic));
+
+        when(applicationsService.getApplicationMetadata("_test", "producer1")).thenReturn(Optional.of(producer1));
+
+        TopicRemoveProducerEvent event = new TopicRemoveProducerEvent(context, "producer1", topic);
+        UpdateApplicationAclsListener listener = new UpdateApplicationAclsListener(kafkaClusters, topicService,
+                subscriptionService, applicationsService, kafkaConfig);
+
+        listener.handleRemoveTopicProducer(event).get();
+
+        Collection<AclBinding> bindings = users.get(0).getRequiredAclBindings();
+
+        verify(cluster, times(1)).updateUserAcls(any());
+        assertFalse(bindings.stream().anyMatch(binding -> binding.pattern().resourceType() == ResourceType.TOPIC));
+
+    }
+
+    @Test
     public void testNoDeleteAclsWhenUserNameIsSame() throws Exception {
         // tests that, when an AuthenticationChanged event occurs but the resulting Kafka User Name is the same, the
         // listener does not delete the ACLs of the user after updating them (because that would result in zero ACLs).

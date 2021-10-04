@@ -161,6 +161,28 @@ public class UpdateApplicationAclsListener
     }
 
     @Override
+    public CompletableFuture<Void> handleAddTopicProducer(TopicAddProducerEvent event) {
+        KafkaCluster cluster = getCluster(event);
+        return applicationsService.getApplicationMetadata(cluster.getId(), event.getProducerApplicationId())
+                .map(metadata -> cluster.updateUserAcls(new ApplicationUser(metadata, cluster.getId())))
+                .orElse(FutureUtil.noop());
+
+    }
+
+    @Override
+    public CompletableFuture<Void> handleRemoveTopicProducer(TopicRemoveProducerEvent event) {
+        return applicationsService.getApplicationMetadata(getCluster(event).getId(), event.getProducerApplicationId())
+                .map(metadata -> getCluster(event)
+                        .updateUserAcls(new ApplicationUser(metadata, getCluster(event).getId())))
+                .orElse(FutureUtil.noop());
+    }
+
+    @Override
+    public CompletableFuture<Void> handleTopicOwnerChanged(TopicOwnerChangeEvent event) {
+        return FutureUtil.noop();
+    }
+
+    @Override
     public CompletableFuture<Void> handleTopicDescriptionChanged(TopicEvent event) {
         return FutureUtil.noop();
     }
@@ -262,7 +284,8 @@ public class UpdateApplicationAclsListener
                     .flatMap(prefix -> transactionAcls(userName, prefix).stream()).collect(Collectors.toList()));
 
             topicService.listTopics(environmentId).stream()
-                    .filter(topic -> topic.getType() != TopicType.INTERNAL && id.equals(topic.getOwnerApplicationId()))
+                    .filter(topic -> topic.getType() != TopicType.INTERNAL && (id.equals(topic.getOwnerApplicationId())
+                            || (topic.getProducers() != null && topic.getProducers().contains(id))))
                     .map(topic -> topicAcls(userName, topic.getName(), WRITE_TOPIC_OPERATIONS)).forEach(result::addAll);
 
             subscriptionService.getSubscriptionsOfApplication(environmentId, id, false).stream().map(sub -> topicAcls(

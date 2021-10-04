@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { routerTransition } from '../../router.animations';
-import { ApplicationsService, UserApplicationInfo } from '../../shared/services/applications.service';
+import { ApplicationInfo, ApplicationsService, UserApplicationInfo } from '../../shared/services/applications.service';
 import { Observable } from 'rxjs';
 import { Change, EnvironmentsService, KafkaEnvironment, Staging, StagingResult } from '../../shared/services/environments.service';
 import { map, take } from 'rxjs/operators';
@@ -10,6 +10,7 @@ interface SelectableChange {
     change: Change;
 
     selected: boolean;
+
 }
 
 @Component({
@@ -23,6 +24,8 @@ export class StagingComponent implements OnInit {
     selectedApplication: UserApplicationInfo;
 
     availableApplications: Observable<UserApplicationInfo[]>;
+
+    registeredApplicationsSnapshot: ApplicationInfo[];
 
     selectedEnvironment: KafkaEnvironment;
 
@@ -38,10 +41,11 @@ export class StagingComponent implements OnInit {
 
     stagingResult: StagingResult[] = [];
 
-    translateParams: any = { };
+    translateParams: any = {};
 
     constructor(private applicationsService: ApplicationsService, private environmentsService: EnvironmentsService,
-        private toasts: ToastService) { }
+                private toasts: ToastService) {
+    }
 
     ngOnInit() {
         this.availableApplications = this.applicationsService.getUserApplications().getObservable();
@@ -71,11 +75,15 @@ export class StagingComponent implements OnInit {
     async prepareStaging(): Promise<any> {
         this.staging = null;
         this.stagingResult = [];
-        return this.environmentsService.prepareStaging(this.selectedApplication.id, this.selectedEnvironment).then(s => {
-            this.staging = s;
-            this.changes = s.changes.map(change => ({ change: change, selected: true }));
-        },
-        err => this.toasts.addHttpErrorToast('Could not calculate staging for this application', err));
+
+        this.registeredApplicationsSnapshot = await this.applicationsService.getRegisteredApplications(this.selectedEnvironment.id);
+
+        return this.environmentsService.prepareStaging(this.selectedApplication.id, this.selectedEnvironment).then(
+            s => {
+                this.staging = s;
+                this.changes = s.changes.map(change => ({ change: change, selected: true }));
+            },
+            err => this.toasts.addHttpErrorToast('Could not calculate staging for this application', err));
     }
 
     async performStaging(): Promise<any> {
@@ -127,8 +135,14 @@ export class StagingComponent implements OnInit {
         case 'TOPIC_UNDEPRECATED':
             return 'Deprecated-Markierung von Topic <code>' + change.topicName + '</code> entfernen';
         case 'TOPIC_SCHEMA_VERSION_PUBLISHED':
-            return 'Schema Version <code>' + change.schemaMetadata.schemaVersion
-                    + '</code> für Topic <code>' + change.topicName + '</code> veröffentlichen';
+            return 'Schema Version <code>' + change.schemaMetadata.schemaVersion + '</code> für Topic <code>'
+                    + change.topicName + '</code> veröffentlichen';
+        case 'TOPIC_PRODUCER_APPLICATION_ADDED':
+            return `Produzent <code>${this.applicationInfo(change.producerApplicationId).name} ` +
+                    `</code> hinzufügen für Topic ` + `<code>` + change.topicName + `  </code>`;
+        case 'TOPIC_PRODUCER_APPLICATION_REMOVED':
+            return `Produzent <code>${this.applicationInfo(change.producerApplicationId).name} ` + `</code> entfernen für Topic `
+                    + `<code>` + change.topicName + `  </code>`;
         case 'TOPIC_SUBSCRIPTION_APPROVAL_REQUIRED_FLAG_UPDATED':
             return 'Für Topic <code>' + change.topicMetadata.name + '</code> die Freigabe von Abonnements erforderlich machen';
         case 'COMPOUND_CHANGE':
@@ -136,4 +150,10 @@ export class StagingComponent implements OnInit {
         }
         return 'Änderung vom Typ <code>' + changeType + '</code> durchführen';
     }
+
+    private applicationInfo(applicationId): ApplicationInfo {
+        const apps = this.registeredApplicationsSnapshot.filter(app => app.id === applicationId);
+        return apps.length === 0 ? null : apps[0];
+    };
+
 }

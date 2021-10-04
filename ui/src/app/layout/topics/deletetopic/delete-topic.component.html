@@ -11,6 +11,14 @@
                     <i class="fas fa-wrench mr-3"></i>{{ 'Advanced Configuration' | translate }}
                 </button>
                 <hr>
+                <div *ngIf="topic.topicType !== 'COMMANDS' && !selectedEnvironment.stagingOnly">
+                    <p>{{ 'ADD_PRODUCER_HTML' | translate }}</p>
+                    <button class="btn btn-warning"
+                            (click)="openAddProducerDlg(producerAddDlg)">
+                        <i class="fas fa-plus mr-3"></i>{{ 'Add Producer' | translate }}
+                    </button>
+                    <hr>
+                </div>
                 <p>{{ 'DELETE_TOPIC_TEXT' | translate }}</p>
                 <button class="btn btn-danger" (click)="openDeleteConfirmDlg(deleteDlg)"
                         [disabled]="!topic?.deletable"><i
@@ -47,6 +55,32 @@
                 [disabled]="topicNameConfirmText !== topicName"><i
             class="fas fa-trash mr-3"></i>{{ 'Delete Topic' | translate }}</button>
         <button type="button" ngbAutofocus class="btn btn-success" (click)="dlg.dismiss()"><i class="fas fa-times"></i>&nbsp;{{ 'Cancel' | translate }}
+        </button>
+    </div>
+</ng-template>
+<ng-template #producerAddDlg let-dlg>
+    <div class="modal-header">
+        <h4 class="modal-title"><i class="fa fa-industry mr-2"
+                                   aria-hidden="true"></i>{{ 'Producer Selection' | translate }}
+        </h4>
+        <button type="button" class="close" aria-label="Close" (click)="dlg.dismiss()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <div class="mt-3">
+            <app-topic-multiple-producer #producerComponent (closeModal)="closeModal($event)"
+                                         [topic]="topic" [selectedEnvironment]="selectedEnvironment">
+            </app-topic-multiple-producer>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button appSpinnerWhile #d="appSpinnerWhile" (click)="d.while(producerComponent.submitSelectedProducer())"
+                type="button"
+                class="btn btn-success"><i class="fas fa-plus mr-2"></i>{{ 'Add Producer' | translate }}
+        </button>
+        <button type="button" class="btn btn-danger" (click)="dlg.dismiss()"><i
+            class="fas fa-times"></i>&nbsp;{{ 'Cancel' | translate }}
         </button>
     </div>
 </ng-template>

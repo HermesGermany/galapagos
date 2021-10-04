@@ -104,6 +104,13 @@
     "CLEANUP_STRATEGY_TEXT_HTML": "Please select the so-called \"cleanup strategy\" for your topic here. \"Log Compaction\" ensures that <b>at least</b> the latest value is permanently available for each key in the topic. \"Deletion\" deletes data records on the topic when they have reached a certain age. <br> You can also <b>combine</b> both strategies so that data records are first \"compacted\", but then at some point also \"deleted\". <br>\n<a href=\"https://kafka.apache.org/documentation/#compaction\">Kafka Log Compaction Documentation</a>",
     "CRITICALITY_TEXT_HTML": "Please indicate here the criticality of the content of the topic that applies to the <b> production </b>. Even \"normal\" topics are already replicated (kept redundant on several brokers). \"Critical\" topics are <b> triple </b> redundant, so that there is even greater security in the event of failure of individual Kafka brokers.",
     "SIZE_ESTIMATION_TEXT_HTML": "Please estimate the amount and size of the expected data records on the topic (in <b> production </b>). This is currently <b> not </b> used to optimize the Kafka settings, but serves as an indicator for the company for any necessary capacity expansions.",
-    "API_KEY_REQUEST_FAILED": "Request failed"
+    "API_KEY_REQUEST_FAILED": "Request failed",
+    "DELETE_PRODUCER_PROMPT": "Delete Producer <b>{{ producerName }}</b>?",
+    "CHANGE_OWNER_TEXT": "Promote this Producer to owner",
+    "CHANGE_OWNER_PROMPT": "Promote Producer <b>{{ newTopicOwner }}</b> to new owner?",
+    "OWNER_CHANGE_ALL_STAGES_ALERT_HTML": "The new Owner <code>{{newTopicOwner}}</code> for Topic <code>{{topicName}}</code> will be used on <b>all</b> stages <b>immediately</b>!",
+    "CHANGELOG_PRODUCER_ADDED_HTML": "added Producer {{ producerName }} to Topic <b><a href='{{ topicLink }}'>{{ topicName }}</a></b>.",
+    "ADD_PRODUCER_HTML": "Here you can add additional producers to this topic.",
+    "ADD_PRODUCER_TEXT_HTML": "Here you can select a producer who should be able to produce data in the topic <code>{{topicName}}</code>. Galapagos creates the necessary rights for this in the Kafka brokers."
 }
 

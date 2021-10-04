@@ -143,6 +143,25 @@ public class GalapagosEventManagerImpl implements GalapagosEventManager {
             return handleEvent(applicationListeners, l -> l.handleApplicationOwnerRequestCanceled(event));
         }
 
+        @Override
+        public CompletableFuture<Void> handleAddTopicProducer(TopicMetadata metadata, String producerId) {
+            TopicAddProducerEvent event = new TopicAddProducerEvent(eventContext, producerId, metadata);
+            return handleEvent(topicListeners, l -> l.handleAddTopicProducer(event));
+        }
+
+        @Override
+        public CompletableFuture<Void> handleRemoveTopicProducer(TopicMetadata metadata, String appDeleteId) {
+            TopicRemoveProducerEvent event = new TopicRemoveProducerEvent(eventContext, appDeleteId, metadata);
+            return handleEvent(topicListeners, l -> l.handleRemoveTopicProducer(event));
+        }
+
+        @Override
+        public CompletableFuture<Void> handleTopicOwnerChanged(TopicMetadata metadata,
+                String previousOwnerApplicationId) {
+            TopicOwnerChangeEvent event = new TopicOwnerChangeEvent(eventContext, previousOwnerApplicationId, metadata);
+            return handleEvent(topicListeners, l -> l.handleTopicOwnerChanged(event));
+        }
+
         private <L> CompletableFuture<Void> handleEvent(Collection<L> listeners,
                 Function<L, CompletableFuture<Void>> listenerInvocation) {
             CompletableFuture<Void> result = CompletableFuture.completedFuture(null);

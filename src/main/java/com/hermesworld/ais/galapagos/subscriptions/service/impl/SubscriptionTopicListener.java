@@ -1,19 +1,15 @@
 package com.hermesworld.ais.galapagos.subscriptions.service.impl;
 
-import java.util.concurrent.CompletableFuture;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import com.hermesworld.ais.galapagos.events.TopicCreatedEvent;
-import com.hermesworld.ais.galapagos.events.TopicEvent;
-import com.hermesworld.ais.galapagos.events.TopicEventsListener;
-import com.hermesworld.ais.galapagos.events.TopicSchemaAddedEvent;
+import com.hermesworld.ais.galapagos.events.*;
 import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
 import com.hermesworld.ais.galapagos.subscriptions.SubscriptionMetadata;
 import com.hermesworld.ais.galapagos.subscriptions.SubscriptionState;
 import com.hermesworld.ais.galapagos.subscriptions.service.SubscriptionService;
 import com.hermesworld.ais.galapagos.util.FutureUtil;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Listener which performs several updates when topic events occur:
@@ -31,7 +27,7 @@ import com.hermesworld.ais.galapagos.util.FutureUtil;
 @Component
 public class SubscriptionTopicListener implements TopicEventsListener {
 
-    private SubscriptionService subscriptionService;
+    private final SubscriptionService subscriptionService;
 
     @Autowired
     public SubscriptionTopicListener(SubscriptionService subscriptionService) {
@@ -88,6 +84,21 @@ public class SubscriptionTopicListener implements TopicEventsListener {
             }
         }
         return result;
+    }
+
+    @Override
+    public CompletableFuture<Void> handleAddTopicProducer(TopicAddProducerEvent event) {
+        return FutureUtil.noop();
+    }
+
+    @Override
+    public CompletableFuture<Void> handleRemoveTopicProducer(TopicRemoveProducerEvent event) {
+        return FutureUtil.noop();
+    }
+
+    @Override
+    public CompletableFuture<Void> handleTopicOwnerChanged(TopicOwnerChangeEvent event) {
+        return FutureUtil.noop();
     }
 
 }

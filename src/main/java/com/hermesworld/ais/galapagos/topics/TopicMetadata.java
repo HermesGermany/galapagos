@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @JsonSerialize
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -48,6 +49,8 @@ public class TopicMetadata implements HasKey {
 
     private MessagesSize messagesSize;
 
+    private List<String> producers = List.of();
+
     public TopicMetadata() {
     }
 
@@ -66,6 +69,7 @@ public class TopicMetadata implements HasKey {
         this.criticality = original.criticality;
         this.messagesPerDay = original.messagesPerDay;
         this.messagesSize = original.messagesSize;
+        this.producers = original.producers;
     }
 
     @Override
