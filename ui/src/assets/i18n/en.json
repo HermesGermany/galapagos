@@ -109,6 +109,8 @@
     "CHANGE_OWNER_TEXT": "Promote this Producer to owner",
     "CHANGE_OWNER_PROMPT": "Promote Producer <b>{{ newTopicOwner }}</b> to new owner?",
     "OWNER_CHANGE_ALL_STAGES_ALERT_HTML": "The new Owner <code>{{newTopicOwner}}</code> for Topic <code>{{topicName}}</code> will be used on <b>all</b> stages <b>immediately</b>!",
-    "CHANGELOG_PRODUCER_ADDED_HTML": "added Producer {{ producerName }} to Topic <b><a href='{{ topicLink }}'>{{ topicName }}</a></b>."
+    "CHANGELOG_PRODUCER_ADDED_HTML": "added Producer {{ producerName }} to Topic <b><a href='{{ topicLink }}'>{{ topicName }}</a></b>.",
+    "ADD_PRODUCER_HTML": "Here you can add additional producers to this topic.",
+    "ADD_PRODUCER_TEXT_HTML": "Here you can select a producer who should be able to produce data in the topic <code>{{topicName}}</code>. Galapagos creates the necessary rights for this in the Kafka brokers."
 }
 

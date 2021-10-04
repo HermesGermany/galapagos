@@ -12,7 +12,7 @@
                 </button>
                 <hr>
                 <div *ngIf="topic.topicType !== 'COMMANDS' && !selectedEnvironment.stagingOnly">
-                    <p>Hier kannst du mehrere Produzenten für dieses Topic hinzufügen</p>
+                    <p>{{ 'ADD_PRODUCER_HTML' | translate }}</p>
                     <button class="btn btn-warning"
                             (click)="openAddProducerDlg(producerAddDlg)">
                         <i class="fas fa-plus mr-3"></i>{{ 'Add Producer' | translate }}

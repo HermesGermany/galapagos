@@ -180,5 +180,7 @@
     "Change Owner": "Besitzer wechseln",
     "Change topic owner": "Topic-Besitzer wechseln",
     "OWNER_CHANGE_ALL_STAGES_ALERT_HTML": "Der neue Besitzer <code>{{newTopicOwner}}</code> für das Topic <code>{{topicName}}</code> wird auf <b>allen</b> Stages <b>sofort</b> übernommen!",
-    "CHANGELOG_PRODUCER_ADDED_HTML": "hat Producer {{ producerName }} zum Topic <b><a href='{{ topicLink }}'>{{ topicName }}</a></b> hinzugefügt."
+    "CHANGELOG_PRODUCER_ADDED_HTML": "hat Producer {{ producerName }} zum Topic <b><a href='{{ topicLink }}'>{{ topicName }}</a></b> hinzugefügt.",
+    "ADD_PRODUCER_HTML": "Hier kannst du zusätzliche Produzenten für dieses Topic hinzufügen.",
+    "ADD_PRODUCER_TEXT_HTML": "Hier kannst du einen Produzenten auswählen, der in der Lage sein soll, in das Topic <code>{{topicName}}</code> Daten zu produzieren. Galapagos legt dazu die nötigen Rechte in den Kafka Brokern an."
 }
