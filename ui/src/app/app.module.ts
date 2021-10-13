@@ -19,6 +19,7 @@ import { ServerInfoService } from './shared/services/serverinfo.service';
 import { HIGHLIGHT_OPTIONS } from 'ngx-highlightjs';
 import { getHighlightLanguages } from './layout/topics/topics.module';
 import { ApiKeyService } from './shared/services/apikey.service';
+import { CertificateService } from './shared/services/certificates.service';
 
 const keycloakService = new KeycloakService();
 
@@ -33,7 +34,7 @@ const keycloakService = new KeycloakService();
         KeycloakAngularModule
     ],
     declarations: [AppComponent],
-    providers: [AuthGuard, ApplicationsService, EnvironmentsService, TopicsService, ApiKeyService, ToastService,
+    providers: [AuthGuard, ApplicationsService, EnvironmentsService, TopicsService, ApiKeyService, ToastService, CertificateService,
         ServerInfoService, {
             provide: KeycloakService,
             useValue: keycloakService

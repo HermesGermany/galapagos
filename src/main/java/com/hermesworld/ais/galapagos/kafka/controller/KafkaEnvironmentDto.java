@@ -5,23 +5,26 @@ import lombok.Getter;
 @Getter
 public class KafkaEnvironmentDto {
 
-    private String id;
+    private final String id;
 
-    private String name;
+    private final String name;
 
-    private String bootstrapServers;
+    private final String bootstrapServers;
 
-    private boolean production;
+    private final boolean production;
 
-    private boolean stagingOnly;
+    private final boolean stagingOnly;
+
+    private final String authenticationMode;
 
     public KafkaEnvironmentDto(String id, String name, String bootstrapServers, boolean production,
-            boolean stagingOnly) {
+            boolean stagingOnly, String authenticationMode) {
         this.id = id;
         this.name = name;
         this.bootstrapServers = bootstrapServers;
         this.production = production;
         this.stagingOnly = stagingOnly;
+        this.authenticationMode = authenticationMode;
     }
 
 }

@@ -22,8 +22,10 @@ export class HeaderComponent implements OnInit {
 
     public allEnvironments: Observable<KafkaEnvironment[]>;
 
+    authenticationMode: Observable<string>;
+
     constructor(private translate: TranslateService, public router: Router, private keycloak: KeycloakService,
-        private environments: EnvironmentsService) {
+                private environments: EnvironmentsService) {
 
     }
 
@@ -47,6 +49,8 @@ export class HeaderComponent implements OnInit {
         this.currentEnvironmentIcon = this.environments.getCurrentEnvironment().pipe(
             map(env => env.production ? 'fas fa-exclamation-triangle text-danger' : 'fas fa-database'));
         this.allEnvironments = this.environments.getEnvironments();
+
+        this.authenticationMode = this.environments.getCurrentEnvironment().pipe(map(env => env.authenticationMode));
     }
 
     isToggled(): boolean {

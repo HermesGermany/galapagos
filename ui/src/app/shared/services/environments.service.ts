@@ -19,6 +19,7 @@ export interface KafkaEnvironment {
 
     stagingOnly: boolean;
 
+    authenticationMode: string;
 }
 
 export interface EnvironmentServerInfo {
@@ -80,6 +81,7 @@ export class EnvironmentsService {
     private environments = new ReplayContainer<KafkaEnvironment[]>(() => this.http.get('/api/environments'));
 
     private servers = new ReplayContainer<EnvironmentServerInfo[]>(() => EMPTY);
+
 
     constructor(private http: HttpClient, toasts: ToastService) {
         this.getEnvironments().pipe(take(1)).toPromise().then(envs => {

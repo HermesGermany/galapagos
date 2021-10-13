@@ -13,7 +13,8 @@ const routes: Routes = [
             { path: 'createtopic', loadChildren: () => import('./createtopic/createtopic.module').then(m => m.CreateTopicModule) },
             { path: 'applications', loadChildren: () => import('./applications/applications.module').then(m => m.ApplicationsModule) },
             { path: 'staging', loadChildren: () => import('./staging/staging.module').then(m => m.StagingModule) },
-            { path: 'admin', loadChildren: () => import('./admin/admin.module').then(m => m.AdminModule) }
+            { path: 'admin', loadChildren: () => import('./admin/admin.module').then(m => m.AdminModule) },
+            { path: 'user-settings', loadChildren: () => import('./user-settings/user-settings.module').then(m => m.UserSettingsModule) }
         ]
     }
 ];

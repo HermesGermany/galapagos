@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.hermesworld.ais.galapagos.applications.*;
 import com.hermesworld.ais.galapagos.ccloud.apiclient.ConfluentApiException;
 import com.hermesworld.ais.galapagos.ccloud.auth.ConfluentCloudAuthUtil;
+import com.hermesworld.ais.galapagos.certificates.auth.CertificatesAuthenticationModule;
 import com.hermesworld.ais.galapagos.changes.Change;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.kafka.config.KafkaEnvironmentConfig;
@@ -29,6 +30,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.cert.CertificateException;
+import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
@@ -142,6 +144,23 @@ public class ApplicationsController {
         return applicationsService.getApplicationMetadata(environmentId, applicationId)
                 .map(metadata -> toPrefixesDto(metadata))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+    }
+
+    @GetMapping(value = "/api/certificates/{applicationId}/{environmentId}")
+    public List<ApplicationCertificateDto> getApplicationCertificates(@PathVariable String applicationId,
+            @PathVariable String environmentId) {
+        kafkaClusters.getEnvironment(environmentId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        KafkaEnvironmentConfig metadata = kafkaClusters.getEnvironmentMetadata(environmentId).orElseThrow();
+        if ("ccloud".equals(metadata.getAuthenticationMode())) {
+            throw new IllegalStateException(
+                    "Environment " + environmentId + " does not use API Keys for authentication.");
+        }
+        return kafkaClusters.getEnvironmentsMetadata().stream()
+                .map(env -> applicationsService.getApplicationMetadata(env.getId(), applicationId)
+                        .map(meta -> toAppCertDto(env.getId(), meta)).orElse(null))
+                .filter(Objects::nonNull).collect(Collectors.toList());
     }
 
     @PostMapping(value = "/api/certificates/{applicationId}/{environmentId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -299,6 +318,13 @@ public class ApplicationsController {
         catch (InterruptedException e) {
             return Collections.emptyList();
         }
+    }
+
+    private ApplicationCertificateDto toAppCertDto(String environmentId, ApplicationMetadata metadata) {
+        JSONObject json = new JSONObject(metadata.getAuthenticationJson());
+        Instant expiresAt = CertificatesAuthenticationModule.getExpiresAtFromJson(json);
+        return new ApplicationCertificateDto(environmentId, CertificatesAuthenticationModule.getDnFromJson(json),
+                expiresAt == null ? null : expiresAt.toString());
     }
 
     private ResponseStatusException handleExecutionException(ExecutionException e, String msgPrefix) {

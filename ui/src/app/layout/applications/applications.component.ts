@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { routerTransition } from '../../router.animations';
-import { ModalDismissReasons, NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { ModalDismissReasons, NgbModal, NgbNavChangeEvent } from '@ng-bootstrap/ng-bootstrap';
 import {
     ApplicationInfo,
     ApplicationOwnerRequest,
@@ -8,18 +8,19 @@ import {
     ApplicationsService,
     UserApplicationInfo
 } from '../../shared/services/applications.service';
-import { combineLatest, Observable } from 'rxjs';
+import { combineLatest, Observable, of } from 'rxjs';
 import { toNiceTimestamp } from '../../shared/util/time-util';
 
 import * as moment from 'moment';
-import { map, shareReplay, startWith } from 'rxjs/operators';
+import { map, mergeMap, shareReplay, startWith } from 'rxjs/operators';
 import { EnvironmentsService, KafkaEnvironment } from '../../shared/services/environments.service';
 import { ToastService } from '../../shared/modules/toast/toast.service';
 import { TopicsService } from '../../shared/services/topics.service';
 import { TranslateService } from '@ngx-translate/core';
-import { OpenApiKeyDialogEvent } from './application-block.component';
+import { OpenApiKeyDialogEvent, OpenCertificateDialogEvent } from './application-block.component';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ApiKeyService } from '../../shared/services/apikey.service';
+import { ApplicationCertificate, CertificateService } from '../../shared/services/certificates.service';
 
 export interface UserApplicationInfoWithTopics extends UserApplicationInfo {
 
@@ -77,6 +78,25 @@ export class ApplicationsComponent implements OnInit {
 
     apiKeyRequestError: any;
 
+    currentEnv: Observable<KafkaEnvironment>;
+
+    certificateDlgData = {
+        applicationName: null,
+        applicationId: null,
+        environment: null,
+        existingCertificate: null as ApplicationCertificate,
+        csrData: null,
+        commonName: null,
+        orgUnitName: null,
+        keyfileName: null,
+        expiryWarningType: 'info',
+        expiryWarningHtml: of('')
+    };
+
+    activeTab: string;
+
+    certificateCreationType = 'hasCsr';
+
     constructor(
         private modalService: NgbModal,
         private applicationsService: ApplicationsService,
@@ -84,7 +104,8 @@ export class ApplicationsComponent implements OnInit {
         private environmentsService: EnvironmentsService,
         private topicsService: TopicsService,
         private toasts: ToastService,
-        private translateService: TranslateService
+        private translateService: TranslateService,
+        private certificateService: CertificateService
     ) {
     }
 
@@ -122,6 +143,10 @@ export class ApplicationsComponent implements OnInit {
             })).pipe(shareReplay(1));
 
         this.environments = this.environmentsService.getEnvironments();
+
+        this.activeTab = 'new';
+
+        this.currentEnv = this.environmentsService.getCurrentEnvironment();
 
         this.applicationsService.refresh().then();
     }
@@ -197,6 +222,73 @@ export class ApplicationsComponent implements OnInit {
         }
     }
 
+    generateCertificate(): void {
+        if (this.certificateDlgData.applicationId && this.certificateDlgData.environment) {
+            const appId = this.certificateDlgData.applicationId;
+            this.certificateService
+                .requestAndDownloadApplicationCertificate(
+                    appId,
+                    this.certificateDlgData.environment.id,
+                    this.certificateDlgData.csrData,
+                    this.activeTab === 'extend'
+                )
+                .then(
+                    () => this.toasts.addSuccessToast('Zertifikat erfolgreich erstellt (bitte Browser-Downloads beachten)'),
+                    (err: HttpErrorResponse) => this.toasts.addHttpErrorToast('Zertifikat konnte nicht erstellt werden', err)
+                )
+                .then(() => this.certificateService.getApplicationCertificates(appId, this.certificateDlgData.environment.id).refresh());
+        }
+    }
+
+    handleDlgTabChange(event: NgbNavChangeEvent) {
+        this.activeTab = event.nextId;
+    }
+
+    openCertDlg(event: OpenCertificateDialogEvent, content: any) {
+        const app = event.application;
+        const env = event.environment;
+
+        this.certificateDlgData = {
+            applicationId: app.id,
+            applicationName: app.name,
+            environment: env,
+            existingCertificate: null,
+            csrData: '',
+            commonName: null,
+            orgUnitName: null,
+            keyfileName: null,
+            expiryWarningType: 'info',
+            expiryWarningHtml: of('')
+        };
+        this.certificateService.getApplicationCertificatesPromise(app.id, env.id).then(certs => {
+            this.certificateDlgData.existingCertificate = certs.find(cert => cert.environmentId === env.id) || null;
+            if (this.certificateDlgData.existingCertificate) {
+                const dn = this.certificateDlgData.existingCertificate.dn;
+                this.certificateDlgData.commonName = this.extractCommonName(dn);
+                this.certificateDlgData.orgUnitName = this.extractOrgUnitName(dn);
+                this.certificateDlgData.keyfileName = this.certificateDlgData.commonName + '_' + env.id + '.key';
+
+                const isoExpiryDate = this.certificateDlgData.existingCertificate.expiresAt;
+                const now = moment();
+                const expiryWarnLevel = moment(isoExpiryDate).isBefore(now) ? 'danger' :
+                    (moment(isoExpiryDate).diff(now, 'days') < 90 ? 'warning' : 'info');
+
+                this.certificateDlgData.expiryWarningType = expiryWarnLevel;
+                this.certificateDlgData.expiryWarningHtml = this.currentLang.pipe(mergeMap(lang =>
+                    this.translateService.get(expiryWarnLevel === 'danger' ? 'CERTIFICATE_EXPIRED_HTML' : 'CERTIFICATE_EXPIRY_HTML',
+                        { expiryDate: moment(isoExpiryDate).locale(lang).format('L') })));
+            } else {
+                this.certificateDlgData.commonName = 'app';
+                this.certificateDlgData.keyfileName = 'app.key';
+                this.certificateService.getApplicationCn(app.id).then(cn => {
+                    this.certificateDlgData.commonName = cn;
+                    this.certificateDlgData.keyfileName = this.certificateDlgData.commonName + '_' + env.id + '.key';
+                });
+            }
+            this.modalService.open(content, { ariaLabelledBy: 'modal-title', size: 'lg', windowClass: 'modal-xxl' });
+        });
+    }
+
     handleDlgDismiss(): void {
         this.showApiKeyTable = false;
         this.secret = null;
@@ -221,7 +313,6 @@ export class ApplicationsComponent implements OnInit {
             this.copiedKey = true;
         } else {
             this.copiedSecret = true;
-
         }
     }
 
@@ -235,6 +326,14 @@ export class ApplicationsComponent implements OnInit {
         return this.applicationsService
             .getAvailableApplications(false)
             .pipe(map(apps => apps.filter(app => app.id === appId).map(app => app.name)[0] || appId));
+    }
+
+    extractCommonName(dn: string): string {
+        return dn.match(/CN=([^,]+)/)[1];
+    }
+
+    extractOrgUnitName(dn: string): string {
+        return dn.match(/OU=([^,]+)/)[1];
     }
 
 }
