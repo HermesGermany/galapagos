@@ -4,6 +4,7 @@ import { map, take } from 'rxjs/operators';
 
 import { saveAs } from 'file-saver';
 import { jsonHeader, ReplayContainer } from './services-common';
+import { Observable } from 'rxjs';
 
 export interface ApplicationCertificate {
     environmentId: string;
@@ -11,6 +12,12 @@ export interface ApplicationCertificate {
     dn: string;
 
     certificateDownloadUrl: string;
+
+    expiresAt: string;
+}
+
+export interface DeveloperCertificateInfo {
+    dn: string;
 
     expiresAt: string;
 }
@@ -61,7 +68,8 @@ export class CertificateService {
         return this.getApplicationCertificates(applicationId).getObservable().pipe(take(1)).toPromise();
     }
 
-    public async requestAndDownloadApplicationCertificate(applicationId: string, environmentId: string, csrData: string, extendCertificate: boolean): Promise<any> {
+    public async requestAndDownloadApplicationCertificate(applicationId: string, environmentId: string, csrData: string,
+        extendCertificate: boolean): Promise<any> {
         let body;
         if (csrData) {
             body = JSON.stringify({
@@ -78,6 +86,21 @@ export class CertificateService {
                 const ra = resp as any;
                 saveAs(base64ToBlob(ra.fileContentsBase64), ra.fileName);
             });
+    }
+
+    public async downloadDeveloperCertificate(environmentId: string): Promise<any> {
+        return this.http.post('/api/me/certificates/' + environmentId, '').toPromise().then(resp => {
+            const ra = resp as any;
+            saveAs(base64ToBlob(ra.fileContentsBase64), ra.fileName);
+        });
+    }
+
+    public getDeveloperCertificateInfo(environmentId: string): Observable<DeveloperCertificateInfo> {
+        return this.http.get('/api/me/certificates/' + environmentId).pipe(map(data => data as DeveloperCertificateInfo));
+    }
+
+    public getEnvironmentsWithDevCertSupport(): Observable<string[]> {
+        return this.envsWithDevCertSupport.getObservable();
     }
 
 }

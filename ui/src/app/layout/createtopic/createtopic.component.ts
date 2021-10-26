@@ -10,6 +10,7 @@ import { CustomLink, ServerInfoService } from '../../shared/services/serverinfo.
 import { TopicSettingsData } from './datasettings/data-settings.component';
 import { Router } from '@angular/router';
 import { ApiKeyService } from '../../shared/services/apikey.service';
+import { CertificateService } from '../../shared/services/certificates.service';
 
 @Component({
     selector: 'app-create-topic',
@@ -49,13 +50,14 @@ export class CreateTopicComponent implements OnInit {
                 private applicationsService: ApplicationsService,
                 private environmentsService: EnvironmentsService,
                 private toasts: ToastService, private apiKeyService: ApiKeyService,
+                private certificateService: CertificateService,
                 private serverInfo: ServerInfoService, private router: Router) {
     }
 
     ngOnInit() {
         this.availableApplications = this.applicationsService.getUserApplications().getObservable();
         this.allEnvironments = this.environmentsService.getEnvironments();
-        this.selectedEnvironment = this.environmentsService.getCurrentEnvironment().pipe(tap(() => this.checkApplicationApiKey()))
+        this.selectedEnvironment = this.environmentsService.getCurrentEnvironment().pipe(tap(() => this.checkAuthentication()))
             .pipe(shareReplay(1));
         this.topicsSerivce.getTopicCreateDefaults().pipe(take(1)).toPromise().then(
             val => this.createParams.partitionCount = val.defaultPartitionCount);
@@ -75,17 +77,32 @@ export class CreateTopicComponent implements OnInit {
         return Promise.resolve(null);
     }
 
-    async checkApplicationApiKey() {
+    async checkAuthentication() {
         if (!this.selectedApplication || !this.selectedEnvironment) {
             return;
         }
-        try {
-            const env = await this.selectedEnvironment.pipe(take(1)).toPromise();
-            const apiKey = await this.apiKeyService.getApplicationApiKeysPromise(this.selectedApplication.id);
-            this.showRegistrationWarning = !apiKey.authentications[env.id];
-        } catch (e) {
-            this.toasts.addHttpErrorToast('Could not check for application certificates', e);
+        const isCcloud = await this.selectedEnvironment
+            .pipe(map(env => env.authenticationMode === 'ccloud'), take(1)).toPromise();
+
+        if (isCcloud) {
+            try {
+                const env = await this.selectedEnvironment.pipe(take(1)).toPromise();
+                const apiKey = await this.apiKeyService.getApplicationApiKeysPromise(this.selectedApplication.id);
+                this.showRegistrationWarning = !apiKey.authentications[env.id];
+            } catch (e) {
+                this.toasts.addHttpErrorToast('Could not check for application certificates', e);
+            }
+        } else {
+            try {
+                const env = await this.selectedEnvironment.pipe(take(1)).toPromise();
+                const certificates = await this.certificateService.getApplicationCertificatesPromise(this.selectedApplication.id);
+
+                this.showRegistrationWarning = !certificates.find(c => c.environmentId === env.id);
+            } catch (e) {
+                this.toasts.addHttpErrorToast('Could not check for application certificates', e);
+            }
         }
+
     }
 
     selectEnvironment(envId: string) {

@@ -26,16 +26,17 @@
                             {{ 'TOPIC_STAGING_ONLY_ENVIRONMENT' | translate }}
                         </ngb-alert>
                         <ngb-alert
-                            *ngIf="selectedEnvironment && selectedApplication && showRegistrationWarning && !(selectedEnvironment | async)?.stagingOnly"
+                            *ngIf="selectedEnvironment && selectedApplication && showRegistrationWarning"
                             type="warning" [dismissible]="false">
-                            {{ 'ENV_APP_WARNING' | translate }}
+                            {{ (selectedEnvironment | async).authenticationMode === 'ccloud'
+                            ? ('ENV_APP_WARNING_API_KEY' | translate) : ('ENV_APP_WARNING_CERTIFICATE' | translate) }}
                             <a class="ml" routerLink="/applications">{{"My Applications"|translate}}</a>
                         </ngb-alert>
 
                         <div class="form-group form-inline">
                             <label class="mr-3">{{ 'Owning Application' | translate }}</label>
                             <select class="form-control mr-3" name="appPicker" #appPicker
-                                    (change)="topicNameSpinner.while(suggestTopicName()); checkApplicationApiKey()"
+                                    (change)="topicNameSpinner.while(suggestTopicName()); checkAuthentication()"
                                     [(ngModel)]="selectedApplication">
                                 <option *ngFor="let app of d.untilNext(availableApplications) | async"
                                         [ngValue]="app">{{ app.name }}

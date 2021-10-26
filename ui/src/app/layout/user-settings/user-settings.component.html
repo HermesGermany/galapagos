@@ -1,0 +1,31 @@
+<div [@routerTransition]>
+    <h2 class="text-muted">{{ 'User Settings' | translate }}</h2>
+    <hr />
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card mb-3">
+                <div class="card-header bg-hermes text-white">
+                    <i class="fas fa-award mr-3"></i>{{ 'Developer Certificate' | translate }}
+                </div>
+                <div class="card-body">
+                    <p [innerHTML]="'DEVELOPER_CERTIFICATE_HTML' | translate"></p>
+                    <div class="form-group form-inline mt-2">
+                        <label class="mr-3">{{ 'Kafka Environment' | translate }}</label>
+
+                        <select class="form-control form-inline mr-3" name="selectedEnv" [(ngModel)]="selectedEnvironment" (change)="updateExistingCertificateMessage()">
+                            <option *ngFor="let env of devCertsEnabledEnvironments | async" [ngValue]="env">{{ env.name }}
+                            </option>
+                        </select>
+                        <button type="button" class="btn btn-warning" (click)="generateCertificate()" [disabled]="!selectedEnvironment">
+                            <i class="fas fa-cogs mr-3"></i>{{ 'Generate Developer Certificate' | translate }}
+                        </button>
+                    </div>
+                    <ngb-alert type="info" *ngIf="existingCertificateMessage | async" [dismissible]="false">
+                        <span [innerHTML]="existingCertificateMessage | async"></span>
+                    </ngb-alert>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

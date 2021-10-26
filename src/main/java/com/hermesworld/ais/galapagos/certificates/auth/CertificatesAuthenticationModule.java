@@ -38,6 +38,8 @@ public class CertificatesAuthenticationModule implements KafkaAuthenticationModu
 
     private final static String EXPIRES_AT = "expiresAt";
 
+    private final static String DN = "dn";
+
     public CertificatesAuthenticationModule(String environmentId, CertificatesAuthenticationConfig config) {
         this.environmentId = environmentId;
         this.config = config;
@@ -85,7 +87,7 @@ public class CertificatesAuthenticationModule implements KafkaAuthenticationModu
         String dn = null;
 
         if (extendCertificate) {
-            dn = existingAuthData.optString("dn");
+            dn = existingAuthData.optString(DN);
             if (StringUtils.isEmpty(dn)) {
                 return CompletableFuture.failedFuture(new IllegalArgumentException(
                         "Cannot extend certificate - no certificate information available for application"));
@@ -143,7 +145,7 @@ public class CertificatesAuthenticationModule implements KafkaAuthenticationModu
 
     @Override
     public String extractKafkaUserName(String applicationId, JSONObject existingAuthData) throws JSONException {
-        return "User:" + existingAuthData.getString("dn");
+        return "User:" + existingAuthData.getString(DN);
     }
 
     private CompletableFuture<JSONObject> createApplicationCertificateFromCsr(String applicationId,
@@ -161,6 +163,14 @@ public class CertificatesAuthenticationModule implements KafkaAuthenticationModu
             }
             return CompletableFuture.completedFuture(result);
         }).thenApply(result -> toAuthJson(result));
+    }
+
+    public CompletableFuture<CertificateSignResult> createDeveloperCertificateAndPrivateKey(String userName) {
+        return caManager.createDeveloperCertificateAndPrivateKey(userName);
+    }
+
+    public boolean supportsDeveloperCertificates() {
+        return caManager.supportsDeveloperCertificates();
     }
 
     private CompletableFuture<JSONObject> createApplicationCertificateAndPrivateKey(String applicationId,
@@ -191,7 +201,7 @@ public class CertificatesAuthenticationModule implements KafkaAuthenticationModu
 
     private JSONObject toAuthJson(CertificateSignResult result) {
         Instant expiresAt = Instant.ofEpochMilli(result.getCertificate().getNotAfter().getTime());
-        return new JSONObject(Map.of("dn", result.getDn(), EXPIRES_AT, expiresAt.toString()));
+        return new JSONObject(Map.of(DN, result.getDn(), EXPIRES_AT, expiresAt.toString()));
     }
 
     public static Instant getExpiresAtFromJson(JSONObject authData) {
@@ -199,5 +209,9 @@ public class CertificatesAuthenticationModule implements KafkaAuthenticationModu
             return Instant.from(DateTimeFormatter.ISO_INSTANT.parse(authData.getString(EXPIRES_AT)));
         }
         return null;
+    }
+
+    public static String getDnFromJson(JSONObject authData) {
+        return authData.optString(DN);
     }
 }

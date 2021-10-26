@@ -1,0 +1,21 @@
+<div class="openssl-box">
+    {{ 'openssl Call' | translate }}
+    <fieldset class="form-group mt-2 mb-0">
+        <div class="radio">
+            <label>
+                <input type="radio" value="default" [(ngModel)]="commandFormat"
+                       (ngModelChange)="updateCommand()">&nbsp;{{ 'OPENSSL_STANDARD_FORMAT' | translate }}
+            </label>
+        </div>
+        <div class="radio">
+            <label>
+                <input type="radio" value="gitbash" [(ngModel)]="commandFormat"
+                       (ngModelChange)="updateCommand()">&nbsp;{{ 'OPENSSL_GITBASH_FORMAT' | translate }}
+            </label>
+        </div>
+    </fieldset>
+    <code>{{ opensslCommand }}</code>
+    <button (click)="copyCommand()" class="btn btn-outline-secondary btn-sm ml-3"><i class="fas fa-copy"></i>
+        <span class="ml-1" *ngIf="copied"> {{ 'Copied!' | translate}}</span>
+    </button>
+</div>

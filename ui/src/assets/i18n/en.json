@@ -85,7 +85,10 @@
     "ACL_FIX_TEXT": "Correct the selected ones",
     "API_KEY_ALREADY_EXISTS_WARNING_HTML": "For this application a API Key has already been issued for the environment <b>{{ env }}</b>! If you continue here, the previous API Key <strong>loses</strong> its assigned Kafka permissions and becomes <strong>unusable</strong>.<br>(Existing permissions are transferred to the new API Key.).",
     "recommended_TEXT": "(recommended)",
-    "KEY_BUTTON_TITLE": "Generate new API Key for environment {{env}}",
+    "CSR_CODE_TEXT": "Please insert the Base64-encoded CSR here",
+    "CERT_WITH_PRIVATE_KEY_HTML": "I would like to create a certificate and the private key <i>(insecure, recommended for test purposes only)</i>",
+    "CSR_LABEL_HTML": "I am creating a <abbr title=\"Certificate Signing Request. This must have been created locally together with a private key.\">CSR</abbr> locally <i>(recommended)</i>",
+    "CERT_BUTTON_TITLE": "Generate new client certificate for environment {{env}}",
     "SUBSCRIPTION_APPROVAL_REQUIRED_INFO_HTML": "This topic requires an <b>approval</b> of subscriptions by the Topic Owner. If you subscribe to this topic, the Topic Owners will be informed and asked for their approval. You will be informed about their approval by e-mail.",
     "SECURITY_SETTINGS_HTML": "Here you can activate a special setting for topics with personal or sensitive data (even if sensitive data is only contained on later stages!). If you activate this setting, you will receive an e-mail notification about every subscription request for this topic. You can then either approve or reject that request. <br>Topics containing personal data <b>must</b> have this setting activated.",
     "REJECT_CONFIRM_DLG_HTML": "Caution! If you cancel this subscription, application <b>{{clientApplicationName}}</b> is no longer able to access this topic on the current environment. This can have negative impact of that application's operational level, up to a <b>complete breakdown</b>. Only do this if it is really required for <b>data security reasons</b>. Preferably ask the application team to cancel their subscription in an ordered way.<br><br>The application team will be informed about the cancellation of their subscription.",
@@ -111,6 +114,16 @@
     "OWNER_CHANGE_ALL_STAGES_ALERT_HTML": "The new Owner <code>{{newTopicOwner}}</code> for Topic <code>{{topicName}}</code> will be used on <b>all</b> stages <b>immediately</b>!",
     "CHANGELOG_PRODUCER_ADDED_HTML": "added Producer {{ producerName }} to Topic <b><a href='{{ topicLink }}'>{{ topicName }}</a></b>.",
     "ADD_PRODUCER_HTML": "Here you can add additional producers to this topic.",
-    "ADD_PRODUCER_TEXT_HTML": "Here you can select a producer who should be able to produce data in the topic <code>{{topicName}}</code>. Galapagos creates the necessary rights for this in the Kafka brokers."
+    "ADD_PRODUCER_TEXT_HTML": "Here you can select a producer who should be able to produce data in the topic <code>{{topicName}}</code>. Galapagos creates the necessary rights for this in the Kafka brokers.",
+    "NO_CERTIFICATE_FOR_APP": "No client certificate has been created yet for this application on this environment.",
+    "OPENSSL_STANDARD_FORMAT": "Standard (Linux, Mac OS, Windows CMD)",
+    "OPENSSL_GITBASH_FORMAT": "Git Bash (Windows)",
+    "EXTEND_CERTIFICATE_HTML": "If you already have an existing client certificate which is about to expire, you can create a new certificate with same identification but extended validity here. Note that you <b>must have the private key</b> which had previously been used to create the certificate.",
+    "EXTEND_CERTIFICATE_COMMAND_HTML": "The following <code>openssl</code> command assumes that your private key is in file <code>{{ keyfile }}</code>. If your private key is in another file, please adjust the command accordingly.",
+    "CERTIFICATE_EXPIRED_HTML": "The certificate for your application on this environment expired on <b>{{ expiryDate }}</b> ab. Please renew your certificate immediately!",
+    "CERTIFICATE_EXPIRY_HTML": "The certificate for your application on this environment will expire on <b>{{ expiryDate }}</b>.",
+    "KEY_BUTTON_TITLE": "Generate new API Key for environment {{env}}",
+    "ENV_APP_WARNING_API_KEY": "Please generate an API key for the application and the environment under ",
+    "ENV_APP_WARNING_CERTIFICATE": "Please generate a certificate for the application and the environment under "
 }
 

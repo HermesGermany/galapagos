@@ -3,14 +3,19 @@
         <i class="far fa-window-maximize mr-2"></i>{{ application.name }}
     </div>
     <div class="card-body">
-        <div
-            *ngIf="(currentEnvApplicationApiKey | async) === null">
+        <div *ngIf="authenticationMode === 'ccloud' && (currentEnvApplicationApiKey | async) == null">
             <i>{{ 'NO_API_KEY_FOR_APP' | translate }}&#32;
                 <a [routerLink]=""
                    (click)="openApiKeyDialog.emit({ application: application, environment: env });">{{ 'Create Api Key now' | translate }}</a>
             </i>
         </div>
-        <div *ngIf="(currentEnvApplicationApiKey | async)">
+        <div *ngIf="authenticationMode === 'certificates' && (currentEnvApplicationCertificate | async) == null">
+            <i>{{ 'NO_CERTIFICATE_FOR_APP' | translate }}&#32;
+                <a [routerLink]=""
+                   (click)="openCertificateDialog.emit({ application: application, environment: env });">{{ 'Generate new Certificate' | translate }}</a>
+            </i>
+        </div>
+        <div *ngIf="(currentEnvApplicationApiKey | async) || (currentEnvApplicationCertificate | async)">
             <p><i
                 [innerHTML]="'APPLICATION_ENV_HINT_HTML' | translate: { environmentName: (environmentsService.getCurrentEnvironment() | async)?.name }"></i>
             </p>
@@ -111,34 +116,78 @@
                         </table>
                     </ng-template>
                 </ngb-panel>
-                <ngb-panel [id]="'_panel_apiKey'">
+                <ngb-panel [id]="'_panel_authentication'">
                     <ng-template ngbPanelTitle>
-                        <span><i class="fas fa-award mr-2"></i>{{ 'Client Access' | translate }}</span>
+                        <ng-container [ngSwitch]="authenticationMode">
+                            <span *ngSwitchCase="'certificates'"><i
+                                class="fas fa-award mr-2"></i>{{ 'Certificate Info' | translate }}</span>
+                            <span *ngSwitchCase="'ccloud'"><i
+                                class="fas fa-award mr-2"></i>{{ 'Client Access' | translate }}</span>
+                        </ng-container>
                     </ng-template>
                     <ng-template ngbPanelContent>
-                        <table class="table">
-                            <thead></thead>
-                            <tbody>
-                            <tr>
-                                <th>{{ 'SAML Username' | translate }}</th>
-                                <td>
-                                    <code id="apiKey">{{ (currentEnvApplicationApiKey | async).apiKey }}</code>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td colspan="2">
-                                    <button type="button" class="btn btn-danger mr-2"
-                                            [title]=" 'KEY_BUTTON_TITLE' | translate:{ env: env.name }"
-                                            (click)="openApiKeyDialog.emit({ application: application, environment: env })">
-                                        <i class="fas fa-award"></i>&nbsp;{{ 'New login details' | translate }}
-                                    </button>
-                                </td>
-                            </tr>
-                            </tbody>
-                        </table>
+                        <ng-container [ngSwitch]="authenticationMode">
+                            <div *ngSwitchCase="'certificates'">
+                                <ng-container *ngTemplateOutlet="certificatePanel"></ng-container>
+                            </div>
+                            <div *ngSwitchCase="'ccloud'">
+                                <ng-container *ngTemplateOutlet="apiKeyPanel"></ng-container>
+                            </div>
+                        </ng-container>
                     </ng-template>
                 </ngb-panel>
             </ngb-accordion>
         </div>
     </div>
 </div>
+
+<ng-template #apiKeyPanel>
+    <table class="table">
+        <thead></thead>
+        <tbody>
+        <tr>
+            <th>{{ 'SAML Username' | translate }}</th>
+            <td>
+                <code id="apiKey">{{ apiKey }}</code>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <button type="button" class="btn btn-danger mr-2"
+                        [title]=" 'KEY_BUTTON_TITLE' | translate:{ env: currentEnv.name }"
+                        (click)="openApiKeyDialog.emit({ application: application, environment: currentEnv })">
+                    <i class="fas fa-award"></i>&nbsp;{{ 'New login details' | translate }}
+                </button>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</ng-template>
+<ng-template #certificatePanel>
+    <table class="table">
+        <thead></thead>
+        <tbody>
+        <tr>
+            <th>{{ 'Certificate DN' | translate }}</th>
+            <td>
+                <code>{{ (currentEnvApplicationCertificate | async).dn }}</code>
+            </td>
+        </tr>
+        <tr>
+            <th>{{ 'Expiry Date' | translate }}</th>
+            <td>
+                <b>{{ expiryDateString | async }}</b>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <button type="button" class="btn btn-danger mr-2"
+                        [title]=" 'CERT_BUTTON_TITLE' | translate:{ env: currentEnv.name }"
+                        (click)="openCertificateDialog.emit({ application: application, environment: currentEnv })">
+                    <i class="fas fa-award"></i>&nbsp;{{ 'Create / extend application certificate' | translate }}
+                </button>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</ng-template>
