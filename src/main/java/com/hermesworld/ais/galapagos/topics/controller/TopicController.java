@@ -1,6 +1,9 @@
 package com.hermesworld.ais.galapagos.topics.controller;
 
-import com.hermesworld.ais.galapagos.applications.*;
+import com.hermesworld.ais.galapagos.applications.ApplicationMetadata;
+import com.hermesworld.ais.galapagos.applications.ApplicationsService;
+import com.hermesworld.ais.galapagos.applications.BusinessCapability;
+import com.hermesworld.ais.galapagos.applications.KnownApplication;
 import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.kafka.TopicConfigEntry;
@@ -100,7 +103,9 @@ public class TopicController {
     @PostMapping(value = "/api/producers/{environmentId}/{topicName}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public void addProducerToTopic(@PathVariable String environmentId, @PathVariable String topicName,
             @RequestBody AddProducerDto producer) {
-        if (!applicationsService.isUserAuthorizedFor(producer.getProducerApplicationId())) {
+        TopicMetadata topic = topicService.getTopic(environmentId, topicName).orElseThrow(notFound);
+
+        if (!applicationsService.isUserAuthorizedFor(topic.getOwnerApplicationId())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
 
@@ -126,7 +131,8 @@ public class TopicController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
 
-        if (!applicationsService.isUserAuthorizedFor(producerApplicationId)) {
+        TopicMetadata topic = topicService.getTopic(envId, topicName).orElseThrow(notFound);
+        if (!applicationsService.isUserAuthorizedFor(topic.getOwnerApplicationId())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
 
@@ -141,7 +147,6 @@ public class TopicController {
         catch (InterruptedException e) {
             return null;
         }
-
     }
 
     @PostMapping(value = "/api/change-owner/{envId}/{topicName}")
@@ -173,9 +178,7 @@ public class TopicController {
             @RequestBody UpdateTopicDto request) {
 
         TopicMetadata topic = topicService.getTopic(environmentId, topicName).orElseThrow(notFound);
-        if (applicationsService.getUserApplicationOwnerRequests().stream()
-                .noneMatch(req -> req.getState() == RequestState.APPROVED
-                        && topic.getOwnerApplicationId().equals(req.getApplicationId()))) {
+        if (applicationsService.isUserAuthorizedFor(topic.getOwnerApplicationId())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
         try {
@@ -217,9 +220,7 @@ public class TopicController {
         TopicMetadata metadata = topicService.listTopics(environmentId).stream()
                 .filter(topic -> topicName.equals(topic.getName())).findAny().orElseThrow(notFound);
 
-        if (applicationsService.getUserApplicationOwnerRequests().stream()
-                .noneMatch(req -> req.getState() == RequestState.APPROVED
-                        && metadata.getOwnerApplicationId().equals(req.getApplicationId()))) {
+        if (applicationsService.isUserAuthorizedFor(metadata.getOwnerApplicationId())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
 
