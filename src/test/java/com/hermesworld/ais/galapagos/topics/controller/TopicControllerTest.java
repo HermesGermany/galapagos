@@ -118,11 +118,7 @@ public class TopicControllerTest {
         topic.setType(TopicType.EVENTS);
         topicRepository.save(topic).get();
 
-        ApplicationOwnerRequest req = new ApplicationOwnerRequest();
-        req.setApplicationId("app-1");
-        req.setState(RequestState.APPROVED);
-
-        when(applicationsService.getUserApplicationOwnerRequests()).thenReturn((List.of(req)));
+        when(applicationsService.isUserAuthorizedFor("app-1")).thenReturn(true);
 
         TopicController controller = new TopicController(validatingService, kafkaClusters, applicationsService,
                 namingService);
