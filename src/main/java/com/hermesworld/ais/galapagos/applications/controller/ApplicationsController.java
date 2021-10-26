@@ -95,9 +95,9 @@ public class ApplicationsController {
 
     @GetMapping(value = "/api/registered-applications/{envId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public List<KnownApplicationDto> getRegisteredApplications(@PathVariable String envId) {
-        return applicationsService.getAllApplicationMetadata(envId).stream().map(ApplicationMetadata::getApplicationId)
-                .map(id -> toKnownAppDto(applicationsService.getKnownApplication(id)
-                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND))))
+        return applicationsService.getAllApplicationMetadata(envId).stream()
+                .map(app -> toKnownAppDto(applicationsService.getKnownApplication(app.getApplicationId()).orElse(null)))
+                .filter(app -> app != null)
                 .collect(Collectors.toList());
     }
 
@@ -339,6 +339,9 @@ public class ApplicationsController {
     }
 
     private KnownApplicationDto toKnownAppDto(KnownApplication app) {
+        if (app == null) {
+            return null;
+        }
         return new KnownApplicationDto(app.getId(), app.getName(),
                 app.getInfoUrl() == null ? null : app.getInfoUrl().toString(), toCapDtos(app.getBusinessCapabilities()),
                 new ArrayList<>(app.getAliases()));
