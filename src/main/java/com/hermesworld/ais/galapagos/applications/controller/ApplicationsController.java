@@ -97,8 +97,7 @@ public class ApplicationsController {
     public List<KnownApplicationDto> getRegisteredApplications(@PathVariable String envId) {
         return applicationsService.getAllApplicationMetadata(envId).stream()
                 .map(app -> toKnownAppDto(applicationsService.getKnownApplication(app.getApplicationId()).orElse(null)))
-                .filter(app -> app != null)
-                .collect(Collectors.toList());
+                .filter(app -> app != null).collect(Collectors.toList());
     }
 
     @GetMapping(value = "/api/admin/requests", produces = MediaType.APPLICATION_JSON_VALUE)
