@@ -236,7 +236,7 @@ export class ApplicationsComponent implements OnInit {
                     () => this.toasts.addSuccessToast('Zertifikat erfolgreich erstellt (bitte Browser-Downloads beachten)'),
                     (err: HttpErrorResponse) => this.toasts.addHttpErrorToast('Zertifikat konnte nicht erstellt werden', err)
                 )
-                .then(() => this.certificateService.getApplicationCertificates(appId, this.certificateDlgData.environment.id).refresh());
+                .then(() => this.certificateService.getApplicationCertificates(appId).refresh());
         }
     }
 
@@ -260,7 +260,7 @@ export class ApplicationsComponent implements OnInit {
             expiryWarningType: 'info',
             expiryWarningHtml: of('')
         };
-        this.certificateService.getApplicationCertificatesPromise(app.id, env.id).then(certs => {
+        this.certificateService.getApplicationCertificatesPromise(app.id).then(certs => {
             this.certificateDlgData.existingCertificate = certs.find(cert => cert.environmentId === env.id) || null;
             if (this.certificateDlgData.existingCertificate) {
                 const dn = this.certificateDlgData.existingCertificate.dn;

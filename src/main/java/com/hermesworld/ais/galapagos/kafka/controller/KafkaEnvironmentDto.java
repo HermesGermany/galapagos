@@ -17,8 +17,8 @@ public class KafkaEnvironmentDto {
 
     private final String authenticationMode;
 
-    public KafkaEnvironmentDto(String id, String name, String bootstrapServers, boolean production,
-            boolean stagingOnly, String authenticationMode) {
+    public KafkaEnvironmentDto(String id, String name, String bootstrapServers, boolean production, boolean stagingOnly,
+            String authenticationMode) {
         this.id = id;
         this.name = name;
         this.bootstrapServers = bootstrapServers;

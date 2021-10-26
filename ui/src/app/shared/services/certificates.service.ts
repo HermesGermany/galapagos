@@ -51,25 +51,25 @@ export class CertificateService {
     constructor(private http: HttpClient) {
     }
 
-    public getApplicationCertificates(applicationId: string, environmentId: string): ReplayContainer<ApplicationCertificate[]> {
+    public getApplicationCertificates(applicationId: string): ReplayContainer<ApplicationCertificate[]> {
         if (this.appCertificates[applicationId]) {
             return this.appCertificates[applicationId];
         }
 
         return this.appCertificates[applicationId] = new ReplayContainer<ApplicationCertificate[]>(() =>
-            this.http.get('/api/certificates/' + applicationId + '/' + environmentId).pipe(map(val => val as ApplicationCertificate[])));
+            this.http.get('/api/certificates/' + applicationId).pipe(map(val => val as ApplicationCertificate[])));
     }
 
     public getApplicationCn(applicationId: string): Promise<string> {
         return this.http.get('/api/util/common-name/' + applicationId).pipe(map(val => (val as any).cn)).toPromise();
     }
 
-    public getApplicationCertificatesPromise(applicationId: string, envId: string): Promise<ApplicationCertificate[]> {
-        return this.getApplicationCertificates(applicationId, envId).getObservable().pipe(take(1)).toPromise();
+    public getApplicationCertificatesPromise(applicationId: string): Promise<ApplicationCertificate[]> {
+        return this.getApplicationCertificates(applicationId).getObservable().pipe(take(1)).toPromise();
     }
 
-    public async requestAndDownloadApplicationCertificate(
-        applicationId: string, environmentId: string, csrData: string, extendCertificate: boolean): Promise<any> {
+    public async requestAndDownloadApplicationCertificate(applicationId: string, environmentId: string, csrData: string,
+                                                          extendCertificate: boolean): Promise<any> {
         let body;
         if (csrData) {
             body = JSON.stringify({

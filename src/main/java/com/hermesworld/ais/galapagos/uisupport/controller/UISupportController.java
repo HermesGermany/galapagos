@@ -188,21 +188,19 @@ public class UISupportController {
     }
 
     private boolean supportsEnvironmentDeveloperCertificate(String environmentId) {
-        return getCertificatesAuthenticationModuleForCurrentEnv(environmentId)
+        return getCertificatesAuthenticationModuleForEnv(environmentId)
                 .map(CertificatesAuthenticationModule::supportsDeveloperCertificates).orElse(false);
     }
 
-    private Optional<CertificatesAuthenticationModule> getCertificatesAuthenticationModuleForCurrentEnv(
-            String environmentId) {
-        CertificatesAuthenticationModule module = null;
-        KafkaAuthenticationModule authModule = kafkaClusters.getAuthenticationModule(environmentId)
-                .orElseThrow(() -> new NoSuchElementException("Unknown Kafka environment: " + environmentId));
+    private Optional<CertificatesAuthenticationModule> getCertificatesAuthenticationModuleForEnv(String environmentId) {
+        CertificatesAuthenticationModule certificateModule;
+        Optional<KafkaAuthenticationModule> authModule = kafkaClusters.getAuthenticationModule(environmentId);
 
-        if (authModule instanceof CertificatesAuthenticationModule) {
-            module = (CertificatesAuthenticationModule) authModule;
+        if (authModule.isPresent() && authModule.get() instanceof CertificatesAuthenticationModule) {
+            certificateModule = (CertificatesAuthenticationModule) authModule.get();
+            return Optional.of(certificateModule);
         }
-
-        return Optional.ofNullable(module);
+        return Optional.empty();
     }
 
     @GetMapping(value = "/api/util/common-name/{applicationId}", produces = MediaType.APPLICATION_JSON_VALUE)

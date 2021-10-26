@@ -212,9 +212,6 @@ public class CertificatesAuthenticationModule implements KafkaAuthenticationModu
     }
 
     public static String getDnFromJson(JSONObject authData) {
-        if (authData.has(DN)) {
-            return authData.getString(DN);
-        }
-        return null;
+        return authData.optString(DN);
     }
 }

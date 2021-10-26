@@ -146,21 +146,12 @@ public class ApplicationsController {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 
-    @GetMapping(value = "/api/certificates/{applicationId}/{environmentId}")
-    public List<ApplicationCertificateDto> getApplicationCertificates(@PathVariable String applicationId,
-            @PathVariable String environmentId) {
-        kafkaClusters.getEnvironment(environmentId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-
-        KafkaEnvironmentConfig metadata = kafkaClusters.getEnvironmentMetadata(environmentId).orElseThrow();
-        if ("ccloud".equals(metadata.getAuthenticationMode())) {
-            throw new IllegalStateException(
-                    "Environment " + environmentId + " does not use API Keys for authentication.");
-        }
+    @GetMapping(value = "/api/certificates/{applicationId}")
+    public List<ApplicationCertificateDto> getApplicationCertificates(@PathVariable String applicationId) {
         return kafkaClusters.getEnvironmentsMetadata().stream()
                 .map(env -> applicationsService.getApplicationMetadata(env.getId(), applicationId)
                         .map(meta -> toAppCertDto(env.getId(), meta)).orElse(null))
-                .filter(Objects::nonNull).collect(Collectors.toList());
+                .filter(dto -> dto != null).collect(Collectors.toList());
     }
 
     @PostMapping(value = "/api/certificates/{applicationId}/{environmentId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)

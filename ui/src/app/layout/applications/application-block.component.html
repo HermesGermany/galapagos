@@ -116,7 +116,7 @@
                         </table>
                     </ng-template>
                 </ngb-panel>
-                <ngb-panel [id]="authenticationMode === 'ccloud' ? '_panel_apiKey' :'_panel_certificate'">
+                <ngb-panel [id]="'_panel_authentication'">
                     <ng-template ngbPanelTitle>
                         <ng-container [ngSwitch]="authenticationMode">
                             <span *ngSwitchCase="'certificates'"><i

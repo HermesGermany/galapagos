@@ -54,8 +54,6 @@ export class ApplicationBlockComponent implements OnChanges {
 
     expiryDateString: Observable<string>;
 
-    private applicationCertificates: ReplayContainer<ApplicationCertificate[]>;
-
     constructor(private apiKeyService: ApiKeyService, public environmentsService: EnvironmentsService,
                 private certificateService: CertificateService, private translateService: TranslateService) {
     }
@@ -68,8 +66,8 @@ export class ApplicationBlockComponent implements OnChanges {
                 this.buildPrefixes(app);
 
                 if (this.authenticationMode === 'certificates') {
-                    this.applicationCertificates = this.certificateService.getApplicationCertificates(app.id, this.currentEnv.id);
-                    this.currentEnvApplicationCertificate = combineLatest([this.applicationCertificates.getObservable(),
+                    const applicationCertificates = this.certificateService.getApplicationCertificates(app.id);
+                    this.currentEnvApplicationCertificate = combineLatest([applicationCertificates.getObservable(),
                         this.environmentsService.getCurrentEnvironment()]).pipe(map(
                         ([certs, env]) => certs.find(cert => cert.environmentId === env.id)));
                     const currentLang = this.translateService.onLangChange.pipe(map(evt => evt.lang))

@@ -95,7 +95,7 @@ export class CreateTopicComponent implements OnInit {
         } else {
             try {
                 const env = await this.selectedEnvironment.pipe(take(1)).toPromise();
-                const certificates = await this.certificateService.getApplicationCertificatesPromise(this.selectedApplication.id, env.id);
+                const certificates = await this.certificateService.getApplicationCertificatesPromise(this.selectedApplication.id);
 
                 this.showRegistrationWarning = !certificates.find(c => c.environmentId === env.id);
             } catch (e) {
