@@ -69,7 +69,7 @@ export class CertificateService {
     }
 
     public async requestAndDownloadApplicationCertificate(applicationId: string, environmentId: string, csrData: string,
-                                                          extendCertificate: boolean): Promise<any> {
+        extendCertificate: boolean): Promise<any> {
         let body;
         if (csrData) {
             body = JSON.stringify({

@@ -59,7 +59,7 @@ export class UserSettingsComponent implements OnInit {
 
         this.certificateService.getDeveloperCertificateInfo(this.selectedEnvironment.id)
             .pipe(take(1)).toPromise().then(val => this.existingCertificateInfo.next(val), err => {
-        });
+            });
     }
 
     async generateCertificate() {
