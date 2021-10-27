@@ -21,6 +21,7 @@ import { SimpleChange } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { ApiKeyService } from '../../shared/services/apikey.service';
 import { ReplayContainer } from '../../shared/services/services-common';
+import { CertificateService } from '../../shared/services/certificates.service';
 
 describe('ApplicationBlockComponent', () => {
 
@@ -48,6 +49,7 @@ describe('ApplicationBlockComponent', () => {
                 EnvironmentsService,
                 ApplicationsService,
                 ApiKeyService,
+                CertificateService,
                 ServerInfoService,
                 ToastService,
                 TranslateService,
@@ -112,7 +114,8 @@ describe('ApplicationBlockComponent', () => {
                 name: 'prod',
                 bootstrapServers: 'myBootstrapServers',
                 production: true,
-                stagingOnly: true
+                stagingOnly: true,
+                authenticationMode: 'ccloud'
             }));
 
         component.application = app;
@@ -168,7 +171,7 @@ describe('ApplicationBlockComponent', () => {
         fixture.detectChanges();
 
         const accordion = fixture.debugElement.query(By.directive(NgbAccordion)).componentInstance;
-        accordion.expand('_panel_apiKey');
+        accordion.expand('_panel_authentication');
         const debugElement = fixture.debugElement;
 
         expect(debugElement.query(By.css('#apiKey'))).toBeTruthy();
