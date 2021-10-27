@@ -1,8 +1,6 @@
 package com.hermesworld.ais.galapagos.topics.controller;
 
-import com.hermesworld.ais.galapagos.applications.ApplicationOwnerRequest;
 import com.hermesworld.ais.galapagos.applications.ApplicationsService;
-import com.hermesworld.ais.galapagos.applications.RequestState;
 import com.hermesworld.ais.galapagos.events.GalapagosEventManagerMock;
 import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
@@ -14,8 +12,6 @@ import com.hermesworld.ais.galapagos.topics.TopicMetadata;
 import com.hermesworld.ais.galapagos.topics.TopicType;
 import com.hermesworld.ais.galapagos.topics.config.GalapagosTopicConfig;
 import com.hermesworld.ais.galapagos.topics.service.ValidatingTopicService;
-import com.hermesworld.ais.galapagos.topics.service.impl.TopicServiceImpl;
-import com.hermesworld.ais.galapagos.topics.service.impl.ValidatingTopicServiceImpl;
 import com.hermesworld.ais.galapagos.util.FutureUtil;
 import org.junit.Before;
 import org.junit.Test;
@@ -28,7 +24,8 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.*;
 
 public class TopicControllerTest {
@@ -71,63 +68,49 @@ public class TopicControllerTest {
     }
 
     @Test
-    public void testDontResetDeprecationWhenTopicDescChanges() throws Exception {
-        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
-                topicConfig, eventManager);
-        ValidatingTopicServiceImpl validatingService = new ValidatingTopicServiceImpl(service, subscriptionService,
-                applicationsService, kafkaClusters, topicConfig, false);
-
-        UpdateTopicDto dto = new UpdateTopicDto(null, null, "updated description goes here", true);
-
+    @DisplayName("it should not change the deprecation if topic description is changed")
+    public void testDontResetDeprecationWhenTopicDescChanges() {
         TopicMetadata topic = new TopicMetadata();
         topic.setName("topic-1");
         topic.setDeprecated(true);
         topic.setEolDate(LocalDate.of(2299, 12, 4));
         topic.setDescription("this topic is not a nice one :(");
-        topic.setOwnerApplicationId("app-1");
-        topic.setType(TopicType.EVENTS);
-        topicRepository.save(topic).get();
 
-        ApplicationOwnerRequest req = new ApplicationOwnerRequest();
-        req.setApplicationId("app-1");
-        req.setState(RequestState.APPROVED);
+        ValidatingTopicService topicService = mock(ValidatingTopicService.class);
+        when(topicService.getTopic("test", "topic-1")).thenReturn(Optional.of(topic));
+        UpdateTopicDto dto = new UpdateTopicDto(null, null, "updated description goes here", true);
 
-        when(applicationsService.getUserApplicationOwnerRequests()).thenReturn((List.of(req)));
-
-        TopicController controller = new TopicController(validatingService, kafkaClusters, applicationsService,
+        when(topicService.updateTopicDescription("test", "topic-1", "updated description goes here"))
+                .thenReturn(FutureUtil.noop());
+        TopicController controller = new TopicController(topicService, kafkaClusters, applicationsService,
                 namingService);
 
         controller.updateTopic("test", "topic-1", dto);
-        TopicMetadata savedTopic = topicRepository.getObject("topic-1").get();
-
-        assertTrue(savedTopic.isDeprecated());
+        verify(topicService, times(1)).updateTopicDescription("test", "topic-1", "updated description goes here");
+        verify(topicService, times(0)).unmarkTopicDeprecated(anyString());
     }
 
     @Test
     @DisplayName("it should change the owner if current user is authorized")
     public void testChangeTopicOwner_positive() throws Exception {
-        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
-                topicConfig, eventManager);
-        ValidatingTopicServiceImpl validatingService = new ValidatingTopicServiceImpl(service, subscriptionService,
-                applicationsService, kafkaClusters, topicConfig, false);
-
         TopicMetadata topic = new TopicMetadata();
         topic.setName("topic-1");
         topic.setOwnerApplicationId("app-1");
-        topic.setType(TopicType.EVENTS);
-        topicRepository.save(topic).get();
+
+        ValidatingTopicService topicService = mock(ValidatingTopicService.class);
+        when(topicService.getTopic("test", "topic-1")).thenReturn(Optional.of(topic));
 
         when(applicationsService.isUserAuthorizedFor("app-1")).thenReturn(true);
 
-        TopicController controller = new TopicController(validatingService, kafkaClusters, applicationsService,
+        TopicController controller = new TopicController(topicService, kafkaClusters, applicationsService,
                 namingService);
+        when(topicService.changeTopicOwner("test", "topic-1", "producer1")).thenReturn(FutureUtil.noop());
 
         ChangeTopicOwnerDto dto = new ChangeTopicOwnerDto();
         dto.setProducerApplicationId("producer1");
         controller.changeTopicOwner("test", "topic-1", dto);
-        TopicMetadata savedTopic = topicRepository.getObject("topic-1").get();
 
-        assertEquals("producer1", savedTopic.getOwnerApplicationId());
+        verify(topicService, times(1)).changeTopicOwner("test", "topic-1", "producer1");
     }
 
     @Test

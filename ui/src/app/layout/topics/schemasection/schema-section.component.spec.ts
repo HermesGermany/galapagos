@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { SchemaSectionComponent } from './schema-section.component';
 import { RouterModule } from '@angular/router';
-import { TopicsService } from '../../../shared/services/topics.service';
+import { Topic, TopicsService } from '../../../shared/services/topics.service';
 import { EnvironmentsService } from '../../../shared/services/environments.service';
 import { ApplicationsService } from '../../../shared/services/applications.service';
 import { CertificateService } from '../../../shared/services/certificates.service';
@@ -24,11 +24,7 @@ import { SpinnerWhileModule } from '../../../shared/modules/spinner-while/spinne
 describe('SchemaSectionComponent', () => {
     let component: SchemaSectionComponent;
     let fixture: ComponentFixture<SchemaSectionComponent>;
-    let topic: {
-        eolDate: string; environmentId: string; subscriptionApprovalRequired: boolean; createdTimestamp: string; deprecated: boolean;
-        name: string; ownerApplication: { aliases: string[]; name: string; id: string };
-        deletable: boolean; description: string; deprecationText: string; topicType: string;
-    };
+    let topic: Topic;
 
     beforeEach((() => {
         TestBed.configureTestingModule({
@@ -89,7 +85,10 @@ describe('SchemaSectionComponent', () => {
 
             subscriptionApprovalRequired: false,
 
-            deletable: false
+            deletable: false,
+
+            producers: []
+
         };
         component.topic = topic;
         fixture.detectChanges();
@@ -225,7 +224,8 @@ describe('SchemaSectionComponent', () => {
             name: 'prod',
             bootstrapServers: 'myBootstrapServers',
             production: true,
-            stagingOnly: true
+            stagingOnly: true,
+            authenticationMode: 'ccloud'
         });
 
         component.editSchemaMode = false;
@@ -281,7 +281,8 @@ describe('SchemaSectionComponent', () => {
             name: 'devtest',
             bootstrapServers: 'myBootstrapServers',
             production: false,
-            stagingOnly: false
+            stagingOnly: false,
+            authenticationMode: 'ccloud'
         });
 
         component.topicSubscribers = [];

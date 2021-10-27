@@ -18,6 +18,7 @@ import { ApplicationsComponent } from './applications.component';
 import { SpinnerWhileModule } from '../../shared/modules/spinner-while/spinner-while.module';
 import { of } from 'rxjs';
 import { ApiKeyService } from '../../shared/services/apikey.service';
+import { CertificateService } from '../../shared/services/certificates.service';
 
 describe('ApplicationsComponent', () => {
 
@@ -46,6 +47,7 @@ describe('ApplicationsComponent', () => {
                 EnvironmentsService,
                 ApplicationsService,
                 ApiKeyService,
+                CertificateService,
                 ServerInfoService,
                 ToastService,
                 TranslateService,

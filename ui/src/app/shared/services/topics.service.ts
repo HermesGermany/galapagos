@@ -301,12 +301,12 @@ export class TopicsService {
         });
 
         return this.http.put('/api/applications/' + applicationId + '/subscriptions/' + environmentId, body, { headers: jsonHeader() })
-            .pipe(take(1)).toPromise();
+            .pipe(take(1)).toPromise().then(() => this.topicsList.refresh());
     }
 
     public unsubscribeFromTopic(environmentId: string, applicationId: string, subscriptionId: string): Promise<any> {
         return this.http.delete('/api/applications/' + applicationId + '/subscriptions/' + environmentId + '/' + subscriptionId)
-            .toPromise();
+            .toPromise().then(() => this.topicsList.refresh());
     }
 
     public updateTopicSubscription(environmentId: string, topicName: string, subscriptionId: string, approved: boolean): Promise<any> {
