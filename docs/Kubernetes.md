@@ -1,7 +1,7 @@
 # Galapagos on Kubernetes
 
 For production use, it is recommended to run Galapagos on **Kubernetes**. You should use one of the official Docker
-images available at [DockerHub](https://hub.docker.com/r/hermesgermany/galapagos/tags).
+images available at [DockerHub](https://hub.docker.com/r/hermesgermany/galapagos/tags?ordering=name).
 
 Usually, you would setup the following elements in Kubernetes for running Galapagos:
 
