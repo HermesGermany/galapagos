@@ -141,12 +141,12 @@ galapagos.kafka.environments[1].id=prod
 galapagos.kafka.environments[1].name=PROD
 galapagos.kafka.environments[1].bootstrap-servers=pkc-12345.europe-west1.gcp.confluent.cloud:9092
 galapagos.kafka.environments[1].authenticationMode=ccloud
-galapagos.kafka.environments[0].ccloud.cloudUserName=galapagos@my.company.tld.domain
-galapagos.kafka.environments[0].ccloud.cloudPassword=TopSecret123
-galapagos.kafka.environments[0].ccloud.environmentId=env-abc123
-galapagos.kafka.environments[0].ccloud.clusterId=lkc-12345
-galapagos.kafka.environments[0].ccloud.clusterApiKey=ABCDEFGHI123456
-galapagos.kafka.environments[0].ccloud.clusterApiSecret=TopSecret999!@MuchMoreSecrets
+galapagos.kafka.environments[1].ccloud.cloudUserName=galapagos@my.company.tld.domain
+galapagos.kafka.environments[1].ccloud.cloudPassword=TopSecret123
+galapagos.kafka.environments[1].ccloud.environmentId=env-abc123
+galapagos.kafka.environments[1].ccloud.clusterId=lkc-12345
+galapagos.kafka.environments[1].ccloud.clusterApiKey=ABCDEFGHI123456
+galapagos.kafka.environments[1].ccloud.clusterApiSecret=TopSecret999!@MuchMoreSecrets
 galapagos.kafka.environments[1].stagingOnly=true
 
 # The "prod" environment is used for storing cross-cluster metadata, e.g. application owner requests.
