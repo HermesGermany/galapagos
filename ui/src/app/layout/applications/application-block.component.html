@@ -3,13 +3,14 @@
         <i class="far fa-window-maximize mr-2"></i>{{ application.name }}
     </div>
     <div class="card-body">
-        <div *ngIf="authenticationMode === 'ccloud' && (currentEnvApplicationApiKey | async) == null">
+        <div *ngIf="authenticationMode === 'ccloud' && (currentEnvApplicationApiKey | async) === null">
             <i>{{ 'NO_API_KEY_FOR_APP' | translate }}&#32;
                 <a [routerLink]=""
                    (click)="openApiKeyDialog.emit({ application: application, environment: env });">{{ 'Create Api Key now' | translate }}</a>
             </i>
         </div>
-        <div *ngIf="authenticationMode === 'certificates' && (currentEnvApplicationCertificate | async) == null">
+        <div
+            *ngIf="authenticationMode === 'certificates' && (currentEnvApplicationCertificate | async) === undefined">
             <i>{{ 'NO_CERTIFICATE_FOR_APP' | translate }}&#32;
                 <a [routerLink]=""
                    (click)="openCertificateDialog.emit({ application: application, environment: env });">{{ 'Generate new Certificate' | translate }}</a>
