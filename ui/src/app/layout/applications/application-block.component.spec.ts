@@ -118,6 +118,7 @@ describe('ApplicationBlockComponent', () => {
                 authenticationMode: 'ccloud'
             }));
 
+        component.authenticationMode = 'ccloud';
         component.application = app;
 
         component.ngOnChanges({
@@ -161,12 +162,23 @@ describe('ApplicationBlockComponent', () => {
         }));
 
         component.application = app;
+        component.authenticationMode = 'ccloud';
+        fixture.detectChanges();
 
         component.currentEnvApplicationApiKey = of({
             apiKey: 'myKey',
             issuedAt: 'some Day',
             userId: '1'
         });
+        component.apiKey = 'myKey';
+        component.currentEnv = {
+            id: 'test',
+            name: 'test',
+            bootstrapServers: 'test',
+            production: false,
+            stagingOnly: false,
+            authenticationMode: 'ccloud'
+        };
 
         fixture.detectChanges();
 

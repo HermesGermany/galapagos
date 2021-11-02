@@ -16,6 +16,7 @@ import { of } from 'rxjs';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterTestingModule } from '@angular/router/testing';
 import { ApiKeyService } from '../../shared/services/apikey.service';
+import { CertificateService } from '../../shared/services/certificates.service';
 
 describe('CreateTopicComponent', () => {
 
@@ -42,7 +43,8 @@ describe('CreateTopicComponent', () => {
                 ApiKeyService,
                 EnvironmentsService,
                 ApplicationsService,
-                ServerInfoService
+                ServerInfoService,
+                CertificateService
             ]
         }).compileComponents();
 
