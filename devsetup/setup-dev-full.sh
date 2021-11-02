@@ -211,7 +211,7 @@ createKafkaCluster () {
   echo ""
   echo ""
   
-  echo "galapagos.dev.${ENV_NAME}Environment.servers=$K8S_IP:$PORT" >> $SPRING_PROP_FILE
+  echo "params.${ENV_NAME}.bootstrapServer=$K8S_IP:$PORT" >> $SPRING_PROP_FILE
 }
 
 createKeycloak

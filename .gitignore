@@ -21,6 +21,7 @@ ui/node_modules
 /keycloak-local.json
 /application-local.properties
 /devsetup/kube-ip.conf
+devsetup/ccloud/
 /demo/kube-ip.conf
 /demo/.demofiles
 
