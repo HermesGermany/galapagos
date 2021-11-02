@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { TopicType } from '../../../shared/services/topics.service';
 import { KafkaEnvironment } from '../../../shared/services/environments.service';
 import * as moment from 'moment';
@@ -36,8 +36,6 @@ export interface TopicSettingsData {
     styleUrls: ['./data-settings.component.scss']
 })
 export class DataSettingsComponent {
-
-    @Output() setTopicSettings = new EventEmitter<TopicSettingsData>();
 
     @Input() topicType: TopicType;
 
@@ -119,7 +117,7 @@ export class DataSettingsComponent {
 
     }
 
-    prepareDataForParent(): Promise<any> {
+    prepareDataForParent(): TopicSettingsData {
         const initialSettings: TopicSettingsData = {
             subscriptionApprovalRequired: this.subscriptionApprovalRequired,
             cleanUpStrategy: this.selectedCleanUpStrategy,
@@ -129,7 +127,8 @@ export class DataSettingsComponent {
             messagesPerDay: this.selectedDataSliderValue,
             messagesSize: this.selectedSizeSliderValue
         };
-        return Promise.resolve(this.setTopicSettings.emit(initialSettings));
+
+        return initialSettings;
     }
 
     onUserChangeEndData(changeContext: ChangeContext) {

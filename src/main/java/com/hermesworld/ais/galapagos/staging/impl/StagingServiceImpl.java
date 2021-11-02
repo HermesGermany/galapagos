@@ -1,8 +1,5 @@
 package com.hermesworld.ais.galapagos.staging.impl;
 
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-
 import com.hermesworld.ais.galapagos.applications.ApplicationsService;
 import com.hermesworld.ais.galapagos.changes.Change;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
@@ -15,16 +12,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+
 @Component
 public class StagingServiceImpl implements StagingService {
 
-    private KafkaClusters kafkaClusters;
+    private final KafkaClusters kafkaClusters;
 
-    private ApplicationsService applicationsService;
+    private final ApplicationsService applicationsService;
 
-    private TopicService topicService;
+    private final TopicService topicService;
 
-    private SubscriptionService subscriptionService;
+    private final SubscriptionService subscriptionService;
 
     @Autowired
     public StagingServiceImpl(KafkaClusters kafkaClusters, ApplicationsService applicationsService,
@@ -54,7 +54,7 @@ public class StagingServiceImpl implements StagingService {
 
         if (applicationsService.getApplicationMetadata(targetEnvironmentId, applicationId).isEmpty()) {
             return CompletableFuture.failedFuture(new IllegalStateException(
-                    "Please create a certificate for the application on the target environment first"));
+                    "Please create a API Key for the application on the target environment first"));
         }
 
         return StagingImpl.build(applicationId, environmentIdFrom, targetEnvironmentId, changesFilter, topicService,

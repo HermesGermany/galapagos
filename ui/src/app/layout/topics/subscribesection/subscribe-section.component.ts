@@ -4,8 +4,8 @@ import { Topic, TopicsService } from '../../../shared/services/topics.service';
 import { EnvironmentsService, KafkaEnvironment } from '../../../shared/services/environments.service';
 import { take } from 'rxjs/operators';
 import { UserApplicationInfo } from '../../../shared/services/applications.service';
-import { CertificateService } from '../../../shared/services/certificates.service';
 import { Observable } from 'rxjs';
+import { ApiKeyService } from '../../../shared/services/apikey.service';
 
 @Component({
     selector: 'app-subscription-section',
@@ -35,7 +35,7 @@ export class SubscriptionSectionComponent implements OnInit {
         private topicService: TopicsService,
         private environmentsService: EnvironmentsService,
         private toasts: ToastService,
-        private certificateService: CertificateService
+        private apiKeyService: ApiKeyService
     ) {
 
     }
@@ -44,16 +44,16 @@ export class SubscriptionSectionComponent implements OnInit {
         this.selectedEnvironment = this.environmentsService.getCurrentEnvironment();
     }
 
-    async checkApplicationCertificate() {
+    async checkApplicationApiKey() {
         if (!this.selectedApplication || !this.selectedEnvironment) {
             return;
         }
         try {
-            const certificates = await this.certificateService.getApplicationCertificatesPromise(this.selectedApplication.id);
             const env = await this.selectedEnvironment.pipe(take(1)).toPromise();
-            this.showRegistrationWarning = !certificates.find(c => c.environmentId === env.id);
+            const apikey = await this.apiKeyService.getApplicationApiKeysPromise(this.selectedApplication.id);
+            this.showRegistrationWarning = !apikey.authentications[env.id];
         } catch (e) {
-            this.toasts.addHttpErrorToast('Could not check for application certificates', e);
+            this.toasts.addHttpErrorToast('Could not check for application API Key', e);
         }
     }
 

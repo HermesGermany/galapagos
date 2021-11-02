@@ -1,6 +1,12 @@
 package com.hermesworld.ais.galapagos.certificates.impl;
 
-import java.io.File;
+import com.hermesworld.ais.galapagos.certificates.auth.CertificatesAuthenticationConfig;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.util.StreamUtils;
+
 import java.nio.charset.StandardCharsets;
 import java.security.Security;
 import java.security.cert.CertificateException;
@@ -8,30 +14,22 @@ import java.security.cert.CertificateParsingException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
-import com.hermesworld.ais.galapagos.certificates.CertificateSignResult;
-import com.hermesworld.ais.galapagos.kafka.config.KafkaEnvironmentConfig;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import static org.junit.Assert.*;
-import org.junit.Before;
-import org.junit.Test;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.util.StreamUtils;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class CaManagerImplTest {
 
-    private String testAppId;
-    private String testAppName;
-    private File f;
+    private final static String testAppId = "four";
 
-    @Before
+    private final static String testAppName = "Quattro";
+
+    private final static String workdir = "target/temp-certificates";
+
+    private CertificatesAuthenticationConfig authConfig;
+
+    @BeforeEach
     public void init() {
         Security.addProvider(new BouncyCastleProvider());
-        testAppId = "four";
-        testAppName = "Quattro";
-        f = new File("target/temp-certificates");
-        f.mkdirs();
+        authConfig = mockAuthConfig();
     }
 
     @Test
@@ -39,8 +37,8 @@ public class CaManagerImplTest {
         String testCsrData = StreamUtils.copyToString(
                 new ClassPathResource("/certificates/test_quattroValidCn.csr").getInputStream(),
                 StandardCharsets.UTF_8);
-        KafkaEnvironmentConfig testKafkaEnvConfig = mockKafkaEnvironmentConfig("CN=KafkaAdmin");
-        CaManagerImpl testCaManagerImpl = new CaManagerImpl(testKafkaEnvConfig, f);
+
+        CaManagerImpl testCaManagerImpl = new CaManagerImpl("test", authConfig);
         CompletableFuture<CertificateSignResult> future = testCaManagerImpl
                 .createApplicationCertificateFromCsr(testAppId, testCsrData, testAppName);
         CertificateSignResult result = future.get();
@@ -55,8 +53,7 @@ public class CaManagerImplTest {
                 new ClassPathResource("/certificates/test_quattroInvalidCn.csr").getInputStream(),
                 StandardCharsets.UTF_8);
 
-        KafkaEnvironmentConfig testKafkaEnvConfig = mockKafkaEnvironmentConfig("CN=KafkaAdmin");
-        CaManagerImpl testCaManagerImpl = new CaManagerImpl(testKafkaEnvConfig, f);
+        CaManagerImpl testCaManagerImpl = new CaManagerImpl("test", authConfig);
         try {
             testCaManagerImpl.createApplicationCertificateFromCsr(testAppId, testCsrData, testAppName).get();
             fail("Expected exception has not been thrown");
@@ -72,8 +69,7 @@ public class CaManagerImplTest {
                 new ClassPathResource("/certificates/test_quattroInvalidAppId.csr").getInputStream(),
                 StandardCharsets.UTF_8);
 
-        KafkaEnvironmentConfig testKafkaEnvConfig = mockKafkaEnvironmentConfig("CN=KafkaAdmin");
-        CaManagerImpl testCaManagerImpl = new CaManagerImpl(testKafkaEnvConfig, f);
+        CaManagerImpl testCaManagerImpl = new CaManagerImpl("test", authConfig);
         try {
             testCaManagerImpl.createApplicationCertificateFromCsr(testAppId, testCsrData, testAppName).get();
             fail("Expected exception has not been thrown");
@@ -85,8 +81,7 @@ public class CaManagerImplTest {
 
     @Test
     public void testCreateApplicationFromInvalidCsr() throws Exception {
-        KafkaEnvironmentConfig testKafkaEnvConfig = mockKafkaEnvironmentConfig("CN=KafkaAdmin");
-        CaManagerImpl testCaManagerImpl = new CaManagerImpl(testKafkaEnvConfig, f);
+        CaManagerImpl testCaManagerImpl = new CaManagerImpl("test", authConfig);
         try {
             testCaManagerImpl.createApplicationCertificateFromCsr(testAppId, "testCsrData", testAppName).get();
             fail("Expected exception has not been thrown");
@@ -98,8 +93,7 @@ public class CaManagerImplTest {
 
     @Test
     public void testExtendCertificate() throws Exception {
-        KafkaEnvironmentConfig testKafkaEnvConfig = mockKafkaEnvironmentConfig("CN=KafkaAdmin");
-        CaManagerImpl testCaManagerImpl = new CaManagerImpl(testKafkaEnvConfig, f);
+        CaManagerImpl testCaManagerImpl = new CaManagerImpl("test", authConfig);
 
         String testCsrData = StreamUtils.copyToString(
                 new ClassPathResource("/certificates/test_quattroExtend.csr").getInputStream(), StandardCharsets.UTF_8);
@@ -115,8 +109,7 @@ public class CaManagerImplTest {
 
     @Test
     public void testExtendCertificate_wrongDn() throws Exception {
-        KafkaEnvironmentConfig testKafkaEnvConfig = mockKafkaEnvironmentConfig("CN=KafkaAdmin");
-        CaManagerImpl testCaManagerImpl = new CaManagerImpl(testKafkaEnvConfig, f);
+        CaManagerImpl testCaManagerImpl = new CaManagerImpl("test", authConfig);
 
         String testCsrData = StreamUtils.copyToString(
                 new ClassPathResource("/certificates/test_quattroExtend.csr").getInputStream(), StandardCharsets.UTF_8);
@@ -129,13 +122,14 @@ public class CaManagerImplTest {
         }
     }
 
-    private KafkaEnvironmentConfig mockKafkaEnvironmentConfig(String clientDn) {
-        KafkaEnvironmentConfig testKafkaEnvConfig = mock(KafkaEnvironmentConfig.class);
-        when(testKafkaEnvConfig.getCaCertificateFile()).thenReturn(new ClassPathResource("/certificates/ca.cer"));
-        when(testKafkaEnvConfig.getCaKeyFile()).thenReturn(new ClassPathResource("/certificates/ca.key"));
-        when(testKafkaEnvConfig.getClientDn()).thenReturn(clientDn);
-        when(testKafkaEnvConfig.getId()).thenReturn("test");
-        return testKafkaEnvConfig;
+    private CertificatesAuthenticationConfig mockAuthConfig() {
+        CertificatesAuthenticationConfig config = new CertificatesAuthenticationConfig();
+        config.setClientDn("CN=KafkaAdmin");
+        config.setCaCertificateFile(new ClassPathResource("/certificates/ca.cer"));
+        config.setCaKeyFile(new ClassPathResource("/certificates/ca.key"));
+        config.setCertificatesWorkdir(workdir);
+
+        return config;
     }
 
 }

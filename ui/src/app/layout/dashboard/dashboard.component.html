@@ -74,10 +74,14 @@
                 </div>
                 <div class="card-body">
                     <div>
-                        <a class="quicklink" href="/files/truststore">
-                            <span class="link-icon"><i class="fa fa-award"></i> </span>
-                            <span class="link-text">{{ 'Download Kafka Truststore (for all environments)' | translate }}</span>
-                        </a><br /><br />
+                        <div *ngIf="(selectedEnvironment|async)?.authenticationMode === 'certificates'">
+                            <a class="quicklink"
+                               href="/files/truststore/{{(selectedEnvironment|async).id}}">
+                                <span class="link-icon"><i class="fa fa-award"></i> </span>
+                                <span
+                                    class="link-text">{{ 'Download Kafka Truststore (for all environments)' | translate }}</span>
+                            </a><br/><br/>
+                        </div>
                         <div *ngFor="let link of customLinks | async">
                             <a class="quicklink" [href]="link.href">
                             <span class="link-icon"><i class="fa"

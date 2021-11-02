@@ -2,24 +2,31 @@ package com.hermesworld.ais.galapagos.adminjobs.impl;
 
 import com.hermesworld.ais.galapagos.applications.ApplicationMetadata;
 import com.hermesworld.ais.galapagos.applications.impl.UpdateApplicationAclsListener;
-import com.hermesworld.ais.galapagos.certificates.CaManager;
-import com.hermesworld.ais.galapagos.certificates.CertificateSignResult;
+import com.hermesworld.ais.galapagos.certificates.auth.CertificatesAuthenticationConfig;
+import com.hermesworld.ais.galapagos.certificates.auth.CertificatesAuthenticationModule;
 import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.kafka.KafkaUser;
+import com.hermesworld.ais.galapagos.kafka.auth.KafkaAuthenticationModule;
 import com.hermesworld.ais.galapagos.kafka.config.KafkaEnvironmentConfig;
+import com.hermesworld.ais.galapagos.kafka.config.KafkaEnvironmentsConfig;
 import com.hermesworld.ais.galapagos.naming.ApplicationPrefixes;
 import com.hermesworld.ais.galapagos.naming.NamingService;
+import com.hermesworld.ais.galapagos.util.CertificateUtil;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.boot.ApplicationArguments;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.util.StreamUtils;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.PrintStream;
+import java.io.*;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.Security;
+import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -33,11 +40,11 @@ public class GenerateToolingCertificateJobTest {
 
     private KafkaClusters kafkaClusters;
 
+    private KafkaEnvironmentsConfig kafkaConfig;
+
     private NamingService namingService;
 
     private UpdateApplicationAclsListener aclListener;
-
-    private final byte[] testData = { 17, 12, 99, 42, 23 };
 
     private final File testFile = new File("target/test.p12");
 
@@ -48,23 +55,34 @@ public class GenerateToolingCertificateJobTest {
     private static final String DATA_MARKER = "CERTIFICATE DATA: ";
 
     @Before
-    public void feedMocks() {
+    public void feedMocks() throws Exception {
+        Security.setProperty("crypto.policy", "unlimited");
+        Security.addProvider(new BouncyCastleProvider());
+
         kafkaClusters = mock(KafkaClusters.class);
 
         KafkaCluster testCluster = mock(KafkaCluster.class);
         when(testCluster.getId()).thenReturn("test");
         when(testCluster.updateUserAcls(any())).thenReturn(CompletableFuture.completedFuture(null));
         when(kafkaClusters.getEnvironment("test")).thenReturn(Optional.of(testCluster));
+
         KafkaEnvironmentConfig config = mock(KafkaEnvironmentConfig.class);
+        when(config.getAuthenticationMode()).thenReturn("certificates");
         when(kafkaClusters.getEnvironmentMetadata("test")).thenReturn(Optional.of(config));
 
-        CaManager caMan = mock(CaManager.class);
-        when(kafkaClusters.getCaManager("test")).thenReturn(Optional.of(caMan));
+        CertificatesAuthenticationConfig certConfig = new CertificatesAuthenticationConfig();
+        certConfig.setApplicationCertificateValidity("P30D");
+        certConfig.setCaCertificateFile(new ClassPathResource("/certificates/ca.cer"));
+        certConfig.setCaKeyFile(new ClassPathResource("/certificates/ca.key"));
+        certConfig.setCertificatesWorkdir("target/certificates");
+        certConfig.setClientDn("cn=galapagos_test_user");
 
-        X509Certificate cert = mock(X509Certificate.class);
-        when(cert.getNotAfter()).thenReturn(new Date());
-        CertificateSignResult result = new CertificateSignResult(cert, "test", "cn=test", testData);
-        when(caMan.createToolingCertificateAndPrivateKey()).thenReturn(CompletableFuture.completedFuture(result));
+        KafkaAuthenticationModule authModule = new CertificatesAuthenticationModule("test", certConfig);
+        authModule.init().get();
+        when(kafkaClusters.getAuthenticationModule("test")).thenReturn(Optional.of(authModule));
+
+        kafkaConfig = mock(KafkaEnvironmentsConfig.class);
+        when(kafkaConfig.getMetadataTopicsPrefix()).thenReturn("galapagos.testing.");
 
         namingService = mock(NamingService.class);
 
@@ -74,7 +92,7 @@ public class GenerateToolingCertificateJobTest {
         when(testPrefixes.getConsumerGroupPrefixes()).thenReturn(List.of("galapagos."));
         when(namingService.getAllowedPrefixes(any())).thenReturn(testPrefixes);
 
-        aclListener = new UpdateApplicationAclsListener(null, null, null) {
+        aclListener = new UpdateApplicationAclsListener(kafkaClusters, null, null, null, kafkaConfig) {
             @Override
             public KafkaUser getApplicationUser(ApplicationMetadata metadata, String environmentId) {
                 return null;
@@ -96,8 +114,8 @@ public class GenerateToolingCertificateJobTest {
 
     @Test
     public void testStandard() throws Exception {
-        GenerateToolingCertificateJob job = new GenerateToolingCertificateJob(kafkaClusters, aclListener,
-                namingService);
+        GenerateToolingCertificateJob job = new GenerateToolingCertificateJob(kafkaClusters, aclListener, namingService,
+                kafkaConfig);
 
         ApplicationArguments args = mock(ApplicationArguments.class);
         when(args.getOptionValues("output.filename")).thenReturn(Collections.singletonList(testFile.getPath()));
@@ -107,7 +125,9 @@ public class GenerateToolingCertificateJobTest {
 
         FileInputStream fis = new FileInputStream(testFile);
         byte[] readData = StreamUtils.copyToByteArray(fis);
-        assertArrayEquals(testData, readData);
+
+        X509Certificate cert = extractCertificate(readData);
+        assertEquals("galapagos", CertificateUtil.extractCn(cert.getSubjectDN().getName()));
 
         // and no data on STDOUT
         assertFalse(stdoutData.toString().contains(DATA_MARKER));
@@ -115,8 +135,8 @@ public class GenerateToolingCertificateJobTest {
 
     @Test
     public void testDataOnStdout() throws Exception {
-        GenerateToolingCertificateJob job = new GenerateToolingCertificateJob(kafkaClusters, aclListener,
-                namingService);
+        GenerateToolingCertificateJob job = new GenerateToolingCertificateJob(kafkaClusters, aclListener, namingService,
+                kafkaConfig);
 
         ApplicationArguments args = mock(ApplicationArguments.class);
         when(args.getOptionValues("kafka.environment")).thenReturn(Collections.singletonList("test"));
@@ -136,7 +156,24 @@ public class GenerateToolingCertificateJobTest {
         }
 
         byte[] readData = Base64.getDecoder().decode(line);
-        assertArrayEquals(testData, readData);
+        X509Certificate cert = extractCertificate(readData);
+        assertEquals("galapagos", CertificateUtil.extractCn(cert.getSubjectDN().getName()));
+    }
+
+    private X509Certificate extractCertificate(byte[] p12Data)
+            throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException {
+        KeyStore p12 = KeyStore.getInstance("pkcs12");
+        p12.load(new ByteArrayInputStream(p12Data), "changeit".toCharArray());
+        Enumeration<String> e = p12.aliases();
+        X509Certificate cert = null;
+        while (e.hasMoreElements()) {
+            String alias = e.nextElement();
+            if (cert != null) {
+                throw new IllegalStateException("More than one certificate in .p12 data");
+            }
+            cert = (X509Certificate) p12.getCertificate(alias);
+        }
+        return cert;
     }
 
 }

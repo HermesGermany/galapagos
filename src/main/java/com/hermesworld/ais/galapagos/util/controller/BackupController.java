@@ -22,7 +22,7 @@ import org.springframework.web.server.ResponseStatusException;
 @Slf4j
 public class BackupController {
 
-    private KafkaClusters kafkaClusters;
+    private final KafkaClusters kafkaClusters;
 
     private final ObjectMapper objectMapper = JsonUtil.newObjectMapper();
 
@@ -31,7 +31,7 @@ public class BackupController {
         this.kafkaClusters = kafkaClusters;
     }
 
-    @GetMapping(value = "/api/admin/full-backup", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @GetMapping(value = "/api/admin/full-backup", produces = MediaType.APPLICATION_JSON_VALUE)
     @Secured("ROLE_ADMIN")
     public String createBackup() {
         JSONObject result = new JSONObject();
@@ -46,7 +46,7 @@ public class BackupController {
     private JSONObject backupEnvironment(KafkaCluster cluster) {
         JSONObject result = new JSONObject();
 
-        for (TopicBasedRepository backupTopic : cluster.getRepositories()) {
+        for (TopicBasedRepository<?> backupTopic : cluster.getRepositories()) {
             result.put(backupTopic.getTopicName(),
                     backupTopicData(cluster.getRepository(backupTopic.getTopicName(), backupTopic.getValueClass())));
         }

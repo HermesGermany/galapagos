@@ -1,11 +1,8 @@
 package com.hermesworld.ais.galapagos.devcerts.controller;
 
-import java.io.ByteArrayOutputStream;
-import java.security.cert.CertificateException;
-import java.util.Base64;
-import java.util.NoSuchElementException;
-import java.util.concurrent.ExecutionException;
-
+import com.hermesworld.ais.galapagos.devcerts.DevCertificateMetadata;
+import com.hermesworld.ais.galapagos.devcerts.DeveloperCertificateService;
+import com.hermesworld.ais.galapagos.security.CurrentUserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -15,17 +12,19 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.hermesworld.ais.galapagos.devcerts.DevCertificateMetadata;
-import com.hermesworld.ais.galapagos.devcerts.DeveloperCertificateService;
-import com.hermesworld.ais.galapagos.security.CurrentUserService;
+import java.io.ByteArrayOutputStream;
+import java.security.cert.CertificateException;
+import java.util.Base64;
+import java.util.NoSuchElementException;
+import java.util.concurrent.ExecutionException;
 
 @RestController
 @Slf4j
 public class DeveloperCertificateController {
 
-    private DeveloperCertificateService certificateService;
+    private final DeveloperCertificateService certificateService;
 
-    private CurrentUserService userService;
+    private final CurrentUserService userService;
 
     public DeveloperCertificateController(DeveloperCertificateService certificateService,
             CurrentUserService userService) {
@@ -37,18 +36,19 @@ public class DeveloperCertificateController {
     public DeveloperCertificateDto createDeveloperCertificate(@PathVariable String environmentId) {
         String userName = userService.getCurrentUserName()
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
+
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try {
             certificateService.createDeveloperCertificateForCurrentUser(environmentId, baos).get();
-            DeveloperCertificateDto result = new DeveloperCertificateDto(userName + "_" + environmentId + ".p12",
+            return new DeveloperCertificateDto(userName + "_" + environmentId + ".p12",
                     Base64.getEncoder().encodeToString(baos.toByteArray()));
-            return result;
         }
         catch (ExecutionException e) {
             throw handleExecutionException(e);
         }
         catch (InterruptedException e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
+            Thread.currentThread().interrupt();
+            return null;
         }
     }
 

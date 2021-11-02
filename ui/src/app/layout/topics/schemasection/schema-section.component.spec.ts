@@ -85,7 +85,10 @@ describe('SchemaSectionComponent', () => {
 
             subscriptionApprovalRequired: false,
 
-            deletable: false
+            deletable: false,
+
+            producers: []
+
         };
         component.topic = topic;
         fixture.detectChanges();
@@ -221,7 +224,8 @@ describe('SchemaSectionComponent', () => {
             name: 'prod',
             bootstrapServers: 'myBootstrapServers',
             production: true,
-            stagingOnly: true
+            stagingOnly: true,
+            authenticationMode: 'ccloud'
         });
 
         component.editSchemaMode = false;
@@ -277,7 +281,8 @@ describe('SchemaSectionComponent', () => {
             name: 'devtest',
             bootstrapServers: 'myBootstrapServers',
             production: false,
-            stagingOnly: false
+            stagingOnly: false,
+            authenticationMode: 'ccloud'
         });
 
         component.topicSubscribers = [];

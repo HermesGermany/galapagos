@@ -1,9 +1,5 @@
 package com.hermesworld.ais.galapagos.kafka.controller;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.kafka.config.KafkaEnvironmentConfig;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,10 +8,14 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
 @RestController
 public class EnvironmentsController {
 
-    private KafkaClusters kafkaEnvironments;
+    private final KafkaClusters kafkaEnvironments;
 
     @Autowired
     public EnvironmentsController(KafkaClusters kafkaEnvironments) {
@@ -41,7 +41,7 @@ public class EnvironmentsController {
     private KafkaEnvironmentDto toDto(KafkaEnvironmentConfig env) {
         boolean production = env.getId().equals(kafkaEnvironments.getProductionEnvironmentId());
         return new KafkaEnvironmentDto(env.getId(), env.getName(), env.getBootstrapServers(), production,
-                env.isStagingOnly());
+                env.isStagingOnly(), env.getAuthenticationMode());
     }
 
 }

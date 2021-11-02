@@ -6,7 +6,7 @@ import lombok.Getter;
 @Getter
 public class TopicEvent extends AbstractGalapagosEvent {
 
-    private TopicMetadata metadata;
+    private final TopicMetadata metadata;
 
     public TopicEvent(GalapagosEventContext context, TopicMetadata metadata) {
         super(context);

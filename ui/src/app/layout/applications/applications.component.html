@@ -3,8 +3,11 @@
     <hr/>
     <div class="row mb-4" *ngFor="let app of userApplications | async">
         <div class="col-md-12">
-            <app-application-block [application]="app"
-                                   (openCertificateDialog)="openCertDlg($event, certDlg)"></app-application-block>
+            <app-application-block [application]="app" [apiKey]="key"
+                                   [authenticationMode]="(currentEnv | async).authenticationMode"
+                                   [currentEnv]="currentEnv | async"
+                                   (openCertificateDialog)="openCertDlg($event, certDlg)"
+                                   (openApiKeyDialog)="openApiKeyDlg($event, keyDlg)"></app-application-block>
         </div>
     </div>
     <div *ngIf="(userApplications | async)?.length === 0">
@@ -94,6 +97,73 @@
     </div>
 </div>
 
+<ng-template #keyDlg let-keyDlg>
+    <div class="modal-header data-backdrop='static' data-keyboard='false'">
+        <h4 class="modal-title">{{ 'Generate API Key' | translate }}</h4>
+    </div>
+    <div class="modal-body">
+        <div class="alert alert-info mb-3">
+            <!--suppress TypeScriptUnresolvedVariable -->
+            {{ 'Application' | translate }}: {{ apiKeyDlgData.applicationName }}
+            , {{ 'Environment' | translate }}:
+            <b>{{ apiKeyDlgData.environment?.name }}</b>
+        </div>
+        <ul ngbNav #nav="ngbNav" [destroyOnHide]="false" class="nav-tabs">
+            <li [ngbNavItem]="'new'">
+                <a ngbNavLink>{{ 'Generate new API Key' | translate }}</a>
+                <ng-template ngbNavContent>
+                    <div class="alert alert-danger mb-4 mt-3" *ngIf="apiKeyDlgData.existingApiKey">
+                        <!--suppress TypeScriptUnresolvedVariable -->
+                        <span
+                            [innerHTML]="'API_KEY_ALREADY_EXISTS_WARNING_HTML' | translate:{ env: apiKeyDlgData.environment?.name }"></span>
+                    </div>
+                    <div>
+                        <button appSpinnerWhile #d="appSpinnerWhile" id="apikeyButton" type="button"
+                                class="btn btn-warning btn-lg mb-4 mt-2"
+                                (click)="d.while(generateApiKey())">
+                            <i class="fas fa-key"></i>&nbsp;{{ 'Generate API Key' | translate }}
+                        </button>
+                        <div *ngIf="apiKeyRequestError" class="alert alert-danger mb-4 mt-3">
+                            <span><b>{{'API_KEY_REQUEST_FAILED' | translate}}:</b>
+                                {{ apiKeyRequestError | json }}</span>
+                        </div>
+                    </div>
+                    <div *ngIf="showApiKeyTable">
+                        <ngb-alert [innerHTML]="'SAVE_KEY_WARNING' | translate" [dismissible]="false">
+                        </ngb-alert>
+                        <table class="table table-bordered table-sm">
+                            <tbody>
+                            <tr>
+                                <th scope="row"><i class="fas fa-key"></i>&nbsp;Key</th>
+                                <td>{{key}}</td>
+                                <button (click)="copyValue(key)"
+                                        class="btn btn-outline-secondary btn-sm ml-3 mt-1 mb-1"><i
+                                    class="fas fa-copy"></i>
+                                    <span class="ml-1" *ngIf="copiedKey"> {{ 'Copied!' | translate}}</span>
+                                </button>
+                            </tr>
+                            <tr>
+                                <th scope="row"><i class="fas fa-user-secret"></i>&nbsp;Secret</th>
+                                <td>{{secret}}</td>
+                                <button (click)="copyValue(secret)"
+                                        class="btn btn-outline-secondary btn-sm ml-3 mt-1 mb-1"><i
+                                    class="fas fa-copy"></i>
+                                    <span class="ml-1" *ngIf="copiedSecret"> {{ 'Copied!' | translate}}</span>
+                                </button>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </ng-template>
+            </li>
+        </ul>
+        <div [ngbNavOutlet]="nav" class="mt-2"></div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" ngbAutofocus class="btn btn-primary" (click)="handleDlgDismiss(); keyDlg.dismiss()"><i
+            class="fas fa-times"></i>&nbsp;{{ 'Close' | translate }}</button>
+    </div>
+</ng-template>
 <ng-template #certDlg let-dlg>
     <div class="modal-header">
         <h4 class="modal-title">{{ 'Generate Application Client Certificate' | translate }}</h4>
@@ -181,7 +251,8 @@
     <div class="modal-footer">
         <button id="certButton" type="button" class="btn btn-warning" (click)="generateCertificate(); dlg.dismiss()"
                 [disabled]="activeTab === 'new' ? (certificateCreationType === 'hasCsr' && !certificateDlgData.csrData)
-                || (certificateDlgData.environment?.production && certificateCreationType === 'noCsr' ) : !certificateDlgData.csrData">
+                || (certificateDlgData.environment?.production && certificateCreationType === 'noCsr' )
+                : !certificateDlgData.csrData">
             <i class="fas fa-cogs"></i>&nbsp;{{ 'Generate Client Certificate' | translate }}
         </button>
         <button type="button" ngbAutofocus class="btn btn-danger" (click)="dlg.dismiss()"><i

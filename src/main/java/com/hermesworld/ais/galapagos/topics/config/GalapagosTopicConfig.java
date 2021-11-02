@@ -1,11 +1,11 @@
 package com.hermesworld.ais.galapagos.topics.config;
 
-import java.time.Period;
-
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
+
+import java.time.Period;
 
 /**
  * Represents all (technical) configuration elements related to Topics. <br>
@@ -23,5 +23,9 @@ public class GalapagosTopicConfig {
     private int defaultPartitionCount;
 
     private Period minDeprecationTime;
+
+    private int standardReplicationFactor;
+
+    private int criticalReplicationFactor;
 
 }

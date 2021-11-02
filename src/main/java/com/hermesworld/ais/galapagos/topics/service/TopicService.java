@@ -115,4 +115,13 @@ public interface TopicService {
     CompletableFuture<List<ConsumerRecord<String, String>>> peekTopicData(String environmentId, String topicName,
             int limit);
 
+    @CheckReturnValue
+    CompletableFuture<Void> addTopicProducer(String environmentId, String topicName, String producerId);
+
+    @CheckReturnValue
+    CompletableFuture<Void> removeTopicProducer(String environmentId, String topicName, String producerId);
+
+    @CheckReturnValue
+    CompletableFuture<Void> changeTopicOwner(String environmentId, String topicName, String newApplicationOwnerId);
+
 }

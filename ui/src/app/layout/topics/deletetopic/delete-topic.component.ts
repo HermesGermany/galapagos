@@ -1,6 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { Topic, TopicsService } from '../../../shared/services/topics.service';
-import { EnvironmentsService } from '../../../shared/services/environments.service';
+import { EnvironmentsService, KafkaEnvironment } from '../../../shared/services/environments.service';
 import { ToastService } from '../../../shared/modules/toast/toast.service';
 import { take } from 'rxjs/operators';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
@@ -20,6 +20,8 @@ export class DeleteTopicComponent {
 
     @Input() translateParams: any = {};
 
+    @Input() selectedEnvironment: KafkaEnvironment;
+
     topicNameConfirmText = '';
 
     constructor(
@@ -36,6 +38,10 @@ export class DeleteTopicComponent {
         this.modalService.open(content, { ariaLabelledBy: 'modal-title', size: 'lg' });
     }
 
+    openAddProducerDlg(content: any) {
+        this.modalService.open(content, { ariaLabelledBy: 'modal-title', size: 'lg' });
+    }
+
     async deleteTopic(): Promise<any> {
         const environment = await this.environmentsService.getCurrentEnvironment().pipe(take(1)).toPromise();
 
@@ -46,5 +52,10 @@ export class DeleteTopicComponent {
             },
             err => this.toasts.addHttpErrorToast('Das Topic konnte nicht gelöscht werden', err)
         );
+    }
+
+    closeModal($event: any) {
+        this.modalService.dismissAll();
+
     }
 }

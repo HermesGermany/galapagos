@@ -1,13 +1,14 @@
 package com.hermesworld.ais.galapagos.events;
 
-import java.util.concurrent.CompletableFuture;
-
 import com.hermesworld.ais.galapagos.applications.ApplicationMetadata;
 import com.hermesworld.ais.galapagos.applications.ApplicationOwnerRequest;
 import com.hermesworld.ais.galapagos.kafka.TopicCreateParams;
 import com.hermesworld.ais.galapagos.subscriptions.SubscriptionMetadata;
 import com.hermesworld.ais.galapagos.topics.SchemaMetadata;
 import com.hermesworld.ais.galapagos.topics.TopicMetadata;
+import org.json.JSONObject;
+
+import java.util.concurrent.CompletableFuture;
 
 public interface GalapagosEventSink {
 
@@ -33,12 +34,19 @@ public interface GalapagosEventSink {
 
     CompletableFuture<Void> handleApplicationRegistered(ApplicationMetadata metadata);
 
-    CompletableFuture<Void> handleApplicationCertificateChanged(ApplicationMetadata metadata, String previousDn);
+    CompletableFuture<Void> handleApplicationAuthenticationChanged(ApplicationMetadata metadata,
+            JSONObject oldAuthentication, JSONObject newAuthentication);
 
     CompletableFuture<Void> handleApplicationOwnerRequestCreated(ApplicationOwnerRequest request);
 
     CompletableFuture<Void> handleApplicationOwnerRequestUpdated(ApplicationOwnerRequest request);
 
     CompletableFuture<Void> handleApplicationOwnerRequestCanceled(ApplicationOwnerRequest request);
+
+    CompletableFuture<Void> handleAddTopicProducer(TopicMetadata metadata, String producerApplicationId);
+
+    CompletableFuture<Void> handleRemoveTopicProducer(TopicMetadata metadata, String producerApplicationId);
+
+    CompletableFuture<Void> handleTopicOwnerChanged(TopicMetadata metadata, String previousOwnerApplicationId);
 
 }

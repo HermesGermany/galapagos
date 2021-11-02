@@ -1,0 +1,22 @@
+{
+  "prod": {
+    "topics": {
+      "de.hlg.events.sales.my-topic-nice": {
+        "eolDate": null,
+        "subscriptionApprovalRequired": false,
+        "deprecated": false,
+        "ownerApplicationId": "app-1",
+        "criticality": "NORMAL",
+        "description": null,
+        "deprecationText": null,
+        "type": "EVENTS",
+        "messagesSize": "VERY_SMALL",
+        "retentionTimeMillis": 604800000,
+        "compactionTimeMillis": 86400000,
+        "infoUrl": null,
+        "name": "de.hlg.events.sales.my-topic-nice",
+        "messagesPerDay": "FEW"
+      }
+    }
+  }
+}

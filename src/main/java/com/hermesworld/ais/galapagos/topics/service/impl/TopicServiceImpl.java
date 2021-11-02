@@ -122,7 +122,8 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
         return environment.getActiveBrokerCount().thenCompose(brokerCount -> {
 
             int replicationFactor = (topic.getType() != TopicType.INTERNAL
-                    && topic.getCriticality() == Criticality.CRITICAL) ? 3 : 2;
+                    && topic.getCriticality() == Criticality.CRITICAL) ? topicSettings.getCriticalReplicationFactor()
+                            : topicSettings.getStandardReplicationFactor();
 
             if (brokerCount < replicationFactor) {
                 replicationFactor = brokerCount;
@@ -141,6 +142,60 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
                     TopicMetadata.class);
             return environment.createTopic(topic.getName(), createParams).thenCompose(o -> topicRepository.save(topic))
                     .thenCompose(o -> eventSink.handleTopicCreated(topic, createParams)).thenApply(o -> topic);
+        });
+    }
+
+    @Override
+    public CompletableFuture<Void> addTopicProducer(String environmentId, String topicName, String producerId) {
+        return doWithClusterAndTopic(environmentId, topicName, (kafkaCluster, metadata, eventSink) -> {
+            if (metadata.getType() == TopicType.COMMANDS) {
+                return CompletableFuture.failedFuture(
+                        new IllegalStateException("For Command Topics, subscribe to the Topic to add a new Producer"));
+            }
+            List<String> producerList = new ArrayList<>(metadata.getProducers());
+            producerList.add(producerId);
+            metadata.setProducers(producerList);
+            TopicMetadata newTopic = new TopicMetadata(metadata);
+            return getTopicRepository(kafkaCluster).save(newTopic)
+                    .thenCompose(o -> eventSink.handleAddTopicProducer(newTopic, producerId));
+        });
+
+    }
+
+    @Override
+    public CompletableFuture<Void> removeTopicProducer(String envId, String topicName, String producerId) {
+        return doWithClusterAndTopic(envId, topicName, (kafkaCluster, metadata, eventSink) -> {
+            if (metadata.getType() == TopicType.COMMANDS) {
+                return CompletableFuture.failedFuture(
+                        new IllegalStateException("For Command Topics, subscribe to the Topic to remove a Producer"));
+            }
+            List<String> producerList = new ArrayList<>(metadata.getProducers());
+            producerList.remove(producerId);
+            metadata.setProducers(producerList);
+            TopicMetadata newTopic = new TopicMetadata(metadata);
+            return getTopicRepository(kafkaCluster).save(newTopic)
+                    .thenCompose(o -> eventSink.handleRemoveTopicProducer(newTopic, producerId));
+        });
+
+    }
+
+    @Override
+    public CompletableFuture<Void> changeTopicOwner(String environmentId, String topicName,
+            String newApplicationOwnerId) {
+        return doOnAllStages(topicName, (kafkaCluster, metadata, eventSink) -> {
+            if (metadata.getType() == TopicType.INTERNAL) {
+                return CompletableFuture
+                        .failedFuture(new IllegalStateException("Cannot change owner for internal topics"));
+            }
+            String previousOwnerApplicationId = metadata.getOwnerApplicationId();
+            List<String> producerList = new ArrayList<>(metadata.getProducers());
+            producerList.add(metadata.getOwnerApplicationId());
+            metadata.setOwnerApplicationId(newApplicationOwnerId);
+            producerList.remove(newApplicationOwnerId);
+            metadata.setProducers(producerList);
+            TopicMetadata newTopic = new TopicMetadata(metadata);
+            return getTopicRepository(kafkaCluster).save(newTopic)
+                    .thenCompose(o -> eventSink.handleTopicOwnerChanged(newTopic, previousOwnerApplicationId));
         });
     }
 
@@ -173,7 +228,7 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
 
     @Override
     public CompletableFuture<Void> markTopicDeprecated(String topicName, String deprecationText, LocalDate eolDate) {
-        return doDeprecationAction(topicName, (kafkaCluster, metadata, eventSink) -> {
+        return doOnAllStages(topicName, (kafkaCluster, metadata, eventSink) -> {
             TopicMetadata newMeta = new TopicMetadata(metadata);
             newMeta.setDeprecated(true);
             newMeta.setDeprecationText(deprecationText);
@@ -186,7 +241,7 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
 
     @Override
     public CompletableFuture<Void> unmarkTopicDeprecated(String topicName) {
-        return doDeprecationAction(topicName, (kafkaCluster, metadata, eventSink) -> {
+        return doOnAllStages(topicName, (kafkaCluster, metadata, eventSink) -> {
             TopicMetadata newMeta = new TopicMetadata(metadata);
             newMeta.setDeprecated(false);
             newMeta.setDeprecationText(null);
@@ -345,9 +400,16 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
         Schema newSchema;
         try {
             newSchema = compileSchema(schemaMetadata.getJsonSchema());
+
         }
         catch (JSONException | SchemaException e) {
             return CompletableFuture.failedFuture(new IllegalArgumentException("Could not parse JSON schema", e));
+        }
+
+        JSONObject json = new JSONObject(schemaMetadata.getJsonSchema());
+        if (!json.has("$schema")) {
+            return CompletableFuture.failedFuture(
+                    new IllegalArgumentException("The JSON Schema must declare a \"$schema\" value on first level."));
         }
 
         if (newSchema.definesProperty("data")
@@ -476,7 +538,7 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
         return action.apply(kafkaCluster, metadata, eventSink);
     }
 
-    private CompletableFuture<Void> doDeprecationAction(String topicName, TopicServiceAction action) {
+    private CompletableFuture<Void> doOnAllStages(String topicName, TopicServiceAction action) {
         List<String> environmentIds = kafkaClusters.getEnvironmentIds();
 
         // only operate on environments where this topic exists

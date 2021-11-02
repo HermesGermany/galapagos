@@ -14,8 +14,6 @@ import { map } from 'rxjs/operators';
 export class HeaderComponent implements OnInit {
     public pushRightClass: string;
 
-    public userProfile: Promise<Keycloak.KeycloakProfile>;
-
     public userName: Promise<string>;
 
     public currentEnvironmentName: Observable<string>;
@@ -24,15 +22,18 @@ export class HeaderComponent implements OnInit {
 
     public allEnvironments: Observable<KafkaEnvironment[]>;
 
+    authenticationMode: Observable<string>;
+
     constructor(private translate: TranslateService, public router: Router, private keycloak: KeycloakService,
-        private environments: EnvironmentsService) {
+                private environments: EnvironmentsService) {
 
     }
 
     ngOnInit() {
         this.pushRightClass = 'push-right';
-        this.userProfile = this.keycloak.loadUserProfile();
-        this.userName = this.keycloak.loadUserProfile().then(profile => profile.firstName + ' ' + profile.lastName);
+
+        this.userName = this.keycloak.getKeycloakInstance().loadUserInfo().then(
+            info => (info as any).given_name + ' ' + (info as any).family_name);
 
         this.router.events.subscribe(val => {
             if (
@@ -48,6 +49,8 @@ export class HeaderComponent implements OnInit {
         this.currentEnvironmentIcon = this.environments.getCurrentEnvironment().pipe(
             map(env => env.production ? 'fas fa-exclamation-triangle text-danger' : 'fas fa-database'));
         this.allEnvironments = this.environments.getEnvironments();
+
+        this.authenticationMode = this.environments.getCurrentEnvironment().pipe(map(env => env.authenticationMode));
     }
 
     isToggled(): boolean {

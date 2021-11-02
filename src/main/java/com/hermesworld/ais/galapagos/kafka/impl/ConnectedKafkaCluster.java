@@ -1,18 +1,12 @@
 package com.hermesworld.ais.galapagos.kafka.impl;
 
-import java.time.Duration;
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
 import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
 import com.hermesworld.ais.galapagos.kafka.KafkaUser;
 import com.hermesworld.ais.galapagos.kafka.TopicConfigEntry;
 import com.hermesworld.ais.galapagos.kafka.TopicCreateParams;
 import com.hermesworld.ais.galapagos.kafka.util.KafkaTopicConfigHelper;
 import com.hermesworld.ais.galapagos.kafka.util.TopicBasedRepository;
+import com.hermesworld.ais.galapagos.util.FutureUtil;
 import com.hermesworld.ais.galapagos.util.HasKey;
 import org.apache.kafka.clients.admin.*;
 import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
@@ -30,20 +24,28 @@ import org.apache.kafka.common.errors.WakeupException;
 import org.apache.kafka.common.resource.PatternType;
 import org.apache.kafka.common.resource.ResourcePatternFilter;
 import org.apache.kafka.common.resource.ResourceType;
+import org.springframework.util.StringUtils;
+
+import java.time.Duration;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class ConnectedKafkaCluster implements KafkaCluster {
 
-    private String environmentId;
+    private final String environmentId;
 
     private AdminClient adminClient;
 
-    private KafkaRepositoryContainer repositoryContainer;
+    private final KafkaRepositoryContainer repositoryContainer;
 
-    private Map<String, TopicBasedRepository<?>> repositories = new ConcurrentHashMap<>();
+    private final Map<String, TopicBasedRepository<?>> repositories = new ConcurrentHashMap<>();
 
-    private KafkaConsumerFactory<String, String> kafkaConsumerFactory;
+    private final KafkaConsumerFactory<String, String> kafkaConsumerFactory;
 
-    private KafkaFutureDecoupler futureDecoupler;
+    private final KafkaFutureDecoupler futureDecoupler;
 
     private static final long MAX_POLL_TIME = Duration.ofSeconds(10).toMillis();
 
@@ -75,14 +77,17 @@ public class ConnectedKafkaCluster implements KafkaCluster {
 
     @Override
     public CompletableFuture<Void> updateUserAcls(KafkaUser user) {
-        List<AclBinding> createAcls = new ArrayList<AclBinding>();
+        List<AclBinding> createAcls = new ArrayList<>();
 
         return getUserAcls(user.getKafkaUserName()).thenCompose(acls -> {
             List<AclBinding> targetAcls = new ArrayList<>(user.getRequiredAclBindings());
+
             List<AclBinding> deleteAcls = new ArrayList<>(acls);
+
             createAcls.addAll(targetAcls);
             createAcls.removeAll(acls);
             deleteAcls.removeAll(targetAcls);
+
             return deleteAcls.isEmpty() ? CompletableFuture.completedFuture(null)
                     : toCompletableFuture(adminClient
                             .deleteAcls(deleteAcls.stream().map(acl -> acl.toFilter()).collect(Collectors.toList()))
@@ -93,6 +98,9 @@ public class ConnectedKafkaCluster implements KafkaCluster {
 
     @Override
     public CompletableFuture<Void> removeUserAcls(KafkaUser user) {
+        if (user.getKafkaUserName() == null) {
+            return FutureUtil.noop();
+        }
         return toCompletableFuture(adminClient
                 .deleteAcls(Collections.singletonList(userAclFilter(user.getKafkaUserName(), ResourceType.ANY))).all())
                         .thenApply(o -> null);
@@ -269,6 +277,9 @@ public class ConnectedKafkaCluster implements KafkaCluster {
     }
 
     private CompletableFuture<Collection<AclBinding>> getUserAcls(String username) {
+        if (StringUtils.isEmpty(username)) {
+            return CompletableFuture.completedFuture(List.of());
+        }
         return toCompletableFuture(adminClient.describeAcls(userAclFilter(username, ResourceType.ANY)).values());
     }
 
@@ -285,16 +296,16 @@ public class ConnectedKafkaCluster implements KafkaCluster {
 
     @Override
     public CompletableFuture<String> getKafkaServerVersion() {
-
         Function<String, String> toVersionString = s -> !s.contains("-") ? s : s.substring(0, s.indexOf('-'));
         return toCompletableFuture(adminClient.describeCluster().nodes()).thenCompose(coll -> {
             String nodeName = coll.iterator().next().idString();
 
-            return toCompletableFuture(
-                    adminClient.describeConfigs(Collections.singleton(new ConfigResource(Type.BROKER, nodeName))).all())
-                            .thenApply(map -> map.values().stream()
-                                    .map(config -> config.get("inter.broker.protocol.version").value()).findFirst()
-                                    .map(toVersionString).orElse("UNKNOWN_VERSION"));
+            return toCompletableFuture(adminClient.describeConfigs(
+                    Collections.singleton(new ConfigResource(Type.BROKER, nodeName))).all()).thenApply(map -> map
+                            .values().stream()
+                            .map(config -> config.get("inter.broker.protocol.version") == null ? "UNKNOWN_VERSION"
+                                    : config.get("inter.broker.protocol.version").value())
+                            .findFirst().map(toVersionString).orElse("UNKNOWN_VERSION"));
         });
     }
 

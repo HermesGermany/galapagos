@@ -1,16 +1,16 @@
 package com.hermesworld.ais.galapagos.kafka;
 
+import com.hermesworld.ais.galapagos.kafka.util.TopicBasedRepository;
+import com.hermesworld.ais.galapagos.util.HasKey;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.common.acl.AclBinding;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
-
-import com.hermesworld.ais.galapagos.kafka.util.TopicBasedRepository;
-import com.hermesworld.ais.galapagos.util.HasKey;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.common.acl.AclBinding;
 
 /**
  * Representation of a live Kafka Cluster, i.e. a set of Kafka Brokers behaving as a single Kafka system. <br>
@@ -54,4 +54,5 @@ public interface KafkaCluster {
     CompletableFuture<List<ConsumerRecord<String, String>>> peekTopicData(String topicName, int limit);
 
     CompletableFuture<String> getKafkaServerVersion();
+
 }

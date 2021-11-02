@@ -6,7 +6,7 @@ public interface ApplicationEventsListener {
 
     CompletableFuture<Void> handleApplicationRegistered(ApplicationEvent event);
 
-    CompletableFuture<Void> handleApplicationCertificateChanged(ApplicationCertificateChangedEvent event);
+    CompletableFuture<Void> handleApplicationAuthenticationChanged(ApplicationAuthenticationChangeEvent event);
 
     CompletableFuture<Void> handleApplicationOwnerRequestCreated(ApplicationOwnerRequestEvent event);
 

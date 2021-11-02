@@ -1,18 +1,17 @@
 package com.hermesworld.ais.galapagos.kafka.impl;
 
-import java.io.File;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
-
-import com.hermesworld.ais.galapagos.certificates.CaManager;
 import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.kafka.KafkaExecutorFactory;
+import com.hermesworld.ais.galapagos.kafka.auth.KafkaAuthenticationModule;
 import com.hermesworld.ais.galapagos.kafka.config.KafkaEnvironmentConfig;
 import com.hermesworld.ais.galapagos.kafka.util.TopicBasedRepository;
 import com.hermesworld.ais.galapagos.util.HasKey;
 import org.springframework.util.StringUtils;
+
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 public class ConnectedKafkaClusters implements KafkaClusters {
 
@@ -22,27 +21,28 @@ public class ConnectedKafkaClusters implements KafkaClusters {
 
     private final String productionEnvironmentId;
 
-    private final Map<String, CaManager> caManagers;
+    private final Map<String, KafkaAuthenticationModule> authenticationModules;
 
     private final Set<KafkaRepositoryContainerImpl> repoContainers = new HashSet<>();
 
     private final KafkaConnectionManager connectionManager;
 
-    public ConnectedKafkaClusters(List<KafkaEnvironmentConfig> environmentMetadata, Map<String, CaManager> caManagers,
-            File truststoreFile, String productionEnvironmentId, String galapagosInternalPrefix,
-            KafkaExecutorFactory executorFactory) {
+    public ConnectedKafkaClusters(List<KafkaEnvironmentConfig> environmentMetadata,
+            Map<String, KafkaAuthenticationModule> authenticationModules, String productionEnvironmentId,
+            String galapagosInternalPrefix, KafkaExecutorFactory executorFactory,
+            int topicRepositoryReplicationFactor) {
         this.environmentMetadata = environmentMetadata;
         this.productionEnvironmentId = productionEnvironmentId;
-        this.caManagers = caManagers;
+        this.authenticationModules = authenticationModules;
 
         KafkaFutureDecoupler futureDecoupler = new KafkaFutureDecoupler(executorFactory);
 
-        this.connectionManager = new KafkaConnectionManager(environmentMetadata, caManagers,
-                truststoreFile.getAbsolutePath(), "changeit", futureDecoupler);
+        this.connectionManager = new KafkaConnectionManager(environmentMetadata, authenticationModules,
+                futureDecoupler);
 
         for (KafkaEnvironmentConfig envMeta : environmentMetadata) {
             KafkaRepositoryContainerImpl repoContainer = new KafkaRepositoryContainerImpl(connectionManager,
-                    envMeta.getId(), galapagosInternalPrefix);
+                    envMeta.getId(), galapagosInternalPrefix, topicRepositoryReplicationFactor);
             ConnectedKafkaCluster cluster = buildConnectedKafkaCluster(envMeta.getId(), connectionManager,
                     repoContainer, futureDecoupler);
             clusters.put(envMeta.getId(), cluster);
@@ -98,8 +98,8 @@ public class ConnectedKafkaClusters implements KafkaClusters {
     }
 
     @Override
-    public Optional<CaManager> getCaManager(String environmentId) {
-        return Optional.ofNullable(caManagers.get(environmentId));
+    public Optional<KafkaAuthenticationModule> getAuthenticationModule(String environmentId) {
+        return Optional.ofNullable(authenticationModules.get(environmentId));
     }
 
     private static ConnectedKafkaCluster buildConnectedKafkaCluster(String environmentId,

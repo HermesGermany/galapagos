@@ -3,8 +3,10 @@ package com.hermesworld.ais.galapagos.uisupport.controller;
 import com.hermesworld.ais.galapagos.applications.ApplicationsService;
 import com.hermesworld.ais.galapagos.applications.BusinessCapability;
 import com.hermesworld.ais.galapagos.applications.KnownApplication;
+import com.hermesworld.ais.galapagos.certificates.auth.CertificatesAuthenticationModule;
 import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
+import com.hermesworld.ais.galapagos.kafka.auth.KafkaAuthenticationModule;
 import com.hermesworld.ais.galapagos.kafka.config.KafkaEnvironmentConfig;
 import com.hermesworld.ais.galapagos.kafka.util.KafkaTopicConfigHelper;
 import com.hermesworld.ais.galapagos.naming.NamingService;
@@ -181,9 +183,24 @@ public class UISupportController {
     @GetMapping(value = "/api/util/supported-devcert-environments", produces = MediaType.APPLICATION_JSON_VALUE)
     public List<String> getEnvironmentsWithDeveloperCertificateSupport() {
         return kafkaClusters.getEnvironmentIds().stream()
-                .map(id -> kafkaClusters.getCaManager(id)
-                        .map(caMan -> caMan.supportsDeveloperCertificates() ? id : null).orElse(null))
-                .filter(id -> id != null).collect(Collectors.toList());
+                .map(id -> supportsEnvironmentDeveloperCertificate(id) ? id : null).filter(Objects::nonNull)
+                .collect(Collectors.toList());
+    }
+
+    private boolean supportsEnvironmentDeveloperCertificate(String environmentId) {
+        return getCertificatesAuthenticationModuleForEnv(environmentId)
+                .map(CertificatesAuthenticationModule::supportsDeveloperCertificates).orElse(false);
+    }
+
+    private Optional<CertificatesAuthenticationModule> getCertificatesAuthenticationModuleForEnv(String environmentId) {
+        CertificatesAuthenticationModule certificateModule;
+        Optional<KafkaAuthenticationModule> authModule = kafkaClusters.getAuthenticationModule(environmentId);
+
+        if (authModule.isPresent() && authModule.get() instanceof CertificatesAuthenticationModule) {
+            certificateModule = (CertificatesAuthenticationModule) authModule.get();
+            return Optional.of(certificateModule);
+        }
+        return Optional.empty();
     }
 
     @GetMapping(value = "/api/util/common-name/{applicationId}", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -223,9 +240,9 @@ public class UISupportController {
         return new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    private static String readConfigTemplate(String name) throws IOException {
+    private static String readConfigTemplate(String framework, String authenticationType) throws IOException {
         try (InputStream in = UISupportController.class.getClassLoader()
-                .getResourceAsStream("configtemplates/" + name)) {
+                .getResourceAsStream("configtemplates/" + framework + "." + authenticationType + ".template.yaml")) {
             return StreamUtils.copyToString(in, StandardCharsets.UTF_8);
         }
     }
@@ -241,7 +258,7 @@ public class UISupportController {
         }
 
         try {
-            return readConfigTemplate("spring.yaml.template").replace("${bootstrap.servers}",
+            return readConfigTemplate("spring", config.getAuthenticationMode()).replace("${bootstrap.servers}",
                     config.getBootstrapServers());
         }
         catch (IOException e) {
@@ -259,7 +276,7 @@ public class UISupportController {
         String[] bootstrapServers = config.getBootstrapServers().split(",");
 
         try {
-            String configFile = readConfigTemplate("micronaut.yaml.template");
+            String configFile = readConfigTemplate("micronaut", config.getAuthenticationMode());
             StringBuilder sbOut = new StringBuilder();
 
             String[] lines = configFile.split("\\r?\\n");

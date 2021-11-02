@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { routerTransition } from '../../router.animations';
-import { NgbModal, NgbNavChangeEvent } from '@ng-bootstrap/ng-bootstrap';
+import { ModalDismissReasons, NgbModal, NgbNavChangeEvent } from '@ng-bootstrap/ng-bootstrap';
 import {
     ApplicationInfo,
     ApplicationOwnerRequest,
@@ -15,11 +15,12 @@ import * as moment from 'moment';
 import { map, mergeMap, shareReplay, startWith } from 'rxjs/operators';
 import { EnvironmentsService, KafkaEnvironment } from '../../shared/services/environments.service';
 import { ToastService } from '../../shared/modules/toast/toast.service';
-import { ApplicationCertificate, CertificateService } from '../../shared/services/certificates.service';
 import { TopicsService } from '../../shared/services/topics.service';
 import { TranslateService } from '@ngx-translate/core';
+import { OpenApiKeyDialogEvent, OpenCertificateDialogEvent } from './application-block.component';
 import { HttpErrorResponse } from '@angular/common/http';
-import { OpenCertificateDialogEvent } from './application-block.component';
+import { ApiKeyService } from '../../shared/services/apikey.service';
+import { ApplicationCertificate, CertificateService } from '../../shared/services/certificates.service';
 
 export interface UserApplicationInfoWithTopics extends UserApplicationInfo {
 
@@ -50,6 +51,35 @@ export class ApplicationsComponent implements OnInit {
 
     userApplications: Observable<UserApplicationInfoWithTopics[]>;
 
+    apiKeyDlgData = {
+        applicationName: null,
+        applicationId: null,
+        environment: null,
+        existingApiKey: null
+    };
+
+    key: string;
+
+    secret: string;
+
+    showApiKeyTable = false;
+
+    copiedKey = false;
+
+    copiedSecret = false;
+
+    submitting = false;
+
+    appListLoading = true;
+
+    showCopyCompleteText = false;
+
+    currentLang: Observable<string>;
+
+    apiKeyRequestError: any;
+
+    currentEnv: Observable<KafkaEnvironment>;
+
     certificateDlgData = {
         applicationName: null,
         applicationId: null,
@@ -63,14 +93,6 @@ export class ApplicationsComponent implements OnInit {
         expiryWarningHtml: of('')
     };
 
-    submitting = false;
-
-    appListLoading = true;
-
-    showCopyCompleteText = false;
-
-    currentLang: Observable<string>;
-
     activeTab: string;
 
     certificateCreationType = 'hasCsr';
@@ -78,11 +100,12 @@ export class ApplicationsComponent implements OnInit {
     constructor(
         private modalService: NgbModal,
         private applicationsService: ApplicationsService,
-        private certificateService: CertificateService,
+        private apiKeyService: ApiKeyService,
         private environmentsService: EnvironmentsService,
         private topicsService: TopicsService,
         private toasts: ToastService,
-        private translateService: TranslateService
+        private translateService: TranslateService,
+        private certificateService: CertificateService
     ) {
     }
 
@@ -123,6 +146,8 @@ export class ApplicationsComponent implements OnInit {
 
         this.activeTab = 'new';
 
+        this.currentEnv = this.environmentsService.getCurrentEnvironment();
+
         this.applicationsService.refresh().then();
     }
 
@@ -151,6 +176,72 @@ export class ApplicationsComponent implements OnInit {
             () => this.toasts.addSuccessToast('Request erfolgreich abgebrochen'),
             err => this.toasts.addHttpErrorToast('Konnte Request nicht abbrechen', err)
         );
+    }
+
+    async openApiKeyDlg(event: OpenApiKeyDialogEvent, content: any) {
+        const app = event.application;
+        const env = event.environment;
+
+        this.apiKeyDlgData = {
+            applicationId: app.id,
+            applicationName: app.name,
+            environment: env,
+            existingApiKey: null
+        };
+        const apiKey = await this.apiKeyService.getApplicationApiKeysPromise(app.id);
+        this.apiKeyDlgData.existingApiKey = apiKey.authentications[env.id];
+
+        this.modalService.open(content, { ariaLabelledBy: 'modal-title', size: 'lg', windowClass: 'modal-xxl' }).result.then(result => {
+        }, reason => {
+            if (reason === ModalDismissReasons.BACKDROP_CLICK || reason === ModalDismissReasons.ESC) {
+                this.handleDlgDismiss();
+            }
+        });
+
+    }
+
+    generateApiKey(): Promise<any> {
+        if (this.apiKeyDlgData.applicationId && this.apiKeyDlgData.environment) {
+            const appId = this.apiKeyDlgData.applicationId;
+            const envId = this.apiKeyDlgData.environment;
+            return this.apiKeyService
+                .requestApiKey(appId, envId.id)
+                .then(
+                    apiKey => {
+                        this.key = apiKey.apiKey;
+                        this.secret = apiKey.apiSecret;
+                        this.showApiKeyTable = true;
+                        this.toasts.addSuccessToast('API Key erfolgreich erstellt');
+                    },
+                    (err: HttpErrorResponse) => {
+                        this.apiKeyRequestError = err;
+                        this.toasts.addHttpErrorToast('API Key konnte nicht erstellt werden', err);
+                    }
+                )
+                .then(() => this.apiKeyService.getApplicationApiKeys(appId).refresh());
+        }
+    }
+
+    generateCertificate(): void {
+        if (this.certificateDlgData.applicationId && this.certificateDlgData.environment) {
+            const appId = this.certificateDlgData.applicationId;
+            this.certificateService
+                .requestAndDownloadApplicationCertificate(
+                    appId,
+                    this.certificateDlgData.environment.id,
+                    this.certificateDlgData.csrData,
+                    this.activeTab === 'extend'
+                )
+                .then(
+                    () => this.toasts.addSuccessToast('Zertifikat erfolgreich erstellt (bitte Browser-Downloads beachten)'),
+                    (err: HttpErrorResponse) => this.toasts.addHttpErrorToast('Zertifikat konnte nicht erstellt werden', err)
+                )
+                .then(() => this.certificateService.getApplicationCertificates(appId).refresh());
+        }
+    }
+
+    handleDlgTabChange(event: NgbNavChangeEvent) {
+        this.activeTab = event.nextId;
     }
 
     openCertDlg(event: OpenCertificateDialogEvent, content: any) {
@@ -198,25 +289,30 @@ export class ApplicationsComponent implements OnInit {
         });
     }
 
-    handleDlgTabChange(event: NgbNavChangeEvent) {
-        this.activeTab = event.nextId;
+    handleDlgDismiss(): void {
+        this.showApiKeyTable = false;
+        this.secret = null;
+        this.apiKeyRequestError = null;
+
     }
 
-    generateCertificate(): void {
-        if (this.certificateDlgData.applicationId && this.certificateDlgData.environment) {
-            const appId = this.certificateDlgData.applicationId;
-            this.certificateService
-                .requestAndDownloadApplicationCertificate(
-                    appId,
-                    this.certificateDlgData.environment.id,
-                    this.certificateDlgData.csrData,
-                    this.activeTab === 'extend'
-                )
-                .then(
-                    () => this.toasts.addSuccessToast('Zertifikat erfolgreich erstellt (bitte Browser-Downloads beachten)'),
-                    (err: HttpErrorResponse) => this.toasts.addHttpErrorToast('Zertifikat konnte nicht erstellt werden', err)
-                )
-                .then(() => this.certificateService.getApplicationCertificates(appId).refresh());
+    copyValue(value: string) {
+        const selBox = document.createElement('textarea');
+        selBox.style.position = 'fixed';
+        selBox.style.left = '0';
+        selBox.style.top = '0';
+        selBox.style.opacity = '0';
+        selBox.value = value;
+        document.body.appendChild(selBox);
+        selBox.focus();
+        selBox.select();
+        document.execCommand('copy');
+        document.body.removeChild(selBox);
+
+        if (value === this.key) {
+            this.copiedKey = true;
+        } else {
+            this.copiedSecret = true;
         }
     }
 

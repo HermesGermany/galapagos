@@ -16,15 +16,16 @@ import com.hermesworld.ais.galapagos.schemas.IncompatibleSchemaException;
 import com.hermesworld.ais.galapagos.security.CurrentUserService;
 import com.hermesworld.ais.galapagos.subscriptions.SubscriptionMetadata;
 import com.hermesworld.ais.galapagos.subscriptions.service.SubscriptionService;
+import com.hermesworld.ais.galapagos.topics.Criticality;
 import com.hermesworld.ais.galapagos.topics.SchemaMetadata;
 import com.hermesworld.ais.galapagos.topics.TopicMetadata;
 import com.hermesworld.ais.galapagos.topics.TopicType;
 import com.hermesworld.ais.galapagos.topics.config.GalapagosTopicConfig;
-import com.hermesworld.ais.galapagos.topics.service.ValidatingTopicService;
 import com.hermesworld.ais.galapagos.util.FutureUtil;
 import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.DisplayName;
 import org.mockito.invocation.InvocationOnMock;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.io.ClassPathResource;
@@ -61,8 +62,6 @@ public class TopicServiceImplTest {
 
     private TopicBasedRepositoryMock<SchemaMetadata> schemaRepository;
 
-    private ValidatingTopicService topicService;
-
     @Before
     public void feedMocks() {
         kafkaClusters = mock(KafkaClusters.class);
@@ -78,7 +77,7 @@ public class TopicServiceImplTest {
         when(kafkaTestCluster.getId()).thenReturn("test");
         when(kafkaTestCluster.getRepository("topics", TopicMetadata.class)).thenReturn(topicRepository);
         when(kafkaTestCluster.getRepository("schemas", SchemaMetadata.class)).thenReturn(schemaRepository);
-        when(kafkaTestCluster.getActiveBrokerCount()).thenReturn(CompletableFuture.completedFuture(2));
+        when(kafkaTestCluster.getActiveBrokerCount()).thenReturn(CompletableFuture.completedFuture(5));
 
         when(kafkaClusters.getEnvironment("test")).thenReturn(Optional.of(kafkaTestCluster));
 
@@ -94,6 +93,8 @@ public class TopicServiceImplTest {
 
         when(topicConfig.getMaxPartitionCount()).thenReturn(10);
         when(topicConfig.getDefaultPartitionCount()).thenReturn(6);
+        when(topicConfig.getStandardReplicationFactor()).thenReturn(2);
+        when(topicConfig.getCriticalReplicationFactor()).thenReturn(4);
     }
 
     @Test
@@ -128,7 +129,6 @@ public class TopicServiceImplTest {
 
         assertEquals("topic-1", createInvs.get(0).getArgument(0));
         TopicCreateParams params = createInvs.get(0).getArgument(1);
-        // replication factor must be 2, as we do not have three brokers
         assertEquals(2, params.getReplicationFactor());
         assertEquals(8, params.getNumberOfPartitions());
         assertEquals("some.value", params.getTopicConfigs().get("some.property"));
@@ -163,6 +163,67 @@ public class TopicServiceImplTest {
 
         // must be set to default partitions (see feedMocks)
         assertEquals(6, params.getNumberOfPartitions());
+    }
+
+    @Test
+    public void testCreateTopic_criticalReplicationFactor() throws Exception {
+        List<InvocationOnMock> createInvs = new ArrayList<>();
+
+        when(kafkaTestCluster.createTopic(any(), any())).then(inv -> {
+            createInvs.add(inv);
+            return FutureUtil.noop();
+        });
+
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
+                topicConfig, eventManager);
+
+        TopicMetadata topic1 = new TopicMetadata();
+        topic1.setName("topic-1");
+        topic1.setDescription("Desc");
+        topic1.setOwnerApplicationId("app-1");
+        topic1.setType(TopicType.EVENTS);
+        topic1.setCriticality(Criticality.CRITICAL);
+
+        service.createTopic("test", topic1, 3, Map.of()).get();
+
+        assertEquals(1, createInvs.size());
+
+        TopicCreateParams params = createInvs.get(0).getArgument(1);
+
+        // must be set to configured critical replication factor
+        assertEquals(4, params.getReplicationFactor());
+    }
+
+    @Test
+    public void testCreateTopic_replicationFactor_downToNumBrokers() throws Exception {
+        List<InvocationOnMock> createInvs = new ArrayList<>();
+
+        // 6 is more than the 5 brokers we have, so should be downed to 5
+        when(topicConfig.getCriticalReplicationFactor()).thenReturn(6);
+
+        when(kafkaTestCluster.createTopic(any(), any())).then(inv -> {
+            createInvs.add(inv);
+            return FutureUtil.noop();
+        });
+
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
+                topicConfig, eventManager);
+
+        TopicMetadata topic1 = new TopicMetadata();
+        topic1.setName("topic-1");
+        topic1.setDescription("Desc");
+        topic1.setOwnerApplicationId("app-1");
+        topic1.setType(TopicType.EVENTS);
+        topic1.setCriticality(Criticality.CRITICAL);
+
+        service.createTopic("test", topic1, 3, Map.of()).get();
+
+        assertEquals(1, createInvs.size());
+
+        TopicCreateParams params = createInvs.get(0).getArgument(1);
+
+        // must be equal to number of brokers, as higher is not allowed
+        assertEquals(5, params.getReplicationFactor());
     }
 
     @Test
@@ -222,6 +283,144 @@ public class TopicServiceImplTest {
         }
 
         assertEquals(0, createInvs.size());
+    }
+
+    @Test
+    @DisplayName("should add producer to topic")
+    public void addTopicProducerTest_positive() throws Exception {
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
+                topicConfig, eventManager);
+
+        TopicMetadata topic1 = new TopicMetadata();
+        topic1.setName("topic-1");
+        topic1.setOwnerApplicationId("app-1");
+        topic1.setType(TopicType.EVENTS);
+        topicRepository.save(topic1);
+
+        service.addTopicProducer("test", "topic-1", "producer1").get();
+
+        TopicMetadata savedTopic = topicRepository.getObject("topic-1").get();
+
+        assertFalse(savedTopic.getProducers().isEmpty());
+        assertEquals("producer1", savedTopic.getProducers().get(0));
+
+    }
+
+    @Test
+    @DisplayName("should fail adding a producer to commands topic")
+    public void addTopicProducerTest_negative() throws Exception {
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
+                topicConfig, eventManager);
+
+        TopicMetadata topic1 = new TopicMetadata();
+        topic1.setName("topic-1");
+        topic1.setOwnerApplicationId("app-1");
+        topic1.setType(TopicType.COMMANDS);
+        topicRepository.save(topic1).get();
+
+        try {
+            service.addTopicProducer("test", "topic-1", "producer1").get();
+            fail("Expected exception when adding a producer to commands topic");
+        }
+        catch (ExecutionException e) {
+            assertTrue(e.getCause() instanceof IllegalStateException);
+        }
+
+    }
+
+    @Test
+    @DisplayName("should delete producer from topic")
+    public void deleteTopicProducersTest_positive() throws Exception {
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
+                topicConfig, eventManager);
+
+        TopicMetadata topic1 = new TopicMetadata();
+        topic1.setName("topic-1");
+        topic1.setProducers(List.of("producer1", "producer2", "producer3", "producer4"));
+        topic1.setOwnerApplicationId("app-1");
+        topic1.setType(TopicType.EVENTS);
+        topicRepository.save(topic1).get();
+
+        service.removeTopicProducer("test", "topic-1", "producer3").get();
+
+        TopicMetadata savedTopic = topicRepository.getObject("topic-1").get();
+
+        assertEquals(3, savedTopic.getProducers().size());
+        assertFalse(savedTopic.getProducers().contains("producer3"));
+
+    }
+
+    @Test
+    @DisplayName("should not be able to delete producer from commands topic")
+    public void deleteTopicProducersTest_negative() throws Exception {
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
+                topicConfig, eventManager);
+
+        TopicMetadata topic1 = new TopicMetadata();
+        topic1.setName("topic-1");
+        topic1.setProducers(List.of("producer1", "producer2", "producer3", "producer4"));
+        topic1.setOwnerApplicationId("app-1");
+        topic1.setType(TopicType.COMMANDS);
+        topicRepository.save(topic1).get();
+
+        try {
+            service.removeTopicProducer("test", "topic-1", "producer3").get();
+            fail("Expected exception when deleting producer from commands topic");
+        }
+        catch (ExecutionException e) {
+            assertTrue(e.getCause() instanceof IllegalStateException);
+            TopicMetadata savedTopic = topicRepository.getObject("topic-1").get();
+            assertEquals(4, savedTopic.getProducers().size());
+            assertTrue(savedTopic.getProducers().contains("producer3"));
+        }
+
+    }
+
+    @Test
+    @DisplayName("should promote a producer to new Topic owner")
+    public void changeOwnerOfTopicTest_positive() throws Exception {
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
+                topicConfig, eventManager);
+
+        TopicMetadata topic1 = new TopicMetadata();
+        topic1.setName("topic-1");
+        topic1.setOwnerApplicationId("app-1");
+        topic1.setType(TopicType.EVENTS);
+        topic1.setProducers(List.of("producer1", "producer2", "producer3", "producer4"));
+        topicRepository.save(topic1).get();
+        when(kafkaClusters.getEnvironmentIds()).thenReturn(List.of("test", "test2", "test3"));
+
+        service.changeTopicOwner("test", "topic-1", "producer1").get();
+
+        TopicMetadata savedTopic = topicRepository.getObject("topic-1").get();
+
+        assertEquals(4, savedTopic.getProducers().size());
+        assertEquals("producer1", savedTopic.getOwnerApplicationId());
+        assertTrue(savedTopic.getProducers().contains("app-1"));
+    }
+
+    @Test
+    @DisplayName("should not promote a producer to new Topic owner for internal topics")
+    public void changeOwnerOfTopicTest_negative() throws Exception {
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
+                topicConfig, eventManager);
+
+        TopicMetadata topic1 = new TopicMetadata();
+        topic1.setName("topic-1");
+        topic1.setOwnerApplicationId("app-1");
+        topic1.setType(TopicType.INTERNAL);
+        topic1.setProducers(List.of("producer1", "producer2", "producer3", "producer4"));
+        topicRepository.save(topic1).get();
+        when(kafkaClusters.getEnvironmentIds()).thenReturn(List.of("test", "test2", "test3"));
+
+        try {
+            service.changeTopicOwner("test", "topic-1", "producer1").get();
+            fail("exception expected when trying no change owner of internal topic");
+        }
+        catch (Exception e) {
+            assertTrue(e.getCause() instanceof IllegalStateException);
+        }
+
     }
 
     @Test
@@ -595,6 +794,31 @@ public class TopicServiceImplTest {
     }
 
     @Test
+    public void testAddSchemaVersion_NoSchemaProp() throws Exception {
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
+                topicConfig, eventManager);
+
+        TopicMetadata topic1 = new TopicMetadata();
+        topic1.setName("topic-1");
+        topic1.setOwnerApplicationId("app-1");
+        topic1.setType(TopicType.EVENTS);
+
+        String testJsonSchema = StreamUtils.copyToString(
+                new ClassPathResource("/schema-compatibility/noSchemaProp.schema.json").getInputStream(),
+                StandardCharsets.UTF_8);
+
+        topicRepository.save(topic1).get();
+
+        try {
+            service.addTopicSchemaVersion("test", "topic-1", testJsonSchema, null).get();
+            fail("addTopicSchemaVersion() should have failed because there is no schema prop in JSON Schema");
+        }
+        catch (ExecutionException e) {
+            assertTrue(e.getCause() instanceof IllegalArgumentException);
+        }
+    }
+
+    @Test
     public void testSetSubscriptionApprovalRequired_positive() throws Exception {
         TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
                 topicConfig, eventManager);
@@ -666,6 +890,40 @@ public class TopicServiceImplTest {
     }
 
     @Test
+    @DisplayName("should stage new owner on all stages immediately")
+    public void testChangeOwnerStaging() throws Exception {
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
+                topicConfig, eventManager);
+        KafkaCluster testCluster2 = mock(KafkaCluster.class);
+        when(testCluster2.getId()).thenReturn("test2");
+
+        TopicBasedRepositoryMock<TopicMetadata> topicRepository2 = new TopicBasedRepositoryMock<>();
+        when(testCluster2.getRepository("topics", TopicMetadata.class)).thenReturn(topicRepository2);
+
+        when(kafkaClusters.getEnvironmentIds()).thenReturn(List.of("test", "test2"));
+        when(kafkaClusters.getEnvironment("test2")).thenReturn(Optional.of(testCluster2));
+
+        TopicMetadata topic = new TopicMetadata();
+        topic.setName("topic-1");
+        topic.setOwnerApplicationId("app-1");
+        topic.setType(TopicType.EVENTS);
+        topic.setProducers(new ArrayList<>(List.of("producer1")));
+        topicRepository.save(topic).get();
+        topic = new TopicMetadata();
+        topic.setName("topic-1");
+        topic.setOwnerApplicationId("app-1");
+        topic.setType(TopicType.EVENTS);
+        topicRepository2.save(topic).get();
+
+        service.changeTopicOwner("test", "topic-1", "producer1").get();
+
+        assertEquals("producer1", service.getTopic("test", "topic-1").get().getOwnerApplicationId());
+        assertTrue(service.getTopic("test", "topic-1").get().getProducers().contains("app-1"));
+        assertEquals("producer1", service.getTopic("test2", "topic-1").get().getOwnerApplicationId());
+        assertTrue(service.getTopic("test2", "topic-1").get().getProducers().contains("app-1"));
+    }
+
+    @Test
     public void testDeprecateTopic_positive() throws Exception {
         KafkaCluster testCluster2 = mock(KafkaCluster.class);
         when(testCluster2.getId()).thenReturn("test2");
@@ -676,7 +934,6 @@ public class TopicServiceImplTest {
         TopicBasedRepositoryMock<TopicMetadata> topicRepository3 = new TopicBasedRepositoryMock<>();
         when(testCluster2.getRepository("topics", TopicMetadata.class)).thenReturn(topicRepository2);
         when(testCluster3.getRepository("topics", TopicMetadata.class)).thenReturn(topicRepository3);
-
         when(kafkaClusters.getEnvironmentIds()).thenReturn(List.of("test", "test2", "test3"));
         when(kafkaClusters.getEnvironment("test2")).thenReturn(Optional.of(testCluster2));
         when(kafkaClusters.getEnvironment("test3")).thenReturn(Optional.of(testCluster3));
@@ -1024,6 +1281,7 @@ public class TopicServiceImplTest {
         }
 
         JSONObject schema = new JSONObject();
+        schema.put("$schema", "someUrl");
         schema.put("properties", props);
 
         return schema.toString();

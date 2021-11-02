@@ -49,6 +49,31 @@
                 </ng-template>
             </td>
         </tr>
+        <tr *ngIf="topic.producers?.length > 0">
+            <th scope="row">{{ 'Additional producers' | translate }}</th>
+            <td>
+                <ul *ngIf="(producerApps| async)?.length">
+                    <li *ngFor="let producer of producerApps | async ">
+                        <a *ngIf="producer.infoUrl; else infoUrlTextSub"
+                           [href]="producer.infoUrl"
+                           target="_blank">{{ producer.name }}</a>
+                        <ng-template #infoUrlTextSub>
+                            <span>{{ producer.name }}</span>
+                        </ng-template>
+                        <span *ngIf="isOwnerOfTopic && !(selectedEnvironment | async)?.stagingOnly" class="ml-3">
+                            <button class="btn btn-sm btn-danger mt-1 mb-1" appSpinnerWhile #del="appSpinnerWhile"
+                                    (click)="openDeleteProducerDlg(producer,deleteProducerDlg)">
+                                <i class="fas fa-eraser mr-1"></i>{{ 'Delete Producer' | translate }}
+                            </button>
+                             <button class="btn btn-sm btn-warning ml-3" appSpinnerWhile #del="appSpinnerWhile"
+                                     (click)="openChangeOwnerDlg(producer,changeOwnerDlg)">
+                                <i class="fas fa-arrow-up mr-1"></i>{{ 'CHANGE_OWNER_TEXT' | translate }}
+                            </button>
+                        </span>
+                    </li>
+                </ul>
+            </td>
+        </tr>
         <tr>
             <th scope="row">{{ 'Subscribers' | translate }}</th>
             <td *ngIf="!loadingSubscribers">
@@ -65,10 +90,10 @@
                             *ngIf="sub.canDelete"
                             class="ml-3">
                                                     <button
-                                                        class="btn btn-sm btn-danger"
+                                                        class="btn btn-sm btn-danger mt-1 mb-1"
                                                         appSpinnerWhile
                                                         #del="appSpinnerWhile"
-                                                        (click)="del.while(unsubscribe(sub))"
+                                                        (click)="openRejectConfirmDlg(sub, rejectConfirmDlgNoApprove)"
                                                     >
                                                         <i class="fas fa-eraser mr-1"></i>{{ 'Unsubscribe' | translate }}
                                                     </button>
@@ -235,6 +260,82 @@
         <button class="btn btn-danger" appSpinnerWhile #d="appSpinnerWhile"
                 (click)="d.while(rejectSubscription(selectedSubscription)).then(dlg.dismiss)"><i
             class="fas fa-ban mr-3"></i>{{ 'Cancel Subscription' | translate }}</button>
+        <button type="button" class="btn btn-success" (click)="dlg.dismiss()"><i
+            class="fas fa-times"></i>&nbsp;{{ 'Cancel' | translate }}
+        </button>
+    </div>
+</ng-template>
+<ng-template #rejectConfirmDlgNoApprove let-dlg>
+    <div class="modal-header">
+        <h4 class="modal-title">{{ 'Confirm Unsubscription' | translate }}</h4>
+        <button type="button" class="close" aria-label="Close" (click)="dlg.dismiss()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <div class="mt-3">
+            <ngb-alert type="danger" [dismissible]="false">
+            <span
+                [innerHTML]="'UNSUBSCRIBE_CONFIRM_DLG_HTML' | translate:{clientApplicationName: selectedSubscription.clientApplication.name}">
+            </span>
+            </ngb-alert>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-danger" appSpinnerWhile #d="appSpinnerWhile"
+                (click)="d.while(unsubscribe(selectedSubscription)).then(dlg.dismiss)"><i
+            class="fas fa-eraser mr-1"></i>{{ 'Unsubscribe' | translate }}</button>
+        <button type="button" class="btn btn-success" (click)="dlg.dismiss()"><i
+            class="fas fa-times"></i>&nbsp;{{ 'Cancel' | translate }}
+        </button>
+    </div>
+</ng-template>
+
+<ng-template #deleteProducerDlg let-dlg>
+    <div class="modal-header">
+        <h4 class="modal-title">{{ 'Confirm Producer deletion' | translate }}</h4>
+        <button type="button" class="close" aria-label="Close" (click)="dlg.dismiss()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <div class="mt-3">
+            <ngb-alert type="danger"
+                       [innerHTML]="'DELETE_PRODUCER_PROMPT' | translate:{producerName: selectedProducer.name}"
+                       [dismissible]="false">
+
+            </ngb-alert>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-danger" appSpinnerWhile #d="appSpinnerWhile"
+                (click)="d.while(deleteProducer(topicName, selectedProducer.id).then(dlg.dismiss))">
+            <i
+                class="fas fa-eraser mr-1"></i>{{ 'Delete Producer' | translate }}</button>
+        <button type="button" class="btn btn-success" (click)="dlg.dismiss()"><i
+            class="fas fa-times"></i>&nbsp;{{ 'Cancel' | translate }}
+        </button>
+    </div>
+</ng-template>
+<ng-template #changeOwnerDlg let-dlg>
+    <div class="modal-header">
+        <h4 class="modal-title"><i class="fas fa-exchange-alt"></i>
+            {{ 'Change topic owner' | translate }}</h4>
+        <button type="button" class="close" aria-label="Close" (click)="dlg.dismiss()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <div class="mt-3">
+            <ngb-alert type="warning" [dismissible]="false"><span
+                [innerHTML]="'OWNER_CHANGE_ALL_STAGES_ALERT_HTML' | translate:{topicName:topicName, newTopicOwner: newTopicOwner.name}"></span>
+            </ngb-alert>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-warning" appSpinnerWhile #d="appSpinnerWhile"
+                (click)="d.while(changeTopicOwner(topicName, newTopicOwner.id).then(dlg.dismiss))">
+            <i class="fas fa-arrow-up mr-1"></i>{{ 'Change Owner' | translate }}</button>
         <button type="button" class="btn btn-success" (click)="dlg.dismiss()"><i
             class="fas fa-times"></i>&nbsp;{{ 'Cancel' | translate }}
         </button>

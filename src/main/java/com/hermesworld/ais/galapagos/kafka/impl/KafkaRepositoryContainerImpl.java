@@ -1,34 +1,33 @@
 package com.hermesworld.ais.galapagos.kafka.impl;
 
-import java.time.Duration;
-import java.time.temporal.ChronoUnit;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import com.hermesworld.ais.galapagos.kafka.KafkaSender;
 import com.hermesworld.ais.galapagos.kafka.util.TopicBasedRepository;
 import com.hermesworld.ais.galapagos.util.HasKey;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.clients.admin.*;
+import org.apache.kafka.clients.admin.AdminClient;
+import org.apache.kafka.clients.admin.NewTopic;
+import org.apache.kafka.clients.admin.TopicDescription;
 import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.KafkaException;
 import org.apache.kafka.common.TopicPartition;
-import org.apache.kafka.common.config.ConfigResource;
-import org.apache.kafka.common.config.ConfigResource.Type;
 import org.apache.kafka.common.config.TopicConfig;
 import org.apache.kafka.common.errors.AuthenticationException;
 import org.apache.kafka.common.errors.AuthorizationException;
 import org.apache.kafka.common.errors.InterruptException;
 import org.apache.kafka.common.errors.WakeupException;
+
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Slf4j
 public class KafkaRepositoryContainerImpl implements KafkaRepositoryContainer {
@@ -55,13 +54,16 @@ public class KafkaRepositoryContainerImpl implements KafkaRepositoryContainer {
 
     private final String prefix;
 
+    private final int replicationFactor;
+
     public KafkaRepositoryContainerImpl(KafkaConnectionManager connectionManager, String environmentId,
-            String galapagosInternalPrefix) {
+            String galapagosInternalPrefix, int replicationFactor) {
         this.consumer = connectionManager.getConsumerFactory(environmentId).newConsumer();
         this.sender = connectionManager.getKafkaSender(environmentId);
         this.adminClient = connectionManager.getAdminClient(environmentId);
         this.environmentId = environmentId;
         this.prefix = galapagosInternalPrefix;
+        this.replicationFactor = replicationFactor;
 
         this.consumerThread = new Thread(this::consume);
         this.consumerThread.start();
@@ -117,19 +119,13 @@ public class KafkaRepositoryContainerImpl implements KafkaRepositoryContainer {
             if (desc.isEmpty()) {
                 log.info("Creating metadata topic " + topic + " on environment " + environmentId);
                 int nodeCount = this.adminClient.describeCluster().nodes().get().size();
-                short replicationFactor = (short) (nodeCount == 1 ? 1 : 2);
-                this.adminClient.createTopics(Collections.singleton(new NewTopic(topic, 3, replicationFactor))).all()
-                        .get();
+                int replicationFactor = Math.min(this.replicationFactor, nodeCount);
 
-                // use Log Compaction instead of Retention time
-                ConfigResource res = new ConfigResource(Type.TOPIC, topic);
-                List<ConfigEntry> configs = List
-                        .of(new ConfigEntry(TopicConfig.CLEANUP_POLICY_CONFIG, TopicConfig.CLEANUP_POLICY_COMPACT));
-
-                Config config = new Config(configs);
-                // We intentionally use alterConfigs() (and not incrementalAlterConfigs) to be pre-2.3 compatible
-                // noinspection deprecation
-                this.adminClient.alterConfigs(Collections.singletonMap(res, config)).all().get();
+                // TODO numPartitions should be configurable for Galapagos metadata topics
+                NewTopic newTopic = new NewTopic(topic, 3, (short) replicationFactor);
+                newTopic = newTopic
+                        .configs(Map.of(TopicConfig.CLEANUP_POLICY_CONFIG, TopicConfig.CLEANUP_POLICY_COMPACT));
+                this.adminClient.createTopics(Collections.singleton(newTopic)).all().get();
             }
         }
         catch (InterruptedException e) {

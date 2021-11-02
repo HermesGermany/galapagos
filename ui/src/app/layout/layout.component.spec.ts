@@ -27,6 +27,7 @@ describe('LayoutComponent', () => {
 
     let component: LayoutComponent;
     let fixture: ComponentFixture<LayoutComponent>;
+    let keycloak: KeycloakService;
     const routes: Routes = [
         { path: 'admin', component: AdminComponent }
     ];
@@ -57,9 +58,10 @@ describe('LayoutComponent', () => {
 
         fixture = TestBed.createComponent(LayoutComponent);
         component = fixture.componentInstance;
-
-        const keycloak = fixture.debugElement.injector.get(KeycloakService);
-        spyOn(keycloak, 'loadUserProfile').and.returnValue(Promise.resolve({ firstName: 'John', lastName: 'Doe' }));
+        keycloak = fixture.debugElement.injector.get(KeycloakService);
+        spyOn(keycloak, 'getKeycloakInstance').and.returnValue({
+            loadUserInfo: () => Promise.resolve({ firstName: 'John', lastName: 'Doe' })
+        });
     });
 
     it('should create Layout Component', () => {
@@ -67,16 +69,13 @@ describe('LayoutComponent', () => {
     });
 
     it('should not be null when navigation to administration section as admin', (() => {
-
         const ngZone = TestBed.get(NgZone);
         const router = TestBed.get(Router);
-        const keycloak = fixture.debugElement.injector.get(KeycloakService);
         spyOn(keycloak, 'getUserRoles').and.returnValue(['admin']);
 
         ngZone.run(() => router.navigate(['admin'])).then();
         fixture.detectChanges();
         expect(fixture.debugElement.query(By.css('#adminSection'))).not.toBeNull();
-
     }));
 
 });

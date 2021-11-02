@@ -1,11 +1,17 @@
 package com.hermesworld.ais.galapagos.devcerts.impl;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
-
+import com.hermesworld.ais.galapagos.applications.ApplicationMetadata;
+import com.hermesworld.ais.galapagos.applications.ApplicationsService;
+import com.hermesworld.ais.galapagos.applications.RequestState;
+import com.hermesworld.ais.galapagos.applications.impl.UpdateApplicationAclsListener;
+import com.hermesworld.ais.galapagos.devcerts.DevCertificateMetadata;
+import com.hermesworld.ais.galapagos.events.*;
+import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
+import com.hermesworld.ais.galapagos.kafka.KafkaUser;
+import com.hermesworld.ais.galapagos.kafka.util.TopicBasedRepository;
+import com.hermesworld.ais.galapagos.subscriptions.service.SubscriptionService;
+import com.hermesworld.ais.galapagos.util.FutureUtil;
+import com.hermesworld.ais.galapagos.util.TimeService;
 import org.apache.kafka.common.acl.AccessControlEntry;
 import org.apache.kafka.common.acl.AclBinding;
 import org.apache.kafka.common.acl.AclOperation;
@@ -15,38 +21,22 @@ import org.apache.kafka.common.resource.ResourcePattern;
 import org.apache.kafka.common.resource.ResourceType;
 import org.springframework.stereotype.Component;
 
-import com.hermesworld.ais.galapagos.applications.ApplicationMetadata;
-import com.hermesworld.ais.galapagos.applications.ApplicationsService;
-import com.hermesworld.ais.galapagos.applications.RequestState;
-import com.hermesworld.ais.galapagos.applications.impl.UpdateApplicationAclsListener;
-import com.hermesworld.ais.galapagos.devcerts.DevCertificateMetadata;
-import com.hermesworld.ais.galapagos.events.ApplicationCertificateChangedEvent;
-import com.hermesworld.ais.galapagos.events.ApplicationEvent;
-import com.hermesworld.ais.galapagos.events.ApplicationEventsListener;
-import com.hermesworld.ais.galapagos.events.ApplicationOwnerRequestEvent;
-import com.hermesworld.ais.galapagos.events.SubscriptionEvent;
-import com.hermesworld.ais.galapagos.events.SubscriptionEventsListener;
-import com.hermesworld.ais.galapagos.events.TopicCreatedEvent;
-import com.hermesworld.ais.galapagos.events.TopicEvent;
-import com.hermesworld.ais.galapagos.events.TopicEventsListener;
-import com.hermesworld.ais.galapagos.events.TopicSchemaAddedEvent;
-import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
-import com.hermesworld.ais.galapagos.kafka.KafkaUser;
-import com.hermesworld.ais.galapagos.kafka.util.TopicBasedRepository;
-import com.hermesworld.ais.galapagos.subscriptions.service.SubscriptionService;
-import com.hermesworld.ais.galapagos.util.FutureUtil;
-import com.hermesworld.ais.galapagos.util.TimeService;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 @Component
 public class DevUserAclListener implements TopicEventsListener, SubscriptionEventsListener, ApplicationEventsListener {
 
-    private ApplicationsService applicationsService;
+    private final ApplicationsService applicationsService;
 
-    private SubscriptionService subscriptionService;
+    private final SubscriptionService subscriptionService;
 
-    private TimeService timeService;
+    private final TimeService timeService;
 
-    private UpdateApplicationAclsListener applicationsAclService;
+    private final UpdateApplicationAclsListener applicationsAclService;
 
     public DevUserAclListener(ApplicationsService applicationsService, SubscriptionService subscriptionService,
             TimeService timeService, UpdateApplicationAclsListener applicationsAclService) {
@@ -65,7 +55,7 @@ public class DevUserAclListener implements TopicEventsListener, SubscriptionEven
     }
 
     @Override
-    public CompletableFuture<Void> handleApplicationCertificateChanged(ApplicationCertificateChangedEvent event) {
+    public CompletableFuture<Void> handleApplicationAuthenticationChanged(ApplicationAuthenticationChangeEvent event) {
         return handleApplicationRegistered(event);
     }
 
@@ -122,6 +112,26 @@ public class DevUserAclListener implements TopicEventsListener, SubscriptionEven
         }
 
         return result;
+    }
+
+    @Override
+    public CompletableFuture<Void> handleAddTopicProducer(TopicAddProducerEvent event) {
+        Set<DevCertificateMetadata> validDevCertificatesForApplication = new HashSet<>();
+        validDevCertificatesForApplication.addAll(getValidDevCertificatesForApplication(
+                event.getContext().getKafkaCluster(), event.getProducerApplicationId()));
+
+        return updateAcls(event.getContext().getKafkaCluster(), validDevCertificatesForApplication);
+    }
+
+    @Override
+    public CompletableFuture<Void> handleRemoveTopicProducer(TopicRemoveProducerEvent event) {
+        return updateAcls(event.getContext().getKafkaCluster(), getValidDevCertificatesForApplication(
+                event.getContext().getKafkaCluster(), event.getProducerApplicationId()));
+    }
+
+    @Override
+    public CompletableFuture<Void> handleTopicOwnerChanged(TopicOwnerChangeEvent event) {
+        return FutureUtil.noop();
     }
 
     @Override
@@ -210,9 +220,9 @@ public class DevUserAclListener implements TopicEventsListener, SubscriptionEven
 
     private class DevKafkaUser implements KafkaUser {
 
-        private DevCertificateMetadata metadata;
+        private final DevCertificateMetadata metadata;
 
-        private String environmentId;
+        private final String environmentId;
 
         public DevKafkaUser(DevCertificateMetadata metadata, String environmentId) {
             this.metadata = metadata;
@@ -261,5 +271,4 @@ public class DevUserAclListener implements TopicEventsListener, SubscriptionEven
         }
 
     }
-
 }

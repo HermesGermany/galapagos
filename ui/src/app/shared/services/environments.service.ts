@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import { Observable, ReplaySubject, empty, EMPTY, pipe } from 'rxjs';
-import { ReplayContainer, jsonHeader } from './services-common';
+import { EMPTY, Observable, ReplaySubject } from 'rxjs';
+import { jsonHeader, ReplayContainer } from './services-common';
 import { HttpClient } from '@angular/common/http';
-import { take, map } from 'rxjs/operators';
+import { map, take } from 'rxjs/operators';
 import { ToastService } from '../modules/toast/toast.service';
 
 const LOCAL_STORAGE_ENV_KEY = 'galapagos.environment';
@@ -19,6 +19,7 @@ export interface KafkaEnvironment {
 
     stagingOnly: boolean;
 
+    authenticationMode: string;
 }
 
 export interface EnvironmentServerInfo {
@@ -80,6 +81,7 @@ export class EnvironmentsService {
     private environments = new ReplayContainer<KafkaEnvironment[]>(() => this.http.get('/api/environments'));
 
     private servers = new ReplayContainer<EnvironmentServerInfo[]>(() => EMPTY);
+
 
     constructor(private http: HttpClient, toasts: ToastService) {
         this.getEnvironments().pipe(take(1)).toPromise().then(envs => {

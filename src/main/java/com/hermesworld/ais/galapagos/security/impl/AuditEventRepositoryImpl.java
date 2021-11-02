@@ -1,22 +1,5 @@
 package com.hermesworld.ais.galapagos.security.impl;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.servlet.http.HttpServletRequest;
-
-import org.keycloak.KeycloakSecurityContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.boot.actuate.audit.AuditEvent;
-import org.springframework.boot.actuate.audit.AuditEventRepository;
-import org.springframework.boot.actuate.audit.InMemoryAuditEventRepository;
-import org.springframework.stereotype.Component;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
-
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonSerializer;
@@ -24,6 +7,20 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import lombok.extern.slf4j.Slf4j;
+import org.keycloak.KeycloakSecurityContext;
+import org.springframework.boot.actuate.audit.AuditEvent;
+import org.springframework.boot.actuate.audit.AuditEventRepository;
+import org.springframework.boot.actuate.audit.InMemoryAuditEventRepository;
+import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
+import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * This implementation of the {@link AuditEventRepository} interface just extends the in-memory implementation of Spring
@@ -35,11 +32,10 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
  *
  */
 @Component
+@Slf4j
 public class AuditEventRepositoryImpl extends InMemoryAuditEventRepository {
 
-    private static final Logger LOG = LoggerFactory.getLogger("galapagos.audit");
-
-    private ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper;
 
     public AuditEventRepositoryImpl() {
         this.objectMapper = new ObjectMapper();
@@ -73,7 +69,7 @@ public class AuditEventRepositoryImpl extends InMemoryAuditEventRepository {
         logEntry.put("event", event);
 
         try {
-            LOG.info(this.objectMapper.writeValueAsString(logEntry));
+            log.info(this.objectMapper.writeValueAsString(logEntry));
         }
         catch (JsonProcessingException e) {
             // critical, as Audit log entry missing

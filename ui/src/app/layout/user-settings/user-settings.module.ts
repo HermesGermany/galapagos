@@ -11,4 +11,5 @@ import { UserSettingsComponent } from './user-settings.component';
     imports: [CommonModule, UserSettingsRoutingModule, TranslateModule, FormsModule, NgbAlertModule, SpinnerWhileModule],
     declarations: [UserSettingsComponent]
 })
-export class UserSettingsModule {}
+export class UserSettingsModule {
+}

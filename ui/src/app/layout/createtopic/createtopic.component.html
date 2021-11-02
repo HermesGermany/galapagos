@@ -26,16 +26,17 @@
                             {{ 'TOPIC_STAGING_ONLY_ENVIRONMENT' | translate }}
                         </ngb-alert>
                         <ngb-alert
-                            *ngIf="selectedEnvironment && selectedApplication && showRegistrationWarning && !(selectedEnvironment | async)?.stagingOnly"
+                            *ngIf="selectedEnvironment && selectedApplication && showRegistrationWarning"
                             type="warning" [dismissible]="false">
-                            {{ 'ENV_APP_WARNING' | translate }}
+                            {{ (selectedEnvironment | async).authenticationMode === 'ccloud'
+                            ? ('ENV_APP_WARNING_API_KEY' | translate) : ('ENV_APP_WARNING_CERTIFICATE' | translate) }}
                             <a class="ml" routerLink="/applications">{{"My Applications"|translate}}</a>
                         </ngb-alert>
 
                         <div class="form-group form-inline">
                             <label class="mr-3">{{ 'Owning Application' | translate }}</label>
                             <select class="form-control mr-3" name="appPicker" #appPicker
-                                    (change)="topicNameSpinner.while(suggestTopicName()); checkApplicationCertificate()"
+                                    (change)="topicNameSpinner.while(suggestTopicName()); checkAuthentication()"
                                     [(ngModel)]="selectedApplication">
                                 <option *ngFor="let app of d.untilNext(availableApplications) | async"
                                         [ngValue]="app">{{ app.name }}
@@ -84,7 +85,7 @@
             </div>
         </div>
 
-        <app-data-settings #initialTopicSettings (setTopicSettings)="createTopic($event)" [topicType]="topicType"
+        <app-data-settings #initialTopicSettings [topicType]="topicType"
                            [selectedEnvironment]="selectedEnvironment | async"
                            [showSubscriptionApprovalRequired]="showSubscriptionApprovalRequired | async"></app-data-settings>
 
@@ -132,7 +133,7 @@
                     <div class="card-body">
                         <button type="button" class="btn btn-success" appSpinnerWhile #b="appSpinnerWhile"
                                 [disabled]="!selectedApplication || !topicType || !topicName || (topicType !== 'INTERNAL' && !selectedBusinessCapability) || (selectedEnvironment | async)?.stagingOnly"
-                                (click)="b.while(initialTopicSettings.prepareDataForParent())">
+                                (click)="b.while(createTopic(initialTopicSettings.prepareDataForParent()))">
                             <i class="fas fa-save"></i>&nbsp;{{ 'Create Topic' | translate }}
                         </button>
                     </div>

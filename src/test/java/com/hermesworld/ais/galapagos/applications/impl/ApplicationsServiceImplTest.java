@@ -4,46 +4,41 @@ import com.hermesworld.ais.galapagos.applications.ApplicationMetadata;
 import com.hermesworld.ais.galapagos.applications.ApplicationOwnerRequest;
 import com.hermesworld.ais.galapagos.applications.KnownApplication;
 import com.hermesworld.ais.galapagos.applications.RequestState;
-import com.hermesworld.ais.galapagos.certificates.CaManager;
-import com.hermesworld.ais.galapagos.certificates.CertificateSignResult;
-import com.hermesworld.ais.galapagos.events.GalapagosEventManager;
 import com.hermesworld.ais.galapagos.events.GalapagosEventManagerMock;
 import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
+import com.hermesworld.ais.galapagos.kafka.auth.CreateAuthenticationResult;
+import com.hermesworld.ais.galapagos.kafka.auth.KafkaAuthenticationModule;
 import com.hermesworld.ais.galapagos.kafka.impl.TopicBasedRepositoryMock;
 import com.hermesworld.ais.galapagos.kafka.util.TopicBasedRepository;
 import com.hermesworld.ais.galapagos.naming.ApplicationPrefixes;
 import com.hermesworld.ais.galapagos.naming.NamingService;
 import com.hermesworld.ais.galapagos.security.CurrentUserService;
 import com.hermesworld.ais.galapagos.util.TimeService;
-import org.junit.Before;
-import org.junit.Test;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.util.StreamUtils;
+import org.json.JSONObject;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.invocation.InvocationOnMock;
 
 import java.io.ByteArrayOutputStream;
-import java.nio.charset.StandardCharsets;
-import java.security.cert.X509Certificate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
 
 public class ApplicationsServiceImplTest {
 
     private KafkaClusters kafkaClusters;
-
-    private KafkaCluster testCluster;
 
     private final TopicBasedRepository<ApplicationOwnerRequest> requestRepository = new TopicBasedRepositoryMock<>();
 
@@ -51,7 +46,9 @@ public class ApplicationsServiceImplTest {
 
     private final TopicBasedRepository<ApplicationMetadata> applicationMetadataRepository = new TopicBasedRepositoryMock<>();
 
-    @Before
+    private KafkaAuthenticationModule authenticationModule;
+
+    @BeforeEach
     public void feedMocks() {
         kafkaClusters = mock(KafkaClusters.class);
 
@@ -60,11 +57,20 @@ public class ApplicationsServiceImplTest {
         when(kafkaClusters.getGlobalRepository("known-applications", KnownApplicationImpl.class))
                 .thenReturn(knownApplicationRepository);
 
-        testCluster = mock(KafkaCluster.class);
+        KafkaCluster testCluster = mock(KafkaCluster.class);
         when(testCluster.getRepository("application-metadata", ApplicationMetadata.class))
                 .thenReturn(applicationMetadataRepository);
 
         when(kafkaClusters.getEnvironment("test")).thenReturn(Optional.of(testCluster));
+
+        authenticationModule = mock(KafkaAuthenticationModule.class);
+
+        CreateAuthenticationResult authResult = new CreateAuthenticationResult(
+                new JSONObject(Map.of("testentry", true)), new byte[] { 1 });
+
+        when(authenticationModule.createApplicationAuthentication(eq("quattro-1"), eq("quattro"), any()))
+                .thenReturn(CompletableFuture.completedFuture(authResult));
+        when(kafkaClusters.getAuthenticationModule("test")).thenReturn(Optional.of(authenticationModule));
     }
 
     @Test
@@ -132,7 +138,7 @@ public class ApplicationsServiceImplTest {
         requestRepository.save(appOwnReq);
 
         ApplicationsServiceImpl applicationServiceImpl = new ApplicationsServiceImpl(kafkaClusters, currentUserService,
-                mock(TimeService.class), mock(NamingService.class), mock(GalapagosEventManager.class));
+                mock(TimeService.class), mock(NamingService.class), new GalapagosEventManagerMock());
         List<? extends KnownApplication> result = applicationServiceImpl.getKnownApplications(true);
 
         for (KnownApplication resultKnownApp : result) {
@@ -152,7 +158,6 @@ public class ApplicationsServiceImplTest {
         // But is already registered with Alias Q1 and associated rights
         ApplicationMetadata appl = new ApplicationMetadata();
         appl.setApplicationId("quattro-1");
-        appl.setDn("CN=quattro,OU=certification_12345");
         appl.setInternalTopicPrefixes(List.of("quattro.internal.", "q1.internal."));
         appl.setConsumerGroupPrefixes(List.of("groups.quattro.", "groups.q1."));
         appl.setTransactionIdPrefixes(List.of("quattro.internal.", "q1.internal."));
@@ -167,26 +172,23 @@ public class ApplicationsServiceImplTest {
 
         NamingService namingService = mock(NamingService.class);
         when(namingService.getAllowedPrefixes(any())).thenReturn(newPrefixes);
+        when(namingService.normalize("Quattro")).thenReturn("quattro");
+
+        GalapagosEventManagerMock eventManagerMock = new GalapagosEventManagerMock();
 
         ApplicationsServiceImpl applicationServiceImpl = new ApplicationsServiceImpl(kafkaClusters,
-                mock(CurrentUserService.class), mock(TimeService.class), namingService,
-                new GalapagosEventManagerMock());
+                mock(CurrentUserService.class), mock(TimeService.class), namingService, eventManagerMock);
 
-        X509Certificate cert = mock(X509Certificate.class);
-        when(cert.getNotAfter()).thenReturn(new Date());
-        CaManager caMan = mock(CaManager.class);
-        when(kafkaClusters.getCaManager("test")).thenReturn(Optional.of(caMan));
-        when(caMan.createApplicationCertificateAndPrivateKey(any(), any()))
-                .thenReturn(CompletableFuture.completedFuture(
-                        new CertificateSignResult(cert, null, "CN=quattro,OU=certification_12346", new byte[0])));
+        applicationServiceImpl
+                .registerApplicationOnEnvironment("test", "quattro-1", new JSONObject(), new ByteArrayOutputStream())
+                .get();
 
-        applicationServiceImpl.createApplicationCertificateAndPrivateKey("test", "quattro-1",
-                new ByteArrayOutputStream());
-
+        // noinspection OptionalGetWithoutIsPresent
         appl = applicationMetadataRepository.getObject("quattro-1").get();
 
-        assertEquals("CN=quattro,OU=certification_12346", appl.getDn());
+        assertTrue(new JSONObject(appl.getAuthenticationJson()).getBoolean("testentry"));
 
+        // resulting rights must contain BOTH old and new prefixes
         assertTrue(appl.getInternalTopicPrefixes().contains("quattro.internal."));
         assertTrue(appl.getInternalTopicPrefixes().contains("q1.internal."));
         assertTrue(appl.getInternalTopicPrefixes().contains("q2.internal."));
@@ -196,52 +198,114 @@ public class ApplicationsServiceImplTest {
         assertTrue(appl.getConsumerGroupPrefixes().contains("groups.quattro."));
         assertTrue(appl.getConsumerGroupPrefixes().contains("groups.q1."));
         assertTrue(appl.getConsumerGroupPrefixes().contains("groups.q2."));
+
+        // also check (while we are here) that event has fired for update
+        List<InvocationOnMock> invs = eventManagerMock.getSinkInvocations();
+        assertEquals(1, invs.size());
+        assertEquals("handleApplicationAuthenticationChanged", invs.get(0).getMethod().getName());
+    }
+
+    @Test
+    public void testRegisterNewFiresEvent() throws Exception {
+        KnownApplicationImpl app = new KnownApplicationImpl("quattro-1", "Quattro");
+        app.setAliases(List.of("q2"));
+        knownApplicationRepository.save(app).get();
+
+        GalapagosEventManagerMock eventManagerMock = new GalapagosEventManagerMock();
+
+        NamingService namingService = buildNamingService();
+
+        ApplicationsServiceImpl applicationServiceImpl = new ApplicationsServiceImpl(kafkaClusters,
+                mock(CurrentUserService.class), mock(TimeService.class), namingService, eventManagerMock);
+
+        applicationServiceImpl
+                .registerApplicationOnEnvironment("test", "quattro-1", new JSONObject(), new ByteArrayOutputStream())
+                .get();
+
+        List<InvocationOnMock> invs = eventManagerMock.getSinkInvocations();
+        assertEquals(1, invs.size());
+        assertEquals("handleApplicationRegistered", invs.get(0).getMethod().getName());
     }
 
     @Test
     public void testExtendCertificate() throws Exception {
+        // TODO move to CertificeAuthenticationModuleTest
+
+//        KnownApplicationImpl app = new KnownApplicationImpl("quattro-1", "Quattro");
+//        knownApplicationRepository.save(app).get();
+//
+//        NamingService namingService = mock(NamingService.class);
+//        ApplicationPrefixes prefixes = mock(ApplicationPrefixes.class);
+//        when(namingService.getAllowedPrefixes(any())).then(inv -> {
+//            KnownApplication appl = inv.getArgument(0);
+//            assertEquals("quattro-1", appl.getId());
+//            return prefixes;
+//        });
+//        when(prefixes.combineWith(any())).thenCallRealMethod();
+//
+//        when(prefixes.getInternalTopicPrefixes()).thenReturn(List.of("quattro.internal."));
+//        when(prefixes.getConsumerGroupPrefixes()).thenReturn(List.of("test.group.quattro."));
+//        when(prefixes.getTransactionIdPrefixes()).thenReturn(List.of("quattro.internal."));
+//
+//        X509Certificate cert = mock(X509Certificate.class);
+//        when(cert.getNotAfter()).thenReturn(new Date());
+//
+//        CaManager caMan = mock(CaManager.class);
+//        when(kafkaClusters.getCaManager("test")).thenReturn(Optional.of(caMan));
+//        when(caMan.extendApplicationCertificate(any(), any())).then(inv -> CompletableFuture
+//                .completedFuture(new CertificateSignResult(cert, "", inv.getArgument(0), new byte[0])));
+//
+//        ApplicationsServiceImpl service = new ApplicationsServiceImpl(kafkaClusters, mock(CurrentUserService.class),
+//                mock(TimeService.class), namingService, new GalapagosEventManagerMock());
+//
+//        String testCsrData = StreamUtils.copyToString(
+//                new ClassPathResource("/certificates/test_quattroExtend.csr").getInputStream(), StandardCharsets.UTF_8);
+//
+//        ApplicationMetadata appl = new ApplicationMetadata();
+//        appl.setApplicationId("quattro-1");
+//        appl.setDn("CN=quattro,OU=certification_12345");
+//        appl.setInternalTopicPrefixes(List.of("quattro.internal."));
+//        applicationMetadataRepository.save(appl).get();
+//
+//        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+//        ApplicationMetadata meta = service
+//                .createApplicationCertificateFromCsr("test", "quattro-1", testCsrData, true, baos).get();
+//        assertEquals("CN=quattro,OU=certification_12345", meta.getDn());
+//        assertEquals("CN=quattro,OU=certification_12345",
+//                applicationMetadataRepository.getObject("quattro-1").map(o -> o.getDn()).orElseThrow());
+    }
+
+    @Test
+    public void testUpdateAuthentication() throws Exception {
+        // WHEN an already registered application is re-registered on an environment...
         KnownApplicationImpl app = new KnownApplicationImpl("quattro-1", "Quattro");
         knownApplicationRepository.save(app).get();
 
-        NamingService namingService = mock(NamingService.class);
-        ApplicationPrefixes prefixes = mock(ApplicationPrefixes.class);
-        when(namingService.getAllowedPrefixes(any())).then(inv -> {
-            KnownApplication appl = inv.getArgument(0);
-            assertEquals("quattro-1", appl.getId());
-            return prefixes;
-        });
-        when(prefixes.combineWith(any())).thenCallRealMethod();
-
-        when(prefixes.getInternalTopicPrefixes()).thenReturn(List.of("quattro.internal."));
-        when(prefixes.getConsumerGroupPrefixes()).thenReturn(List.of("test.group.quattro."));
-        when(prefixes.getTransactionIdPrefixes()).thenReturn(List.of("quattro.internal."));
-
-        X509Certificate cert = mock(X509Certificate.class);
-        when(cert.getNotAfter()).thenReturn(new Date());
-
-        CaManager caMan = mock(CaManager.class);
-        when(kafkaClusters.getCaManager("test")).thenReturn(Optional.of(caMan));
-        when(caMan.extendApplicationCertificate(any(), any())).then(inv -> CompletableFuture
-                .completedFuture(new CertificateSignResult(cert, "", inv.getArgument(0), new byte[0])));
-
-        ApplicationsServiceImpl service = new ApplicationsServiceImpl(kafkaClusters, mock(CurrentUserService.class),
-                mock(TimeService.class), namingService, new GalapagosEventManagerMock());
-
-        String testCsrData = StreamUtils.copyToString(
-                new ClassPathResource("/certificates/test_quattroExtend.csr").getInputStream(), StandardCharsets.UTF_8);
-
         ApplicationMetadata appl = new ApplicationMetadata();
         appl.setApplicationId("quattro-1");
-        appl.setDn("CN=quattro,OU=certification_12345");
-        appl.setInternalTopicPrefixes(List.of("quattro.internal."));
+        appl.setAuthenticationJson("{}");
+        appl.setInternalTopicPrefixes(List.of("quattro.internal.", "q1.internal."));
+        appl.setConsumerGroupPrefixes(List.of("groups.quattro.", "groups.q1."));
+        appl.setTransactionIdPrefixes(List.of("quattro.internal.", "q1.internal."));
         applicationMetadataRepository.save(appl).get();
 
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        ApplicationMetadata meta = service
-                .createApplicationCertificateFromCsr("test", "quattro-1", testCsrData, true, baos).get();
-        assertEquals("CN=quattro,OU=certification_12345", meta.getDn());
-        assertEquals("CN=quattro,OU=certification_12345",
-                applicationMetadataRepository.getObject("quattro-1").map(o -> o.getDn()).orElseThrow());
+        ApplicationsServiceImpl applicationServiceImpl = new ApplicationsServiceImpl(kafkaClusters,
+                mock(CurrentUserService.class), mock(TimeService.class), buildNamingService(),
+                new GalapagosEventManagerMock());
+
+        CreateAuthenticationResult authResult = new CreateAuthenticationResult(new JSONObject(), new byte[] { 1 });
+        when(authenticationModule.createApplicationAuthentication(any(), any(), any()))
+                .thenThrow(new IllegalStateException(
+                        "createApplicationAuthentication() should not be called for already registered application"));
+        when(authenticationModule.updateApplicationAuthentication(any(), any(), any(), any()))
+                .thenReturn(CompletableFuture.completedFuture(authResult));
+
+        applicationServiceImpl
+                .registerApplicationOnEnvironment("test", "quattro-1", new JSONObject(), new ByteArrayOutputStream())
+                .get();
+
+        // THEN updateApplicationAuthentication instead of create... must be used by the implementation.
+        verify(authenticationModule).updateApplicationAuthentication(eq("quattro-1"), any(), any(), any());
     }
 
     private static ApplicationOwnerRequest createRequestDao(String id, ZonedDateTime createdAt, String userName) {
@@ -263,6 +327,23 @@ public class ApplicationsServiceImplTest {
         dao.setState(reqState);
         return dao;
 
+    }
+
+    private static NamingService buildNamingService() {
+        NamingService namingService = mock(NamingService.class);
+        ApplicationPrefixes prefixes = mock(ApplicationPrefixes.class);
+        when(namingService.getAllowedPrefixes(any())).then(inv -> {
+            KnownApplication appl = inv.getArgument(0);
+            assertEquals("quattro-1", appl.getId());
+            return prefixes;
+        });
+        when(prefixes.combineWith(any())).thenCallRealMethod();
+        when(prefixes.getInternalTopicPrefixes()).thenReturn(List.of("quattro.internal."));
+        when(prefixes.getConsumerGroupPrefixes()).thenReturn(List.of("test.group.quattro."));
+        when(prefixes.getTransactionIdPrefixes()).thenReturn(List.of("quattro.internal."));
+
+        when(namingService.normalize("Quattro")).thenReturn("quattro");
+        return namingService;
     }
 
 }

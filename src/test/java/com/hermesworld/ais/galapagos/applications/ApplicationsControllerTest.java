@@ -15,9 +15,11 @@ import com.hermesworld.ais.galapagos.topics.SchemaMetadata;
 import com.hermesworld.ais.galapagos.topics.TopicMetadata;
 import com.hermesworld.ais.galapagos.topics.TopicType;
 import com.hermesworld.ais.galapagos.topics.service.TopicService;
+import com.hermesworld.ais.galapagos.util.FutureUtil;
 import com.hermesworld.ais.galapagos.util.JsonUtil;
 import org.junit.Test;
 
+import java.io.OutputStream;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -36,25 +38,28 @@ public class ApplicationsControllerTest {
 
     @Test
     public void testUpdateApplicationCertificateDependentOnStageName() {
-
         // Arrange
-        String applicationId = "testapp";
+        String applicationId = "testapp-1";
         String environmentId = "devtest";
         CertificateRequestDto certificateRequestDto = new CertificateRequestDto();
         certificateRequestDto.setGenerateKey(true);
 
         KnownApplication knownApp = mock(KnownApplication.class);
+        when(knownApp.getName()).thenReturn("TestApp");
         KafkaEnvironmentConfig kafkaEnvironmentConfig = mock(KafkaEnvironmentConfig.class);
-        ApplicationMetadata applicationMetadata = new ApplicationMetadata();
-        applicationMetadata.setDn("cn=testapp");
 
         ApplicationsController controller = new ApplicationsController(applicationsService, stagingService,
                 kafkaClusters);
         when(applicationsService.getKnownApplication(any())).thenReturn(Optional.of(knownApp));
         when(applicationsService.isUserAuthorizedFor(any())).thenReturn(true);
         when(kafkaClusters.getEnvironmentMetadata(environmentId)).thenReturn(Optional.of(kafkaEnvironmentConfig));
-        when(applicationsService.createApplicationCertificateAndPrivateKey(any(), any(), any()))
-                .thenReturn(CompletableFuture.completedFuture(applicationMetadata));
+
+        when(applicationsService.registerApplicationOnEnvironment(any(), any(), any(), any())).then(inv -> {
+            OutputStream os = inv.getArgument(3);
+            os.write(new byte[] { 1, 2, 3, 4 });
+            os.flush();
+            return FutureUtil.noop();
+        });
 
         // Act
         CertificateResponseDto testee = controller.updateApplicationCertificate(applicationId, environmentId,
@@ -62,7 +67,6 @@ public class ApplicationsControllerTest {
 
         // Assert
         assertEquals("testapp_devtest.p12", testee.getFileName());
-
     }
 
     @Test
@@ -96,7 +100,6 @@ public class ApplicationsControllerTest {
 
         ApplicationMetadata appMetadata = new ApplicationMetadata();
         appMetadata.setApplicationId("app-1");
-        appMetadata.setDn("cn=app1");
         appMetadata.setInternalTopicPrefixes(List.of("app1.internal."));
 
         when(topicService.listTopics("dev")).thenReturn(List.of(topic1, topic2));

@@ -33,6 +33,9 @@ export interface Topic {
     subscriptionApprovalRequired: boolean;
 
     deletable: boolean;
+
+    producers: string[];
+
 }
 
 export interface TopicSubscription {
@@ -250,6 +253,29 @@ export class TopicsService {
         ));
     }
 
+    public addProducerToTopic(producerAppId: string, envId: string, topicName: string): Promise<any> {
+        const body = JSON.stringify({
+            producerApplicationId: producerAppId
+        });
+
+        return this.http.post('/api/producers/' + envId + '/' + topicName, body, { headers: jsonHeader() }).pipe(take(1))
+            .toPromise().then(() => this.topicsList.refresh());
+    }
+
+    public changeTopicOwner(envId: string, topicName: string, newOwnerId: string) {
+        const body = JSON.stringify({
+            producerApplicationId: newOwnerId
+        });
+
+        return this.http.post('/api/change-owner/' + envId + '/' + topicName, body, { headers: jsonHeader() }).pipe(take(1))
+            .toPromise().then(() => this.topicsList.refresh());
+    }
+
+    public deleteProducerFromTopic(envId: string, topicName: string, producerAppId: string): Promise<any> {
+        return this.http.delete(`/api/producers/${envId}/${topicName}/${producerAppId}`).pipe(take(1))
+            .toPromise().then(() => this.topicsList.refresh());
+    }
+
     public getTopicSchemas(topicName: string, environmentId: string): Promise<SchemaMetadata[]> {
         return this.http.get('/api/schemas/' + environmentId + '/' + topicName).pipe(map(d => d as SchemaMetadata[]))
             .pipe(map(schemas => this.markLatest(schemas))).toPromise();
@@ -275,12 +301,12 @@ export class TopicsService {
         });
 
         return this.http.put('/api/applications/' + applicationId + '/subscriptions/' + environmentId, body, { headers: jsonHeader() })
-            .pipe(take(1)).toPromise();
+            .pipe(take(1)).toPromise().then(() => this.topicsList.refresh());
     }
 
     public unsubscribeFromTopic(environmentId: string, applicationId: string, subscriptionId: string): Promise<any> {
         return this.http.delete('/api/applications/' + applicationId + '/subscriptions/' + environmentId + '/' + subscriptionId)
-            .toPromise();
+            .toPromise().then(() => this.topicsList.refresh());
     }
 
     public updateTopicSubscription(environmentId: string, topicName: string, subscriptionId: string, approved: boolean): Promise<any> {
@@ -344,7 +370,8 @@ export class TopicsService {
                 eolDate: a.eolDate,
                 ownerApplication: apps.find(app => app.id === a.ownerApplicationId) || null,
                 subscriptionApprovalRequired: a.subscriptionApprovalRequired,
-                deletable: a.deletable
+                deletable: a.deletable,
+                producers: a.producers
             }));
 
             return result;
