@@ -434,14 +434,18 @@ In Addition to the owning Application, you can add several other Applications, t
 specific topic. To do so, scroll down to the "Danger Zone". There you will find a button "add additional producers". By
 clicking this button, the following dialogue opens:
 
+   <p align="center">
+   <img alt="producers" src="./galapagos_user_guide_images/producers.png" width="600" height="300">
+   </p>
+
 Here you can select all registered Applications on the current environment. After the selection a new row in the Table
 on the single topic page with the name "additional producers" will appear. There you can see all producers that you have
 added. This means, those producer applications got the correct ACLs, such that they can produce messages on a given
 topic. By deleting a given producer, the ACLs are removed. This way the producer cannot write to the topic anymore.
 
-When you don't want that a producers writes data into a topic, then you can simply delete the producer by clicking the "
+When you don't want that a producer writes data into a topic, then you can simply delete the producer by clicking the "
 delete producer" button. This button will appear next to the producer applications name. The moment you remove a
-producer from the producers list of a topic, this applications
+producer from the producers list of a topic, this application will not be able to produce messages to the topic.
 
 ## Change Owner of Topic
 
@@ -449,7 +453,9 @@ After adding a producer there will appear another Button next to the "delete pro
 owner of topic". Using this Button you can promote a producer to the new Owner of the current Topic. The former Owner
 will be "just" a producer, so it will still be able to produce messages on the topic. By clicking it, the following
 dialogue opens:
-
+ <p align="center">
+   <img alt="change-owner" src="./galapagos_user_guide_images/change-owner.png" width="600" height="300">
+   </p>
 Here you will be again asked whether you are sure to change the owning Application. By confirming, the roles of the
 producer and the old Owner will change. Of course, you can just use the button again, if you want the former Owner to be
 again the owning Application of the topic. Please note that it is only possible to change the owner for API Topics, so
