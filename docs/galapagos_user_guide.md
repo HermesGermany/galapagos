@@ -470,7 +470,10 @@ Since Galapagos 2.1.0, you can configure Galapagos in such a way, that it unders
 cloud. This means you could have one on-prem cluster, where you can authenticate yourself using SSL Certificates and
 another cluster, which is a managed one by Confluent, which uses API Keys for authentication. This way you could for
 example create a Topic on an environment called NONPROD, which is based on an on-prem cluster and stage it to the next
-stage PROD, which is based on a managed cluster by confluent.
+stage PROD, which is based on a managed cluster by confluent. Please note that the UI will at some points will look
+slightly different for both modes. For example on the "My Applications" Page, the third panel on each "Card" will look
+different since one is for creating a certificate and the other one is for generating your key or on the dashboard page
+you will see not kafka truststore since in case of a managed cluster you do not need it.
 
 ## Additional producers for a Topic
 
