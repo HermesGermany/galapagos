@@ -286,7 +286,6 @@ winpty openssl pkcs12 -in <myclientkeystore.p12> -nocerts -nodes -out <myprivate
    
    The "Description" field now has a much more important role. Other users will see this as the first information on
    your topic and can search through it. A meaningful description of the (future) content of the topic is strongly recommended.
-   
 
 ### Personal data in topics
 
@@ -428,25 +427,102 @@ row to remove it:
 
 After you have clicked the button, the "Usable until" row disappears and the topic is no longer deprecated.
 
+## Confluent Cloud Support
+
+Since Galapagos 2.1.0, we now have support for Kafka Clusters that are managed by Confluent Cloud. This means, you can
+generate the required credentials to authenticate your applications to the Confluent Cloud Clusters. These credentials
+include an API Key and a Secret. Well, so how to get these credentials? Go to "My Applications" to register your
+Application on the current Environment. Search for your Application and then click on "Create Api Key now". The
+following dialogue opens:
+
+ <p align="center">
+   <img alt="generate-key" src="./galapagos_user_guide_images/generate-key.png" width="600" height="300">
+   </p>
+
+By clicking on "Generate API Key", you will get the credentials you need, and you can just copy them from the table.
+Please note that Galapagos will not save your secret, so you should not lose it. And now? Well, after you got your
+credentials it is time to use them. You will need to insert your credentials into the Framework Config Template. If you
+are in the "ccloud" mode (more on that later), then the template looks as follows:
+
+   <p align="center">
+   <img alt="ccloud-template" src="./galapagos_user_guide_images/ccloud-template.png" width="600" height="300">
+   </p>
+
+This way your Application is able to authenticate itself to the Confluent Cloud Clusters and can produce messages on the
+topics hosted on the managed clusters.
+
+If you already have an API Key and want to generate a new one, then you can do this. Again go to "My Applications" and
+search for your Application. This time, since you already have a key you will see a "Card" for your Application, that
+contains three panels. One of them is called "Client Access":
+
+  <p align="center">
+   <img alt="client-access" src="./galapagos_user_guide_images/client-access.png" width="600" height="300">
+   </p>
+By clicking on "Client Access", the panel will open and you will see a button called "New login details", which you can
+also click such that the dialogue you saw before will appear.
+
+Please note that doing so the previous API Key loses its assigned Kafka permissions and becomes unusable. Existing
+permissions are transferred to the new API Key.
+
+### Certificates/ccloud mode
+
+Since Galapagos 2.1.0, you can configure Galapagos in such a way, that it understands both, certificates and Confluent
+cloud. This means you could have one on-prem cluster, where you can authenticate yourself using SSL Certificates and
+another cluster, which is a managed one by Confluent, which uses API Keys for authentication. This way you could for
+example create a Topic on an environment called NONPROD, which is based on an on-prem cluster and stage it to the next
+stage PROD, which is based on a managed cluster by confluent.
+
 ## Additional producers for a Topic
 
+### Add a Producer
+
 In Addition to the owning Application, you can add several other Applications, that are privileged to write to a
-specific topic. To do so, scroll down to the "Danger Zone". There you will find a button "add additional producers". By
-clicking this button, the following dialogue opens:
+specific topic. To do so, navigate to your Topic and scroll down to the "Danger Zone". There you will find a button "add
+additional producers". By clicking this button, the following dialogue opens:
 
    <p align="center">
    <img alt="producers" src="./galapagos_user_guide_images/producers.png" width="600" height="300">
    </p>
 
-Here you can select all registered Applications on the current environment. After the selection a new row in the Table
+Here you can select all registered Applications on the current environment. After the selection, a new row in the Table
 on the single topic page with the name "additional producers" will appear. There you can see all producers (if any) that
 you have added. This means, those producer applications got the correct ACLs, such that they can produce messages on a
-given topic. By deleting a given producer, the ACLs are removed. This way the producer cannot write to the topic
-anymore.
+given topic.
 
-When you don't want that a producer writes data into a topic, then you can simply delete the producer by clicking the "
-delete producer" button. This button will appear next to the producer applications name. The moment you remove a
-producer from the producers list of a topic, this application will not be able to produce messages to the topic.
+### Delete a Producer
+
+After you added a producer, you can also just get rid of it by deleting the producer. To do so, navigate to your topic.
+If the Topic already has some producers, you will notice two buttons. For deletion, you need the red buttons:
+
+ <p align="center">
+   <img alt="delete-producers" src="./galapagos_user_guide_images/delete-producers.png" width="600" height="300">
+   </p>
+
+By clicking it, the following dialogue opens:
+
+<p align="center">
+   <img alt="delete-producers-dlg" src="./galapagos_user_guide_images/delete-producers-dlg.png" width="600" height="300">
+   </p>
+
+if you are sure you want to delete the producer, then just click on "delete Producer", and it will be gone. By deleting
+a given producer, the ACLs are removed. This way the producer cannot write to the topic anymore.
+
+### Stage adding/deleting a Producer
+
+What about staging? Well, since it is only possible to add additional producers for a Topic on a non-staging
+environment, you will need to stage this change (adding producers). To do so, go to the "Staging" Section using the
+Sidebar. Choose the right Application and the source Environment. In the given example, we assume we have an Application
+named "Quattro" and we want to stage from NONPROD to PROD. By clicking on "Analyze Changes", you will see the following:
+
+   <p align="center">
+   <img alt="stage-producer" src="./galapagos_user_guide_images/stage-producer.png" width="600" height="300">
+   </p>
+
+As you can see in the "Change Overview" Section, there are two producers that were added on the NONPROD Environment and
+are now ready to be staged to the next Environment, which in this case is PROD. You can now stage as many producers as
+you want. The ones that you do not stage now, you can of course stage later. This Procedure is also valid for staging
+the deletion of a Producer. If you for example deleted an additional producing application on NONPROD and want to stage
+this change (the deletion) on PROD then just do the same as written above for the case that adding a producer is staged.
 
 ## Change Owner of Topic
 
@@ -458,11 +534,9 @@ dialogue opens:
    <img alt="change-owner" src="./galapagos_user_guide_images/change-owner.png" width="600" height="300">
    </p>
 Here you will be again asked whether you are sure to change the owning Application. By confirming, the roles of the
-producer and the old Owner will change. Of course, you can just use the button again, if you want the former Owner to be
+producer and the current Owner will swap. Of course, you can just use the button again, if you want the former Owner to be
 again the owning Application of the topic. Please note that it is only possible to change the owner for API Topics, so
 the Owner of a internal Topic cannot be changed.
-
-What about staging? Well, if you are changing
 
 ## Change advanced topic settings
 
