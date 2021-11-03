@@ -1,13 +1,13 @@
 package com.hermesworld.ais.galapagos.schemas;
 
+import org.everit.json.schema.*;
+import org.everit.json.schema.regexp.Regexp;
+
 import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-
-import org.everit.json.schema.*;
-import org.everit.json.schema.regexp.Regexp;
 
 public final class SchemaUtil {
 
@@ -351,7 +351,8 @@ public final class SchemaUtil {
         }
 
         if (oldSchema.getPattern() != null
-                && (newSchema.getPattern() == null || !newSchema.getPattern().equals(oldSchema.getPattern()))) {
+                && (newSchema.getPattern() == null
+                        || !newSchema.getPattern().toString().equals(oldSchema.getPattern().toString()))) {
             throw new IncompatibleSchemaException(
                     "New schema defines no or other pattern for string property " + propLocationName(prefix));
         }
