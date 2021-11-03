@@ -439,9 +439,10 @@ clicking this button, the following dialogue opens:
    </p>
 
 Here you can select all registered Applications on the current environment. After the selection a new row in the Table
-on the single topic page with the name "additional producers" will appear. There you can see all producers that you have
-added. This means, those producer applications got the correct ACLs, such that they can produce messages on a given
-topic. By deleting a given producer, the ACLs are removed. This way the producer cannot write to the topic anymore.
+on the single topic page with the name "additional producers" will appear. There you can see all producers (if any) that
+you have added. This means, those producer applications got the correct ACLs, such that they can produce messages on a
+given topic. By deleting a given producer, the ACLs are removed. This way the producer cannot write to the topic
+anymore.
 
 When you don't want that a producer writes data into a topic, then you can simply delete the producer by clicking the "
 delete producer" button. This button will appear next to the producer applications name. The moment you remove a
