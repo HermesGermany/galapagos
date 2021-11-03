@@ -350,9 +350,8 @@ public final class SchemaUtil {
                             + propLocationName(prefix));
         }
 
-        if (oldSchema.getPattern() != null
-                && (newSchema.getPattern() == null
-                        || !newSchema.getPattern().toString().equals(oldSchema.getPattern().toString()))) {
+        if (oldSchema.getPattern() != null && (newSchema.getPattern() == null
+                || !newSchema.getPattern().toString().equals(oldSchema.getPattern().toString()))) {
             throw new IncompatibleSchemaException(
                     "New schema defines no or other pattern for string property " + propLocationName(prefix));
         }
