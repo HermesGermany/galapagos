@@ -19,6 +19,7 @@ import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.acl.*;
 import org.apache.kafka.common.config.ConfigResource;
 import org.apache.kafka.common.config.ConfigResource.Type;
+import org.apache.kafka.common.config.TopicConfig;
 import org.apache.kafka.common.errors.InterruptException;
 import org.apache.kafka.common.errors.WakeupException;
 import org.apache.kafka.common.resource.PatternType;
@@ -137,11 +138,14 @@ public class ConnectedKafkaCluster implements KafkaCluster {
         ConfigResource res = new ConfigResource(Type.TOPIC, topicName);
         Config config = new Config(configs);
 
+        // TODO numPartitions should be configurable for Galapagos metadata topics
+        NewTopic newTopic = new NewTopic(topicName, 3, (short) topicCreateParams.getReplicationFactor());
+        newTopic = newTopic.configs(Map.of(TopicConfig.CLEANUP_POLICY_CONFIG, TopicConfig.CLEANUP_POLICY_COMPACT));
+
         return toCompletableFuture(
                 this.adminClient
                         .createTopics(
-                                Collections.singleton(new NewTopic(topicName, topicCreateParams.getNumberOfPartitions(),
-                                        (short) topicCreateParams.getReplicationFactor())))
+                                Collections.singleton(newTopic))
                         .all()).thenCompose(
                                 o -> toCompletableFuture(
                                         adminClient.alterConfigs(Collections.singletonMap(res, config)).all()));
