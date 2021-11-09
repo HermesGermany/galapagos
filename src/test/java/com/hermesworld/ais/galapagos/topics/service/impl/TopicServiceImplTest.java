@@ -750,6 +750,35 @@ public class TopicServiceImplTest {
     }
 
     @Test
+    public void testAddSchemaVersion_noExceptionForPatternFieldInSchema() throws Exception {
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
+                topicConfig, eventManager);
+
+        TopicMetadata topic1 = new TopicMetadata();
+        topic1.setName("topic-1");
+        topic1.setOwnerApplicationId("app-1");
+        topic1.setType(TopicType.EVENTS);
+        topicRepository.save(topic1).get();
+
+        SchemaMetadata schema1 = new SchemaMetadata();
+        schema1.setId("1234");
+        schema1.setTopicName("topic-1");
+        schema1.setCreatedBy("otheruser");
+        schema1.setJsonSchema(StreamUtils.copyToString(
+                new ClassPathResource("/schema-compatibility/test-pattern-field.schema.json").getInputStream(),
+                StandardCharsets.UTF_8));
+        schema1.setSchemaVersion(1);
+        schemaRepository.save(schema1).get();
+
+        service.addTopicSchemaVersion("test", "topic-1",
+                StreamUtils.copyToString(
+                        new ClassPathResource("/schema-compatibility/test-pattern-field-with-another-prop.schema.json")
+                                .getInputStream(),
+                        StandardCharsets.UTF_8),
+                "a change description").get();
+    }
+
+    @Test
     public void testAddSchemaVersion_DataObjectSimpleAtJSONSchema() throws Exception {
         TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
                 topicConfig, eventManager);
