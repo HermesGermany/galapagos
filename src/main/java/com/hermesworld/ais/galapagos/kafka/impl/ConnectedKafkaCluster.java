@@ -142,13 +142,8 @@ public class ConnectedKafkaCluster implements KafkaCluster {
         NewTopic newTopic = new NewTopic(topicName, 3, (short) topicCreateParams.getReplicationFactor());
         newTopic = newTopic.configs(Map.of(TopicConfig.CLEANUP_POLICY_CONFIG, TopicConfig.CLEANUP_POLICY_COMPACT));
 
-        return toCompletableFuture(
-                this.adminClient
-                        .createTopics(
-                                Collections.singleton(newTopic))
-                        .all()).thenCompose(
-                                o -> toCompletableFuture(
-                                        adminClient.alterConfigs(Collections.singletonMap(res, config)).all()));
+        return toCompletableFuture(this.adminClient.createTopics(Collections.singleton(newTopic)).all()).thenCompose(
+                o -> toCompletableFuture(adminClient.alterConfigs(Collections.singletonMap(res, config)).all()));
     }
 
     @Override
