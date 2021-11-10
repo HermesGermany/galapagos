@@ -21,14 +21,25 @@
             <i class="fa fa-fw fas fa-external-link-alt"></i>
             <span>{{ 'Staging' | translate }}</span>
         </a>
-
         <a id="adminSection" *ngIf="isAdmin" [routerLink]="['/admin']" [routerLinkActive]="['router-link-active']"
            class="list-group-item">
             <i class="fa fa-fw fas fa-crown"></i>
             <span>{{ 'Administration' | translate }}</span>
         </a>
     </div>
-
+    <div style="position: relative;">
+        <div *ngIf="!collapsed">
+            <img
+                style="filter: drop-shadow(1px 1px 1px white) drop-shadow(-1px -1px 1px white);position:absolute;top:120px"
+                class="ml-3" width="200px" height="200px" src="../../../../assets/images/logo.svg">
+        </div>
+        <div *ngIf="collapsed">
+            <img
+                style="filter: drop-shadow(1px 1px 1px white) drop-shadow(-1px -1px 1px white);position:absolute;top:280px;
+                  clip: rect(0px,60px,30px,0px);"
+                class="ml-1" width="50px" height="50px" src="../../../../assets/images/logo.svg">
+        </div>
+    </div>
     <div class="toggle-button" [ngClass]="{collapsed: collapsed}" (click)="toggleCollapsed()">
         <i class="fa fa-fw fa-angle-double-{{collapsed?'right':'left'}}"></i>&nbsp;
         <span>{{ 'Collapse Sidebar' | translate }}</span>
