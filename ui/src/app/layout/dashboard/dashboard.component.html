@@ -11,7 +11,8 @@
                     <div class="form-group form-inline">
                         <label>{{ 'Selected Kafka Environment' | translate }}:</label>
                         <select class="form-control ml-2" (change)="selectEnvironment($event.target.value)">
-                            <option *ngFor="let env of allEnvironments | async" [value]="env.id" [selected]="env === (selectedEnvironment | async)">{{ env.name }}</option>
+                            <option *ngFor="let env of allEnvironments | async" [value]="env.id"
+                                    [selected]="env === (selectedEnvironment | async)">{{ env.name }}</option>
                         </select>
                         <span *ngIf="(selectedEnvironment | async)?.production" class="text-danger ml-3"><em><b>Production Environment</b></em></span>
                     </div>
@@ -19,7 +20,8 @@
                     <code id="bootstrapServers">{{ (selectedEnvironment | async)?.bootstrapServers }}</code>
                     <br>
                     <strong>Kafka Version:</strong>&nbsp;&nbsp;
-                    <code id="kafkaVersion">{{ (kafkaVersion | async) }}</code>
+                    <code
+                        id="kafkaVersion">{{ (selectedEnvironment|async)?.authenticationMode === 'ccloud' ? 'Confluent Cloud' : (kafkaVersion | async) }}</code>
 
                     <!--
                     <table class="table" style="margin-top: 10px">
