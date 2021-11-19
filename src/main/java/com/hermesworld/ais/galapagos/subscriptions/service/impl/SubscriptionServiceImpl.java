@@ -1,14 +1,5 @@
 package com.hermesworld.ais.galapagos.subscriptions.service.impl;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.BiFunction;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-
 import com.hermesworld.ais.galapagos.applications.ApplicationMetadata;
 import com.hermesworld.ais.galapagos.applications.ApplicationsService;
 import com.hermesworld.ais.galapagos.events.GalapagosEventManager;
@@ -27,6 +18,15 @@ import com.hermesworld.ais.galapagos.util.FutureUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.BiFunction;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 @Component
 public class SubscriptionServiceImpl implements SubscriptionService, InitPerCluster {
@@ -72,7 +72,7 @@ public class SubscriptionServiceImpl implements SubscriptionService, InitPerClus
                 .getApplicationMetadata(environmentId, subscriptionMetadata.getClientApplicationId()).orElse(null);
         if (application == null) {
             return CompletableFuture.failedFuture(new NoSuchElementException(
-                    "Application not registered on this environment. Please create an application certificate first."));
+                    "Application not registered on this environment. Please create authentication data first."));
         }
 
         if (topic.getType() == TopicType.INTERNAL) {
