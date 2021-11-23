@@ -64,7 +64,7 @@ describe('DashboardComponent', () => {
             bootstrapServers: 'someServer',
             production: false,
             stagingOnly: false,
-            authenticationMode: 'ccloud'
+            authenticationMode: 'certificates'
 
         });
 
