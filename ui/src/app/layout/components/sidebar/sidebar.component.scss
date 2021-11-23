@@ -1,4 +1,4 @@
-$topnav-background-color: #222;
+$topnav-background-color: #d7e6fd;
 .sidebar {
     border-radius: 0;
     position: fixed;
@@ -167,14 +167,17 @@ $topnav-background-color: #222;
     padding: 12px;
     bottom: 0;
     color: #999;
-    background: #212529;
+    background: $topnav-background-color;
+
     i {
         font-size: 23px;
     }
+
     &:hover {
         background: darken($topnav-background-color, 5%);
         color: #fff;
     }
+
     border-top: 1px solid #999;
     -webkit-transition: all 0.2s ease-in-out;
     -moz-transition: all 0.2s ease-in-out;
