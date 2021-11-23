@@ -132,8 +132,8 @@ public class ConnectedKafkaCluster implements KafkaCluster {
     @Override
     public CompletableFuture<Void> createTopic(String topicName, TopicCreateParams topicCreateParams) {
         NewTopic newTopic = new NewTopic(topicName, topicCreateParams.getNumberOfPartitions(),
-                (short) topicCreateParams.getReplicationFactor());
-        newTopic = newTopic.configs(topicCreateParams.getTopicConfigs());
+                (short) topicCreateParams.getReplicationFactor()).configs(topicCreateParams.getTopicConfigs());
+
         return toCompletableFuture(this.adminClient.createTopics(Collections.singleton(newTopic)).all());
     }
 
