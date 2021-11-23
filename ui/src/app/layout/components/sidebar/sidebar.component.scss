@@ -92,14 +92,43 @@ $topnav-background-color: #E2E2E3;
                     a {
                         color: #999;
                     }
+
                     a:hover {
                         color: #fff;
                     }
                 }
+
                 .list-group-item:hover {
                     background: darken($topnav-background-color, 5%);
                 }
             }
+        }
+    }
+
+    .big-logo {
+        display: block;
+    }
+
+    .small-logo {
+        padding: 0;
+        width: 50px;
+        height: 32px;
+        overflow: hidden;
+        display: inline-block;
+    }
+
+    @media (min-height: 450px) {
+        .small-logo {
+            position: absolute;
+            bottom: 4px;
+        }
+    }
+
+    @media (min-height: 600px) {
+        .big-logo {
+            display: unset;
+            position: absolute;
+            bottom: 0
         }
     }
 }
@@ -189,7 +218,9 @@ $topnav-background-color: #E2E2E3;
 
 .collapsed {
     width: 60px;
+
     span {
         display: none;
     }
 }
+

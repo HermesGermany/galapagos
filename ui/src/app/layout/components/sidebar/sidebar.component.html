@@ -30,14 +30,12 @@
     <div>
         <div *ngIf="!collapsed">
             <img
-                style="position:absolute;bottom:0"
-                class="ml-3" width="200px" height="200px" src="../../../../assets/images/logo.svg">
+                class="ml-3 big-logo" width="200px" height="200px" src="/assets/images/logo.svg">
         </div>
         <div *ngIf="collapsed">
-            <img
-                style="position:absolute;bottom:0;
-                  clip: rect(0px,60px,30px,0px);"
-                class="ml-1" width="50px" height="50px" src="../../../../assets/images/logo.svg">
+            <div class="small-logo">
+                <img class="ml-1" width=" 50px" height="50px" src="/assets/images/logo.svg">
+            </div>
         </div>
     </div>
     <div class="toggle-button" [ngClass]="{collapsed: collapsed}" (click)="toggleCollapsed()">
