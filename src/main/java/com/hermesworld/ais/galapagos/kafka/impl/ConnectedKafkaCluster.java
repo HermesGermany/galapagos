@@ -131,20 +131,10 @@ public class ConnectedKafkaCluster implements KafkaCluster {
 
     @Override
     public CompletableFuture<Void> createTopic(String topicName, TopicCreateParams topicCreateParams) {
-        List<ConfigEntry> configs = topicCreateParams.getTopicConfigs().entrySet().stream()
-                .map(entry -> new ConfigEntry(entry.getKey(), entry.getValue())).collect(Collectors.toList());
+        NewTopic newTopic = new NewTopic(topicName, topicCreateParams.getNumberOfPartitions(),
+                (short) topicCreateParams.getReplicationFactor()).configs(topicCreateParams.getTopicConfigs());
 
-        ConfigResource res = new ConfigResource(Type.TOPIC, topicName);
-        Config config = new Config(configs);
-
-        return toCompletableFuture(
-                this.adminClient
-                        .createTopics(
-                                Collections.singleton(new NewTopic(topicName, topicCreateParams.getNumberOfPartitions(),
-                                        (short) topicCreateParams.getReplicationFactor())))
-                        .all()).thenCompose(
-                                o -> toCompletableFuture(
-                                        adminClient.alterConfigs(Collections.singletonMap(res, config)).all()));
+        return toCompletableFuture(this.adminClient.createTopics(Collections.singleton(newTopic)).all());
     }
 
     @Override
