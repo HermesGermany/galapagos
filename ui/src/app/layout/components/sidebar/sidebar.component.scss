@@ -1,4 +1,4 @@
-$topnav-background-color: #222;
+$topnav-background-color: #E2E2E3;
 .sidebar {
     border-radius: 0;
     position: fixed;
@@ -27,8 +27,9 @@ $topnav-background-color: #222;
             background: $topnav-background-color;
             border: 0;
             border-radius: 0;
-            color: #999;
+            color: #202020;
             text-decoration: none;
+
             .fa {
                 margin-right: 10px;
             }
@@ -91,14 +92,43 @@ $topnav-background-color: #222;
                     a {
                         color: #999;
                     }
+
                     a:hover {
                         color: #fff;
                     }
                 }
+
                 .list-group-item:hover {
                     background: darken($topnav-background-color, 5%);
                 }
             }
+        }
+    }
+
+    .big-logo {
+        display: block;
+    }
+
+    .small-logo {
+        padding: 0;
+        width: 50px;
+        height: 32px;
+        overflow: hidden;
+        display: inline-block;
+    }
+
+    @media (min-height: 450px) {
+        .small-logo {
+            position: absolute;
+            bottom: 4px;
+        }
+    }
+
+    @media (min-height: 600px) {
+        .big-logo {
+            display: unset;
+            position: absolute;
+            bottom: 0
         }
     }
 }
@@ -166,15 +196,18 @@ $topnav-background-color: #222;
     cursor: pointer;
     padding: 12px;
     bottom: 0;
-    color: #999;
-    background: #212529;
+    color: #202020;
+    background: $topnav-background-color;
+
     i {
         font-size: 23px;
     }
+
     &:hover {
         background: darken($topnav-background-color, 5%);
         color: #fff;
     }
+
     border-top: 1px solid #999;
     -webkit-transition: all 0.2s ease-in-out;
     -moz-transition: all 0.2s ease-in-out;
@@ -185,7 +218,9 @@ $topnav-background-color: #222;
 
 .collapsed {
     width: 60px;
+
     span {
         display: none;
     }
 }
+
