@@ -8,15 +8,15 @@ When first opening Galapagos, you need to authenticate yourself. You will see
 a small window asking you for your keycloak credentials. Here you can enter 
 a valid combination of username and password. 
 
-<p align="center">
-<img alt="Galapagos Login" src="./galapagos_user_guide_images/login.png" width="360" height="300">
+<p>
+<img alt="Galapagos Login" src="./galapagos_user_guide_images/login.png" style="width: 600px;height: auto">
 </p>
 
 After successfully entering your username and password, you will be redirected to
 Galapagos and land on the start screen.
 
-<p align="center">
-<img alt="Start screen" src="./galapagos_user_guide_images/start-screen.png" width="600" height="300">
+<p>
+<img alt="Start screen" src="./galapagos_user_guide_images/start-screen.png" style="width: 600px;height: auto">
 </p>
 
 You can already find several elements here:
@@ -40,9 +40,9 @@ On the dashboard (see screenshot above) you will find the following elements:
   as "Trusted Certificates". If you integrate this truststore via your Kafka properties (standard Kafka properties 
   `ssl.truststore.location` and `ssl.truststore.password`, password = changeit), your Kafka client trusts the Kafka 
   clusters when establishing the connection.
-  
-  <p align="center">
-  <img alt="Config Template" src="./galapagos_user_guide_images/config-template.png" width="600" height="300">
+
+  <p>
+  <img alt="Config Template" src="./galapagos_user_guide_images/config-template.png" style="width: 600px;height: auto">
   </p>
   
   Please note that you also need a client certificate to establish a successful connection! Information on this can
@@ -52,9 +52,9 @@ On the dashboard (see screenshot above) you will find the following elements:
 
   To search for existing "API-Topics" (Topics universally visible and readable on-subscribe, see section "Subscribe to topic") on the current Kafka environment go to the menu "Browse Topics".
   The following screen appears:
-    
-  <p align="center">
-  <img alt="Browse Topics" src="./galapagos_user_guide_images/browse-topics.png" width="600" height="300">
+
+  <p>
+  <img alt="Browse Topics" src="./galapagos_user_guide_images/browse-topics.png" style="width: 600px;height: auto">
   </p>
   
   You can sort the topics here and search (filter) names, descriptions and owning applications. To sort, click on the double arrows
@@ -75,9 +75,9 @@ Request" section. Optionally enter a comment why you should get this right (e.g.
 makes it easier for the Galapagos admins to check whether to grant the Topic Administrator role or not. Then click on "
 Submit Request". Your request will be saved, and the Galapagos admins will receive an email to review and approve the
 request.
-      
-   <p align="center">
-   <img alt="Topic Administrator" src="./galapagos_user_guide_images/AOR.png" width="600" height="300">
+
+   <p>
+   <img alt="Topic Administrator" src="./galapagos_user_guide_images/AOR.png" style="width: 600px;height: auto">
    </p>
      
    After an administrator has checked and approved your request, you will recieve your approval via e-mail. Then you can
@@ -90,14 +90,14 @@ request.
    client certificate, go to "My Applications" and click on "Create Certificate now" for one of your application on the environment for which you want to get 
    a client certificate:
 
-   <p align="center">
-   <img alt="Certificate" src="./galapagos_user_guide_images/client-cert.png" width="600" height="300">
+   <p>
+   <img alt="Certificate" src="./galapagos_user_guide_images/client-cert.png" style="width: 600px;height: auto">
    </p>
    
    A dialog for generating the certificate in the selected Kafka cluster opens:
 
-   <p align="center">
-   <img alt="Certificate Dialog" src="./galapagos_user_guide_images/cert-dialog.png" width="600" height="300">
+   <p>
+   <img alt="Certificate Dialog" src="./galapagos_user_guide_images/cert-dialog.png" style="width: 600px;height: auto">
    </p>
 
   There are two options for generating the certificate. You can either have the private key and the certificate
@@ -117,9 +117,9 @@ request.
    command line or Git Bash (choose which type of command line you are using)! A key file (.key) is created (
    you need write access to the current directory in your terminal!) and the CSR is output on the command line. You can
    copy and paste this into Galapagos: 
-   
-   <p align="center">
-   <img alt="CSR" src="./galapagos_user_guide_images/csr-input.png" width="600" height="300">
+
+   <p>
+   <img alt="CSR" src="./galapagos_user_guide_images/csr-input.png" style="width: 600px;height: auto">
    </p>
    
    When you have received the signed certificate, you can use openssl to create a .p12 file (Windows; under Linux or Mac OS you
@@ -138,9 +138,9 @@ winpty openssl pkcs12 -export -out myapp.p12 -inkey myapp.key -in myapp.cer
    If the client certificate for your application is about to expire, you can extend it via the user interface. 
    To do this, go back to the certificate dialog for the respective environment and switch to
    the "Extend existing Certificate" tab:
-   
-   <p align="center">
-   <img alt="Extend Certificate" src="./galapagos_user_guide_images/extend-cert.png" width="600" height="300">
+
+   <p>
+   <img alt="Extend Certificate" src="./galapagos_user_guide_images/extend-cert.png" style="width: 600px;height: auto">
    </p>
 
    Note that the expiration date is also shown in this dialog. You can always check the expiration date here, but 
@@ -170,9 +170,9 @@ winpty openssl pkcs12 -in <myclientkeystore.p12> -nocerts -nodes -out <myprivate
    in a prod-environment with the private key and you "just" can no longer access it, you could kill your 
    application by generating a new certificate! Galapagos will warn you when trying to generate a new certificate, if you already 
    have one:
-      
-   <p align="center">
-   <img alt="Certificate warning" src="./galapagos_user_guide_images/cert-warn.png" width="730" height="100">
+
+   <p>
+   <img alt="Certificate warning" src="./galapagos_user_guide_images/cert-warn.png" style="width: 600px;height: auto">
    </p>
    
 ## Create developer certificate   
@@ -187,9 +187,9 @@ winpty openssl pkcs12 -in <myclientkeystore.p12> -nocerts -nodes -out <myprivate
    
    To create a developer certificate, click on your name in the top right corner in Galapagos. Now select
    "User Settings" in the menu. The following screen opens:
-      
-   <p align="center">
-   <img alt="Developer Certificate" src="./galapagos_user_guide_images/dev-cert.png" width="600" height="300">
+
+   <p>
+   <img alt="Developer Certificate" src="./galapagos_user_guide_images/dev-cert.png" style="width: 600px;height: auto">
    </p>
    
    Select an environment for which you would like to get a developer certificate. If you had already created a certificate for that environment,
@@ -206,9 +206,9 @@ winpty openssl pkcs12 -in <myclientkeystore.p12> -nocerts -nodes -out <myprivate
    the left. Select the topic type "App internal". Select your owning application and the target environment (the direct creation of topics is only 
    allowed on the DEV environment with Galapagos!). Galapagos automatically generates a
    suggestion for the topic name.
-      
-   <p align="center">
-   <img alt="Internal Topic" src="./galapagos_user_guide_images/topic-internal.png" width="600" height="300">
+
+   <p>
+   <img alt="Internal Topic" src="./galapagos_user_guide_images/topic-internal.png" style="width: 600px;height: auto">
    </p>
    
    You can also enter a description of the contents of this topic. This is not so important for
@@ -240,9 +240,9 @@ winpty openssl pkcs12 -in <myclientkeystore.p12> -nocerts -nodes -out <myprivate
    
    To subscribe to a topic, select the topic via "Browse Topics" and click on it. Further down on
    the info page for this topic you will find the section for the Subscription:
-      
-   <p align="center">
-   <img alt="Subscription Section" src="./galapagos_user_guide_images/sub-section.png" width="600" height="300">
+
+   <p>
+   <img alt="Subscription Section" src="./galapagos_user_guide_images/sub-section.png" style="width: 600px;height: auto">
    </p>
    
    Select the application that wants to read from this topic and click on "Subscribe". Your
@@ -251,9 +251,9 @@ winpty openssl pkcs12 -in <myclientkeystore.p12> -nocerts -nodes -out <myprivate
    If you have not yet created a client certificate for your application in the current environment,
    the Kafka rights cannot be assigned. Again, Galapagos will give you a warning if you do not have
    a client certificate yet:
-      
-   <p align="center">
-   <img alt="Subscription Warn" src="./galapagos_user_guide_images/sub-warn.png" width="760" height="100">
+
+   <p>
+   <img alt="Subscription Warn" src="./galapagos_user_guide_images/sub-warn.png" style="width: 600px;height: auto">
    </p>
    
    If the topic you want to subscribe to is marked as a "sensitive topic" (e.g. it contains personal data)
@@ -265,9 +265,9 @@ winpty openssl pkcs12 -in <myclientkeystore.p12> -nocerts -nodes -out <myprivate
    of subscribers. Note that in this case the rights to the current environment will be revoked
    immediately! Therefore you should consider whether a productively running instance of your application could still
    be dependent on the subscription!
-   
-   <p align="center">
-   <img alt="Unsubscribe" src="./galapagos_user_guide_images/unsub.png" width="600" height="300">
+
+   <p>
+   <img alt="Unsubscribe" src="./galapagos_user_guide_images/unsub.png" style="width: 600px;height: auto">
    </p>
    
 ## Create API Topic
@@ -276,9 +276,9 @@ winpty openssl pkcs12 -in <myclientkeystore.p12> -nocerts -nodes -out <myprivate
    To create an API topic, proceed similarly as for internal topics. Select "Create topic" in the left menu and select target
    environment (only DEV is possible for creation) and your application. Select the appropriate topic type.
    A few new input fields now appear:
-   
-   <p align="center">
-   <img alt="API Topic" src="./galapagos_user_guide_images/api-topic.png" width="600" height="300">
+
+   <p>
+   <img alt="API Topic" src="./galapagos_user_guide_images/api-topic.png" style="width: 600px;height: auto">
    </p>
    
    One of the new fields is the business capability field. Select the appropriate one for you here. Again, Galapagos
@@ -293,9 +293,9 @@ winpty openssl pkcs12 -in <myclientkeystore.p12> -nocerts -nodes -out <myprivate
    create the topic (see below). Now every subscription to this topic must be explicitly approved by you (by you or a member of
    your team who is also allowed to manage this topic in Galapagos). You or your Team have to assess whether the 
    requesting team / the requesting application has a legitimate interest in the published data.
-   
-   <p align="center">
-   <img alt="Subscription approve" src="./galapagos_user_guide_images/sub-approve.png" width="730" height="140">
+
+   <p>
+   <img alt="Subscription approve" src="./galapagos_user_guide_images/sub-approve.png" style="width: 600px;height: auto">
    </p>
    
 ### Upload JSON schema   
@@ -318,9 +318,9 @@ winpty openssl pkcs12 -in <myclientkeystore.p12> -nocerts -nodes -out <myprivate
    
    If both conditions are met (the topic has no subscribers and the schema has not been staged) the button "Delete schema version" appears 
    on the user interface:
-   
-   <p align="center">
-   <img alt="Delete Schema" src="./galapagos_user_guide_images/delete%20schema.png" width="770" height="300">
+
+   <p>
+   <img alt="Delete Schema" src="./galapagos_user_guide_images/delete%20schema.png" style="width: 600px;height: auto">
    </p>
       
    You can of course use this button several times to remove all JSON schemas of a topic.
@@ -340,9 +340,9 @@ winpty openssl pkcs12 -in <myclientkeystore.p12> -nocerts -nodes -out <myprivate
    Then click on "Analyze Changes". If you have not yet created a certificate for your application on the target environment,
    you will be made aware of this at this point. Otherwise, Galapagos will show you the changes to
    be published to the next stage:
-      
-   <p align="center">
-   <img alt="Staging" src="./galapagos_user_guide_images/staging.png" width="600" height="300">
+
+   <p>
+   <img alt="Staging" src="./galapagos_user_guide_images/staging.png" style="width: 600px;height: auto">
    </p>
    
    In case you don't want to stage all changes to the next stage, just uncheck the respective checkbox.
@@ -364,12 +364,12 @@ have to do this on the DEV stage first. There you can search for your topic via 
 the "Danger Zone" at the bottom of the page to delete the topic. To confirm the deletion, enter the entire topic name
 into the input field:
 
-   <p align="center">
-   <img alt="Delete Topic" src="./galapagos_user_guide_images/delete-topic.png" width="770" height="300">
+   <p>
+   <img alt="Delete Topic" src="./galapagos_user_guide_images/delete-topic.png" style="width: 600px;height: auto">
    </p>  
 
-   <p align="center">
-   <img alt="Delete Topic" src="./galapagos_user_guide_images/delete-topic2.png" width="770" height="300">
+   <p>
+   <img alt="Delete Topic" src="./galapagos_user_guide_images/delete-topic2.png" style="width: 600px;height: auto">
    </p>
 
 Then you can stage this "change" (deleting the topic) from DEV to PROD (see previous section). You should of course pay
@@ -390,8 +390,8 @@ To inform other teams that an API topic should no longer be used, you can mark i
 respective topic via the "Browse Topics" tab. If your application owns the topic and it is not an internal topic, a new
 area appears to mark topics as deprecated:
 
-   <p align="center">
-   <img alt="Deprecation" src="./galapagos_user_guide_images/deprecation1.png" width="600" height="300">
+   <p>
+   <img alt="Deprecation" src="./galapagos_user_guide_images/deprecation1.png" style="width: 600px;height: auto">
    </p>
 
 Here you state why the topic should no longer be used and when it will be deprecated. Then click the yellow button to
@@ -400,14 +400,14 @@ mark the respective topic as deprecated. All subscribers to this topic will be i
 After a topic is marked as deprecated, it becomes visible on the surface. On the overview of the individual topic, a
 note appears next to the name of the topic that this topic can no longer be used in the near future:
 
-   <p align="center">
-   <img alt="Deprecation" src="./galapagos_user_guide_images/deprecation2.png" width="700" height="150">
+   <p>
+   <img alt="Deprecation" src="./galapagos_user_guide_images/deprecation2.png" style="width: 600px;height: auto">
    </p>   
 
 In addition, under the "Browse Topics" tab, deprecated topics are crossed out:
 
-   <p align="center">
-   <img alt="Deprecation" src="./galapagos_user_guide_images/deprecation3.png" width="600" height="300">
+   <p>
+   <img alt="Deprecation" src="./galapagos_user_guide_images/deprecation3.png" style="width: 600px;height: auto">
    </p>
 
 In addition to the description of the topic, there is another indication that the topic is deprecated, followed by the
@@ -421,8 +421,8 @@ topic via "Browse Topics".
 If you own the topic and it is marked as deprecated, the following button appears in the "Usable until"
 row to remove it:
 
-   <p align="center">
-   <img alt="Deprecation" src="./galapagos_user_guide_images/deprecation4.png" width="600" height="300">
+   <p>
+   <img alt="Deprecation" src="./galapagos_user_guide_images/deprecation4.png" style="width: 600px;height: auto">
    </p>
 
 After you have clicked the button, the "Usable until" row disappears and the topic is no longer deprecated.
@@ -435,8 +435,8 @@ include an API Key and a Secret. Well, so how to get these credentials? Go to "M
 Application on the current Environment. Search for your Application and then click on "Create Api Key now". The
 following dialogue opens:
 
- <p align="center">
-   <img alt="generate-key" src="./galapagos_user_guide_images/generate-key.png" width="600" height="300">
+ <p>
+   <img alt="generate-key" src="./galapagos_user_guide_images/generate-key.png" style="width: 600px;height: auto">
    </p>
 
 By clicking on "Generate API Key", you will get the credentials you need, and you can just copy them from the table.
@@ -444,8 +444,8 @@ Please note that Galapagos will not save your secret, so you should not lose it.
 credentials it is time to use them. You will need to insert your credentials into the Framework Config Template. If you
 are in the "ccloud" mode (more on that later), then the template looks as follows:
 
-   <p align="center">
-   <img alt="ccloud-template" src="./galapagos_user_guide_images/ccloud-template.png" width="600" height="300">
+   <p>
+   <img alt="ccloud-template" src="./galapagos_user_guide_images/ccloud-template.png" style="width: 600px;height: auto">
    </p>
 
 This way your Application is able to authenticate itself to the Confluent Cloud Clusters and can produce messages on the
@@ -455,8 +455,8 @@ If you already have an API Key and want to generate a new one, then you can do t
 search for your Application. This time, since you already have a key you will see a "Card" for your Application, that
 contains three panels. One of them is called "Client Access":
 
-  <p align="center">
-   <img alt="client-access" src="./galapagos_user_guide_images/client-access.png" width="600" height="300">
+  <p>
+   <img alt="client-access" src="./galapagos_user_guide_images/client-access.png" style="width: 600px;height: auto">
    </p>
 By clicking on "Client Access", the panel will open and you will see a button called "New login details", which you can
 also click such that the dialogue you saw before will appear.
@@ -483,8 +483,8 @@ In Addition to the owning Application, you can add several other Applications, t
 specific topic. To do so, navigate to your Topic and scroll down to the "Danger Zone". There you will find a button "add
 additional producers". By clicking this button, the following dialogue opens:
 
-   <p align="center">
-   <img alt="producers" src="./galapagos_user_guide_images/producers.png" width="600" height="300">
+   <p>
+   <img alt="producers" src="./galapagos_user_guide_images/producers.png" style="width: 600px;height: auto">
    </p>
 
 Here you can select all registered Applications on the current environment. After the selection, a new row in the Table
@@ -497,14 +497,14 @@ given topic.
 After you added a producer, you can also just get rid of it by deleting the producer. To do so, navigate to your topic.
 If the Topic already has some producers, you will notice two buttons. For deletion, you need the red buttons:
 
- <p align="center">
-   <img alt="delete-producers" src="./galapagos_user_guide_images/delete-producers.png" width="600" height="300">
+ <p>
+   <img alt="delete-producers" src="./galapagos_user_guide_images/delete-producers.png" style="width: 600px;height: auto">
    </p>
 
 By clicking it, the following dialogue opens:
 
-<p align="center">
-   <img alt="delete-producers-dlg" src="./galapagos_user_guide_images/delete-producers-dlg.png" width="600" height="300">
+<p>
+   <img alt="delete-producers-dlg" src="./galapagos_user_guide_images/delete-producers-dlg.png" style="width: 600px;height: auto">
    </p>
 
 if you are sure you want to delete the producer, then just click on "delete Producer", and it will be gone. By deleting
@@ -517,8 +517,8 @@ environment, you will need to stage this change (adding producers). To do so, go
 Sidebar. Choose the right Application and the source Environment. In the given example, we assume we have an Application
 named "Quattro" and we want to stage from NONPROD to PROD. By clicking on "Analyze Changes", you will see the following:
 
-   <p align="center">
-   <img alt="stage-producer" src="./galapagos_user_guide_images/stage-producer.png" width="600" height="300">
+   <p>
+   <img alt="stage-producer" src="./galapagos_user_guide_images/stage-producer.png" style="width: 600px;height: auto">
    </p>
 
 As you can see in the "Change Overview" Section, there are two producers that were added on the NONPROD Environment and
@@ -533,8 +533,8 @@ After adding a producer there will appear another Button next to the "delete pro
 owner of topic". Using this Button you can promote a producer to the new Owner of the current Topic. The former Owner
 will be "just" a producer, so it will still be able to produce messages on the topic. By clicking it, the following
 dialogue opens:
- <p align="center">
-   <img alt="change-owner" src="./galapagos_user_guide_images/change-owner.png" width="600" height="300">
+ <p>
+   <img alt="change-owner" src="./galapagos_user_guide_images/change-owner.png" style="width: 600px;height: auto">
    </p>
 Here you will be again asked whether you are sure to change the owning Application. By confirming, the roles of the
 producer and the current Owner will swap. Of course, you can just use the button again, if you want the former Owner to be
@@ -553,8 +553,8 @@ internal topics of my applications" if it is an internal topic. Click on the des
 In the info view for your topic, scroll down to the "Danger Zone". There you will find a button, "Advanced
 Configuration". Click on it and you get to the configuration editor for your topic:
 
-   <p align="center">
-   <img alt="Topic Settings" src="./galapagos_user_guide_images/settingTopic.png" width="600" height="300">
+   <p>
+   <img alt="Topic Settings" src="./galapagos_user_guide_images/settingTopic.png" style="width: 600px;height: auto">
    </p>
 
 You can change each setting separately for each environment in which your topic exists. With the green "Standard" button
