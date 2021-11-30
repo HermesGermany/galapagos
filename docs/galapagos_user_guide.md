@@ -1,6 +1,6 @@
 # Galapagos User Guide
 
-In this User Guide we assume that you have setup the three environments DEV, INT, and PROD.
+In the next Sections we assume that you have setup the three environments DEV, INT, and PROD.
 
 ## Log in / First access
 
@@ -79,16 +79,19 @@ request.
    <p>
    <img alt="Topic Administrator" src="./galapagos_user_guide_images/AOR.png" style="width: 600px;height: auto">
    </p>
-     
-   After an administrator has checked and approved your request, you will recieve your approval via e-mail. Then you can
-   use the extended functions of Galapagos for this application.
-   
-## Generate client certificate      
 
-   In order to connect to the kafka cluster and to be able to store application rights, it is necessary to have a client certificate
-   issued. Without a certificate for an application, you cannot create topics for this application via Galapagos. To generate a
-   client certificate, go to "My Applications" and click on "Create Certificate now" for one of your application on the environment for which you want to get 
-   a client certificate:
+After an administrator has checked and approved your request, you will receive your approval via e-mail. Then you can
+use the extended functions of Galapagos for this application.
+
+## Generate client certificate
+
+In order to connect to the kafka cluster and to be able to store application rights, it is necessary to have a client
+certificate issued. Without a certificate for an application, you cannot create topics for this application via
+Galapagos. Please note that since Galapagos 2.1.0 generating a certificate is not the only option to connect to your
+kafka cluster. You can also use API Keys for this. For more information please have a look
+at [Confluent Cloud Support](#Confluent Cloud Support). To generate a client certificate, go to "My Applications" and
+click on "Create Certificate now" for one of your application on the environment for which you want to get a client
+certificate:
 
    <p>
    <img alt="Certificate" src="./galapagos_user_guide_images/client-cert.png" style="width: 600px;height: auto">
@@ -427,6 +430,30 @@ row to remove it:
 
 After you have clicked the button, the "Usable until" row disappears and the topic is no longer deprecated.
 
+## Change advanced topic settings
+
+In Galapagos you can change settings for your topics, like retention time or cleanup policy, as a "convenience"
+function. You can also do this via the Kafka AdminClient API or with another Kafka tool! Here Galapagos is "just" a tool
+with a view to the Kafka configuration.
+
+To change the advanced settings for your topic, search for your topic using "Browse Topics". Check the box next to "Show
+internal topics of my applications" if it is an internal topic. Click on the desired topic.
+
+In the info view for your topic, scroll down to the "Danger Zone". There you will find a button, "Advanced
+Configuration". Click on it and you get to the configuration editor for your topic:
+
+   <p>
+   <img alt="Topic Settings" src="./galapagos_user_guide_images/settingTopic.png" style="width: 600px;height: auto">
+   </p>
+
+You can change each setting separately for each environment in which your topic exists. With the green "Standard" button
+you can restore the cluster-side standard value (Warning: This could theoretically differ between the different
+clusters!). To apply your changes, scroll all the way down on the page and click "Update Topic Configuration". When you
+stage a topic in a new environment for the first time the settings from the previous environment are used. After staging
+you can of course change it again.
+
+In the next Section about Galapagos 2.1.0 we assume that you have setup environments NONPROD and PROD.
+
 ## Confluent Cloud Support
 
 Since Galapagos 2.1.0, we now have support for Kafka Clusters that are managed by Confluent Cloud. This means, you can
@@ -435,7 +462,7 @@ include an API Key and a Secret. Well, so how to get these credentials? Go to "M
 Application on the current Environment. Search for your Application and then click on "Create Api Key now". The
 following dialogue opens:
 
- <p>
+   <p>
    <img alt="generate-key" src="./galapagos_user_guide_images/generate-key.png" style="width: 600px;height: auto">
    </p>
 
@@ -533,32 +560,10 @@ After adding a producer there will appear another Button next to the "delete pro
 owner of topic". Using this Button you can promote a producer to the new Owner of the current Topic. The former Owner
 will be "just" a producer, so it will still be able to produce messages on the topic. By clicking it, the following
 dialogue opens:
- <p>
-   <img alt="change-owner" src="./galapagos_user_guide_images/change-owner.png" style="width: 600px;height: auto">
+<p>
+<img alt="change-owner" src="./galapagos_user_guide_images/change-owner.png" style="width: 600px;height: auto">
    </p>
 Here you will be again asked whether you are sure to change the owning Application. By confirming, the roles of the
 producer and the current Owner will swap. Of course, you can just use the button again, if you want the former Owner to be
 again the owning Application of the topic. Please note that it is only possible to change the owner for API Topics, so
 the Owner of a internal Topic cannot be changed.
-
-## Change advanced topic settings
-
-In Galapagos you can change settings for your topics, like retention time or cleanup policy, as a "convenience"
-function. You can also do this via the Kafka AdminClient API or with another Kafka tool! Here Galapagos is "just" a tool
-with a view to the Kafka configuration.
-
-To change the advanced settings for your topic, search for your topic using "Browse Topics". Check the box next to "Show
-internal topics of my applications" if it is an internal topic. Click on the desired topic.
-
-In the info view for your topic, scroll down to the "Danger Zone". There you will find a button, "Advanced
-Configuration". Click on it and you get to the configuration editor for your topic:
-
-   <p>
-   <img alt="Topic Settings" src="./galapagos_user_guide_images/settingTopic.png" style="width: 600px;height: auto">
-   </p>
-
-You can change each setting separately for each environment in which your topic exists. With the green "Standard" button
-you can restore the cluster-side standard value (Warning: This could theoretically differ between the different
-clusters!). To apply your changes, scroll all the way down on the page and click "Update Topic Configuration". When you
-stage a topic in a new environment for the first time the settings from the previous environment are used. After staging
-you can of course change it again.
