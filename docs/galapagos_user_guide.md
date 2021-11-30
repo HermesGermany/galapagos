@@ -88,10 +88,9 @@ use the extended functions of Galapagos for this application.
 In order to connect to the kafka cluster and to be able to store application rights, it is necessary to have a client
 certificate issued. Without a certificate for an application, you cannot create topics for this application via
 Galapagos. Please note that since Galapagos 2.1.0 generating a certificate is not the only option to connect to your
-kafka cluster. You can also use API Keys for this. For more information please have a look
-at [Confluent Cloud Support](#Confluent Cloud Support). To generate a client certificate, go to "My Applications" and
-click on "Create Certificate now" for one of your application on the environment for which you want to get a client
-certificate:
+kafka cluster. You can also use API Keys for this. For more information please have a look at [Confluent Cloud Support](
+# Confluent Cloud Support). To generate a client certificate, go to "My Applications" and click on "Create Certificate
+now" for one of your application on the environment for which you want to get a client certificate:
 
    <p>
    <img alt="Certificate" src="./galapagos_user_guide_images/client-cert.png" style="width: 600px;height: auto">
