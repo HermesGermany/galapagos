@@ -71,6 +71,7 @@ public class TopicControllerTest {
     @DisplayName("it should not change the deprecation if topic description is changed")
     public void testDontResetDeprecationWhenTopicDescChanges() {
         TopicMetadata topic = new TopicMetadata();
+        topic.setOwnerApplicationId("app-1");
         topic.setName("topic-1");
         topic.setDeprecated(true);
         topic.setEolDate(LocalDate.of(2299, 12, 4));
@@ -82,6 +83,7 @@ public class TopicControllerTest {
 
         when(topicService.updateTopicDescription("test", "topic-1", "updated description goes here"))
                 .thenReturn(FutureUtil.noop());
+        when(applicationsService.isUserAuthorizedFor("app-1")).thenReturn(true);
         TopicController controller = new TopicController(topicService, kafkaClusters, applicationsService,
                 namingService);
 
