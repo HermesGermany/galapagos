@@ -178,7 +178,7 @@ public class TopicController {
             @RequestBody UpdateTopicDto request) {
 
         TopicMetadata topic = topicService.getTopic(environmentId, topicName).orElseThrow(notFound);
-        if (applicationsService.isUserAuthorizedFor(topic.getOwnerApplicationId())) {
+        if (!applicationsService.isUserAuthorizedFor(topic.getOwnerApplicationId())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
         try {
@@ -220,7 +220,7 @@ public class TopicController {
         TopicMetadata metadata = topicService.listTopics(environmentId).stream()
                 .filter(topic -> topicName.equals(topic.getName())).findAny().orElseThrow(notFound);
 
-        if (applicationsService.isUserAuthorizedFor(metadata.getOwnerApplicationId())) {
+        if (!applicationsService.isUserAuthorizedFor(metadata.getOwnerApplicationId())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
 
