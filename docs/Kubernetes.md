@@ -126,6 +126,7 @@ galapagos.kafka.environments[0].id=devtest
 galapagos.kafka.environments[0].name=DEV/TEST
 galapagos.kafka.environments[0].bootstrap-servers=first.kafkabroker.test.internal:9092,second.kafkabroker.test.internal:9092
 galapagos.kafka.environments[0].authenticationMode=certificates
+galapagos.kafka.environments[0].certificates.certificatesWorkdir=file:${java.io.tmpdir}/galapagos
 # This refers to the mounted secret!
 galapagos.kafka.environments[0].certificates.caCertificateFile=file:/tmp/ca/kafka_dev_ca.cer
 galapagos.kafka.environments[0].certificates.caKeyFile=file:/tmp/ca/kafka_dev_ca.key
