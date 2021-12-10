@@ -140,12 +140,12 @@ public class CreateBackUpJobTest {
         JsonNode jsonNode = mapper.readTree(backUpJson);
         String topicName = jsonNode.get("test").get("topics").get("topic-1").get("name").toString();
         String topicType = jsonNode.get("test").get("topics").get("topic-1").get("type").toString();
-        String clientApplicationIdSub = jsonNode.get("test").get("subscriptions").get("123").get("clientApplicationId").toString();
+        String clientApplicationIdSub = jsonNode.get("test").get("subscriptions").get("123").get("clientApplicationId")
+                .toString();
         String subId = jsonNode.get("test").get("subscriptions").get("123").get("id").toString();
         String aorId = jsonNode.get("test").get("application-owner-requests").get("1").get("id").toString();
         String aorState = jsonNode.get("test").get("application-owner-requests").get("1").get("state").toString();
         String username = jsonNode.get("test").get("application-owner-requests").get("1").get("userName").toString();
-
 
         Assertions.assertEquals(topicName, "\"topic-1\"");
         Assertions.assertEquals(topicType, "\"EVENTS\"");
