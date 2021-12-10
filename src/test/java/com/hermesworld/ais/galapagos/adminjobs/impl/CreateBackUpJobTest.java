@@ -18,10 +18,9 @@ import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.springframework.boot.ApplicationArguments;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.util.StreamUtils;
 
-import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -128,14 +127,12 @@ public class CreateBackUpJobTest {
 
         try {
             job.run(args);
-
         }
         catch (Exception e) {
             e.printStackTrace();
         }
 
-        String backUpJson = StreamUtils.copyToString(new ClassPathResource("backup.json").getInputStream(),
-                Charset.defaultCharset());
+        String backUpJson = Files.readString(Path.of("backup.json"));
 
         JsonNode jsonNode = mapper.readTree(backUpJson);
         String topicName = jsonNode.get("test").get("topics").get("topic-1").get("name").toString();

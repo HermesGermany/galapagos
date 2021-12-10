@@ -59,7 +59,7 @@ public class CreateBackUpJob implements AdminJob {
 
         if (createBackupFile) {
             System.out.println("========================= Generating Backup file as json ========================");
-            File file = new File("src/main/resources/backup.json");
+            File file = new File("backup.json");
 
             try (Writer writer = new BufferedWriter(new FileWriter(file))) {
                 writer.write(backup.toString(1));
