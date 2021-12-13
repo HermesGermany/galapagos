@@ -1,5 +1,6 @@
 package com.hermesworld.ais.galapagos.kafka.impl;
 
+import com.hermesworld.ais.galapagos.adminjobs.impl.NoUpdatesAdminClient;
 import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
 import com.hermesworld.ais.galapagos.kafka.KafkaUser;
 import com.hermesworld.ais.galapagos.kafka.TopicConfigEntry;
@@ -51,12 +52,18 @@ public class ConnectedKafkaCluster implements KafkaCluster {
 
     public ConnectedKafkaCluster(String environmentId, KafkaRepositoryContainer repositoryContainer,
             AdminClient adminClient, KafkaConsumerFactory<String, String> kafkaConsumerFactory,
-            KafkaFutureDecoupler futureDecoupler) {
+            KafkaFutureDecoupler futureDecoupler, boolean readOnly) {
         this.environmentId = environmentId;
-        this.adminClient = adminClient;
         this.repositoryContainer = repositoryContainer;
         this.kafkaConsumerFactory = kafkaConsumerFactory;
         this.futureDecoupler = futureDecoupler;
+        if (readOnly) {
+            wrapAdminClient(client -> new NoUpdatesAdminClient(client) {
+            });
+        }
+        else {
+            this.adminClient = adminClient;
+        }
     }
 
     /**

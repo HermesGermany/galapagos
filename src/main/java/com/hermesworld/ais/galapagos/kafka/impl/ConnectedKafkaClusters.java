@@ -29,8 +29,8 @@ public class ConnectedKafkaClusters implements KafkaClusters {
 
     public ConnectedKafkaClusters(List<KafkaEnvironmentConfig> environmentMetadata,
             Map<String, KafkaAuthenticationModule> authenticationModules, String productionEnvironmentId,
-            String galapagosInternalPrefix, KafkaExecutorFactory executorFactory,
-            int topicRepositoryReplicationFactor) {
+            String galapagosInternalPrefix, KafkaExecutorFactory executorFactory, int topicRepositoryReplicationFactor,
+            boolean readOnly) {
         this.environmentMetadata = environmentMetadata;
         this.productionEnvironmentId = productionEnvironmentId;
         this.authenticationModules = authenticationModules;
@@ -44,7 +44,7 @@ public class ConnectedKafkaClusters implements KafkaClusters {
             KafkaRepositoryContainerImpl repoContainer = new KafkaRepositoryContainerImpl(connectionManager,
                     envMeta.getId(), galapagosInternalPrefix, topicRepositoryReplicationFactor);
             ConnectedKafkaCluster cluster = buildConnectedKafkaCluster(envMeta.getId(), connectionManager,
-                    repoContainer, futureDecoupler);
+                    repoContainer, futureDecoupler, readOnly);
             clusters.put(envMeta.getId(), cluster);
             repoContainers.add(repoContainer);
         }
@@ -104,10 +104,10 @@ public class ConnectedKafkaClusters implements KafkaClusters {
 
     private static ConnectedKafkaCluster buildConnectedKafkaCluster(String environmentId,
             KafkaConnectionManager connectionManager, KafkaRepositoryContainer repositoryContainer,
-            KafkaFutureDecoupler futureDecoupler) {
+            KafkaFutureDecoupler futureDecoupler, boolean readOnly) {
         return new ConnectedKafkaCluster(environmentId, repositoryContainer,
                 connectionManager.getAdminClient(environmentId), connectionManager.getConsumerFactory(environmentId),
-                futureDecoupler);
+                futureDecoupler, readOnly);
     }
 
 }

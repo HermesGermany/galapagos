@@ -64,7 +64,7 @@ public class KafkaEnvironmentsConfig {
         }
 
         return new ConnectedKafkaClusters(new ArrayList<>(environments), authModules, productionEnvironment,
-                metadataTopicsPrefix, executorFactory, replicationFactor);
+                metadataTopicsPrefix, executorFactory, replicationFactor, readonly);
     }
 
     private void validateConfig() {

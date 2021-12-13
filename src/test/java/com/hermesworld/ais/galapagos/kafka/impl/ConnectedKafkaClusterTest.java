@@ -1,9 +1,16 @@
 package com.hermesworld.ais.galapagos.kafka.impl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
+import com.hermesworld.ais.galapagos.kafka.KafkaExecutorFactory;
+import com.hermesworld.ais.galapagos.kafka.KafkaUser;
+import com.hermesworld.ais.galapagos.kafka.TopicCreateParams;
+import org.apache.kafka.clients.admin.CreateAclsResult;
+import org.apache.kafka.clients.admin.DeleteAclsResult;
+import org.apache.kafka.common.acl.*;
+import org.apache.kafka.common.resource.PatternType;
+import org.apache.kafka.common.resource.ResourcePattern;
+import org.apache.kafka.common.resource.ResourceType;
+import org.junit.Test;
+import org.junit.jupiter.api.DisplayName;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -11,20 +18,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Executors;
 
-import org.apache.kafka.clients.admin.CreateAclsResult;
-import org.apache.kafka.clients.admin.DeleteAclsResult;
-import org.apache.kafka.common.acl.AccessControlEntry;
-import org.apache.kafka.common.acl.AclBinding;
-import org.apache.kafka.common.acl.AclBindingFilter;
-import org.apache.kafka.common.acl.AclOperation;
-import org.apache.kafka.common.acl.AclPermissionType;
-import org.apache.kafka.common.resource.PatternType;
-import org.apache.kafka.common.resource.ResourcePattern;
-import org.apache.kafka.common.resource.ResourceType;
-import org.junit.Test;
-
-import com.hermesworld.ais.galapagos.kafka.KafkaExecutorFactory;
-import com.hermesworld.ais.galapagos.kafka.KafkaUser;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.mock;
 
 public class ConnectedKafkaClusterTest {
 
@@ -62,7 +57,7 @@ public class ConnectedKafkaClusterTest {
 
         @SuppressWarnings("unchecked")
         ConnectedKafkaCluster cluster = new ConnectedKafkaCluster("_test", mock(KafkaRepositoryContainer.class),
-                adminClient, mock(KafkaConsumerFactory.class), futureDecoupler);
+                adminClient, mock(KafkaConsumerFactory.class), futureDecoupler, false);
 
         cluster.updateUserAcls(new KafkaUser() {
 
@@ -82,6 +77,34 @@ public class ConnectedKafkaClusterTest {
         assertFalse(deletedAcls.get(0).matches(toKeep));
         assertEquals(1, createdAcls.size());
         assertTrue(createdAcls.contains(toCreate));
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    @DisplayName("it should fail to create Topic since we are in read only mode")
+    public void testNoUpdateAdminClient_dontCreateTopic() throws Exception {
+        KafkaExecutorFactory executorFactory = Executors::newSingleThreadExecutor;
+        KafkaFutureDecoupler futureDecoupler = new KafkaFutureDecoupler(executorFactory);
+
+        ConnectedKafkaCluster cluster = new ConnectedKafkaCluster("_test", mock(KafkaRepositoryContainer.class),
+                new AdminClientStub() {
+                }, mock(KafkaConsumerFactory.class), futureDecoupler, true);
+
+        cluster.createTopic("test-topic", new TopicCreateParams(1, 3)).get();
+
+    }
+
+    @Test
+    @DisplayName("it should create Topic since we are not read only mode without Exception")
+    public void testNoUpdateAdminClient_createTopic() throws Exception {
+        KafkaExecutorFactory executorFactory = Executors::newSingleThreadExecutor;
+        KafkaFutureDecoupler futureDecoupler = new KafkaFutureDecoupler(executorFactory);
+
+        ConnectedKafkaCluster cluster = new ConnectedKafkaCluster("_test", mock(KafkaRepositoryContainer.class),
+                new AdminClientStub() {
+                }, mock(KafkaConsumerFactory.class), futureDecoupler, false);
+
+        cluster.createTopic("test-topic", new TopicCreateParams(1, 3)).get();
+
     }
 
 }
