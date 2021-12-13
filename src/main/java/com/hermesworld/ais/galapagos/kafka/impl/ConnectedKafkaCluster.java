@@ -57,12 +57,10 @@ public class ConnectedKafkaCluster implements KafkaCluster {
         this.repositoryContainer = repositoryContainer;
         this.kafkaConsumerFactory = kafkaConsumerFactory;
         this.futureDecoupler = futureDecoupler;
+        this.adminClient = adminClient;
         if (readOnly) {
             wrapAdminClient(client -> new NoUpdatesAdminClient(client) {
             });
-        }
-        else {
-            this.adminClient = adminClient;
         }
     }
 

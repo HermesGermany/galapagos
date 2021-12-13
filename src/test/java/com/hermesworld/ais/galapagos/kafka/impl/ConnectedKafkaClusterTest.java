@@ -2,7 +2,6 @@ package com.hermesworld.ais.galapagos.kafka.impl;
 
 import com.hermesworld.ais.galapagos.kafka.KafkaExecutorFactory;
 import com.hermesworld.ais.galapagos.kafka.KafkaUser;
-import com.hermesworld.ais.galapagos.kafka.TopicCreateParams;
 import org.apache.kafka.clients.admin.CreateAclsResult;
 import org.apache.kafka.clients.admin.DeleteAclsResult;
 import org.apache.kafka.common.acl.*;
@@ -10,7 +9,6 @@ import org.apache.kafka.common.resource.PatternType;
 import org.apache.kafka.common.resource.ResourcePattern;
 import org.apache.kafka.common.resource.ResourceType;
 import org.junit.Test;
-import org.junit.jupiter.api.DisplayName;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -79,32 +77,5 @@ public class ConnectedKafkaClusterTest {
         assertTrue(createdAcls.contains(toCreate));
     }
 
-    @Test(expected = UnsupportedOperationException.class)
-    @DisplayName("it should fail to create Topic since we are in read only mode")
-    public void testNoUpdateAdminClient_dontCreateTopic() throws Exception {
-        KafkaExecutorFactory executorFactory = Executors::newSingleThreadExecutor;
-        KafkaFutureDecoupler futureDecoupler = new KafkaFutureDecoupler(executorFactory);
-
-        ConnectedKafkaCluster cluster = new ConnectedKafkaCluster("_test", mock(KafkaRepositoryContainer.class),
-                new AdminClientStub() {
-                }, mock(KafkaConsumerFactory.class), futureDecoupler, true);
-
-        cluster.createTopic("test-topic", new TopicCreateParams(1, 3)).get();
-
-    }
-
-    @Test
-    @DisplayName("it should create Topic since we are not read only mode without Exception")
-    public void testNoUpdateAdminClient_createTopic() throws Exception {
-        KafkaExecutorFactory executorFactory = Executors::newSingleThreadExecutor;
-        KafkaFutureDecoupler futureDecoupler = new KafkaFutureDecoupler(executorFactory);
-
-        ConnectedKafkaCluster cluster = new ConnectedKafkaCluster("_test", mock(KafkaRepositoryContainer.class),
-                new AdminClientStub() {
-                }, mock(KafkaConsumerFactory.class), futureDecoupler, false);
-
-        cluster.createTopic("test-topic", new TopicCreateParams(1, 3)).get();
-
-    }
 
 }
