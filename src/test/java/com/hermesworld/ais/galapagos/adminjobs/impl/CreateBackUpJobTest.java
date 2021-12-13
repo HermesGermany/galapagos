@@ -15,7 +15,6 @@ import com.hermesworld.ais.galapagos.topics.TopicType;
 import com.hermesworld.ais.galapagos.util.JsonUtil;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.springframework.boot.ApplicationArguments;
 
@@ -24,6 +23,7 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -106,16 +106,28 @@ public class CreateBackUpJobTest {
         mapper = JsonUtil.newObjectMapper();
         kafkaClusters = mock(KafkaClusters.class);
         KafkaCluster testCluster = mock(KafkaCluster.class);
+        KafkaCluster prodCluster = mock(KafkaCluster.class);
         when(testCluster.getId()).thenReturn("test");
+        when(prodCluster.getId()).thenReturn("prod");
         when(testCluster.getRepositories()).thenReturn(new HashSet<>(repositories.values()));
+        when(prodCluster.getRepositories()).thenReturn(new HashSet<>(repositories.values()));
         when(testCluster.getRepository("topics", TopicMetadata.class))
                 .thenReturn((TopicBasedRepository<TopicMetadata>) repositories.get("topics"));
         when(testCluster.getRepository("subscriptions", SubscriptionMetadata.class))
                 .thenReturn((TopicBasedRepository<SubscriptionMetadata>) repositories.get("subscriptions"));
         when(testCluster.getRepository("application-owner-requests", ApplicationOwnerRequest.class)).thenReturn(
                 (TopicBasedRepository<ApplicationOwnerRequest>) repositories.get("application-owner-requests"));
+
+        // use same metadata as in test stage as if we would have staged from test to prod
+        when(prodCluster.getRepository("topics", TopicMetadata.class))
+                .thenReturn((TopicBasedRepository<TopicMetadata>) repositories.get("topics"));
+        when(prodCluster.getRepository("subscriptions", SubscriptionMetadata.class))
+                .thenReturn((TopicBasedRepository<SubscriptionMetadata>) repositories.get("subscriptions"));
+        when(prodCluster.getRepository("application-owner-requests", ApplicationOwnerRequest.class)).thenReturn(
+                (TopicBasedRepository<ApplicationOwnerRequest>) repositories.get("application-owner-requests"));
         when(kafkaClusters.getEnvironment("test")).thenReturn(Optional.of(testCluster));
-        when(kafkaClusters.getEnvironmentIds()).thenReturn(List.of("test"));
+        when(kafkaClusters.getEnvironment("prod")).thenReturn(Optional.of(prodCluster));
+        when(kafkaClusters.getEnvironmentIds()).thenReturn(List.of("test", "prod"));
     }
 
     @Test
@@ -144,13 +156,32 @@ public class CreateBackUpJobTest {
         String aorState = jsonNode.get("test").get("application-owner-requests").get("1").get("state").toString();
         String username = jsonNode.get("test").get("application-owner-requests").get("1").get("userName").toString();
 
-        Assertions.assertEquals(topicName, "\"topic-1\"");
-        Assertions.assertEquals(topicType, "\"EVENTS\"");
-        Assertions.assertEquals(clientApplicationIdSub, "\"app-1\"");
-        Assertions.assertEquals(subId, "\"123\"");
-        Assertions.assertEquals(aorId, "\"1\"");
-        Assertions.assertEquals(aorState, "\"APPROVED\"");
-        Assertions.assertEquals(username, "\"myUser\"");
+        String topicNameProd = jsonNode.get("prod").get("topics").get("topic-1").get("name").toString();
+        String topicTypeProd = jsonNode.get("prod").get("topics").get("topic-1").get("type").toString();
+        String clientApplicationIdSubProd = jsonNode.get("prod").get("subscriptions").get("123")
+                .get("clientApplicationId").toString();
+        String subIdProd = jsonNode.get("prod").get("subscriptions").get("123").get("id").toString();
+        String aorIdProd = jsonNode.get("prod").get("application-owner-requests").get("1").get("id").toString();
+        String aorStateProd = jsonNode.get("prod").get("application-owner-requests").get("1").get("state").toString();
+        String usernameProd = jsonNode.get("prod").get("application-owner-requests").get("1").get("userName")
+                .toString();
+
+        // test data
+        assertEquals(topicName, "\"topic-1\"");
+        assertEquals(topicType, "\"EVENTS\"");
+        assertEquals(clientApplicationIdSub, "\"app-1\"");
+        assertEquals(subId, "\"123\"");
+        assertEquals(aorId, "\"1\"");
+        assertEquals(aorState, "\"APPROVED\"");
+        assertEquals(username, "\"myUser\"");
+        // prod data
+        assertEquals(topicNameProd, "\"topic-1\"");
+        assertEquals(topicTypeProd, "\"EVENTS\"");
+        assertEquals(clientApplicationIdSubProd, "\"app-1\"");
+        assertEquals(subIdProd, "\"123\"");
+        assertEquals(aorIdProd, "\"1\"");
+        assertEquals(aorStateProd, "\"APPROVED\"");
+        assertEquals(usernameProd, "\"myUser\"");
 
     }
 
