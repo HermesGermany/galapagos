@@ -77,5 +77,4 @@ public class ConnectedKafkaClusterTest {
         assertTrue(createdAcls.contains(toCreate));
     }
 
-
 }
