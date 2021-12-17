@@ -1,5 +1,6 @@
 package com.hermesworld.ais.galapagos.changes.impl;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.hermesworld.ais.galapagos.applications.ApplicationMetadata;
 import com.hermesworld.ais.galapagos.changes.ApplicableChange;
@@ -462,6 +463,7 @@ final class DeprecateTopicChange extends ChangeBase {
 
     private final String deprecationText;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private final LocalDate eolDate;
 
     public DeprecateTopicChange(String topicName, String deprecationText, LocalDate eolDate) {

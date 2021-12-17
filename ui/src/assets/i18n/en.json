@@ -64,6 +64,8 @@
     "Add Change Description": "Please explain the change in short.",
     "CHANGELOG_TOPIC_CREATED_HTML": "has created Topic <b><a href='{{ topicLink }}'>{{ topicName }}</a></b>.",
     "CHANGELOG_TOPIC_DELETED_HTML": "has deleted Topic <b>{{ topicName }}</b>.",
+    "CHANGELOG_TOPIC_DEPRECATED_HTML": "has made the Topic <b><a href='{{topicLink}}'>{{ topicName }}</a></b> deprecated as of <b>{{americanDate}}</b>",
+    "CHANGELOG_TOPIC_UNDEPRECATED_HTML": "has removed the deprecation for <b><a href='{{topicLink}}'>{{ topicName }}</a>",
     "CHANGELOG_TOPIC_DESCRIPTION_CHANGE_HTML": "has updated the description of Topic <b><a href='{{ topicLink }}'>{{ topicName }}</a></b>.",
     "CHANGELOG_TOPIC_SUBSCRIBED_HTML": "has subscribed Application <b><a href='{{ appInfo.infoUrl }}'>{{ appInfo.name }}</a></b> to Topic <b><a href='{{ topicLink }}'>{{ topicName }}</a></b>.",
     "CHANGELOG_TOPIC_SUBSCRIBED_HTML_NO_APP_LINK": "has subscribed Application <b>{{ appInfo.name }}</b> to Topic <b><a href='{{ topicLink }}'>{{ topicName }}</a></b>.",

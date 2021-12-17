@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { routerTransition } from '../../router.animations';
+import {Component, OnInit} from '@angular/core';
+import {routerTransition} from '../../router.animations';
 import {
     Change,
     ChangelogEntry,
@@ -7,13 +7,13 @@ import {
     EnvironmentsService,
     KafkaEnvironment
 } from '../../shared/services/environments.service';
-import { Observable } from 'rxjs';
-import { flatMap, map, mergeMap, shareReplay, take } from 'rxjs/operators';
-import { CustomLink, ServerInfo, ServerInfoService } from '../../shared/services/serverinfo.service';
+import {Observable} from 'rxjs';
+import {flatMap, map, mergeMap, shareReplay, take} from 'rxjs/operators';
+import {CustomLink, ServerInfo, ServerInfoService} from '../../shared/services/serverinfo.service';
 import * as moment from 'moment';
-import { TranslateService } from '@ngx-translate/core';
-import { ApplicationInfo, ApplicationsService } from '../../shared/services/applications.service';
-import { Location } from '@angular/common';
+import {TranslateService} from '@ngx-translate/core';
+import {ApplicationInfo, ApplicationsService} from '../../shared/services/applications.service';
+import {Location} from '@angular/common';
 
 @Component({
     selector: 'app-dashboard',
@@ -42,8 +42,8 @@ export class DashboardComponent implements OnInit {
     configTemplatesCollapsed = true;
 
     constructor(private environments: EnvironmentsService, private applicationsService: ApplicationsService,
-        private serverInfoService: ServerInfoService, private location: Location,
-        private translate: TranslateService) {
+                private serverInfoService: ServerInfoService, private location: Location,
+                private translate: TranslateService) {
         this.allEnvironments = environments.getEnvironments();
         this.selectedEnvironment = environments.getCurrentEnvironment();
         this.serverInfos = environments.getCurrentEnvironmentServerInfo();
@@ -89,78 +89,106 @@ export class DashboardComponent implements OnInit {
         let topicName: string;
         let topicLink: string;
 
-        switch (change.changeType) {
-        case 'TOPIC_CREATED':
-            if (change.topicMetadata.type === 'INTERNAL') {
-                return null;
-            }
-            topicName = change.topicMetadata.name;
-            topicLink = this.urlForRouterLink('/topics/' + topicName);
-            return this.translate.stream('CHANGELOG_TOPIC_CREATED_HTML', { topicName: topicName, topicLink: topicLink });
-        case 'TOPIC_DELETED':
-            if (change.internalTopic) {
-                return null;
-            }
-            topicName = change.topicName;
-            return this.translate.stream('CHANGELOG_TOPIC_DELETED_HTML', { topicName: topicName });
-        case 'TOPIC_SCHEMA_VERSION_PUBLISHED':
-            topicName = change.topicName;
-            topicLink = this.urlForRouterLink('/topics/' + topicName);
-            return this.translate.stream('CHANGELOG_TOPIC_SCHEMA_VERSION_REGISTERED_HTML',
-                { topicName: topicName, topicLink: topicLink });
-        case 'TOPIC_DESCRIPTION_CHANGED':
-            if (change.internalTopic) {
-                return null;
-            }
-            topicName = change.topicName;
-            topicLink = this.urlForRouterLink('/topics/' + topicName);
-            return this.translate.stream('CHANGELOG_TOPIC_DESCRIPTION_CHANGE_HTML', { topicName: topicName, topicLink: topicLink });
-        case 'TOPIC_SUBSCRIBED':
-            topicName = change.subscriptionMetadata.topicName;
-            topicLink = this.urlForRouterLink('/topics/' + topicName);
-            return this.applicationInfo(change.subscriptionMetadata.clientApplicationId).pipe(
-                flatMap(app => {
-                    if (!app) {
-                        return this.translate.stream('(unknown)').pipe(
-                            flatMap(s => this.translate.stream('CHANGELOG_TOPIC_SUBSCRIBED_HTML_NO_APP_LINK',
-                                { topicName: topicName, topicLink: topicLink, appInfo: { name: s } })));
-                    }
-                    if (!app.infoUrl) {
-                        return this.translate.stream('CHANGELOG_TOPIC_SUBSCRIBED_HTML_NO_APP_LINK',
-                            { topicName: topicName, topicLink: topicLink, appInfo: app });
-                    }
 
-                    return this.translate.stream('CHANGELOG_TOPIC_SUBSCRIBED_HTML',
-                        { topicName: topicName, topicLink: topicLink, appInfo: app });
-                }));
-        case 'TOPIC_UNSUBSCRIBED':
-            topicName = change.subscriptionMetadata.topicName;
-            topicLink = this.urlForRouterLink('/topics/' + topicName);
-            return this.applicationInfo(change.subscriptionMetadata.clientApplicationId).pipe(
-                flatMap(app => {
-                    if (!app) {
-                        return this.translate.stream('(unknown)').pipe(
-                            flatMap(s => this.translate.stream('CHANGELOG_TOPIC_UNSUBSCRIBED_HTML_NO_APP_LINK',
-                                { topicName: topicName, topicLink: topicLink, appInfo: { name: s } })));
-                    }
-                    if (!app.infoUrl) {
-                        return this.translate.stream('CHANGELOG_TOPIC_UNSUBSCRIBED_HTML_NO_APP_LINK',
-                            { topicName: topicName, topicLink: topicLink, appInfo: app });
-                    }
-                    return this.translate.stream('CHANGELOG_TOPIC_UNSUBSCRIBED_HTML',
-                        { topicName: topicName, topicLink: topicLink, appInfo: app });
-                }));
-        case 'TOPIC_PRODUCER_APPLICATION_ADDED':
-            topicName = change.topicName;
-            topicLink = this.urlForRouterLink('/topics/' + topicName);
-            const producerApplicationId = change.producerApplicationId;
-            return this.applicationInfo(producerApplicationId).pipe(mergeMap(
-                producer => this.translate.stream('CHANGELOG_PRODUCER_ADDED_HTML', {
+        switch (change.changeType) {
+            case 'TOPIC_CREATED':
+                if (change.topicMetadata.type === 'INTERNAL') {
+                    return null;
+                }
+                topicName = change.topicMetadata.name;
+                topicLink = this.urlForRouterLink('/topics/' + topicName);
+                return this.translate.stream('CHANGELOG_TOPIC_CREATED_HTML', {
+                    topicName: topicName,
+                    topicLink: topicLink
+                });
+            case 'TOPIC_DELETED':
+                if (change.internalTopic) {
+                    return null;
+                }
+                topicName = change.topicName;
+                return this.translate.stream('CHANGELOG_TOPIC_DELETED_HTML', {topicName: topicName});
+            case 'TOPIC_DEPRECATED':
+
+                topicLink = this.urlForRouterLink('/topics/' + topicName);
+                topicName = change.topicName;
+                const eolDate = moment(change.eolDate).locale(this.translate.currentLang).format('L');
+                const americanDate = moment(change.eolDate).format('L');
+                return this.translate.stream('CHANGELOG_TOPIC_DEPRECATED_HTML', {
                     topicName: topicName,
                     topicLink: topicLink,
-                    producerName: producer.name
-                })
-            ));
+                    date: eolDate,
+                    americanDate: americanDate
+                });
+            case 'TOPIC_UNDEPRECATED':
+                topicLink = this.urlForRouterLink('/topics/' + topicName);
+                topicName = change.topicName;
+                return this.translate.stream('CHANGELOG_TOPIC_UNDEPRECATED_HTML', {
+                    topicName: topicName,
+                    topicLink: topicLink
+                });
+            case 'TOPIC_SCHEMA_VERSION_PUBLISHED':
+                topicName = change.topicName;
+                topicLink = this.urlForRouterLink('/topics/' + topicName);
+                return this.translate.stream('CHANGELOG_TOPIC_SCHEMA_VERSION_REGISTERED_HTML',
+                    {topicName: topicName, topicLink: topicLink});
+            case 'TOPIC_DESCRIPTION_CHANGED':
+                if (change.internalTopic) {
+                    return null;
+                }
+                topicName = change.topicName;
+                topicLink = this.urlForRouterLink('/topics/' + topicName);
+                return this.translate.stream('CHANGELOG_TOPIC_DESCRIPTION_CHANGE_HTML', {
+                    topicName: topicName,
+                    topicLink: topicLink
+                });
+            case 'TOPIC_SUBSCRIBED':
+                topicName = change.subscriptionMetadata.topicName;
+                topicLink = this.urlForRouterLink('/topics/' + topicName);
+                return this.applicationInfo(change.subscriptionMetadata.clientApplicationId).pipe(
+                    flatMap(app => {
+                        if (!app) {
+                            return this.translate.stream('(unknown)').pipe(
+                                flatMap(s => this.translate.stream('CHANGELOG_TOPIC_SUBSCRIBED_HTML_NO_APP_LINK',
+                                    {topicName: topicName, topicLink: topicLink, appInfo: {name: s}})));
+                        }
+                        if (!app.infoUrl) {
+                            return this.translate.stream('CHANGELOG_TOPIC_SUBSCRIBED_HTML_NO_APP_LINK',
+                                {topicName: topicName, topicLink: topicLink, appInfo: app});
+                        }
+
+                        return this.translate.stream('CHANGELOG_TOPIC_SUBSCRIBED_HTML',
+                            {topicName: topicName, topicLink: topicLink, appInfo: app});
+                    }));
+            case 'TOPIC_UNSUBSCRIBED':
+                topicName = change.subscriptionMetadata.topicName;
+                topicLink = this.urlForRouterLink('/topics/' + topicName);
+                return this.applicationInfo(change.subscriptionMetadata.clientApplicationId).pipe(
+                    flatMap(app => {
+                        if (!app) {
+                            return this.translate.stream('(unknown)').pipe(
+                                flatMap(s => this.translate.stream('CHANGELOG_TOPIC_UNSUBSCRIBED_HTML_NO_APP_LINK',
+                                    {topicName: topicName, topicLink: topicLink, appInfo: {name: s}})));
+                        }
+                        if (!app.infoUrl) {
+                            return this.translate.stream('CHANGELOG_TOPIC_UNSUBSCRIBED_HTML_NO_APP_LINK',
+                                {topicName: topicName, topicLink: topicLink, appInfo: app});
+                        }
+                        return this.translate.stream('CHANGELOG_TOPIC_UNSUBSCRIBED_HTML',
+                            {topicName: topicName, topicLink: topicLink, appInfo: app});
+                    }));
+            case 'TOPIC_PRODUCER_APPLICATION_ADDED':
+                topicName = change.topicName;
+                topicLink = this.urlForRouterLink('/topics/' + topicName);
+                const producerApplicationId = change.producerApplicationId;
+                return this.applicationInfo(producerApplicationId).pipe(mergeMap(
+                    producer => this.translate.stream('CHANGELOG_PRODUCER_ADDED_HTML', {
+                        topicName: topicName,
+                        topicLink: topicLink,
+                        producerName: producer.name
+                    })
+                ));
+
+
         }
         return null;
     }
