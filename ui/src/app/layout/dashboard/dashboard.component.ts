@@ -89,7 +89,6 @@ export class DashboardComponent implements OnInit {
         let topicName: string;
         let topicLink: string;
 
-
         switch (change.changeType) {
             case 'TOPIC_CREATED':
                 if (change.topicMetadata.type === 'INTERNAL') {
@@ -108,16 +107,14 @@ export class DashboardComponent implements OnInit {
                 topicName = change.topicName;
                 return this.translate.stream('CHANGELOG_TOPIC_DELETED_HTML', {topicName: topicName});
             case 'TOPIC_DEPRECATED':
-
                 topicLink = this.urlForRouterLink('/topics/' + topicName);
                 topicName = change.topicName;
                 const eolDate = moment(change.eolDate).locale(this.translate.currentLang).format('L');
-                const americanDate = moment(change.eolDate).format('L');
+                //const americanDate = moment(change.eolDate).format('L');
                 return this.translate.stream('CHANGELOG_TOPIC_DEPRECATED_HTML', {
                     topicName: topicName,
                     topicLink: topicLink,
-                    date: eolDate,
-                    americanDate: americanDate
+                    date: eolDate
                 });
             case 'TOPIC_UNDEPRECATED':
                 topicLink = this.urlForRouterLink('/topics/' + topicName);
