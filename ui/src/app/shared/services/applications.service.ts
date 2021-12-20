@@ -1,8 +1,8 @@
-import { Injectable } from '@angular/core';
-import { Observable, ReplaySubject } from 'rxjs';
-import { map } from 'rxjs/operators';
-import { HttpClient } from '@angular/common/http';
-import { jsonHeader, ReplayContainer } from './services-common';
+import {Injectable} from '@angular/core';
+import {Observable, ReplaySubject} from 'rxjs';
+import {map} from 'rxjs/operators';
+import {HttpClient} from '@angular/common/http';
+import {jsonHeader, ReplayContainer} from './services-common';
 
 export interface ApplicationInfo {
     id: string;
@@ -164,6 +164,7 @@ export class ApplicationsService {
             this.allRequests.refresh();
             this.availableAppsExcl.refresh();
             this.availableAppsIncl.refresh();
+            this.userApplications.refresh();
         });
     }
 
