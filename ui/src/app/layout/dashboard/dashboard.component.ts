@@ -1,5 +1,5 @@
-import {Component, OnInit} from '@angular/core';
-import {routerTransition} from '../../router.animations';
+import { Component, OnInit } from '@angular/core';
+import { routerTransition } from '../../router.animations';
 import {
     Change,
     ChangelogEntry,
@@ -7,13 +7,13 @@ import {
     EnvironmentsService,
     KafkaEnvironment
 } from '../../shared/services/environments.service';
-import {Observable} from 'rxjs';
-import {flatMap, map, mergeMap, shareReplay, take} from 'rxjs/operators';
-import {CustomLink, ServerInfo, ServerInfoService} from '../../shared/services/serverinfo.service';
+import { Observable } from 'rxjs';
+import { flatMap, map, mergeMap, shareReplay, startWith, take } from 'rxjs/operators';
+import { CustomLink, ServerInfo, ServerInfoService } from '../../shared/services/serverinfo.service';
 import * as moment from 'moment';
-import {TranslateService} from '@ngx-translate/core';
-import {ApplicationInfo, ApplicationsService} from '../../shared/services/applications.service';
-import {Location} from '@angular/common';
+import { TranslateService } from '@ngx-translate/core';
+import { ApplicationInfo, ApplicationsService } from '../../shared/services/applications.service';
+import { Location } from '@angular/common';
 
 @Component({
     selector: 'app-dashboard',
@@ -109,13 +109,14 @@ export class DashboardComponent implements OnInit {
             case 'TOPIC_DEPRECATED':
                 topicLink = this.urlForRouterLink('/topics/' + topicName);
                 topicName = change.topicName;
-                const eolDate = moment(change.eolDate).locale(this.translate.currentLang).format('L');
-                //const americanDate = moment(change.eolDate).format('L');
-                return this.translate.stream('CHANGELOG_TOPIC_DEPRECATED_HTML', {
+                const obsLang = this.translate.onLangChange.pipe(map(evt => evt.lang))
+                    .pipe(startWith(this.translate.currentLang)).pipe(shareReplay(1));
+                const obsEolDate = obsLang.pipe(map(lang => moment(change.eolDate).locale(lang).format('L')));
+                return obsEolDate.pipe(map(date => this.translate.instant('CHANGELOG_TOPIC_DEPRECATED_HTML', {
                     topicName: topicName,
                     topicLink: topicLink,
-                    date: eolDate
-                });
+                    date: date
+                })));
             case 'TOPIC_UNDEPRECATED':
                 topicLink = this.urlForRouterLink('/topics/' + topicName);
                 topicName = change.topicName;
