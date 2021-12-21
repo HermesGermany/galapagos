@@ -213,5 +213,17 @@
     "New login details": "Neue Zugangsdaten",
     "SAVE_KEY_WARNING": "Bitte <b>speichere</b> das Secret, bevor du diesen Dialog schließt! Das Secret wird nicht in Galapagos gespeichert.",
     "Generate API Key": "API Key generieren",
-    "API_KEY_ALREADY_EXISTS_WARNING_HTML": "Für diese Anwendung wurde bereits ein API Key für die Umgebung <b>{{ env }}</b> erzeugt! Wird der Vorgang fortgesetzt, <strong>verliert</strong> der bisherige API Key seine zugeordneten Kafka-Berechtigungen und wird damit <strong>unbenutzbar</strong>.<br>(Existierende Berechtigungen werden auf den neuen API Key übertragen.)."
+    "API_KEY_ALREADY_EXISTS_WARNING_HTML": "Für diese Anwendung wurde bereits ein API Key für die Umgebung <b>{{ env }}</b> erzeugt! Wird der Vorgang fortgesetzt, <strong>verliert</strong> der bisherige API Key seine zugeordneten Kafka-Berechtigungen und wird damit <strong>unbenutzbar</strong>.<br>(Existierende Berechtigungen werden auf den neuen API Key übertragen.).",
+    "TOPIC_CREATED_STAGING": "Topic <code>{{topicName}}</code> anlegen",
+    "TOPIC_SUBSCRIBED_STAGING": "Topic <code>{{topicName}}</code> abonnieren",
+    "TOPIC_UNSUBSCRIBED_STAGING": "Abonnement von Topic <code>{{topicName}}</code> kündigen",
+    "TOPIC_DELETED_STAGING": "Topic <code>{{topicName}}</code> löschen",
+    "TOPIC_DESCRIPTION_CHANGED_STAGING": "Beschreibung von Topic <code>{{topicName}}</code> aktualisieren",
+    "TOPIC_DEPRECATED_STAGING": "Topic <code>{{topicName}}</code> als deprecated markieren",
+    "TOPIC_UNDEPRECATED_STAGING": "Deprecated-Markierung von Topic <code>{{topicName}}</code> entfernen",
+    "TOPIC_SCHEMA_VERSION_PUBLISHED_STAGING": "Schema Version <code>{{schemaVersion}}</code> für Topic <code>{{topicName}}</code> veröffentlichen",
+    "TOPIC_PRODUCER_APPLICATION_ADDED_STAGING": "Produzent <code>{{producer}}</code> hinzufügen für Topic <code>{{topicName}}</code>",
+    "TOPIC_PRODUCER_APPLICATION_REMOVED_STAGING": "Produzent <code>${this.applicationInfo(change.producerApplicationId).name} ` + `</code> entfernen für Topic <code>{{topicName}}</code>",
+    "TOPIC_SUBSCRIPTION_APPROVAL_REQUIRED_FLAG_UPDATED_STAGING": "Für Topic <code>{{topicName}}</code> die Freigabe von Abonnements erforderlich machen",
+    "OTHER_CHANGE_STAGING": "Änderung vom Typ <code>{{changeType}}</code> durchführen"
 }

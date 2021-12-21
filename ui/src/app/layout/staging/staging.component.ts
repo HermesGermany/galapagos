@@ -2,9 +2,16 @@ import { Component, OnInit } from '@angular/core';
 import { routerTransition } from '../../router.animations';
 import { ApplicationInfo, ApplicationsService, UserApplicationInfo } from '../../shared/services/applications.service';
 import { Observable } from 'rxjs';
-import { Change, EnvironmentsService, KafkaEnvironment, Staging, StagingResult } from '../../shared/services/environments.service';
+import {
+    Change,
+    EnvironmentsService,
+    KafkaEnvironment,
+    Staging,
+    StagingResult
+} from '../../shared/services/environments.service';
 import { map, take } from 'rxjs/operators';
 import { ToastService } from '../../shared/modules/toast/toast.service';
+import { TranslateService } from '@ngx-translate/core';
 
 interface SelectableChange {
     change: Change;
@@ -44,7 +51,7 @@ export class StagingComponent implements OnInit {
     translateParams: any = {};
 
     constructor(private applicationsService: ApplicationsService, private environmentsService: EnvironmentsService,
-                private toasts: ToastService) {
+                private toasts: ToastService, private translate: TranslateService) {
     }
 
     ngOnInit() {
@@ -116,39 +123,48 @@ export class StagingComponent implements OnInit {
             });
     }
 
-    stagingText(change: any) {
-        // TODO i18n
+    stagingText(change: any): string {
         const changeType = change.changeType;
+
         switch (changeType) {
+
             case 'TOPIC_CREATED':
-                return 'Topic <code>' + change.topicMetadata.name + '</code> anlegen';
+                return this.translate.instant('TOPIC_CREATED_STAGING', { topicName: change.topicMetadata.name });
             case 'TOPIC_SUBSCRIBED':
-                return 'Topic <code>' + change.subscriptionMetadata.topicName + '</code> abonnieren';
+                return this.translate.instant('TOPIC_SUBSCRIBED_STAGING', { topicName: change.subscriptionMetadata.topicName });
             case 'TOPIC_UNSUBSCRIBED':
-                return 'Abonnement von Topic <code>' + change.subscriptionMetadata.topicName + '</code> kündigen';
+                return this.translate.instant('TOPIC_UNSUBSCRIBED_STAGING', { topicName: change.subscriptionMetadata.topicName });
             case 'TOPIC_DELETED':
-                return 'Topic <code>' + change.topicName + '</code> löschen';
+                return this.translate.instant('TOPIC_DELETED_STAGING', { topicName: change.topicName });
             case 'TOPIC_DESCRIPTION_CHANGED':
-                return 'Beschreibung von Topic <code>' + change.topicName + '</code> aktualisieren';
+                return this.translate.instant('TOPIC_DESCRIPTION_CHANGED_STAGING', { topicName: change.topicName });
             case 'TOPIC_DEPRECATED':
-                return 'Topic <code>' + change.topicName + '</code> als deprecated markieren';
+                return this.translate.instant('TOPIC_DEPRECATED_STAGING', { topicName: change.topicName });
             case 'TOPIC_UNDEPRECATED':
-                return 'Deprecated-Markierung von Topic <code>' + change.topicName + '</code> entfernen';
+                return this.translate.instant('TOPIC_UNDEPRECATED_STAGING', { topicName: change.topicName });
             case 'TOPIC_SCHEMA_VERSION_PUBLISHED':
-                return 'Schema Version <code>' + change.schemaMetadata.schemaVersion + '</code> für Topic <code>'
-                    + change.topicName + '</code> veröffentlichen';
+                const schemaVersion = change.schemaMetadata.schemaVersion;
+                return this.translate.instant('TOPIC_SCHEMA_VERSION_PUBLISHED_STAGING', {
+                    topicName: change.topicName,
+                    schemaVersion: schemaVersion
+                });
             case 'TOPIC_PRODUCER_APPLICATION_ADDED':
-                return `Produzent <code>${this.applicationInfo(change.producerApplicationId).name} ` +
-                    `</code> hinzufügen für Topic ` + `<code>` + change.topicName + `  </code>`;
+                return this.translate.instant('TOPIC_PRODUCER_APPLICATION_ADDED_STAGING', {
+                    topicName: change.topicName,
+                    producer: this.applicationInfo(change.producerApplicationId).name
+                });
             case 'TOPIC_PRODUCER_APPLICATION_REMOVED':
-                return `Produzent <code>${this.applicationInfo(change.producerApplicationId).name} ` + `</code> entfernen für Topic `
-                    + `<code>` + change.topicName + `  </code>`;
+                return this.translate.instant('TOPIC_PRODUCER_APPLICATION_REMOVED_STAGING', {
+                    topicName: change.topicName,
+                    producer: this.applicationInfo(change.producerApplicationId).name
+                });
             case 'TOPIC_SUBSCRIPTION_APPROVAL_REQUIRED_FLAG_UPDATED':
-                return 'Für Topic <code>' + change.topicMetadata.name + '</code> die Freigabe von Abonnements erforderlich machen';
+                return this.translate.instant('TOPIC_SUBSCRIPTION_APPROVAL_REQUIRED_FLAG_UPDATED_STAGING',
+                    { topicName: change.topicMetadata.name });
             case 'COMPOUND_CHANGE':
                 return this.stagingText(change.mainChange);
         }
-        return 'Änderung vom Typ <code>' + changeType + '</code> durchführen';
+        return this.translate.instant('OTHER_CHANGE_STAGING', { changeType: changeType });
     }
 
     private applicationInfo(applicationId): ApplicationInfo {

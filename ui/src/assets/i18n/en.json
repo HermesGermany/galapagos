@@ -126,6 +126,18 @@
     "CERTIFICATE_EXPIRY_HTML": "The certificate for your application on this environment will expire on <b>{{ expiryDate }}</b>.",
     "KEY_BUTTON_TITLE": "Generate new API Key for environment {{env}}",
     "ENV_APP_WARNING_API_KEY": "Please generate an API key for the application and the environment under ",
-    "ENV_APP_WARNING_CERTIFICATE": "Please generate a certificate for the application and the environment under "
+    "ENV_APP_WARNING_CERTIFICATE": "Please generate a certificate for the application and the environment under ",
+    "TOPIC_CREATED_STAGING": "Create Topic <code>{{topicName}}</code>",
+    "TOPIC_SUBSCRIBED_STAGING": "Subscribe Topic <code>{{topicName}}</code>",
+    "TOPIC_UNSUBSCRIBED_STAGING": "Unsubscribe Topic <code>{{topicName}}</code>",
+    "TOPIC_DELETED_STAGING": "Delete Topic <code>{{topicName}}</code>",
+    "TOPIC_DESCRIPTION_CHANGED_STAGING": "Update description of Topic <code>{{topicName}}</code>",
+    "TOPIC_DEPRECATED_STAGING": "Mark Topic <code>{{topicName}}</code> as deprecated",
+    "TOPIC_UNDEPRECATED_STAGING": "Remove deprecation from Topic <code>{{topicName}}</code>",
+    "TOPIC_SCHEMA_VERSION_PUBLISHED_STAGING": "Publish Schema Version <code>{{schemaVersion}}</code> for Topic <code>{{topicName}}</code>",
+    "TOPIC_PRODUCER_APPLICATION_ADDED_STAGING": "Add producer <code>{{producer}}</code> for Topic <code>{{topicName}}</code>",
+    "TOPIC_PRODUCER_APPLICATION_REMOVED_STAGING": "Remove producer <code>${this.applicationInfo(change.producerApplicationId).name} ` + `</code> from Topic <code>{{topicName}}</code>",
+    "TOPIC_SUBSCRIPTION_APPROVAL_REQUIRED_FLAG_UPDATED_STAGING": "For Topic <code>{{topicName}}</code> require the release of subscriptions",
+    "OTHER_CHANGE_STAGING": "Apply Type <code>{{changeType}}</code> changes"
 }
 
