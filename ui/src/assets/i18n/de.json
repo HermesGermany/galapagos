@@ -72,6 +72,8 @@
     "Schema Changes": "Schema Änderungen",
     "CHANGELOG_TOPIC_CREATED_HTML": "hat Topic <b><a href='{{ topicLink }}'>{{ topicName }}</a></b> angelegt.",
     "CHANGELOG_TOPIC_DELETED_HTML": "hat Topic <b>{{ topicName }}</b> gelöscht.",
+    "CHANGELOG_TOPIC_DEPRECATED_HTML": "hat das Topic <b><a href='{{topicLink}}'>{{ topicName }}</a></b> mit Wirkung zum <b>{{date}}</b> für veraltet erklärt",
+    "CHANGELOG_TOPIC_UNDEPRECATED_HTML": "hat die Veraltung für Topic <b><a href='{{topicLink}}'>{{ topicName }}</a></b> aufgehoben",
     "CHANGELOG_TOPIC_DESCRIPTION_CHANGE_HTML": "hat die Beschreibung von Topic <b><a href='{{ topicLink }}'>{{ topicName }}</a></b> aktualisiert.",
     "CHANGELOG_TOPIC_SUBSCRIBED_HTML": "hat Topic <b><a href='{{ topicLink }}'>{{ topicName }}</a></b> für Anwendung <b><a href='{{ appInfo.infoUrl }}'>{{ appInfo.name }}</a></b> abonniert.",
     "CHANGELOG_TOPIC_SUBSCRIBED_HTML_NO_APP_LINK": "hat Topic <b><a href='{{ topicLink }}'>{{ topicName }}</a></b> für Anwendung <b>{{ appInfo.name }}</b> abonniert.",

@@ -74,7 +74,13 @@
                 "comma-dangle": "error",
                 "id-blacklist": "off",
                 "id-match": "off",
-                "indent": ["error", 4],
+                "indent": [
+                    "error",
+                    4,
+                    {
+                        "SwitchCase": 1
+                    }
+                ],
                 "no-trailing-spaces": [
                     "error",
                     {
