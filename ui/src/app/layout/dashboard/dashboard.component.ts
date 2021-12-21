@@ -105,7 +105,7 @@ export class DashboardComponent implements OnInit {
                     return null;
                 }
                 topicName = change.topicName;
-                return this.translate.stream('CHANGELOG_TOPIC_DELETED_HTML', {topicName: topicName});
+                return this.translate.stream('CHANGELOG_TOPIC_DELETED_HTML', { topicName: topicName });
             case 'TOPIC_DEPRECATED':
                 topicLink = this.urlForRouterLink('/topics/' + topicName);
                 topicName = change.topicName;
@@ -128,7 +128,7 @@ export class DashboardComponent implements OnInit {
                 topicName = change.topicName;
                 topicLink = this.urlForRouterLink('/topics/' + topicName);
                 return this.translate.stream('CHANGELOG_TOPIC_SCHEMA_VERSION_REGISTERED_HTML',
-                    {topicName: topicName, topicLink: topicLink});
+                    { topicName: topicName, topicLink: topicLink });
             case 'TOPIC_DESCRIPTION_CHANGED':
                 if (change.internalTopic) {
                     return null;
@@ -147,15 +147,15 @@ export class DashboardComponent implements OnInit {
                         if (!app) {
                             return this.translate.stream('(unknown)').pipe(
                                 flatMap(s => this.translate.stream('CHANGELOG_TOPIC_SUBSCRIBED_HTML_NO_APP_LINK',
-                                    {topicName: topicName, topicLink: topicLink, appInfo: {name: s}})));
+                                    { topicName: topicName, topicLink: topicLink, appInfo: { name: s } })));
                         }
                         if (!app.infoUrl) {
                             return this.translate.stream('CHANGELOG_TOPIC_SUBSCRIBED_HTML_NO_APP_LINK',
-                                {topicName: topicName, topicLink: topicLink, appInfo: app});
+                                { topicName: topicName, topicLink: topicLink, appInfo: app });
                         }
 
                         return this.translate.stream('CHANGELOG_TOPIC_SUBSCRIBED_HTML',
-                            {topicName: topicName, topicLink: topicLink, appInfo: app});
+                            { topicName: topicName, topicLink: topicLink, appInfo: app });
                     }));
             case 'TOPIC_UNSUBSCRIBED':
                 topicName = change.subscriptionMetadata.topicName;
@@ -165,14 +165,14 @@ export class DashboardComponent implements OnInit {
                         if (!app) {
                             return this.translate.stream('(unknown)').pipe(
                                 flatMap(s => this.translate.stream('CHANGELOG_TOPIC_UNSUBSCRIBED_HTML_NO_APP_LINK',
-                                    {topicName: topicName, topicLink: topicLink, appInfo: {name: s}})));
+                                    { topicName: topicName, topicLink: topicLink, appInfo: { name: s } })));
                         }
                         if (!app.infoUrl) {
                             return this.translate.stream('CHANGELOG_TOPIC_UNSUBSCRIBED_HTML_NO_APP_LINK',
-                                {topicName: topicName, topicLink: topicLink, appInfo: app});
+                                { topicName: topicName, topicLink: topicLink, appInfo: app });
                         }
                         return this.translate.stream('CHANGELOG_TOPIC_UNSUBSCRIBED_HTML',
-                            {topicName: topicName, topicLink: topicLink, appInfo: app});
+                            { topicName: topicName, topicLink: topicLink, appInfo: app });
                     }));
             case 'TOPIC_PRODUCER_APPLICATION_ADDED':
                 topicName = change.topicName;
