@@ -46,7 +46,7 @@
                             <span class="deprecationText">{{topic.deprecationText}}</span>
                             </span>
                         </td>
-                        <td>{{ topic.topicType }}</td>
+                        <td>{{ topic.topicType === 'DATA' ? 'MASTER DATA' : topic.topicType}}</td>
                         <td>
                             <a *ngIf="topic.ownerApplication && topic.ownerApplication.infoUrl"
                                [href]="topic.ownerApplication.infoUrl" target="_blank">
