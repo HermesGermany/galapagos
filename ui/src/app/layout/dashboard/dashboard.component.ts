@@ -41,7 +41,7 @@ export class DashboardComponent implements OnInit {
 
     configTemplatesCollapsed = true;
 
-    copiedValue = false;
+    configTemplatesCopiedValue = false;
 
     constructor(private environments: EnvironmentsService, private applicationsService: ApplicationsService,
                 private serverInfoService: ServerInfoService, private location: Location,
@@ -66,6 +66,7 @@ export class DashboardComponent implements OnInit {
     }
 
     updateConfigTemplate(framework: string) {
+        this.configTemplatesCopiedValue = false;
         this.frameworkConfigTemplate = this.selectedEnvironment.pipe(
             flatMap(env => this.environments.getFrameworkConfigTemplate(env.id, framework)));
     }
@@ -84,14 +85,14 @@ export class DashboardComponent implements OnInit {
         selBox.style.left = '0';
         selBox.style.top = '0';
         selBox.style.opacity = '0';
-        observer.subscribe(time => {
-            selBox.value = time;
+        observer.subscribe(value => {
+            selBox.value = value;
             document.body.appendChild(selBox);
             selBox.focus();
             selBox.select();
             document.execCommand('copy');
             document.body.removeChild(selBox);
-            this.copiedValue = true;
+            this.configTemplatesCopiedValue = true;
         });
     }
 

@@ -63,8 +63,8 @@
                         <button (click)="copyValueFromObservable(frameworkConfigTemplate)"
                                 class="btn btn-outline-secondary btn-sm ml-3 mt-1 mb-1"><i
                             class="fas fa-copy"></i>
-                            <span class="ml-1" *ngIf="!copiedValue"> {{ 'Copy Framework Config Template' | translate}}</span>
-                            <span class="ml-1" *ngIf="copiedValue"> {{ 'Copied!' | translate}}</span>
+                            <span class="ml-1" *ngIf="!configTemplatesCopiedValue"> {{ 'Copy Template' | translate}}</span>
+                            <span class="ml-1" *ngIf="configTemplatesCopiedValue"> {{ 'Copied!' | translate}}</span>
                         </button>
                     </div>
                     <div class="form-group">
