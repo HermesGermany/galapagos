@@ -60,6 +60,12 @@
                             <option value="spring">Spring</option>
                             <option value="micronaut">Micronaut</option>
                         </select>
+                        <button (click)="copyValueFromObservable(frameworkConfigTemplate)"
+                                class="btn btn-outline-secondary btn-sm ml-3 mt-1 mb-1"><i
+                            class="fas fa-copy"></i>
+                            <span class="ml-1" *ngIf="!copiedKey"> {{ 'Copy Framework Config Template' | translate}}</span>
+                            <span class="ml-1" *ngIf="copiedKey"> {{ 'Copied!' | translate}}</span>
+                        </button>
                     </div>
                     <div class="form-group">
                         <textarea class="form-control text-monospace" rows="15" cols="90" [value]="frameworkConfigTemplate | async"></textarea>

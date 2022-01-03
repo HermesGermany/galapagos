@@ -41,6 +41,8 @@ export class DashboardComponent implements OnInit {
 
     configTemplatesCollapsed = true;
 
+    copiedKey = false;
+
     constructor(private environments: EnvironmentsService, private applicationsService: ApplicationsService,
                 private serverInfoService: ServerInfoService, private location: Location,
                 private translate: TranslateService) {
@@ -74,6 +76,24 @@ export class DashboardComponent implements OnInit {
 
     agoTimeStamp(timestamp: string): string {
         return moment(timestamp).locale(this.translate.currentLang).format('L LT');
+    }
+
+    copyValueFromObservable(observer: Observable<string>) {
+        const selBox = document.createElement('textarea');
+        selBox.style.position = 'fixed';
+        selBox.style.left = '0';
+        selBox.style.top = '0';
+        selBox.style.opacity = '0';
+        observer.subscribe(time => {
+            selBox.value = time;
+            document.body.appendChild(selBox);
+            selBox.focus();
+            selBox.select();
+            document.execCommand('copy');
+            document.body.removeChild(selBox);
+            this.copiedKey = true;
+
+        });
     }
 
     private formatChanges(changes: ChangelogEntry[]): ChangelogEntry[] {
