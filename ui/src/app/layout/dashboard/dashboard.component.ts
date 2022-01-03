@@ -92,7 +92,6 @@ export class DashboardComponent implements OnInit {
             document.execCommand('copy');
             document.body.removeChild(selBox);
             this.copiedKey = true;
-
         });
     }
 
