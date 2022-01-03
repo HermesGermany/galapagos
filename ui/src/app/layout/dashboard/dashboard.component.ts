@@ -41,7 +41,7 @@ export class DashboardComponent implements OnInit {
 
     configTemplatesCollapsed = true;
 
-    copiedKey = false;
+    copiedValue = false;
 
     constructor(private environments: EnvironmentsService, private applicationsService: ApplicationsService,
                 private serverInfoService: ServerInfoService, private location: Location,
@@ -91,7 +91,7 @@ export class DashboardComponent implements OnInit {
             selBox.select();
             document.execCommand('copy');
             document.body.removeChild(selBox);
-            this.copiedKey = true;
+            this.copiedValue = true;
         });
     }
 
