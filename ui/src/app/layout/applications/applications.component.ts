@@ -197,7 +197,6 @@ export class ApplicationsComponent implements OnInit {
                 this.handleDlgDismiss();
             }
         });
-
     }
 
     generateApiKey(): Promise<any> {
@@ -293,7 +292,6 @@ export class ApplicationsComponent implements OnInit {
         this.showApiKeyTable = false;
         this.secret = null;
         this.apiKeyRequestError = null;
-
     }
 
     copyValue(value: string) {

@@ -71,7 +71,7 @@
                     "error",
                     "1tbs"
                 ],
-                "padded-blocks": ["error", {"blocks": "never", "classes":  "always"}],
+                "padded-blocks": ["error", {"blocks": "never"}],
                 "comma-dangle": "error",
                 "id-blacklist": "off",
                 "id-match": "off",

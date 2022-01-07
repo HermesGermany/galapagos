@@ -21,7 +21,6 @@ import { ApiKeyService } from '../../shared/services/apikey.service';
 import { CertificateService } from '../../shared/services/certificates.service';
 
 describe('ApplicationsComponent', () => {
-
     let component: ApplicationsComponent;
     let fixture: ComponentFixture<ApplicationsComponent>;
     let apps;
@@ -102,11 +101,9 @@ describe('ApplicationsComponent', () => {
 
             deletable: false
         };
-
     }));
 
     it('should create', () => {
         expect(component).toBeTruthy();
     });
-
 });

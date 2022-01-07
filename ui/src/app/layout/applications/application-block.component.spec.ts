@@ -24,7 +24,6 @@ import { ReplayContainer } from '../../shared/services/services-common';
 import { CertificateService } from '../../shared/services/certificates.service';
 
 describe('ApplicationBlockComponent', () => {
-
     let component: ApplicationBlockComponent;
     let fixture: ComponentFixture<ApplicationBlockComponent>;
     let app;
@@ -82,7 +81,6 @@ describe('ApplicationBlockComponent', () => {
                 transactionIdPrefixes: ['a.transactionId.prefix']
             })
         };
-
     }));
 
     it('should create', () => {
@@ -90,7 +88,6 @@ describe('ApplicationBlockComponent', () => {
     });
 
     it('should show correct Prefixes in table', (waitForAsync(() => {
-
         const apiKeyService = fixture.debugElement.injector.get(ApiKeyService);
         const environmentsService = fixture.debugElement.injector.get(EnvironmentsService);
 
@@ -146,11 +143,9 @@ describe('ApplicationBlockComponent', () => {
             expect(listItemsTransactionIdPrefix.item(0).childNodes.item(0).textContent).toEqual('a.transactionId.prefix');
             expect(listItemsConsumerGroupPrefix.item(0).childNodes.item(0).textContent).toEqual('a.consumerGroup.prefix');
         });
-
     })));
 
     it('should show correct SAML Username in Application Block', () => {
-
         const environmentsService = fixture.debugElement.injector.get(EnvironmentsService);
 
         spyOn(environmentsService, 'getCurrentEnvironment').and.returnValue(of({
@@ -188,7 +183,5 @@ describe('ApplicationBlockComponent', () => {
 
         expect(debugElement.query(By.css('#apiKey'))).toBeTruthy();
         expect(debugElement.query(By.css('#apiKey')).nativeElement.innerHTML).toEqual('myKey');
-
     });
-
 });

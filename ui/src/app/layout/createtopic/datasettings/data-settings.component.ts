@@ -101,12 +101,10 @@ export class DataSettingsComponent {
     }
 
     deleteItem(deletion: string) {
-
         this.selectedCleanUpStrategy = this.selectedCleanUpStrategy.filter(strategy => strategy !== deletion);
     }
 
     handleSubscriptionApprovalRequiredChange(): void {
-
         if (this.selectedCleanUpStrategy.length === 1 && this.selectedCleanUpStrategy.includes('delete')) {
             return;
         }
@@ -114,7 +112,6 @@ export class DataSettingsComponent {
         if (this.subscriptionApprovalRequired && !this.selectedCleanUpStrategy.includes('delete')) {
             this.selectedCleanUpStrategy.push('delete');
         }
-
     }
 
     prepareDataForParent(): TopicSettingsData {
@@ -132,12 +129,10 @@ export class DataSettingsComponent {
     }
 
     onUserChangeEndData(changeContext: ChangeContext) {
-
         this.selectedDataSliderValue = this.resolveData(changeContext.value);
     }
 
     onUserChangeEndSize(changeContext: ChangeContext) {
-
         this.selectedSizeSliderValue = this.resolveSize(changeContext.value);
     }
 

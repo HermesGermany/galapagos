@@ -92,7 +92,6 @@ describe('SchemaSectionComponent', () => {
         };
         component.topic = topic;
         fixture.detectChanges();
-
     }));
 
 
@@ -101,7 +100,6 @@ describe('SchemaSectionComponent', () => {
     });
 
     it('should show delete schema button if toggle is set to true and we are on dev stage', ((done: DoneFn) => {
-
         const topicsService = fixture.debugElement.injector.get(TopicsService);
         const environmentsService = fixture.debugElement.injector.get(EnvironmentsService);
         const serverInfoService = fixture.debugElement.injector.get(ServerInfoService);
@@ -182,7 +180,6 @@ describe('SchemaSectionComponent', () => {
             expect(debugElement.query(By.css('#schemaDeleteButton'))).toBeTruthy();
             done();
         }, 2000);
-
     }));
 
     it('should not show delete schema button if toggle is set to false and we are on prod stage', ((done: DoneFn) => {
@@ -242,7 +239,6 @@ describe('SchemaSectionComponent', () => {
             expect(debugElement.query(By.css('#schemaDeleteButton'))).toBeNull();
             done();
         }, 2000);
-
     }));
 
     it('should show button if toggle is set to false and we are on dev stage and there are no subscribers', ((done: DoneFn) => {
@@ -323,6 +319,5 @@ describe('SchemaSectionComponent', () => {
             expect(debugElement.query(By.css('#schemaDeleteButton'))).toBeTruthy();
             done();
         }, 2000);
-
     }));
 });
