@@ -219,7 +219,6 @@
     "TOPIC_UNSUBSCRIBED_STAGING": "Abonnement von Topic <code>{{topicName}}</code> kündigen",
     "TOPIC_DELETED_STAGING": "Topic <code>{{topicName}}</code> löschen",
     "TOPIC_DESCRIPTION_CHANGED_STAGING": "Beschreibung von Topic <code>{{topicName}}</code> aktualisieren",
-    "TOPIC_DEPRECATED_STAGING": "Topic <code>{{topicName}}</code> als deprecated markieren",
     "TOPIC_UNDEPRECATED_STAGING": "Deprecated-Markierung von Topic <code>{{topicName}}</code> entfernen",
     "TOPIC_SCHEMA_VERSION_PUBLISHED_STAGING": "Schema Version <code>{{schemaVersion}}</code> für Topic <code>{{topicName}}</code> veröffentlichen",
     "TOPIC_PRODUCER_APPLICATION_ADDED_STAGING": "Produzent <code>{{producer}}</code> hinzufügen für Topic <code>{{topicName}}</code>",
