@@ -58,6 +58,10 @@
                                 [disabled]="!newSchemaText || !newSchemaText.length" appSpinnerWhile
                                 #p="appSpinnerWhile" (click)="p.while(publishNewSchema())"><i
                             class="fas fa-file-upload mr-3"></i>{{ 'Publish Schema' | translate }}</button>
+
+                        <button class="btn btn-danger mt-3 ml-3"
+                                appSpinnerWhile #p="appSpinnerWhile" (click)="exitSchemaMode()"><i
+                            class="fas fa-times mr-3"></i>{{ 'Exit' | translate }}</button>
                     </div>
                 </div>
                 <div *ngIf="!(topicSchemas | async)?.length && !editSchemaMode">
