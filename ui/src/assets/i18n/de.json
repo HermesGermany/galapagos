@@ -156,6 +156,7 @@
     "REJECT_CONFIRM_DLG_HTML": "Achtung! Wenn Du dieses Abonnement abbrichst, kann die Anwendung <b>{{clientApplicationName}}</b> auf dieser Umgebung nicht mehr auf dieses Topic zugreifen. Das kann die Anwendung in ihrer Funktionsweise stören, bin hin zum <b>Komplettausfall</b>. Du solltest dies nur tun, wenn <b>gewichtige Gründe der Datensicherheit</b> hierfür sprechen. Besser ist es, Kontakt mit dem Anwendungsteam aufzunehmen und diese das Abonnement kontrolliert kündigen zu lassen.<br><br>Das Anwendungsteam wird über den Abbruch ihres Abonnements informiert.",
     "UNSUBSCRIBE_CONFIRM_DLG_HTML": "Achtung! Wenn Du dieses Abonnement abbrichst, kann die Anwendung <b>{{clientApplicationName}}</b> auf dieser Umgebung nicht mehr auf dieses Topic zugreifen. Das kann die Anwendung in ihrer Funktionsweise stören, bin hin zum <b>Komplettausfall</b>. Du solltest dies nur tun, wenn du dir wirklich sicher bist, dass deine Anwendung aus diesem Topic keine Daten mehr lesen muss.",
     "Copied!": "Kopiert!",
+    "Copy Template": "Template kopieren",
     "SUBSCRIPTION_DESCRIPTION_LABEL": "Beschreibung (z.B. Zweck der Nutzung)",
     "Generate new Certificate": "Neues Zertifikat erstellen",
     "Extend existing Certificate": "Verlängerungszertifikat erstellen",
