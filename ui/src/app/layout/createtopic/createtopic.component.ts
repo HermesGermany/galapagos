@@ -102,7 +102,6 @@ export class CreateTopicComponent implements OnInit {
                 this.toasts.addHttpErrorToast('Could not check for application certificates', e);
             }
         }
-
     }
 
     selectEnvironment(envId: string) {
