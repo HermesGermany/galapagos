@@ -138,8 +138,6 @@ export class StagingComponent implements OnInit {
                 return this.translate.instant('TOPIC_DELETED_STAGING', { topicName: change.topicName });
             case 'TOPIC_DESCRIPTION_CHANGED':
                 return this.translate.instant('TOPIC_DESCRIPTION_CHANGED_STAGING', { topicName: change.topicName });
-            case 'TOPIC_UNDEPRECATED':
-                return this.translate.instant('TOPIC_UNDEPRECATED_STAGING', { topicName: change.topicName });
             case 'TOPIC_SCHEMA_VERSION_PUBLISHED':
                 const schemaVersion = change.schemaMetadata.schemaVersion;
                 return this.translate.instant('TOPIC_SCHEMA_VERSION_PUBLISHED_STAGING', {
