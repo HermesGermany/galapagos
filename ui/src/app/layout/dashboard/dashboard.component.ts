@@ -8,7 +8,7 @@ import {
     KafkaEnvironment
 } from '../../shared/services/environments.service';
 import { Observable } from 'rxjs';
-import { flatMap, map, mergeMap, shareReplay, startWith, take } from 'rxjs/operators';
+import {flatMap, map, mergeMap, shareReplay, startWith, take, tap} from 'rxjs/operators';
 import { CustomLink, ServerInfo, ServerInfoService } from '../../shared/services/serverinfo.service';
 import * as moment from 'moment';
 import { TranslateService } from '@ngx-translate/core';
@@ -66,9 +66,9 @@ export class DashboardComponent implements OnInit {
     }
 
     updateConfigTemplate(framework: string) {
-        this.configTemplatesCopiedValue = false;
-        this.frameworkConfigTemplate = this.selectedEnvironment.pipe(
-            flatMap(env => this.environments.getFrameworkConfigTemplate(env.id, framework)));
+        this.frameworkConfigTemplate = this.selectedEnvironment
+            .pipe(tap(env => this.configTemplatesCopiedValue = false))
+            .pipe(flatMap(env => this.environments.getFrameworkConfigTemplate(env.id, framework)));
     }
 
     agoString(timestamp: string): string {
@@ -85,7 +85,7 @@ export class DashboardComponent implements OnInit {
         selBox.style.left = '0';
         selBox.style.top = '0';
         selBox.style.opacity = '0';
-        observer.subscribe(value => {
+        const subscription = observer.subscribe(value => {
             selBox.value = value;
             document.body.appendChild(selBox);
             selBox.focus();
@@ -93,6 +93,7 @@ export class DashboardComponent implements OnInit {
             document.execCommand('copy');
             document.body.removeChild(selBox);
             this.configTemplatesCopiedValue = true;
+            subscription.unsubscribe();
         });
     }
 
