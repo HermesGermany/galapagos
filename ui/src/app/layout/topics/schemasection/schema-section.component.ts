@@ -125,7 +125,7 @@ export class SchemaSectionComponent implements OnInit, OnChanges {
             .finally(() => (this.loadingSchemas = false));
     }
 
-    exitSchemaMode(){
+    exitSchemaMode() {
         this.editSchemaMode = false;
         const element = document.body.getElementsByTagName('app-topic-metadata-table')[0];
         element.scrollIntoView({ block:'start' });

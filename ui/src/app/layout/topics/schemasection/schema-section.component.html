@@ -61,7 +61,7 @@
 
                         <button class="btn btn-danger mt-3 ml-3"
                                 appSpinnerWhile #p="appSpinnerWhile" (click)="exitSchemaMode()"><i
-                            class="fas fa-times mr-3"></i>{{ 'Exit' | translate }}</button>
+                            class="fas fa-times mr-3"></i>{{ 'Cancel' | translate }}</button>
                     </div>
                 </div>
                 <div *ngIf="!(topicSchemas | async)?.length && !editSchemaMode">
