@@ -8,7 +8,7 @@ import {
     KafkaEnvironment
 } from '../../shared/services/environments.service';
 import { Observable } from 'rxjs';
-import { flatMap, map, mergeMap, shareReplay, startWith, take } from 'rxjs/operators';
+import { flatMap, map, mergeMap, shareReplay, startWith, take, tap } from 'rxjs/operators';
 import { CustomLink, ServerInfo, ServerInfoService } from '../../shared/services/serverinfo.service';
 import * as moment from 'moment';
 import { TranslateService } from '@ngx-translate/core';
@@ -41,6 +41,8 @@ export class DashboardComponent implements OnInit {
 
     configTemplatesCollapsed = true;
 
+    configTemplatesCopiedValue = false;
+
     constructor(private environments: EnvironmentsService, private applicationsService: ApplicationsService,
                 private serverInfoService: ServerInfoService, private location: Location,
                 private translate: TranslateService) {
@@ -64,8 +66,9 @@ export class DashboardComponent implements OnInit {
     }
 
     updateConfigTemplate(framework: string) {
-        this.frameworkConfigTemplate = this.selectedEnvironment.pipe(
-            flatMap(env => this.environments.getFrameworkConfigTemplate(env.id, framework)));
+        this.frameworkConfigTemplate = this.selectedEnvironment
+            .pipe(tap(env => this.configTemplatesCopiedValue = false))
+            .pipe(flatMap(env => this.environments.getFrameworkConfigTemplate(env.id, framework)));
     }
 
     agoString(timestamp: string): string {
@@ -74,6 +77,24 @@ export class DashboardComponent implements OnInit {
 
     agoTimeStamp(timestamp: string): string {
         return moment(timestamp).locale(this.translate.currentLang).format('L LT');
+    }
+
+    copyValueFromObservable(observer: Observable<string>) {
+        const selBox = document.createElement('textarea');
+        selBox.style.position = 'fixed';
+        selBox.style.left = '0';
+        selBox.style.top = '0';
+        selBox.style.opacity = '0';
+        const subscription = observer.subscribe(value => {
+            selBox.value = value;
+            document.body.appendChild(selBox);
+            selBox.focus();
+            selBox.select();
+            document.execCommand('copy');
+            document.body.removeChild(selBox);
+            this.configTemplatesCopiedValue = true;
+            subscription.unsubscribe();
+        });
     }
 
     private formatChanges(changes: ChangelogEntry[]): ChangelogEntry[] {
