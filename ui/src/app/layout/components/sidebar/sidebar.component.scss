@@ -224,3 +224,67 @@ $topnav-background-color: #E2E2E3;
     }
 }
 
+
+.sidebar.dark{
+    background-color: #414141;
+    .list-group {
+        a.list-group-item {
+            background: #414141;
+            color: #ffff;
+
+        }
+        a:hover {
+            background: #2a2a2a;
+            color: #ffff;
+        }
+        a.router-link-active {
+            background: #2a2a2a;
+            color: #ffff;
+        }
+
+    }
+    .sidebar-dropdown {
+
+        .panel-title {
+            a {
+                color: #999;
+                background: #414141;
+            }
+            a:hover,
+            a:focus {
+                color: #fff;
+            }
+        }
+        .panel-title:hover {
+            background: darken(#414141, 5%);
+        }
+        .panel-collapse {
+            .panel-body {
+                .list-group-item {
+                    background-color: #414141;
+                    a {
+                        color: #999;
+                    }
+
+                    a:hover {
+                        color: #fff;
+                    }
+                }
+
+                .list-group-item:hover {
+                    background: darken(#414141, 5%);
+                }
+            }
+        }
+    }
+}
+
+.toggle-button.dark {
+    color: #ffff;
+    background: #414141;
+    &:hover {
+        background: #2a2a2a;
+        color: #fff;
+    }
+    border-top: 1px solid #121212;
+}

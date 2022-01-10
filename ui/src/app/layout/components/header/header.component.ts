@@ -75,4 +75,12 @@ export class HeaderComponent implements OnInit {
     selectEnvironment(env: KafkaEnvironment) {
         this.environments.setCurrentEnvironment(env);
     }
+
+    onDarkMode() {
+        if(localStorage.getItem('darkmode') === 'true') {
+            localStorage.setItem('darkmode', 'false');
+        }else {
+            localStorage.setItem('darkmode', 'true');
+        }
+    }
 }
