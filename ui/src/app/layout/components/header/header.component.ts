@@ -22,6 +22,8 @@ export class HeaderComponent implements OnInit {
 
     public allEnvironments: Observable<KafkaEnvironment[]>;
 
+    public darkMode: boolean;
+
     authenticationMode: Observable<string>;
 
     constructor(private translate: TranslateService, public router: Router, private keycloak: KeycloakService,
@@ -51,6 +53,8 @@ export class HeaderComponent implements OnInit {
         this.allEnvironments = this.environments.getEnvironments();
 
         this.authenticationMode = this.environments.getCurrentEnvironment().pipe(map(env => env.authenticationMode));
+
+        this.darkMode = this.initDarkMode();
     }
 
     isToggled(): boolean {
@@ -78,9 +82,31 @@ export class HeaderComponent implements OnInit {
 
     onDarkMode() {
         if(localStorage.getItem('darkmode') === 'true') {
+            document.documentElement.classList.remove('dark');
+            document.getElementsByClassName('sidebar')[0].classList.remove('dark');
+            document.getElementsByClassName('toggle-button')[0].classList.remove('dark');
             localStorage.setItem('darkmode', 'false');
+            this.darkMode = false;
         }else {
+            document.documentElement.classList.add('dark');
+            document.getElementsByClassName('sidebar')[0].classList.add('dark');
+            document.getElementsByClassName('toggle-button')[0].classList.add('dark');
             localStorage.setItem('darkmode', 'true');
+            this.darkMode = true;
+        }
+    }
+
+    initDarkMode() {
+        if(localStorage.getItem('darkmode') === 'true') {
+            document.documentElement.classList.add('dark');
+            document.getElementsByClassName('sidebar')[0].classList.add('dark');
+            document.getElementsByClassName('toggle-button')[0].classList.add('dark');
+            return true;
+        }else {
+            document.documentElement.classList.remove('dark');
+            document.getElementsByClassName('sidebar')[0].classList.remove('dark');
+            document.getElementsByClassName('toggle-button')[0].classList.remove('dark');
+            return false;
         }
     }
 }
