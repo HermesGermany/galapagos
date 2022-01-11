@@ -7,7 +7,6 @@ import com.hermesworld.ais.galapagos.applications.RequestState;
 import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.kafka.impl.TopicBasedRepositoryMock;
-import com.hermesworld.ais.galapagos.kafka.util.TopicBasedRepository;
 import com.hermesworld.ais.galapagos.subscriptions.SubscriptionMetadata;
 import com.hermesworld.ais.galapagos.subscriptions.SubscriptionState;
 import com.hermesworld.ais.galapagos.topics.TopicMetadata;
@@ -177,19 +176,10 @@ public class CreateBackupJobTest {
         when(prodCluster.getId()).thenReturn("prod");
         doReturn(testRepo.values()).when(testCluster).getRepositories();
         doReturn(prodRepo.values()).when(prodCluster).getRepositories();
-        when(testCluster.getRepository("topics", TopicMetadata.class))
-                .thenReturn((TopicBasedRepository<TopicMetadata>) testRepo.get("topics"));
-        when(testCluster.getRepository("subscriptions", SubscriptionMetadata.class))
-                .thenReturn((TopicBasedRepository<SubscriptionMetadata>) testRepo.get("subscriptions"));
-        when(testCluster.getRepository("application-owner-requests", ApplicationOwnerRequest.class))
-                .thenReturn((TopicBasedRepository<ApplicationOwnerRequest>) testRepo.get("application-owner-requests"));
-
-        when(prodCluster.getRepository("topics", TopicMetadata.class))
-                .thenReturn((TopicBasedRepository<TopicMetadata>) prodRepo.get("topics"));
-        when(prodCluster.getRepository("subscriptions", SubscriptionMetadata.class))
-                .thenReturn((TopicBasedRepository<SubscriptionMetadata>) prodRepo.get("subscriptions"));
-        when(prodCluster.getRepository("application-owner-requests", ApplicationOwnerRequest.class))
-                .thenReturn((TopicBasedRepository<ApplicationOwnerRequest>) prodRepo.get("application-owner-requests"));
+        // noinspection SuspiciousMethodCalls
+        when(testCluster.getRepository(any(), any())).then(inv -> testRepo.get(inv.getArgument(0)));
+        // noinspection SuspiciousMethodCalls
+        when(prodCluster.getRepository(any(), any())).then(inv -> prodRepo.get(inv.getArgument(0)));
         when(kafkaClusters.getEnvironment("test")).thenReturn(Optional.of(testCluster));
         when(kafkaClusters.getEnvironment("prod")).thenReturn(Optional.of(prodCluster));
         when(kafkaClusters.getEnvironmentIds()).thenReturn(List.of("test", "prod"));
