@@ -48,7 +48,6 @@ describe('SidebarComponent', () => {
 
         fixture = TestBed.createComponent(SidebarComponent);
         component = fixture.componentInstance;
-
     });
 
     it('should create Sidebar Component', () => {
@@ -56,21 +55,16 @@ describe('SidebarComponent', () => {
     });
 
     it('should not display Administration Section when user is no admin', (() => {
-
         const keycloak = fixture.debugElement.injector.get(KeycloakService);
         spyOn(keycloak, 'getUserRoles').and.returnValue(['user']);
         fixture.detectChanges();
         expect(fixture.debugElement.query(By.css('#adminSection'))).toBeNull();
-
     }));
 
     it('should display Administration Section when user is admin', (() => {
-
         const keycloak = fixture.debugElement.injector.get(KeycloakService);
         spyOn(keycloak, 'getUserRoles').and.returnValue(['admin']);
         fixture.detectChanges();
         expect(fixture.debugElement.query(By.css('#adminSection'))).not.toBeNull();
-
     }));
-
 });

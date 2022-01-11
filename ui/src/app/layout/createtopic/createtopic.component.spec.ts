@@ -19,7 +19,6 @@ import { ApiKeyService } from '../../shared/services/apikey.service';
 import { CertificateService } from '../../shared/services/certificates.service';
 
 describe('CreateTopicComponent', () => {
-
     let component: CreateTopicComponent;
     let fixture: ComponentFixture<CreateTopicComponent>;
 
@@ -115,5 +114,4 @@ describe('CreateTopicComponent', () => {
         const icon = fixture.nativeElement.querySelector('.fa-info-circle');
         expect(icon).not.toBeTruthy();
     });
-
 });

@@ -93,7 +93,6 @@ describe('SingleTopicComponent', () => {
 
         deprecationText = 'this topic should not be used';
         eolDate = '2029-01-01';
-
     });
 
 
@@ -123,7 +122,5 @@ describe('SingleTopicComponent', () => {
             expect(topicData.deprecationText).toEqual('this topic should not be used');
             expect(topicData.eolDate).toEqual('2029-01-01');
         });
-
     }));
-
 });
