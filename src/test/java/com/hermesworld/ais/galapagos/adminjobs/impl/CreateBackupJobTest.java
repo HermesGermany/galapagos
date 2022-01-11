@@ -21,7 +21,6 @@ import org.springframework.boot.ApplicationArguments;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
@@ -30,13 +29,15 @@ public class CreateBackupJobTest {
 
     private KafkaClusters kafkaClusters;
 
-    private final Map<String, TopicBasedRepositoryMock<?>> repositories = new ConcurrentHashMap<>();
+    private final Map<String, TopicBasedRepositoryMock<?>> testRepo = new HashMap<>();
+
+    private final Map<String, TopicBasedRepositoryMock<?>> prodRepo = new HashMap<>();
 
     private ObjectMapper mapper;
 
     @Before
     public void setUp() {
-        repositories.put("topics", new TopicBasedRepositoryMock<TopicMetadata>() {
+        testRepo.put("topics", new TopicBasedRepositoryMock<TopicMetadata>() {
             @Override
             public Class<TopicMetadata> getValueClass() {
                 return TopicMetadata.class;
@@ -57,7 +58,7 @@ public class CreateBackupJobTest {
             }
 
         });
-        repositories.put("subscriptions", new TopicBasedRepositoryMock<SubscriptionMetadata>() {
+        testRepo.put("subscriptions", new TopicBasedRepositoryMock<SubscriptionMetadata>() {
             @Override
             public Class<SubscriptionMetadata> getValueClass() {
                 return SubscriptionMetadata.class;
@@ -79,7 +80,7 @@ public class CreateBackupJobTest {
             }
 
         });
-        repositories.put("application-owner-requests", new TopicBasedRepositoryMock<ApplicationOwnerRequest>() {
+        testRepo.put("application-owner-requests", new TopicBasedRepositoryMock<ApplicationOwnerRequest>() {
             @Override
             public Class<ApplicationOwnerRequest> getValueClass() {
                 return ApplicationOwnerRequest.class;
@@ -102,28 +103,93 @@ public class CreateBackupJobTest {
 
         });
 
+        prodRepo.put("topics", new TopicBasedRepositoryMock<TopicMetadata>() {
+            @Override
+            public Class<TopicMetadata> getValueClass() {
+                return TopicMetadata.class;
+            }
+
+            @Override
+            public String getTopicName() {
+                return "topics";
+            }
+
+            @Override
+            public Collection<TopicMetadata> getObjects() {
+                TopicMetadata meta1 = new TopicMetadata();
+                meta1.setName("topic-2");
+                meta1.setOwnerApplicationId("app-2");
+                meta1.setType(TopicType.EVENTS);
+                return List.of(meta1);
+            }
+
+        });
+        prodRepo.put("subscriptions", new TopicBasedRepositoryMock<SubscriptionMetadata>() {
+            @Override
+            public Class<SubscriptionMetadata> getValueClass() {
+                return SubscriptionMetadata.class;
+            }
+
+            @Override
+            public String getTopicName() {
+                return "subscriptions";
+            }
+
+            @Override
+            public Collection<SubscriptionMetadata> getObjects() {
+                SubscriptionMetadata sub1 = new SubscriptionMetadata();
+                sub1.setId("12323");
+                sub1.setClientApplicationId("app-12");
+                sub1.setTopicName("topic-2");
+                sub1.setState(SubscriptionState.APPROVED);
+                return List.of(sub1);
+            }
+
+        });
+        prodRepo.put("application-owner-requests", new TopicBasedRepositoryMock<ApplicationOwnerRequest>() {
+            @Override
+            public Class<ApplicationOwnerRequest> getValueClass() {
+                return ApplicationOwnerRequest.class;
+            }
+
+            @Override
+            public String getTopicName() {
+                return "application-owner-requests";
+            }
+
+            @Override
+            public Collection<ApplicationOwnerRequest> getObjects() {
+                ApplicationOwnerRequest req = new ApplicationOwnerRequest();
+                req.setApplicationId("app-2");
+                req.setId("2");
+                req.setUserName("myUser2");
+                req.setState(RequestState.APPROVED);
+                return List.of(req);
+            }
+
+        });
+
         mapper = JsonUtil.newObjectMapper();
         kafkaClusters = mock(KafkaClusters.class);
         KafkaCluster testCluster = mock(KafkaCluster.class);
         KafkaCluster prodCluster = mock(KafkaCluster.class);
         when(testCluster.getId()).thenReturn("test");
         when(prodCluster.getId()).thenReturn("prod");
-        doReturn(repositories.values()).when(testCluster).getRepositories();
-        doReturn(repositories.values()).when(prodCluster).getRepositories();
+        doReturn(testRepo.values()).when(testCluster).getRepositories();
+        doReturn(prodRepo.values()).when(prodCluster).getRepositories();
         when(testCluster.getRepository("topics", TopicMetadata.class))
-                .thenReturn((TopicBasedRepository<TopicMetadata>) repositories.get("topics"));
+                .thenReturn((TopicBasedRepository<TopicMetadata>) testRepo.get("topics"));
         when(testCluster.getRepository("subscriptions", SubscriptionMetadata.class))
-                .thenReturn((TopicBasedRepository<SubscriptionMetadata>) repositories.get("subscriptions"));
+                .thenReturn((TopicBasedRepository<SubscriptionMetadata>) testRepo.get("subscriptions"));
         when(testCluster.getRepository("application-owner-requests", ApplicationOwnerRequest.class)).thenReturn(
-                (TopicBasedRepository<ApplicationOwnerRequest>) repositories.get("application-owner-requests"));
+                (TopicBasedRepository<ApplicationOwnerRequest>) testRepo.get("application-owner-requests"));
 
-        // use same metadata as in test stage as if we had staged from test to prod
         when(prodCluster.getRepository("topics", TopicMetadata.class))
-                .thenReturn((TopicBasedRepository<TopicMetadata>) repositories.get("topics"));
+                .thenReturn((TopicBasedRepository<TopicMetadata>) prodRepo.get("topics"));
         when(prodCluster.getRepository("subscriptions", SubscriptionMetadata.class))
-                .thenReturn((TopicBasedRepository<SubscriptionMetadata>) repositories.get("subscriptions"));
+                .thenReturn((TopicBasedRepository<SubscriptionMetadata>) prodRepo.get("subscriptions"));
         when(prodCluster.getRepository("application-owner-requests", ApplicationOwnerRequest.class)).thenReturn(
-                (TopicBasedRepository<ApplicationOwnerRequest>) repositories.get("application-owner-requests"));
+                (TopicBasedRepository<ApplicationOwnerRequest>) prodRepo.get("application-owner-requests"));
         when(kafkaClusters.getEnvironment("test")).thenReturn(Optional.of(testCluster));
         when(kafkaClusters.getEnvironment("prod")).thenReturn(Optional.of(prodCluster));
         when(kafkaClusters.getEnvironmentIds()).thenReturn(List.of("test", "prod"));
@@ -155,14 +221,14 @@ public class CreateBackupJobTest {
         String aorState = jsonNode.get("test").get("application-owner-requests").get("1").get("state").toString();
         String username = jsonNode.get("test").get("application-owner-requests").get("1").get("userName").toString();
 
-        String topicNameProd = jsonNode.get("prod").get("topics").get("topic-1").get("name").toString();
-        String topicTypeProd = jsonNode.get("prod").get("topics").get("topic-1").get("type").toString();
-        String clientApplicationIdSubProd = jsonNode.get("prod").get("subscriptions").get("123")
+        String topicNameProd = jsonNode.get("prod").get("topics").get("topic-2").get("name").toString();
+        String topicTypeProd = jsonNode.get("prod").get("topics").get("topic-2").get("type").toString();
+        String clientApplicationIdSubProd = jsonNode.get("prod").get("subscriptions").get("12323")
                 .get("clientApplicationId").toString();
-        String subIdProd = jsonNode.get("prod").get("subscriptions").get("123").get("id").toString();
-        String aorIdProd = jsonNode.get("prod").get("application-owner-requests").get("1").get("id").toString();
-        String aorStateProd = jsonNode.get("prod").get("application-owner-requests").get("1").get("state").toString();
-        String usernameProd = jsonNode.get("prod").get("application-owner-requests").get("1").get("userName")
+        String subIdProd = jsonNode.get("prod").get("subscriptions").get("12323").get("id").toString();
+        String aorIdProd = jsonNode.get("prod").get("application-owner-requests").get("2").get("id").toString();
+        String aorStateProd = jsonNode.get("prod").get("application-owner-requests").get("2").get("state").toString();
+        String usernameProd = jsonNode.get("prod").get("application-owner-requests").get("2").get("userName")
                 .toString();
 
         // test data
@@ -174,13 +240,13 @@ public class CreateBackupJobTest {
         assertEquals(aorState, "\"APPROVED\"");
         assertEquals(username, "\"myUser\"");
         // prod data
-        assertEquals(topicNameProd, "\"topic-1\"");
+        assertEquals(topicNameProd, "\"topic-2\"");
         assertEquals(topicTypeProd, "\"EVENTS\"");
-        assertEquals(clientApplicationIdSubProd, "\"app-1\"");
-        assertEquals(subIdProd, "\"123\"");
-        assertEquals(aorIdProd, "\"1\"");
+        assertEquals(clientApplicationIdSubProd, "\"app-12\"");
+        assertEquals(subIdProd, "\"12323\"");
+        assertEquals(aorIdProd, "\"2\"");
         assertEquals(aorStateProd, "\"APPROVED\"");
-        assertEquals(usernameProd, "\"myUser\"");
+        assertEquals(usernameProd, "\"myUser2\"");
 
     }
 
