@@ -72,6 +72,8 @@
     "Schema Changes": "Schema Änderungen",
     "CHANGELOG_TOPIC_CREATED_HTML": "hat Topic <b><a href='{{ topicLink }}'>{{ topicName }}</a></b> angelegt.",
     "CHANGELOG_TOPIC_DELETED_HTML": "hat Topic <b>{{ topicName }}</b> gelöscht.",
+    "CHANGELOG_TOPIC_DEPRECATED_HTML": "hat das Topic <b><a href='{{topicLink}}'>{{ topicName }}</a></b> mit Wirkung zum <b>{{date}}</b> für veraltet erklärt",
+    "CHANGELOG_TOPIC_UNDEPRECATED_HTML": "hat die Veraltung für Topic <b><a href='{{topicLink}}'>{{ topicName }}</a></b> aufgehoben",
     "CHANGELOG_TOPIC_DESCRIPTION_CHANGE_HTML": "hat die Beschreibung von Topic <b><a href='{{ topicLink }}'>{{ topicName }}</a></b> aktualisiert.",
     "CHANGELOG_TOPIC_SUBSCRIBED_HTML": "hat Topic <b><a href='{{ topicLink }}'>{{ topicName }}</a></b> für Anwendung <b><a href='{{ appInfo.infoUrl }}'>{{ appInfo.name }}</a></b> abonniert.",
     "CHANGELOG_TOPIC_SUBSCRIBED_HTML_NO_APP_LINK": "hat Topic <b><a href='{{ topicLink }}'>{{ topicName }}</a></b> für Anwendung <b>{{ appInfo.name }}</b> abonniert.",
@@ -154,6 +156,7 @@
     "REJECT_CONFIRM_DLG_HTML": "Achtung! Wenn Du dieses Abonnement abbrichst, kann die Anwendung <b>{{clientApplicationName}}</b> auf dieser Umgebung nicht mehr auf dieses Topic zugreifen. Das kann die Anwendung in ihrer Funktionsweise stören, bin hin zum <b>Komplettausfall</b>. Du solltest dies nur tun, wenn <b>gewichtige Gründe der Datensicherheit</b> hierfür sprechen. Besser ist es, Kontakt mit dem Anwendungsteam aufzunehmen und diese das Abonnement kontrolliert kündigen zu lassen.<br><br>Das Anwendungsteam wird über den Abbruch ihres Abonnements informiert.",
     "UNSUBSCRIBE_CONFIRM_DLG_HTML": "Achtung! Wenn Du dieses Abonnement abbrichst, kann die Anwendung <b>{{clientApplicationName}}</b> auf dieser Umgebung nicht mehr auf dieses Topic zugreifen. Das kann die Anwendung in ihrer Funktionsweise stören, bin hin zum <b>Komplettausfall</b>. Du solltest dies nur tun, wenn du dir wirklich sicher bist, dass deine Anwendung aus diesem Topic keine Daten mehr lesen muss.",
     "Copied!": "Kopiert!",
+    "Copy Template": "Template kopieren",
     "SUBSCRIPTION_DESCRIPTION_LABEL": "Beschreibung (z.B. Zweck der Nutzung)",
     "Generate new Certificate": "Neues Zertifikat erstellen",
     "Extend existing Certificate": "Verlängerungszertifikat erstellen",
@@ -211,5 +214,15 @@
     "New login details": "Neue Zugangsdaten",
     "SAVE_KEY_WARNING": "Bitte <b>speichere</b> das Secret, bevor du diesen Dialog schließt! Das Secret wird nicht in Galapagos gespeichert.",
     "Generate API Key": "API Key generieren",
-    "API_KEY_ALREADY_EXISTS_WARNING_HTML": "Für diese Anwendung wurde bereits ein API Key für die Umgebung <b>{{ env }}</b> erzeugt! Wird der Vorgang fortgesetzt, <strong>verliert</strong> der bisherige API Key seine zugeordneten Kafka-Berechtigungen und wird damit <strong>unbenutzbar</strong>.<br>(Existierende Berechtigungen werden auf den neuen API Key übertragen.)."
+    "API_KEY_ALREADY_EXISTS_WARNING_HTML": "Für diese Anwendung wurde bereits ein API Key für die Umgebung <b>{{ env }}</b> erzeugt! Wird der Vorgang fortgesetzt, <strong>verliert</strong> der bisherige API Key seine zugeordneten Kafka-Berechtigungen und wird damit <strong>unbenutzbar</strong>.<br>(Existierende Berechtigungen werden auf den neuen API Key übertragen.).",
+    "TOPIC_CREATED_STAGING": "Topic <code>{{topicName}}</code> anlegen",
+    "TOPIC_SUBSCRIBED_STAGING": "Topic <code>{{topicName}}</code> abonnieren",
+    "TOPIC_UNSUBSCRIBED_STAGING": "Abonnement von Topic <code>{{topicName}}</code> kündigen",
+    "TOPIC_DELETED_STAGING": "Topic <code>{{topicName}}</code> löschen",
+    "TOPIC_DESCRIPTION_CHANGED_STAGING": "Beschreibung von Topic <code>{{topicName}}</code> aktualisieren",
+    "TOPIC_SCHEMA_VERSION_PUBLISHED_STAGING": "Schema Version <code>{{schemaVersion}}</code> für Topic <code>{{topicName}}</code> veröffentlichen",
+    "TOPIC_PRODUCER_APPLICATION_ADDED_STAGING": "Produzent <code>{{producer}}</code> hinzufügen für Topic <code>{{topicName}}</code>",
+    "TOPIC_PRODUCER_APPLICATION_REMOVED_STAGING": "Produzent <code>${this.applicationInfo(change.producerApplicationId).name} ` + `</code> entfernen für Topic <code>{{topicName}}</code>",
+    "TOPIC_SUBSCRIPTION_APPROVAL_REQUIRED_FLAG_UPDATED_STAGING": "Für Topic <code>{{topicName}}</code> die Freigabe von Abonnements erforderlich machen",
+    "OTHER_CHANGE_STAGING": "Änderung vom Typ <code>{{changeType}}</code> durchführen"
 }

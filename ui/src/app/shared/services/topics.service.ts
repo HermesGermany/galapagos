@@ -187,7 +187,6 @@ export class TopicsService {
     public async createTopic(topicType: TopicType, appInfo: UserApplicationInfo, environmentId: string, topicName: string,
         description: string, subscriptionApprovalRequired: boolean, initialSettings: TopicSettingsData,
         createParams: TopicCreateParams): Promise<any> {
-
         let topicSettingsData = {};
         if (topicType !== 'INTERNAL') {
             createParams.topicConfig = {

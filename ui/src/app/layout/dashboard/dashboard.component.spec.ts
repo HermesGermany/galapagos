@@ -54,7 +54,6 @@ describe('DashboardComponent', () => {
     });
 
     it('should display correct kafka version', () => {
-
         const serverInfoService = fixture.debugElement.injector.get(ServerInfoService);
         const spy: jasmine.Spy = spyOn(serverInfoService, 'getKafkaVersion').and.returnValue(of('1.0'));
         const debugElement = fixture.debugElement;
@@ -75,7 +74,6 @@ describe('DashboardComponent', () => {
     });
 
     it('should display correct bootstrap server', fakeAsync(() => {
-
         const environmentsService = fixture.debugElement.injector.get(EnvironmentsService);
         const spy: jasmine.Spy = spyOn(environmentsService, 'getCurrentEnvironment').and.returnValue(of({
             id: 'devtest',
@@ -96,7 +94,6 @@ describe('DashboardComponent', () => {
     }));
 
     it('should display correct translation', (() => {
-
         const translateService = fixture.debugElement.injector.get(TranslateService);
         translateService.setTranslation('de', { 'Selected Kafka Environment': 'Ausgewählte Kafka-Umgebung' });
         translateService.use('de');
@@ -109,7 +106,5 @@ describe('DashboardComponent', () => {
         fixture.detectChanges();
 
         expect(compiled.querySelector('label').textContent).toContain('Selected Kafka Environment');
-
     }));
-
 });

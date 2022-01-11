@@ -35,7 +35,7 @@
     "ngx-highlightjs": "^4.1.3",
     "rxjs": "6.6.3",
     "tslib": "^2.0.0",
-    "yarn": "1.16.0",
+    "yarn": "1.22.0",
     "zone.js": "~0.10.2"
   },
   "devDependencies": {

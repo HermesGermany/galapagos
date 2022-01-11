@@ -121,8 +121,7 @@ public class KafkaRepositoryContainerImpl implements KafkaRepositoryContainer {
                 int nodeCount = this.adminClient.describeCluster().nodes().get().size();
                 int replicationFactor = Math.min(this.replicationFactor, nodeCount);
 
-                // TODO numPartitions should be configurable for Galapagos metadata topics
-                NewTopic newTopic = new NewTopic(topic, 3, (short) replicationFactor);
+                NewTopic newTopic = new NewTopic(topic, 1, (short) replicationFactor);
                 newTopic = newTopic
                         .configs(Map.of(TopicConfig.CLEANUP_POLICY_CONFIG, TopicConfig.CLEANUP_POLICY_COMPACT));
                 this.adminClient.createTopics(Collections.singleton(newTopic)).all().get();

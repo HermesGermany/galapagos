@@ -164,6 +164,7 @@ export class ApplicationsService {
             this.allRequests.refresh();
             this.availableAppsExcl.refresh();
             this.availableAppsIncl.refresh();
+            this.userApplications.refresh();
         });
     }
 

@@ -101,12 +101,10 @@ export class DataSettingsComponent {
     }
 
     deleteItem(deletion: string) {
-
         this.selectedCleanUpStrategy = this.selectedCleanUpStrategy.filter(strategy => strategy !== deletion);
     }
 
     handleSubscriptionApprovalRequiredChange(): void {
-
         if (this.selectedCleanUpStrategy.length === 1 && this.selectedCleanUpStrategy.includes('delete')) {
             return;
         }
@@ -114,7 +112,6 @@ export class DataSettingsComponent {
         if (this.subscriptionApprovalRequired && !this.selectedCleanUpStrategy.includes('delete')) {
             this.selectedCleanUpStrategy.push('delete');
         }
-
     }
 
     prepareDataForParent(): TopicSettingsData {
@@ -132,12 +129,10 @@ export class DataSettingsComponent {
     }
 
     onUserChangeEndData(changeContext: ChangeContext) {
-
         this.selectedDataSliderValue = this.resolveData(changeContext.value);
     }
 
     onUserChangeEndSize(changeContext: ChangeContext) {
-
         this.selectedSizeSliderValue = this.resolveSize(changeContext.value);
     }
 
@@ -147,29 +142,29 @@ export class DataSettingsComponent {
 
     private resolveData(index: number): MessagesPerDay {
         switch (index) {
-        case 1:
-            return 'FEW';
-        case 2:
-            return 'NORMAL';
-        case 3:
-            return 'MANY';
-        case 4:
-            return 'VERY_MANY';
+            case 1:
+                return 'FEW';
+            case 2:
+                return 'NORMAL';
+            case 3:
+                return 'MANY';
+            case 4:
+                return 'VERY_MANY';
         }
     }
 
     private resolveSize(index: number): MessagesSize {
         switch (index) {
-        case 1:
-            return 'VERY_SMALL';
-        case 2:
-            return 'SMALL';
-        case 3:
-            return 'NORMAL';
-        case 4:
-            return 'LARGE';
-        case 5:
-            return 'VERY_LARGE';
+            case 1:
+                return 'VERY_SMALL';
+            case 2:
+                return 'SMALL';
+            case 3:
+                return 'NORMAL';
+            case 4:
+                return 'LARGE';
+            case 5:
+                return 'VERY_LARGE';
         }
     }
 
