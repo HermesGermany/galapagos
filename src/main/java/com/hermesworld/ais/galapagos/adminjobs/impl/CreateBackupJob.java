@@ -71,7 +71,6 @@ public class CreateBackupJob implements AdminJob {
             }
             catch (IOException e) {
                 System.err.println("Could not create Backup file");
-                e.printStackTrace();
                 return;
             }
 
