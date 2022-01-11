@@ -19,14 +19,14 @@ import java.util.Collection;
 import java.util.Optional;
 
 @Component
-public class CreateBackUpJob implements AdminJob {
+public class CreateBackupJob implements AdminJob {
 
     private final KafkaClusters kafkaClusters;
 
     private final ObjectMapper objectMapper = JsonUtil.newObjectMapper();
 
     @Autowired
-    public CreateBackUpJob(KafkaClusters kafkaClusters) {
+    public CreateBackupJob(KafkaClusters kafkaClusters) {
         this.kafkaClusters = kafkaClusters;
     }
 
@@ -37,9 +37,11 @@ public class CreateBackUpJob implements AdminJob {
 
     @Override
     public void run(ApplicationArguments allArguments) throws Exception {
-
         boolean createBackupFile = Optional.ofNullable(allArguments.getOptionValues("create.backup.file"))
-                .map(ls -> ls.stream().findFirst().orElse(null)).map(s -> Boolean.parseBoolean(s)).orElse(false);
+                .flatMap(ls -> ls.stream().findFirst()).map(Boolean::parseBoolean).orElse(false);
+
+        String outputFileName = Optional.ofNullable(allArguments.getOptionValues("output.filename"))
+                .flatMap(ls -> ls.stream().findFirst()).map(String::new).orElse("backup.json");
 
         JSONObject backup = new JSONObject();
 
@@ -53,23 +55,28 @@ public class CreateBackUpJob implements AdminJob {
         System.out.println();
         System.out.println("========================= Backup Creation COMPLETE ========================");
         System.out.println();
-        System.out.println("Backup JSON:");
-        System.out.println();
-        System.out.println(backup.toString(1));
+
+        if (!createBackupFile) {
+            System.out.println("Backup JSON:");
+            System.out.println();
+            System.out.println(backup.toString(2));
+        }
 
         if (createBackupFile) {
             System.out.println("========================= Generating Backup file as json ========================");
-            File file = new File("backup.json");
+            File file = new File(outputFileName);
 
             try (Writer writer = new BufferedWriter(new FileWriter(file))) {
-                writer.write(backup.toString(1));
+                writer.write(backup.toString(2));
             }
             catch (IOException e) {
+                System.err.println("Could not create Backup file");
                 e.printStackTrace();
+                return;
             }
 
-            System.out.println(
-                    "========================= Generated Backup file as json in root directory ========================");
+            System.out.println("========================= Generated Backup file as json in " + outputFileName
+                    + " ========================");
 
         }
 

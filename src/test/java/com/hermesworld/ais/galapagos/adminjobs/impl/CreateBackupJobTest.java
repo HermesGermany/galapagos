@@ -24,10 +24,9 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
-public class CreateBackUpJobTest {
+public class CreateBackupJobTest {
 
     private KafkaClusters kafkaClusters;
 
@@ -109,8 +108,8 @@ public class CreateBackUpJobTest {
         KafkaCluster prodCluster = mock(KafkaCluster.class);
         when(testCluster.getId()).thenReturn("test");
         when(prodCluster.getId()).thenReturn("prod");
-        when(testCluster.getRepositories()).thenReturn(new HashSet<>(repositories.values()));
-        when(prodCluster.getRepositories()).thenReturn(new HashSet<>(repositories.values()));
+        doReturn(repositories.values()).when(testCluster).getRepositories();
+        doReturn(repositories.values()).when(prodCluster).getRepositories();
         when(testCluster.getRepository("topics", TopicMetadata.class))
                 .thenReturn((TopicBasedRepository<TopicMetadata>) repositories.get("topics"));
         when(testCluster.getRepository("subscriptions", SubscriptionMetadata.class))
@@ -118,7 +117,7 @@ public class CreateBackUpJobTest {
         when(testCluster.getRepository("application-owner-requests", ApplicationOwnerRequest.class)).thenReturn(
                 (TopicBasedRepository<ApplicationOwnerRequest>) repositories.get("application-owner-requests"));
 
-        // use same metadata as in test stage as if we would have staged from test to prod
+        // use same metadata as in test stage as if we had staged from test to prod
         when(prodCluster.getRepository("topics", TopicMetadata.class))
                 .thenReturn((TopicBasedRepository<TopicMetadata>) repositories.get("topics"));
         when(prodCluster.getRepository("subscriptions", SubscriptionMetadata.class))
@@ -133,7 +132,7 @@ public class CreateBackUpJobTest {
     @Test
     @DisplayName("it should create a backup from all the metadata currently saved within Galapagos")
     public void createBackUp_success() throws Exception {
-        CreateBackUpJob job = new CreateBackUpJob(kafkaClusters);
+        CreateBackupJob job = new CreateBackupJob(kafkaClusters);
         ApplicationArguments args = mock(ApplicationArguments.class);
         when(args.getOptionValues("create.backup.file")).thenReturn(Collections.singletonList("true"));
 
