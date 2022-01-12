@@ -136,6 +136,7 @@
     "TOPIC_PRODUCER_APPLICATION_ADDED_STAGING": "Add producer <code>{{producer}}</code> for Topic <code>{{topicName}}</code>",
     "TOPIC_PRODUCER_APPLICATION_REMOVED_STAGING": "Remove producer <code>${this.applicationInfo(change.producerApplicationId).name} ` + `</code> from Topic <code>{{topicName}}</code>",
     "TOPIC_SUBSCRIPTION_APPROVAL_REQUIRED_FLAG_UPDATED_STAGING": "For Topic <code>{{topicName}}</code> require the release of subscriptions",
-    "OTHER_CHANGE_STAGING": "Apply Type <code>{{changeType}}</code> changes"
+    "OTHER_CHANGE_STAGING": "Apply Type <code>{{changeType}}</code> changes",
+    "DELETE_CONFIRMATION_TEXT": "If you delete this topic on the environment <b>{{environmentName}}</b>, all data in the topic will also be deleted and <b>cannot</b> be restored. <br>To delete the topic <code>{{topicName}}</code>, please enter the name of the topic here and click on 'Delete topic'."
 }
 
