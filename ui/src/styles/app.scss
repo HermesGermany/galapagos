@@ -46,7 +46,6 @@
     $hermes: #0091CD !default;
     $lastChanges : #6c757d !default;
     $topicSettings: #ffc107 !default;
-    @import "bootstrap/bootstrap";
 }
 
 @import "bootstrap/bootstrap";
@@ -78,8 +77,46 @@ code {
 }
 
 .no-dark .form-control{
-    background-color: #121212;
-    color: #fff;
+    background-color: $white;
+    color:$black;
+}
+
+.dark .ngb-dp-header {
+    background-color: $gray-900;
+}
+
+.dark .ngb-dp-weekdays{
+    background-color: $gray-900;
+}
+
+.ngb-dp-day:hover{
+    background-color: $gray-100;
+}
+
+.dark .ngb-dp-day.disabled{
+    background-color: $gray-900;
+}
+
+.dark .btn-light{
+    color: white;
+}
+
+.dark .btn-light:hover{
+    color: #f6f6f6;
+    background-color: $gray-800;
+}
+
+.dark .btn-light:active:not(:disabled):not(.disabled):active{
+    color: #ffffff;
+    background-color: $blue;
+}
+.dark .btn-light:active:not(:disabled):not(.disabled):hover{
+    color: #ffffff;
+    background-color: $blue;
+}
+
+.dark .ngb-dp-day{
+    background-color: $gray-900;
 }
 
 .fa-fw {
