@@ -1,18 +1,17 @@
 package com.hermesworld.ais.galapagos.adminjobs.impl;
 
-import java.time.Duration;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-
 import org.apache.kafka.clients.admin.*;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.*;
 import org.apache.kafka.common.acl.AclBinding;
 import org.apache.kafka.common.acl.AclBindingFilter;
 import org.apache.kafka.common.config.ConfigResource;
+import org.apache.kafka.common.quota.ClientQuotaAlteration;
+import org.apache.kafka.common.quota.ClientQuotaFilter;
+
+import java.time.Duration;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Helper class used by admin jobs providing a "dry run". This class wraps an existing Kafka AdminClient and throws an
@@ -396,6 +395,71 @@ public abstract class NoUpdatesAdminClient extends AdminClient {
     public ListOffsetsResult listOffsets(Map<TopicPartition, OffsetSpec> topicPartitionOffsets,
             ListOffsetsOptions options) {
         return delegate.listOffsets(topicPartitionOffsets, options);
+    }
+
+    @Override
+    public DescribeClientQuotasResult describeClientQuotas(ClientQuotaFilter filter) {
+        return delegate.describeClientQuotas(filter);
+    }
+
+    @Override
+    public DescribeClientQuotasResult describeClientQuotas(ClientQuotaFilter clientQuotaFilter,
+            DescribeClientQuotasOptions describeClientQuotasOptions) {
+        return delegate.describeClientQuotas(clientQuotaFilter, describeClientQuotasOptions);
+    }
+
+    @Override
+    public AlterClientQuotasResult alterClientQuotas(Collection<ClientQuotaAlteration> entries) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public AlterClientQuotasResult alterClientQuotas(Collection<ClientQuotaAlteration> collection,
+            AlterClientQuotasOptions alterClientQuotasOptions) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public DescribeUserScramCredentialsResult describeUserScramCredentials() {
+        return delegate.describeUserScramCredentials();
+    }
+
+    @Override
+    public DescribeUserScramCredentialsResult describeUserScramCredentials(List<String> users) {
+        return delegate.describeUserScramCredentials(users);
+    }
+
+    @Override
+    public DescribeUserScramCredentialsResult describeUserScramCredentials(List<String> list,
+            DescribeUserScramCredentialsOptions describeUserScramCredentialsOptions) {
+        return delegate.describeUserScramCredentials(list, describeUserScramCredentialsOptions);
+    }
+
+    @Override
+    public AlterUserScramCredentialsResult alterUserScramCredentials(List<UserScramCredentialAlteration> alterations) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public AlterUserScramCredentialsResult alterUserScramCredentials(List<UserScramCredentialAlteration> list,
+            AlterUserScramCredentialsOptions alterUserScramCredentialsOptions) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public DescribeFeaturesResult describeFeatures() {
+        return delegate.describeFeatures();
+    }
+
+    @Override
+    public DescribeFeaturesResult describeFeatures(DescribeFeaturesOptions describeFeaturesOptions) {
+        return delegate.describeFeatures(describeFeaturesOptions);
+    }
+
+    @Override
+    public UpdateFeaturesResult updateFeatures(Map<String, FeatureUpdate> map,
+            UpdateFeaturesOptions updateFeaturesOptions) {
+        throw new UnsupportedOperationException();
     }
 
     @Override

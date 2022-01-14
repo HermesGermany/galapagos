@@ -48,7 +48,6 @@ export class SingleTopicComponent implements OnInit {
         private environmentsService: EnvironmentsService,
         private applicationsService: ApplicationsService
     ) {
-
         route.queryParamMap.subscribe({
             next: params => {
                 if (params.has('environment')) {

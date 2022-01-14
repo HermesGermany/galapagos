@@ -56,6 +56,5 @@ export class DeleteTopicComponent {
 
     closeModal($event: any) {
         this.modalService.dismissAll();
-
     }
 }

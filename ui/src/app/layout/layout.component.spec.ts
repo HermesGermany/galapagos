@@ -24,7 +24,6 @@ import { StagingModule } from './staging/staging.module';
 import { AdminComponent } from './admin/admin.component';
 
 describe('LayoutComponent', () => {
-
     let component: LayoutComponent;
     let fixture: ComponentFixture<LayoutComponent>;
     let keycloak: KeycloakService;
@@ -77,5 +76,4 @@ describe('LayoutComponent', () => {
         fixture.detectChanges();
         expect(fixture.debugElement.query(By.css('#adminSection'))).not.toBeNull();
     }));
-
 });

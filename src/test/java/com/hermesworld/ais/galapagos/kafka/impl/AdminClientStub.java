@@ -1,11 +1,5 @@
 package com.hermesworld.ais.galapagos.kafka.impl;
 
-import java.time.Duration;
-import java.util.*;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
 import org.apache.kafka.clients.admin.*;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.*;
@@ -13,10 +7,20 @@ import org.apache.kafka.common.acl.AclBinding;
 import org.apache.kafka.common.acl.AclBindingFilter;
 import org.apache.kafka.common.config.ConfigResource;
 import org.apache.kafka.common.internals.KafkaFutureImpl;
+import org.apache.kafka.common.quota.ClientQuotaAlteration;
+import org.apache.kafka.common.quota.ClientQuotaFilter;
 import org.mockito.Mockito;
-import static org.mockito.Mockito.when;
 import org.springframework.kafka.KafkaException;
 
+import java.time.Duration;
+import java.util.*;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
+import static org.mockito.Mockito.when;
+
+@SuppressWarnings("deprecation")
 public class AdminClientStub extends AdminClient {
 
     private final List<AclBinding> aclBindings = new ArrayList<>();
@@ -43,7 +47,6 @@ public class AdminClientStub extends AdminClient {
         this.failOnDescribeCluster = failOnDescribeCluster;
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     public void close(long duration, TimeUnit unit) {
     }
@@ -62,19 +65,19 @@ public class AdminClientStub extends AdminClient {
 
     @Override
     public DeleteTopicsResult deleteTopics(Collection<String> topics, DeleteTopicsOptions options) {
-        // TODO Auto-generated method stub
+        // Auto-generated method stub
         return null;
     }
 
     @Override
     public ListTopicsResult listTopics(ListTopicsOptions options) {
-        // TODO Auto-generated method stub
+        // Auto-generated method stub
         return null;
     }
 
     @Override
     public DescribeTopicsResult describeTopics(Collection<String> topicNames, DescribeTopicsOptions options) {
-        // TODO Auto-generated method stub
+        // Auto-generated method stub
         return null;
     }
 
@@ -119,7 +122,7 @@ public class AdminClientStub extends AdminClient {
 
     @Override
     public DescribeConfigsResult describeConfigs(Collection<ConfigResource> resources, DescribeConfigsOptions options) {
-        // TODO Auto-generated method stub
+        // Auto-generated method stub
         return null;
     }
 
@@ -140,85 +143,85 @@ public class AdminClientStub extends AdminClient {
     @Override
     public AlterReplicaLogDirsResult alterReplicaLogDirs(Map<TopicPartitionReplica, String> replicaAssignment,
             AlterReplicaLogDirsOptions options) {
-        // TODO Auto-generated method stub
+        // Auto-generated method stub
         return null;
     }
 
     @Override
     public DescribeLogDirsResult describeLogDirs(Collection<Integer> brokers, DescribeLogDirsOptions options) {
-        // TODO Auto-generated method stub
+        // Auto-generated method stub
         return null;
     }
 
     @Override
     public DescribeReplicaLogDirsResult describeReplicaLogDirs(Collection<TopicPartitionReplica> replicas,
             DescribeReplicaLogDirsOptions options) {
-        // TODO Auto-generated method stub
+        // Auto-generated method stub
         return null;
     }
 
     @Override
     public CreatePartitionsResult createPartitions(Map<String, NewPartitions> newPartitions,
             CreatePartitionsOptions options) {
-        // TODO Auto-generated method stub
+        // Auto-generated method stub
         return null;
     }
 
     @Override
     public DeleteRecordsResult deleteRecords(Map<TopicPartition, RecordsToDelete> recordsToDelete,
             DeleteRecordsOptions options) {
-        // TODO Auto-generated method stub
+        // Auto-generated method stub
         return null;
     }
 
     @Override
     public CreateDelegationTokenResult createDelegationToken(CreateDelegationTokenOptions options) {
-        // TODO Auto-generated method stub
+        // Auto-generated method stub
         return null;
     }
 
     @Override
     public RenewDelegationTokenResult renewDelegationToken(byte[] hmac, RenewDelegationTokenOptions options) {
-        // TODO Auto-generated method stub
+        // Auto-generated method stub
         return null;
     }
 
     @Override
     public ExpireDelegationTokenResult expireDelegationToken(byte[] hmac, ExpireDelegationTokenOptions options) {
-        // TODO Auto-generated method stub
+        // Auto-generated method stub
         return null;
     }
 
     @Override
     public DescribeDelegationTokenResult describeDelegationToken(DescribeDelegationTokenOptions options) {
-        // TODO Auto-generated method stub
+        // Auto-generated method stub
         return null;
     }
 
     @Override
     public DescribeConsumerGroupsResult describeConsumerGroups(Collection<String> groupIds,
             DescribeConsumerGroupsOptions options) {
-        // TODO Auto-generated method stub
+        // Auto-generated method stub
         return null;
     }
 
     @Override
     public ListConsumerGroupsResult listConsumerGroups(ListConsumerGroupsOptions options) {
-        // TODO Auto-generated method stub
+        // Auto-generated method stub
         return null;
     }
 
     @Override
     public ListConsumerGroupOffsetsResult listConsumerGroupOffsets(String groupId,
             ListConsumerGroupOffsetsOptions options) {
-        // TODO Auto-generated method stub
+        // Auto-generated method stub
         return null;
     }
 
     @Override
     public DeleteConsumerGroupsResult deleteConsumerGroups(Collection<String> groupIds,
             DeleteConsumerGroupsOptions options) {
-        // TODO Auto-generated method stub
+        // Auto-generated method stub
         return null;
     }
 
@@ -231,7 +234,7 @@ public class AdminClientStub extends AdminClient {
     @Override
     public ElectPreferredLeadersResult electPreferredLeaders(Collection<TopicPartition> partitions,
             ElectPreferredLeadersOptions options) {
-        // TODO Auto-generated method stub
+        // Auto-generated method stub
         return null;
     }
 
@@ -274,7 +277,84 @@ public class AdminClientStub extends AdminClient {
 
     @Override
     public Map<MetricName, ? extends Metric> metrics() {
-        // TODO Auto-generated method stub
+        // Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public DescribeClientQuotasResult describeClientQuotas(ClientQuotaFilter filter) {
+        // Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public DescribeClientQuotasResult describeClientQuotas(ClientQuotaFilter clientQuotaFilter,
+            DescribeClientQuotasOptions describeClientQuotasOptions) {
+        // Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public AlterClientQuotasResult alterClientQuotas(Collection<ClientQuotaAlteration> entries) {
+        // Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public AlterClientQuotasResult alterClientQuotas(Collection<ClientQuotaAlteration> collection,
+            AlterClientQuotasOptions alterClientQuotasOptions) {
+        // Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public DescribeUserScramCredentialsResult describeUserScramCredentials() {
+        // Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public DescribeUserScramCredentialsResult describeUserScramCredentials(List<String> users) {
+        // Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public DescribeUserScramCredentialsResult describeUserScramCredentials(List<String> list,
+            DescribeUserScramCredentialsOptions describeUserScramCredentialsOptions) {
+        // Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public AlterUserScramCredentialsResult alterUserScramCredentials(List<UserScramCredentialAlteration> alterations) {
+        // Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public AlterUserScramCredentialsResult alterUserScramCredentials(List<UserScramCredentialAlteration> list,
+            AlterUserScramCredentialsOptions alterUserScramCredentialsOptions) {
+        // Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public DescribeFeaturesResult describeFeatures() {
+        // Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public DescribeFeaturesResult describeFeatures(DescribeFeaturesOptions describeFeaturesOptions) {
+        // Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public UpdateFeaturesResult updateFeatures(Map<String, FeatureUpdate> map,
+            UpdateFeaturesOptions updateFeaturesOptions) {
+        // Auto-generated method stub
         return null;
     }
 

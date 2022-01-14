@@ -74,7 +74,6 @@ export class AdminComponent implements OnInit {
         if (direction === 'desc') {
             this.allRequests = of(requests.sort((a, b) => a[column] > b[column] ? 1 : a[column] < b[column] ? -1 : 0));
         }
-
     }
 
     lastChangeTitle(request: TranslatedApplicationOwnerRequest): string {
