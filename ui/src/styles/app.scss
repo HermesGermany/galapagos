@@ -23,10 +23,29 @@
     $lastChanges : #121212 !default;
 
     $green: #155622 !default;
-    $yellow: #ff0000 !default;
+    $topicSettings: #121212 !default;
 
 
 
+    @import "bootstrap/bootstrap";
+}
+
+.no-dark{
+    $white:    #fff !default;
+    $gray-100: #f8f9fa !default;
+    $gray-200: #e9ecef !default;
+    $gray-300: #dee2e6 !default;
+    $gray-400: #ced4da !default;
+    $gray-500: #adb5bd !default;
+    $gray-600: #6c757d !default;
+    $gray-700: #495057 !default;
+    $gray-800: #343a40 !default;
+    $gray-900: #212529 !default;
+    $black:    #000 !default;
+
+    $hermes: #0091CD !default;
+    $lastChanges : #6c757d !default;
+    $topicSettings: #ffc107 !default;
     @import "bootstrap/bootstrap";
 }
 
@@ -48,6 +67,19 @@ code {
 
 .bg-lastChanges{
     background-color: $lastChanges;
+}
+
+.bg-topicSettings{
+    background-color: $topicSettings;
+}
+
+.date-form{
+    all: initial;
+}
+
+.no-dark .form-control{
+    background-color: #121212;
+    color: #fff;
 }
 
 .fa-fw {

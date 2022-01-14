@@ -1,6 +1,6 @@
 <div *ngIf="topicType !== 'INTERNAL' && !selectedEnvironment?.stagingOnly"
      class="card mb-3">
-    <div class="card-header bg-warning"><i
+    <div class="card-header bg-topicSettings"><i
         class="fas fa-wrench mr-3 "></i>{{ 'Topic Settings' | translate }}</div>
     <div class="card-body">
         <p [innerHTML]="'TOPIC_SETTINGS_INTRO_HTML' | translate"></p>

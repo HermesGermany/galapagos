@@ -15,11 +15,11 @@
             <label>{{ 'PICK_DEPRECATE_DATE' | translate }}</label><br>
             <form class="form-inline">
                 <div class="form-group">
-                    <div class="input-group">
+                    <div class="input-group no-dark">
                         <input class="form-control" [(ngModel)]="eolDate" ngbDatepicker
                                [minDate]="minDeprecationDate | async"
                                name="eolDate" #p="ngbDatepicker">
-                        <div class="input-group-append">
+                        <div class="input-group-append no-dark">
                             <button class="fas fa-calendar-alt" (click)="p.toggle()"
                                     type="button"></button>
                         </div>
