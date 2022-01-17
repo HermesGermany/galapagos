@@ -203,6 +203,8 @@ export class ApplicationsComponent implements OnInit {
         if (this.apiKeyDlgData.applicationId && this.apiKeyDlgData.environment) {
             const appId = this.apiKeyDlgData.applicationId;
             const envId = this.apiKeyDlgData.environment;
+            this.copiedKey = false;
+            this.copiedSecret = false;
             return this.apiKeyService
                 .requestApiKey(appId, envId.id)
                 .then(
