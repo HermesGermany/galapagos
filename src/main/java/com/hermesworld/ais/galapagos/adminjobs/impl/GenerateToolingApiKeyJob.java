@@ -109,7 +109,8 @@ public class GenerateToolingApiKeyJob extends SingleClusterAdminJob {
         System.out.println();
         System.out.println(
                 "To remove ACLs for this API Key AND to delete the key itself, run Galapagos admin task galapagos.jobs.delete-apikey");
-        System.out.println("with --kafka.environment=" + cluster.getId());
+        System.out.println("with --kafka.environment=" + cluster.getId() + " and " + "--user.id="
+                + new JSONObject(toolMetadata.getAuthenticationJson()).get("userId") + " and --api.key=<YOUR KEY>");
         System.out.println();
         System.out.println("==============================================================================");
     }
