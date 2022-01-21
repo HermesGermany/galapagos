@@ -24,6 +24,7 @@
 
     $green: #155622 !default;
     $topicSettings: #121212 !default;
+    $defaultInputValue: #E0F8E0 !default;
 
 
 
@@ -46,6 +47,8 @@
     $hermes: #0091CD !default;
     $lastChanges : #6c757d !default;
     $topicSettings: #ffc107 !default;
+
+    $defaultInputValue: #494949 !default;
 }
 
 @import "bootstrap/bootstrap";
@@ -117,6 +120,15 @@ code {
 
 .dark .ngb-dp-day{
     background-color: $gray-900;
+}
+
+.dark .default-value{
+    background-color: #696969;
+}
+
+
+input.default-value {
+    background-color: #E0F8E0;
 }
 
 .fa-fw {
