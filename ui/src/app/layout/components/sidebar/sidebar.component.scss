@@ -224,14 +224,12 @@ $topnav-background-color: #E2E2E3;
     }
 }
 
-
 .sidebar.dark{
     background-color: #414141;
     .list-group {
         a.list-group-item {
             background: #414141;
             color: #ffff;
-
         }
         a:hover {
             background: #2a2a2a;
@@ -241,10 +239,8 @@ $topnav-background-color: #E2E2E3;
             background: #2a2a2a;
             color: #ffff;
         }
-
     }
     .sidebar-dropdown {
-
         .panel-title {
             a {
                 color: #999;
@@ -265,12 +261,10 @@ $topnav-background-color: #E2E2E3;
                     a {
                         color: #999;
                     }
-
                     a:hover {
                         color: #fff;
                     }
                 }
-
                 .list-group-item:hover {
                     background: darken(#414141, 5%);
                 }
