@@ -5,6 +5,7 @@ import { map, take } from 'rxjs/operators';
 import { saveAs } from 'file-saver';
 import { jsonHeader, ReplayContainer } from './services-common';
 import { Observable } from 'rxjs';
+import { ApplicationApikeyAuthData } from './apikey.service';
 
 export interface ApplicationCertificate {
     environmentId: string;
@@ -57,7 +58,8 @@ export class CertificateService {
         }
 
         return this.appCertificates[applicationId] = new ReplayContainer<ApplicationCertificate[]>(() =>
-            this.http.get('/api/certificates/' + applicationId).pipe(map(val => val as ApplicationCertificate[])));
+            this.http.get('/api/authentications/' + applicationId)
+                .pipe(map(val => val as ApplicationCertificate[])));
     }
 
     public getApplicationCn(applicationId: string): Promise<string> {
