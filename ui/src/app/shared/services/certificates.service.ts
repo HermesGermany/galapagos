@@ -5,7 +5,6 @@ import { map, take } from 'rxjs/operators';
 import { saveAs } from 'file-saver';
 import { jsonHeader, ReplayContainer } from './services-common';
 import { Observable } from 'rxjs';
-import { ApplicationApikeyAuthData } from './apikey.service';
 
 export interface ApplicationCertificate {
     environmentId: string;
