@@ -69,8 +69,7 @@ export class ApplicationBlockComponent implements OnChanges {
                     const applicationCertificates = this.certificateService.getApplicationCertificates(app.id);
                     this.currentEnvApplicationCertificate = combineLatest([applicationCertificates.getObservable(),
                         this.environmentsService.getCurrentEnvironment()]).pipe(map(
-                        ([certs, env]) => certs['authentications'][env.id]
-                    ));
+                        ([certs, env]) => certs['authentications'][env.id]));
 
                     const currentLang = this.translateService.onLangChange.pipe(map(evt => evt.lang))
                         .pipe(startWith(this.translateService.currentLang)).pipe(shareReplay(1));

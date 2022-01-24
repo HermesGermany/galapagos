@@ -264,7 +264,6 @@ export class ApplicationsComponent implements OnInit {
         this.certificateService.getApplicationCertificatesPromise(app.id).then(certs => {
             this.certificateDlgData.existingCertificate =
                 certs['authentications'].hasOwnProperty(env.id) ? certs['authentications'][env.id]['authentication'] : null;
-            console.log('COMPONENT:',this.certificateDlgData.existingCertificate);
             if (this.certificateDlgData.existingCertificate) {
                 const dn = this.certificateDlgData.existingCertificate.dn;
                 this.certificateDlgData.commonName = this.extractCommonName(dn);
