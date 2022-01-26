@@ -78,9 +78,8 @@ public class DeveloperCertificateServiceImpl implements DeveloperCertificateServ
         }
 
         TopicBasedRepository<DevCertificateMetadata> repository = getRepository(cluster);
-        repository.getObjects().stream()
-                .filter(devCert -> devCert.getExpiryDate().isBefore(timeService.getTimestamp().toInstant()))
-                .forEach(expiredCert -> aclUpdater.removeAcls(cluster, Collections.singleton(expiredCert)));
+
+        clearExpiredDeveloperCertificates(repository, cluster);
 
         CompletableFuture<Void> removeFuture = repository.getObject(userName)
                 .map(oldMeta -> aclUpdater.removeAcls(cluster, Collections.singleton(oldMeta)))
@@ -120,6 +119,14 @@ public class DeveloperCertificateServiceImpl implements DeveloperCertificateServ
         }
 
         return Optional.of(metadata);
+    }
+
+    @Override
+    public void clearExpiredDeveloperCertificates(TopicBasedRepository<DevCertificateMetadata> repo,
+            KafkaCluster cluster) {
+        repo.getObjects().stream()
+                .filter(devCert -> devCert.getExpiryDate().isBefore(timeService.getTimestamp().toInstant()))
+                .forEach(expiredCert -> aclUpdater.removeAcls(cluster, Collections.singleton(expiredCert)));
     }
 
     private CompletableFuture<CertificateSignResult> saveMetadata(KafkaCluster cluster, String userName,

@@ -1,12 +1,11 @@
 package com.hermesworld.ais.galapagos.adminjobs.impl;
 
 import com.hermesworld.ais.galapagos.devcerts.DevCertificateMetadata;
-import com.hermesworld.ais.galapagos.devcerts.impl.DevUserAclListener;
+import com.hermesworld.ais.galapagos.devcerts.DeveloperCertificateService;
 import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.kafka.config.KafkaEnvironmentConfig;
 import com.hermesworld.ais.galapagos.kafka.impl.TopicBasedRepositoryMock;
-import com.hermesworld.ais.galapagos.util.FutureUtil;
 import com.hermesworld.ais.galapagos.util.TimeService;
 import org.junit.Before;
 import org.junit.Test;
@@ -26,7 +25,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class CleanupDeveloperCertificatesJobTest {
 
@@ -34,7 +34,7 @@ public class CleanupDeveloperCertificatesJobTest {
 
     private TimeService timeService;
 
-    private DevUserAclListener aclListener;
+    private DeveloperCertificateService developerCertificateService;
 
     private final TopicBasedRepositoryMock<DevCertificateMetadata> testRepo = new TopicBasedRepositoryMock<>();
 
@@ -56,15 +56,14 @@ public class CleanupDeveloperCertificatesJobTest {
         when(kafkaClusters.getEnvironments()).thenReturn(List.of(testCluster, prodCluster));
         timeService = mock(TimeService.class);
         when(timeService.getTimestamp()).thenReturn(ZonedDateTime.now());
-        aclListener = mock(DevUserAclListener.class);
-        when(aclListener.removeAcls(any(), any())).thenReturn(FutureUtil.noop());
+        developerCertificateService = mock(DeveloperCertificateService.class);
     }
 
     @Test
     @DisplayName("should clear right number of developer certificates")
     public void clearExpiredDevCerts_positive() {
-        CleanupDeveloperCertificatesJob job = new CleanupDeveloperCertificatesJob(kafkaClusters, aclListener,
-                timeService);
+        CleanupDeveloperCertificatesJob job = new CleanupDeveloperCertificatesJob(kafkaClusters, timeService,
+                developerCertificateService);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         PrintStream oldOut = System.out;
 
@@ -82,24 +81,6 @@ public class CleanupDeveloperCertificatesJobTest {
 
         String output = baos.toString(StandardCharsets.UTF_8);
         assertTrue(output.contains("5"));
-
-    }
-
-    @Test
-    @DisplayName("should call removeAcls() methode for clearing ACLs of expired developer certificates")
-    public void aclsShouldBeRemoved_positive() {
-        CleanupDeveloperCertificatesJob job = new CleanupDeveloperCertificatesJob(kafkaClusters, aclListener,
-                timeService);
-
-        try {
-            fillRepos(2, 3);
-            job.run(mock(ApplicationArguments.class));
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        verify(aclListener, times(5)).removeAcls(any(), any());
 
     }
 
