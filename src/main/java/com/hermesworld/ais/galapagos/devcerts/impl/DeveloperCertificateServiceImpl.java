@@ -78,6 +78,9 @@ public class DeveloperCertificateServiceImpl implements DeveloperCertificateServ
         }
 
         TopicBasedRepository<DevCertificateMetadata> repository = getRepository(cluster);
+        repository.getObjects().stream()
+                .filter(devCert -> devCert.getExpiryDate().isBefore(timeService.getTimestamp().toInstant()))
+                .forEach(expiredCert -> aclUpdater.removeAcls(cluster, Collections.singleton(expiredCert)));
 
         CompletableFuture<Void> removeFuture = repository.getObject(userName)
                 .map(oldMeta -> aclUpdater.removeAcls(cluster, Collections.singleton(oldMeta)))
