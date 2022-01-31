@@ -72,8 +72,8 @@ export class DeprecationComponent implements OnInit {
         const localDate = moment().year(date.year).month(date.month - 1).date(date.day).utc(true).format('YYYY-MM-DD');
         return this.topicService
             .deprecateTopic(this.deprecatedDescription, localDate, this.topic.name)
-            .then(() => this.toasts.addSuccessToast('Das Topic wurde erfolgreich als deprecated markiert'),
-                err => this.toasts.addHttpErrorToast('Das Topic konnte nicht als deprecated markiert werden', err));
+            .then(() => this.toasts.addSuccessToast('TOPIC_DEPRECATION_MARK_SUCCESS'),
+                err => this.toasts.addHttpErrorToast('TOPIC_DEPRECATION_MARK_ERROR', err));
     }
 
     private toPeriodText(period: { years: number; months: number; days: number }): string {

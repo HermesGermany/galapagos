@@ -153,7 +153,7 @@ export class ApplicationsComponent implements OnInit {
 
     submitRequest(): Promise<any> {
         if (!this.selectedApplicationForRequest) {
-            this.toasts.addErrorToast('Bitte wähle zunächst eine Anwendung aus.');
+            this.toasts.addErrorToast('APPLICATION_SELECTION_EMPTY');
             return Promise.resolve();
         }
 
@@ -164,17 +164,17 @@ export class ApplicationsComponent implements OnInit {
                 () => {
                     this.selectedApplicationForRequest = null;
                     this.commentsForRequest = '';
-                    this.toasts.addSuccessToast('Request wurde erfolgreich erstellt.');
+                    this.toasts.addSuccessToast('REQUEST_CREATION_SUCCESS');
                 },
-                err => this.toasts.addHttpErrorToast('Konnte Request nicht erstellen', err)
+                err => this.toasts.addHttpErrorToast('REQUEST_CREATION_ERROR', err)
             )
             .finally(() => (this.submitting = false));
     }
 
     async cancelRequest(req: ApplicationOwnerRequest): Promise<any> {
         return this.applicationsService.cancelApplicationOwnerRequest(req.id).then(
-            () => this.toasts.addSuccessToast('Request erfolgreich abgebrochen'),
-            err => this.toasts.addHttpErrorToast('Konnte Request nicht abbrechen', err)
+            () => this.toasts.addSuccessToast('REQUEST_ABORT_SUCCESS'),
+            err => this.toasts.addHttpErrorToast('REQUEST_ABORT_ERROR', err)
         );
     }
 
@@ -212,11 +212,11 @@ export class ApplicationsComponent implements OnInit {
                         this.key = apiKey.apiKey;
                         this.secret = apiKey.apiSecret;
                         this.showApiKeyTable = true;
-                        this.toasts.addSuccessToast('API Key erfolgreich erstellt');
+                        this.toasts.addSuccessToast('API_KEY_CREATION_SUCCESS');
                     },
                     (err: HttpErrorResponse) => {
                         this.apiKeyRequestError = err;
-                        this.toasts.addHttpErrorToast('API Key konnte nicht erstellt werden', err);
+                        this.toasts.addHttpErrorToast('API_KEY_CREATION_ERROR', err);
                     }
                 )
                 .then(() => this.apiKeyService.getApplicationApiKeys(appId).refresh());
@@ -234,8 +234,8 @@ export class ApplicationsComponent implements OnInit {
                     this.activeTab === 'extend'
                 )
                 .then(
-                    () => this.toasts.addSuccessToast('Zertifikat erfolgreich erstellt (bitte Browser-Downloads beachten)'),
-                    (err: HttpErrorResponse) => this.toasts.addHttpErrorToast('Zertifikat konnte nicht erstellt werden', err)
+                    () => this.toasts.addSuccessToast('CERTIFICATE_CREATION_SUCCESS'),
+                    (err: HttpErrorResponse) => this.toasts.addHttpErrorToast('CERTIFICATE_CREATION_ERROR', err)
                 )
                 .then(() => this.certificateService.getApplicationCertificates(appId).refresh());
         }
