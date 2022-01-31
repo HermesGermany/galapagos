@@ -42,15 +42,15 @@ export class TopicMultipleProducerComponent implements OnInit {
 
     submitSelectedProducer(): Promise<any> {
         if (!this.selectedProducer) {
-            this.toasts.addErrorToast('Bitte wähle zunächst eine Producer Anwendung aus.');
+            this.toasts.addErrorToast('PRODUCER_SELECTION_EMPTY');
             return Promise.resolve();
         }
         return this.topicService.addProducerToTopic(this.selectedProducer.id, this.selectedEnvironment.id, this.topic.name).then(
             () => {
-                this.toasts.addSuccessToast('Producer wurde erfolgreich hinzugefügt.');
+                this.toasts.addSuccessToast('PRODUCER_ADD_SUCCESS');
                 this.closeModal.emit();
             },
-            err => this.toasts.addHttpErrorToast('Producer konnte nicht hinzugefügt werden.', err))
+            err => this.toasts.addHttpErrorToast('PRODUCER_ADD_ERROR', err))
             .finally(() => this.selectedProducer = null);
     }
 
