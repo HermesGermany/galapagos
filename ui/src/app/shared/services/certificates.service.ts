@@ -62,7 +62,7 @@ export class CertificateService {
                 )));
     }
 
-    public getApplicationCertificatesFromJSON(response: Object){
+    public getApplicationCertificatesFromJSON(response: any){
         const certificates = [];
         for(const env in response['authentications']){
             if(env in response['authentications']) {
