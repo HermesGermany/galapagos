@@ -69,12 +69,11 @@ export class ApplicationBlockComponent implements OnChanges {
                     const applicationCertificates = this.certificateService.getApplicationCertificates(app.id);
                     this.currentEnvApplicationCertificate = combineLatest([applicationCertificates.getObservable(),
                         this.environmentsService.getCurrentEnvironment()]).pipe(map(
-                        ([certs, env]) => certs['authentications'][env.id]));
-
+                        ([certs, env]) => certs.find(cert => cert.environmentId === env.id)));
                     const currentLang = this.translateService.onLangChange.pipe(map(evt => evt.lang))
                         .pipe(startWith(this.translateService.currentLang)).pipe(shareReplay(1));
                     this.expiryDateString = combineLatest([currentLang, this.currentEnvApplicationCertificate]).pipe(
-                        map(([lang, cert]) => moment(cert['authentication'].expiresAt).locale(lang.toString()).format('L')));
+                        map(([lang, cert]) => moment(cert.expiresAt).locale(lang.toString()).format('L')));
                 }
 
                 if (this.authenticationMode === 'ccloud') {

@@ -262,8 +262,7 @@ export class ApplicationsComponent implements OnInit {
             expiryWarningHtml: of('')
         };
         this.certificateService.getApplicationCertificatesPromise(app.id).then(certs => {
-            this.certificateDlgData.existingCertificate =
-                certs['authentications'].hasOwnProperty(env.id) ? certs['authentications'][env.id]['authentication'] : null;
+            this.certificateDlgData.existingCertificate = certs.find(cert => cert.environmentId === env.id) || null;
             if (this.certificateDlgData.existingCertificate) {
                 const dn = this.certificateDlgData.existingCertificate.dn;
                 this.certificateDlgData.commonName = this.extractCommonName(dn);

@@ -58,13 +58,22 @@ export class CertificateService {
 
         return this.appCertificates[applicationId] = new ReplayContainer<ApplicationCertificate[]>(() =>
             this.http.get('/api/authentications/' + applicationId)
-                .pipe(map(val => {
-                    this.getApplicationCertificatesFromJSON(val); val as ApplicationCertificate[];
-                })));
+                .pipe(map(val => this.getApplicationCertificatesFromJSON(val)
+                )));
     }
 
     public getApplicationCertificatesFromJSON(response: Object){
-        console.log(response);
+        const certificates = [];
+        for(const env in response['authentications']){
+            if(env in response['authentications']) {
+                const res = {} as ApplicationCertificate;
+                res.environmentId = env;
+                res.dn = response['authentications'][env]['authentication']['dn'];
+                res.expiresAt = response['authentications'][env]['authentication']['expiresAt'];
+                certificates.push(res);
+            }
+        }
+        return certificates;
     }
 
     public getApplicationCn(applicationId: string): Promise<string> {
