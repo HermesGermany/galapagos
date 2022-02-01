@@ -96,6 +96,7 @@ export class CreateTopicComponent implements OnInit {
             try {
                 const env = await this.selectedEnvironment.pipe(take(1)).toPromise();
                 const certificates = await this.certificateService.getApplicationCertificatesPromise(this.selectedApplication.id);
+
                 this.showRegistrationWarning = !certificates.find(c => c.environmentId === env.id);
             } catch (e) {
                 this.toasts.addHttpErrorToast('Could not check for application certificates', e);
