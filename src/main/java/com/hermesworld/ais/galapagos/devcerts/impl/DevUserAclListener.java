@@ -186,7 +186,7 @@ public class DevUserAclListener implements TopicEventsListener, SubscriptionEven
         return result;
     }
 
-    public CompletableFuture<Void> removeAcls(KafkaCluster cluster, Set<DevCertificateMetadata> metadatas) {
+    CompletableFuture<Void> removeAcls(KafkaCluster cluster, Set<DevCertificateMetadata> metadatas) {
         CompletableFuture<Void> result = CompletableFuture.completedFuture(null);
         for (DevCertificateMetadata metadata : metadatas) {
             result = result.thenCompose(o -> cluster.removeUserAcls(new DevKafkaUser(metadata, cluster.getId())));
