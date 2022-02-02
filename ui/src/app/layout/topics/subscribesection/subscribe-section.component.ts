@@ -53,7 +53,7 @@ export class SubscriptionSectionComponent implements OnInit {
             const apikey = await this.apiKeyService.getApplicationApiKeysPromise(this.selectedApplication.id);
             this.showRegistrationWarning = !apikey.authentications[env.id];
         } catch (e) {
-            this.toasts.addHttpErrorToast('Could not check for application API Key', e);
+            this.toasts.addHttpErrorToast('APPLICATION_KEY_CHECK_ERROR', e);
         }
     }
 
@@ -69,13 +69,13 @@ export class SubscriptionSectionComponent implements OnInit {
             .then(
                 () => {
                     if (this.topic.subscriptionApprovalRequired) {
-                        this.toasts.addSuccessToast('Die Topic-Owner wurden über die Abonnement-Anfrage informiert');
+                        this.toasts.addSuccessToast('TOPIC_SUBSCRIBE_INFORMATION');
                     } else {
-                        this.toasts.addSuccessToast('Die Anwendung hat das Topic nun abonniert');
+                        this.toasts.addSuccessToast('TOPIC_SUBSCRIPTION_SUCCESS');
                     }
                     this.appChanged.emit();
                 },
-                err => this.toasts.addHttpErrorToast('Das Abonnement konnte nicht erstellt werden', err)
+                err => this.toasts.addHttpErrorToast('TOPIC_SUBSCRIPTION_ERROR', err)
             )
             .finally(() => this.subscriptionDescription = null);
     }

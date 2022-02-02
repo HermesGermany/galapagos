@@ -21,6 +21,7 @@ import org.apache.kafka.common.resource.ResourcePattern;
 import org.apache.kafka.common.resource.ResourceType;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.CheckReturnValue;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -47,6 +48,7 @@ public class DevUserAclListener implements TopicEventsListener, SubscriptionEven
     }
 
     @Override
+    @CheckReturnValue
     public CompletableFuture<Void> handleApplicationRegistered(ApplicationEvent event) {
         KafkaCluster cluster = event.getContext().getKafkaCluster();
         String applicationId = event.getMetadata().getApplicationId();
@@ -55,27 +57,32 @@ public class DevUserAclListener implements TopicEventsListener, SubscriptionEven
     }
 
     @Override
+    @CheckReturnValue
     public CompletableFuture<Void> handleApplicationAuthenticationChanged(ApplicationAuthenticationChangeEvent event) {
         return handleApplicationRegistered(event);
     }
 
     @Override
+    @CheckReturnValue
     public CompletableFuture<Void> handleApplicationOwnerRequestCreated(ApplicationOwnerRequestEvent event) {
         return handleApplicationOwnerRequestUpdated(event);
     }
 
     @Override
+    @CheckReturnValue
     public CompletableFuture<Void> handleApplicationOwnerRequestUpdated(ApplicationOwnerRequestEvent event) {
         KafkaCluster cluster = event.getContext().getKafkaCluster();
         return updateAcls(cluster, getValidDevCertificateForUser(cluster, event.getRequest().getUserName()));
     }
 
     @Override
+    @CheckReturnValue
     public CompletableFuture<Void> handleApplicationOwnerRequestCanceled(ApplicationOwnerRequestEvent event) {
         return handleApplicationOwnerRequestUpdated(event);
     }
 
     @Override
+    @CheckReturnValue
     public CompletableFuture<Void> handleSubscriptionCreated(SubscriptionEvent event) {
         KafkaCluster cluster = event.getContext().getKafkaCluster();
         String applicationId = event.getMetadata().getClientApplicationId();
@@ -84,16 +91,19 @@ public class DevUserAclListener implements TopicEventsListener, SubscriptionEven
     }
 
     @Override
+    @CheckReturnValue
     public CompletableFuture<Void> handleSubscriptionDeleted(SubscriptionEvent event) {
         return handleSubscriptionCreated(event);
     }
 
     @Override
+    @CheckReturnValue
     public CompletableFuture<Void> handleSubscriptionUpdated(SubscriptionEvent event) {
         return handleSubscriptionCreated(event);
     }
 
     @Override
+    @CheckReturnValue
     public CompletableFuture<Void> handleTopicSubscriptionApprovalRequiredFlagChanged(TopicEvent event) {
         KafkaCluster cluster = event.getContext().getKafkaCluster();
 
@@ -115,6 +125,7 @@ public class DevUserAclListener implements TopicEventsListener, SubscriptionEven
     }
 
     @Override
+    @CheckReturnValue
     public CompletableFuture<Void> handleAddTopicProducer(TopicAddProducerEvent event) {
         Set<DevCertificateMetadata> validDevCertificatesForApplication = new HashSet<>();
         validDevCertificatesForApplication.addAll(getValidDevCertificatesForApplication(
@@ -124,22 +135,26 @@ public class DevUserAclListener implements TopicEventsListener, SubscriptionEven
     }
 
     @Override
+    @CheckReturnValue
     public CompletableFuture<Void> handleRemoveTopicProducer(TopicRemoveProducerEvent event) {
         return updateAcls(event.getContext().getKafkaCluster(), getValidDevCertificatesForApplication(
                 event.getContext().getKafkaCluster(), event.getProducerApplicationId()));
     }
 
     @Override
+    @CheckReturnValue
     public CompletableFuture<Void> handleTopicOwnerChanged(TopicOwnerChangeEvent event) {
         return FutureUtil.noop();
     }
 
     @Override
+    @CheckReturnValue
     public CompletableFuture<Void> handleTopicCreated(TopicCreatedEvent event) {
         return handleTopicDeleted(event);
     }
 
     @Override
+    @CheckReturnValue
     public CompletableFuture<Void> handleTopicDeleted(TopicEvent event) {
         KafkaCluster cluster = event.getContext().getKafkaCluster();
         String applicationId = event.getMetadata().getOwnerApplicationId();
@@ -159,25 +174,30 @@ public class DevUserAclListener implements TopicEventsListener, SubscriptionEven
     }
 
     @Override
+    @CheckReturnValue
     public CompletableFuture<Void> handleTopicDescriptionChanged(TopicEvent event) {
         return FutureUtil.noop();
     }
 
     @Override
+    @CheckReturnValue
     public CompletableFuture<Void> handleTopicDeprecated(TopicEvent event) {
         return FutureUtil.noop();
     }
 
     @Override
+    @CheckReturnValue
     public CompletableFuture<Void> handleTopicUndeprecated(TopicEvent event) {
         return FutureUtil.noop();
     }
 
     @Override
+    @CheckReturnValue
     public CompletableFuture<Void> handleTopicSchemaAdded(TopicSchemaAddedEvent event) {
         return FutureUtil.noop();
     }
 
+    @CheckReturnValue
     CompletableFuture<Void> updateAcls(KafkaCluster cluster, Set<DevCertificateMetadata> metadatas) {
         CompletableFuture<Void> result = CompletableFuture.completedFuture(null);
         for (DevCertificateMetadata metadata : metadatas) {
@@ -186,6 +206,7 @@ public class DevUserAclListener implements TopicEventsListener, SubscriptionEven
         return result;
     }
 
+    @CheckReturnValue
     CompletableFuture<Void> removeAcls(KafkaCluster cluster, Set<DevCertificateMetadata> metadatas) {
         CompletableFuture<Void> result = CompletableFuture.completedFuture(null);
         for (DevCertificateMetadata metadata : metadatas) {

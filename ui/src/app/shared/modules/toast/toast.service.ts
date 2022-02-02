@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
 import { Observable, ReplaySubject } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
+import { TranslateService } from '@ngx-translate/core';
+import { TopicsService } from '../../services/topics.service';
 
 export type ToastType = 'info' | 'success' | 'warning' | 'danger';
 
@@ -23,6 +25,10 @@ export class ToastService {
 
     private toasts = new ReplaySubject<Toast>();
 
+    constructor(
+        private translate: TranslateService
+    ) {}
+
     public getToasts(): Observable<Toast> {
         return this.toasts;
     }
@@ -36,24 +42,26 @@ export class ToastService {
         });
     }
 
-    public addHttpErrorToast(message: string, err: HttpErrorResponse) {
+    public addHttpErrorToast(messageKey: string, err: HttpErrorResponse) {
+        let message = this.translate.instant(messageKey);
+
         if (err.error && err.error.message) {
             message += ': ' + err.error.message;
         } else if (err.message) {
             message += ': ' + err.message;
         }
-        this.addToast('danger', 'FEHLER', message, ERROR_DELAY);
+        this.addToast('danger', this.translate.instant('ERROR'), message, ERROR_DELAY);
     }
 
-    public addSuccessToast(message: string) {
-        this.addToast('success', 'ERFOLG', message);
+    public addSuccessToast(messageKey: string) {
+        this.addToast('success', this.translate.instant('SUCCESS'), this.translate.instant(messageKey));
     }
 
-    public addWarningToast(message: string) {
-        this.addToast('warning', 'WARNUNG', message);
+    public addWarningToast(messageKey: string) {
+        this.addToast('warning', this.translate.instant('WARNING'), this.translate.instant(messageKey));
     }
 
-    public addErrorToast(message: string) {
-        this.addToast('danger', 'FEHLER', message, ERROR_DELAY);
+    public addErrorToast(messageKey: string) {
+        this.addToast('danger', this.translate.instant('ERROR'), this.translate.instant(messageKey), ERROR_DELAY);
     }
 }
