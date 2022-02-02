@@ -20,8 +20,11 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.time.Instant;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -79,13 +82,12 @@ public class DeveloperCertificateServiceImpl implements DeveloperCertificateServ
 
         TopicBasedRepository<DevCertificateMetadata> repository = getRepository(cluster);
 
-        clearExpiredDeveloperCertificates(repository, cluster);
-
         CompletableFuture<Void> removeFuture = repository.getObject(userName)
                 .map(oldMeta -> aclUpdater.removeAcls(cluster, Collections.singleton(oldMeta)))
                 .orElse(FutureUtil.noop());
 
-        return removeFuture.thenCompose(o -> authModule.createDeveloperCertificateAndPrivateKey(userName))
+        return removeFuture.thenCompose(o -> clearExpiredDeveloperCertificatesOnAllClusters())
+                .thenCompose(o -> authModule.createDeveloperCertificateAndPrivateKey(userName))
                 .thenCompose(result -> saveMetadata(cluster, userName, result)).thenApply(result -> {
                     byte[] p12Data = result.getP12Data().orElse(null);
                     if (p12Data == null) {
@@ -122,11 +124,22 @@ public class DeveloperCertificateServiceImpl implements DeveloperCertificateServ
     }
 
     @Override
-    public void clearExpiredDeveloperCertificates(TopicBasedRepository<DevCertificateMetadata> repo,
-            KafkaCluster cluster) {
-        repo.getObjects().stream()
-                .filter(devCert -> devCert.getExpiryDate().isBefore(timeService.getTimestamp().toInstant()))
-                .forEach(expiredCert -> aclUpdater.removeAcls(cluster, Collections.singleton(expiredCert)));
+    public CompletableFuture<Integer> clearExpiredDeveloperCertificatesOnAllClusters() {
+        CompletableFuture<Void> result = FutureUtil.noop();
+        AtomicInteger totalClearedDevCerts = new AtomicInteger();
+
+        for (KafkaCluster cluster : kafkaClusters.getEnvironments()) {
+            List<DevCertificateMetadata> expiredDevCerts = getRepository(cluster).getObjects().stream()
+                    .filter(devCert -> devCert.getExpiryDate().isBefore(timeService.getTimestamp().toInstant()))
+                    .collect(Collectors.toList());
+            for (DevCertificateMetadata cert : expiredDevCerts) {
+                result = result.thenCompose(future -> aclUpdater.removeAcls(cluster, Collections.singleton(cert)))
+                        .thenCompose(o -> getRepository(cluster).delete(cert));
+                totalClearedDevCerts.incrementAndGet();
+            }
+        }
+
+        return result.thenApply(o -> totalClearedDevCerts.get());
     }
 
     private CompletableFuture<CertificateSignResult> saveMetadata(KafkaCluster cluster, String userName,

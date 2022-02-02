@@ -85,7 +85,7 @@ public class DeveloperCertificateServiceImplTest {
         when(clusters.getEnvironment("test")).thenReturn(Optional.of(testCluster));
         prodCluster = mock(KafkaCluster.class);
         when(clusters.getEnvironment("prod")).thenReturn(Optional.of(prodCluster));
-
+        when(clusters.getEnvironments()).thenReturn(List.of(testCluster, prodCluster));
         testRepo = new TopicBasedRepositoryMock<>();
         prodRepo = new TopicBasedRepositoryMock<>();
         when(testCluster.getRepository("devcerts", DevCertificateMetadata.class)).thenReturn(testRepo);
@@ -143,10 +143,8 @@ public class DeveloperCertificateServiceImplTest {
     @DisplayName("should call removeAcls() methode for clearing ACLs of expired developer certificates")
     public void aclsShouldBeRemoved_positive() throws ExecutionException, InterruptedException {
         fillRepos(2, 3);
-        service.clearExpiredDeveloperCertificates(testRepo, testCluster);
-        service.clearExpiredDeveloperCertificates(prodRepo, prodCluster);
-
-        assertEquals(removeAclCalls.size(), 5);
+        service.clearExpiredDeveloperCertificatesOnAllClusters().get();
+        assertEquals(5, removeAclCalls.size());
     }
 
     @Test
@@ -157,10 +155,19 @@ public class DeveloperCertificateServiceImplTest {
         devCert.setUserName("testUser");
         devCert.setExpiryDate(Instant.now().plus(Duration.ofDays(1000)));
         testRepo.save(devCert).get();
-        service.clearExpiredDeveloperCertificates(testRepo, testCluster);
-        service.clearExpiredDeveloperCertificates(prodRepo, prodCluster);
+        service.clearExpiredDeveloperCertificatesOnAllClusters().get();
+        service.clearExpiredDeveloperCertificatesOnAllClusters().get();
 
         assertEquals(removeAclCalls.size(), 4);
+    }
+
+    @Test
+    @DisplayName("should clear right number of developer certificates")
+    public void clearExpiredDevCerts_positive() throws ExecutionException, InterruptedException {
+        fillRepos(4, 2);
+        Integer clearedCerts = service.clearExpiredDeveloperCertificatesOnAllClusters().get();
+
+        assertEquals(6, clearedCerts.intValue());
     }
 
     private void fillRepos(int howManyCertsTest, int howManyCertsProd) throws ExecutionException, InterruptedException {
