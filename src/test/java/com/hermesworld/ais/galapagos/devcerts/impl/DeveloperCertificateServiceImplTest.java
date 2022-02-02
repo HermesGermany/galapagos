@@ -3,6 +3,7 @@ package com.hermesworld.ais.galapagos.devcerts.impl;
 import com.hermesworld.ais.galapagos.devcerts.DevCertificateMetadata;
 import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
+import com.hermesworld.ais.galapagos.kafka.config.KafkaEnvironmentConfig;
 import com.hermesworld.ais.galapagos.kafka.impl.TopicBasedRepositoryMock;
 import com.hermesworld.ais.galapagos.security.CurrentUserService;
 import com.hermesworld.ais.galapagos.util.FutureUtil;
@@ -10,22 +11,22 @@ import com.hermesworld.ais.galapagos.util.TimeService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class DeveloperCertificateServiceImplTest {
 
@@ -46,11 +47,17 @@ public class DeveloperCertificateServiceImplTest {
 
     private TimeService timeService;
 
+    private DevUserAclListener aclUpdater;
+
+    @Captor
+    ArgumentCaptor<Set<DevCertificateMetadata>> argumentCaptor;
+
     @Before
     public void initMocks() {
+        MockitoAnnotations.openMocks(this);
         KafkaClusters clusters = mock(KafkaClusters.class);
         CurrentUserService userService = mock(CurrentUserService.class);
-        DevUserAclListener aclUpdater = mock(DevUserAclListener.class);
+        aclUpdater = mock(DevUserAclListener.class);
 
         when(userService.getCurrentUserName()).thenReturn(Optional.of("testuser"));
 
@@ -81,6 +88,10 @@ public class DeveloperCertificateServiceImplTest {
 //                .thenReturn(CompletableFuture.completedFuture(result));
 //        when(clusters.getCaManager("_test")).thenReturn(Optional.of(caManager));
 //
+        KafkaEnvironmentConfig config = mock(KafkaEnvironmentConfig.class);
+        when(config.getAuthenticationMode()).thenReturn("certificates");
+        when(clusters.getEnvironmentMetadata(any())).thenReturn(Optional.of(config));
+        when(clusters.getEnvironmentMetadata(any())).thenReturn(Optional.of(config));
         testCluster = mock(KafkaCluster.class);
         when(clusters.getEnvironment("test")).thenReturn(Optional.of(testCluster));
         prodCluster = mock(KafkaCluster.class);
@@ -142,9 +153,26 @@ public class DeveloperCertificateServiceImplTest {
     @Test
     @DisplayName("should call removeAcls() methode for clearing ACLs of expired developer certificates")
     public void aclsShouldBeRemoved_positive() throws ExecutionException, InterruptedException {
-        fillRepos(2, 3);
-        service.clearExpiredDeveloperCertificatesOnAllClusters().get();
-        assertEquals(5, removeAclCalls.size());
+        DevCertificateMetadata devCert = new DevCertificateMetadata();
+        devCert.setUserName("testUser");
+        devCert.setExpiryDate(Instant.now().minus(Duration.ofDays(1000)));
+        testRepo.save(devCert).get();
+
+        DevCertificateMetadata devCert2 = new DevCertificateMetadata();
+        devCert2.setUserName("testUser2");
+        devCert2.setExpiryDate(Instant.now().minus(Duration.ofDays(1000)));
+        prodRepo.save(devCert2).get();
+
+        Integer clearedCerts = service.clearExpiredDeveloperCertificatesOnAllClusters().get();
+        assertEquals(2, clearedCerts.intValue());
+
+        verify(aclUpdater, times(2)).removeAcls(any(), argumentCaptor.capture());
+
+        List<Set<DevCertificateMetadata>> list = argumentCaptor.getAllValues();
+
+        assertEquals("testUser", list.get(0).stream().findFirst().get().getUserName());
+        assertEquals("testUser2", list.get(1).stream().findFirst().get().getUserName());
+
     }
 
     @Test
@@ -156,18 +184,9 @@ public class DeveloperCertificateServiceImplTest {
         devCert.setExpiryDate(Instant.now().plus(Duration.ofDays(1000)));
         testRepo.save(devCert).get();
         service.clearExpiredDeveloperCertificatesOnAllClusters().get();
-        service.clearExpiredDeveloperCertificatesOnAllClusters().get();
 
-        assertEquals(removeAclCalls.size(), 4);
-    }
-
-    @Test
-    @DisplayName("should clear right number of developer certificates")
-    public void clearExpiredDevCerts_positive() throws ExecutionException, InterruptedException {
-        fillRepos(4, 2);
-        Integer clearedCerts = service.clearExpiredDeveloperCertificatesOnAllClusters().get();
-
-        assertEquals(6, clearedCerts.intValue());
+        assertEquals(2, removeAclCalls.size());
+        assertTrue(testRepo.getObject("testUser").isPresent());
     }
 
     private void fillRepos(int howManyCertsTest, int howManyCertsProd) throws ExecutionException, InterruptedException {
