@@ -22,6 +22,15 @@ export interface DeveloperCertificateInfo {
     expiresAt: string;
 }
 
+interface AuthenticationResponse{
+    [env: string]: EnvAuthenticationResponse;
+}
+
+interface EnvAuthenticationResponse{
+    authenticationType: string;
+    authentication: any;
+}
+
 const base64ToBlob = (b64Data: string, sliceSize: number = 512) => {
     const byteCharacters = atob(b64Data);
     const byteArrays = [];
@@ -57,7 +66,9 @@ export class CertificateService {
         }
 
         return this.appCertificates[applicationId] = new ReplayContainer<ApplicationCertificate[]>(() =>
-            this.http.get('/api/certificates/' + applicationId).pipe(map(val => val as ApplicationCertificate[])));
+            this.http.get('/api/authentications/' + applicationId)
+                .pipe(map(val => this.toApplicationCertificates(val['authentications'] as AuthenticationResponse)
+                )));
     }
 
     public getApplicationCn(applicationId: string): Promise<string> {
@@ -101,6 +112,23 @@ export class CertificateService {
 
     public getEnvironmentsWithDevCertSupport(): Observable<string[]> {
         return this.envsWithDevCertSupport.getObservable();
+    }
+
+    private toApplicationCertificates(response: AuthenticationResponse): ApplicationCertificate[] {
+        return Object.keys(response).map(key => this.toEnvAuthenticationCertificate(key, response[key])).filter(v => v !== null);
+    }
+
+    private toEnvAuthenticationCertificate(envId: string, envResponse: EnvAuthenticationResponse): ApplicationCertificate {
+        if (envResponse.authenticationType !== 'certificates') {
+            return null;
+        }
+
+        return {
+            environmentId: envId,
+            dn: envResponse.authentication['dn'],
+            expiresAt: envResponse.authentication['expiresAt'],
+            certificateDownloadUrl: null
+        };
     }
 
 }
