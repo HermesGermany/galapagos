@@ -151,7 +151,7 @@ public class DeveloperCertificateServiceImplTest {
     }
 
     @Test
-    @DisplayName("should call removeAcls() methode for clearing ACLs of expired developer certificates")
+    @DisplayName("should call removeAcls() method for clearing ACLs of expired developer certificates")
     public void aclsShouldBeRemoved_positive() throws ExecutionException, InterruptedException {
         DevCertificateMetadata devCert = new DevCertificateMetadata();
         devCert.setUserName("testUser");

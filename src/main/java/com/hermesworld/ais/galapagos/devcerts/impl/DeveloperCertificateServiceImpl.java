@@ -100,10 +100,11 @@ public class DeveloperCertificateServiceImpl implements DeveloperCertificateServ
                         log.warn("Could not write PKCS data of developer certificate to output stream", e);
                     }
                     return (Void) null;
-                }).thenCompose(o -> clearExpiredDeveloperCertificatesOnAllClusters())
+                })
                 .thenCompose(o -> getRepository(cluster).getObject(userName)
                         .map(meta -> aclUpdater.updateAcls(cluster, Collections.singleton(meta)))
-                        .orElse(FutureUtil.noop()));
+                        .orElse(FutureUtil.noop()))
+                .thenCompose(o -> clearExpiredDeveloperCertificatesOnAllClusters()).thenApply(o -> null);
     }
 
     @Override
