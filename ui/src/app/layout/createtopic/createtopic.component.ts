@@ -78,6 +78,8 @@ export class CreateTopicComponent implements OnInit {
     }
 
     async checkAuthentication() {
+        this.selectedBusinessCapability = null;
+        this.topicName = null;
         if (!this.selectedApplication || !this.selectedEnvironment) {
             return;
         }
