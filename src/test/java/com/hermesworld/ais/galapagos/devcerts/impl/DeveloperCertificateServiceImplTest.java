@@ -1,37 +1,79 @@
 package com.hermesworld.ais.galapagos.devcerts.impl;
 
+import com.hermesworld.ais.galapagos.devcerts.DevCertificateMetadata;
+import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
+import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
+import com.hermesworld.ais.galapagos.kafka.config.KafkaEnvironmentConfig;
+import com.hermesworld.ais.galapagos.kafka.impl.TopicBasedRepositoryMock;
+import com.hermesworld.ais.galapagos.security.CurrentUserService;
+import com.hermesworld.ais.galapagos.util.FutureUtil;
+import com.hermesworld.ais.galapagos.util.TimeService;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.jupiter.api.DisplayName;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.MockitoAnnotations;
+import org.mockito.invocation.InvocationOnMock;
+
+import java.time.Duration;
+import java.time.Instant;
+import java.time.ZonedDateTime;
+import java.util.*;
+import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
 public class DeveloperCertificateServiceImplTest {
-//
+
 //    private List<InvocationOnMock> updateAclCalls;
-//    private List<InvocationOnMock> removeAclCalls;
-//
+    private List<InvocationOnMock> removeAclCalls;
+
 //    private long expiryDate;
-//
-//    private TopicBasedRepositoryMock<DevCertificateMetadata> repository;
-//
-//    private DeveloperCertificateServiceImpl service;
-//
-//    @Before
-//    public void initMocks() {
-//        KafkaClusters clusters = mock(KafkaClusters.class);
-//        CurrentUserService userService = mock(CurrentUserService.class);
-//        DevUserAclListener aclUpdater = mock(DevUserAclListener.class);
-//
-//        when(userService.getCurrentUserName()).thenReturn(Optional.of("testuser"));
-//
+
+    private TopicBasedRepositoryMock<DevCertificateMetadata> testRepo;
+
+    private TopicBasedRepositoryMock<DevCertificateMetadata> prodRepo;
+
+    private DeveloperCertificateServiceImpl service;
+
+    private KafkaCluster testCluster;
+
+    private KafkaCluster prodCluster;
+
+    private TimeService timeService;
+
+    private DevUserAclListener aclUpdater;
+
+    @Captor
+    ArgumentCaptor<Set<DevCertificateMetadata>> argumentCaptor;
+
+    @Before
+    public void initMocks() {
+        MockitoAnnotations.openMocks(this);
+        KafkaClusters clusters = mock(KafkaClusters.class);
+        CurrentUserService userService = mock(CurrentUserService.class);
+        aclUpdater = mock(DevUserAclListener.class);
+
+        when(userService.getCurrentUserName()).thenReturn(Optional.of("testuser"));
+
 //        updateAclCalls = new ArrayList<>();
-//        removeAclCalls = new ArrayList<>();
-//
+        removeAclCalls = new ArrayList<>();
+
 //        when(aclUpdater.updateAcls(any(), any())).then(inv -> {
 //            updateAclCalls.add(inv);
 //            return FutureUtil.noop();
 //        });
 //
-//        when(aclUpdater.removeAcls(any(), any())).then(inv -> {
-//            removeAclCalls.add(inv);
-//            return FutureUtil.noop();
-//        });
-//
+        when(aclUpdater.removeAcls(any(), any())).then(inv -> {
+            removeAclCalls.add(inv);
+            return FutureUtil.noop();
+        });
+
 //        byte[] testData = new byte[1024];
 //        Arrays.fill(testData, (byte) 23);
 //
@@ -46,14 +88,23 @@ public class DeveloperCertificateServiceImplTest {
 //                .thenReturn(CompletableFuture.completedFuture(result));
 //        when(clusters.getCaManager("_test")).thenReturn(Optional.of(caManager));
 //
-//        KafkaCluster cluster = mock(KafkaCluster.class);
-//        when(clusters.getEnvironment("_test")).thenReturn(Optional.of(cluster));
-//
-//        repository = new TopicBasedRepositoryMock<>();
-//        when(cluster.getRepository("devcerts", DevCertificateMetadata.class)).thenReturn(repository);
-//
-//        service = new DeveloperCertificateServiceImpl(clusters, userService, certificateService, aclUpdater,
-//                mock(TimeService.class));
+        KafkaEnvironmentConfig config = mock(KafkaEnvironmentConfig.class);
+        when(config.getAuthenticationMode()).thenReturn("certificates");
+        when(clusters.getEnvironmentMetadata(any())).thenReturn(Optional.of(config));
+        when(clusters.getEnvironmentMetadata(any())).thenReturn(Optional.of(config));
+        testCluster = mock(KafkaCluster.class);
+        when(clusters.getEnvironment("test")).thenReturn(Optional.of(testCluster));
+        prodCluster = mock(KafkaCluster.class);
+        when(clusters.getEnvironment("prod")).thenReturn(Optional.of(prodCluster));
+        when(clusters.getEnvironments()).thenReturn(List.of(testCluster, prodCluster));
+        testRepo = new TopicBasedRepositoryMock<>();
+        prodRepo = new TopicBasedRepositoryMock<>();
+        when(testCluster.getRepository("devcerts", DevCertificateMetadata.class)).thenReturn(testRepo);
+        when(prodCluster.getRepository("devcerts", DevCertificateMetadata.class)).thenReturn(prodRepo);
+        timeService = mock(TimeService.class);
+        when(timeService.getTimestamp()).thenReturn(ZonedDateTime.now());
+        service = new DeveloperCertificateServiceImpl(clusters, userService, aclUpdater, timeService);
+
 //    }
 //
 //    @Test
@@ -97,6 +148,65 @@ public class DeveloperCertificateServiceImplTest {
 //        assertEquals("testuser", repository.getObject("testuser").get().getUserName());
 //        assertEquals(expiryDate, repository.getObject("testuser").get().getExpiryDate().toEpochMilli());
 //        assertEquals("CN=testuser", repository.getObject("testuser").get().getCertificateDn());
-//    }
-//
+    }
+
+    @Test
+    @DisplayName("should call removeAcls() method for clearing ACLs of expired developer certificates")
+    public void aclsShouldBeRemoved_positive() throws ExecutionException, InterruptedException {
+        DevCertificateMetadata devCert = new DevCertificateMetadata();
+        devCert.setUserName("testUser");
+        devCert.setExpiryDate(Instant.now().minus(Duration.ofDays(1000)));
+        testRepo.save(devCert).get();
+
+        DevCertificateMetadata devCert2 = new DevCertificateMetadata();
+        devCert2.setUserName("testUser2");
+        devCert2.setExpiryDate(Instant.now().minus(Duration.ofDays(1000)));
+        prodRepo.save(devCert2).get();
+
+        Integer clearedCerts = service.clearExpiredDeveloperCertificatesOnAllClusters().get();
+        assertEquals(2, clearedCerts.intValue());
+
+        verify(aclUpdater, times(2)).removeAcls(any(), argumentCaptor.capture());
+
+        List<Set<DevCertificateMetadata>> list = argumentCaptor.getAllValues();
+
+        assertEquals("testUser", list.get(0).stream().findFirst().get().getUserName());
+        assertEquals("testUser2", list.get(1).stream().findFirst().get().getUserName());
+
+    }
+
+    @Test
+    @DisplayName("should not call removeAcls() for valid developer certificates")
+    public void dontCallRemoveAclForValidCertificate() throws ExecutionException, InterruptedException {
+        fillRepos(1, 3);
+        DevCertificateMetadata devCert = new DevCertificateMetadata();
+        devCert.setUserName("testUser");
+        devCert.setExpiryDate(Instant.now().plus(Duration.ofDays(1000)));
+        testRepo.save(devCert).get();
+        service.clearExpiredDeveloperCertificatesOnAllClusters().get();
+
+        assertEquals(2, removeAclCalls.size());
+        assertTrue(testRepo.getObject("testUser").isPresent());
+    }
+
+    private void fillRepos(int howManyCertsTest, int howManyCertsProd) throws ExecutionException, InterruptedException {
+        for (int i = 1; i <= howManyCertsTest; i++) {
+            // 4 random numbers in range 0 to 9
+            String randomUser = new Random().ints(4, 0, 9).mapToObj(String::valueOf).collect(Collectors.joining());
+            DevCertificateMetadata devCert = new DevCertificateMetadata();
+            devCert.setUserName("RandomUser:" + randomUser);
+            devCert.setExpiryDate(Instant.now().minus(Duration.ofDays(1000)));
+            testRepo.save(devCert).get();
+        }
+
+        for (int i = 1; i <= howManyCertsProd; i++) {
+            // 4 random numbers in range 0 to 9
+            String randomUser = new Random().ints(4, 0, 9).mapToObj(String::valueOf).collect(Collectors.joining());
+            DevCertificateMetadata devCert = new DevCertificateMetadata();
+            devCert.setUserName("RandomUser:" + randomUser);
+            devCert.setExpiryDate(Instant.now().minus(Duration.ofDays(1000)));
+            prodRepo.save(devCert).get();
+        }
+
+    }
 }

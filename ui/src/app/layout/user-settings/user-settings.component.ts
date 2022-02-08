@@ -59,7 +59,7 @@ export class UserSettingsComponent implements OnInit {
 
         this.certificateService.getDeveloperCertificateInfo(this.selectedEnvironment.id)
             .pipe(take(1)).toPromise().then(val => this.existingCertificateInfo.next(val)).catch(err => {
-                this.toasts.addHttpErrorToast('Could not get Developer certificate info: ', err);
+                this.toasts.addHttpErrorToast('DEVELOPER_CERTIFICATE_INFO_ERROR', err);
             });
     }
 

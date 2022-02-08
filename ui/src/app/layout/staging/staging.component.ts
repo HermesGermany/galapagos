@@ -90,7 +90,7 @@ export class StagingComponent implements OnInit {
                 this.staging = s;
                 this.changes = s.changes.map(change => ({ change: change, selected: true }));
             },
-            err => this.toasts.addHttpErrorToast('Could not calculate staging for this application', err));
+            err => this.toasts.addHttpErrorToast('STAGING_CALCULATION_ERROR', err));
     }
 
     async performStaging(): Promise<any> {
@@ -108,15 +108,15 @@ export class StagingComponent implements OnInit {
                 const totalSuccess = !result.find(r => !r.stagingSuccessful);
                 const totalFailure = !result.find(r => r.stagingSuccessful);
                 if (totalSuccess) {
-                    this.toasts.addSuccessToast('Die Änderungen wurden erfolgreich auf dem Zielcluster durchgeführt.');
+                    this.toasts.addSuccessToast('CHANGES_ON_TARGET_CLUSTER_SUCCESS');
                 } else if (!totalFailure) {
                     this.toasts.addWarningToast('Die Änderungen wurden durchgeführt.' +
                         ' Einzelne Änderungen konnten nicht durchgeführt werden.');
                 } else {
-                    this.toasts.addErrorToast('Die Änderungen konnten sämtlich nicht durchgeführt werden.');
+                    this.toasts.addErrorToast('CHANGES_ON_TARGET_CLUSTER_ERROR');
                 }
             },
-            err => this.toasts.addHttpErrorToast('Could not perform staging for this application', err))
+            err => this.toasts.addHttpErrorToast('CHANGES_STAGING_ERROR', err))
             .finally(() => {
                 this.performing = false;
                 this.staging = null;

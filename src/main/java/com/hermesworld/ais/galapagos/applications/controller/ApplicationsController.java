@@ -145,14 +145,6 @@ public class ApplicationsController {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 
-    @GetMapping(value = "/api/certificates/{applicationId}")
-    public List<ApplicationCertificateDto> getApplicationCertificates(@PathVariable String applicationId) {
-        return kafkaClusters.getEnvironmentsMetadata().stream()
-                .map(env -> applicationsService.getApplicationMetadata(env.getId(), applicationId)
-                        .map(meta -> toAppCertDto(env.getId(), meta)).orElse(null))
-                .filter(dto -> dto != null).collect(Collectors.toList());
-    }
-
     @PostMapping(value = "/api/certificates/{applicationId}/{environmentId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public CertificateResponseDto updateApplicationCertificate(@PathVariable String applicationId,
             @PathVariable String environmentId, @RequestBody CertificateRequestDto request) {

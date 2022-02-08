@@ -11,6 +11,7 @@ import { TopicSettingsData } from './datasettings/data-settings.component';
 import { Router } from '@angular/router';
 import { ApiKeyService } from '../../shared/services/apikey.service';
 import { CertificateService } from '../../shared/services/certificates.service';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
     selector: 'app-create-topic',
@@ -51,6 +52,7 @@ export class CreateTopicComponent implements OnInit {
                 private environmentsService: EnvironmentsService,
                 private toasts: ToastService, private apiKeyService: ApiKeyService,
                 private certificateService: CertificateService,
+                private translateService: TranslateService,
                 private serverInfo: ServerInfoService, private router: Router) {
     }
 
@@ -90,7 +92,7 @@ export class CreateTopicComponent implements OnInit {
                 const apiKey = await this.apiKeyService.getApplicationApiKeysPromise(this.selectedApplication.id);
                 this.showRegistrationWarning = !apiKey.authentications[env.id];
             } catch (e) {
-                this.toasts.addHttpErrorToast('Could not check for application certificates', e);
+                this.toasts.addHttpErrorToast('TOPIC_CREATED_CHECK_CERTIFICATES_ERROR', e);
             }
         } else {
             try {
@@ -99,7 +101,7 @@ export class CreateTopicComponent implements OnInit {
 
                 this.showRegistrationWarning = !certificates.find(c => c.environmentId === env.id);
             } catch (e) {
-                this.toasts.addHttpErrorToast('Could not check for application certificates', e);
+                this.toasts.addHttpErrorToast('TOPIC_CREATED_CHECK_CERTIFICATES_ERROR', e);
             }
         }
     }
@@ -122,24 +124,24 @@ export class CreateTopicComponent implements OnInit {
             this.topicsSerivce.createTopic(topicType, app, env.id, topicName, description, subscriptionApprovalRequired, initialSettings,
                 this.createParams).then(
                 () => {
-                    this.toasts.addSuccessToast('Das Topic wurde erfolgreich angelegt.');
+                    this.toasts.addSuccessToast('TOPIC_CREATED');
 
                     if (topicType !== 'INTERNAL' && initialSchema) {
                         return this.createInitialSchema(topicName, env.id, initialSchema);
                     }
                     this.router.navigate(['/topics']);
                 },
-                err => this.toasts.addHttpErrorToast('Das Topic konnte nicht angelegt werden', err))
+                err => this.toasts.addHttpErrorToast('TOPIC_CREATED_FAILED', err))
+
         );
     }
 
     private async createInitialSchema(topicName: string, environmentId: string, jsonSchema: string): Promise<any> {
         return this.topicsSerivce.addTopicSchema(topicName, environmentId, jsonSchema).then(
             () => {
-                this.toasts.addSuccessToast('Das initiale JSON Schema wurde erfolgreich veröffentlicht.');
+                this.toasts.addSuccessToast('TOPIC_CREATED_JSON_SUCCESS');
             },
-            err => this.toasts.addHttpErrorToast('Das initiale JSON Schema konnte nicht veröffentlicht werden', err)
-        );
+            err => this.toasts.addHttpErrorToast('TOPIC_CREATED_JSON_ERROR', err));
     }
 
 }

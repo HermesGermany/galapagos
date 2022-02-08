@@ -82,15 +82,15 @@ export class TopicMetadataTableComponent implements OnInit {
     async updateTopicDesc() {
         return this.topicService
             .updateTopicDescription(this.updatedTopicDescription, this.topic.name)
-            .then(() => this.toasts.addSuccessToast('Beschreibung erfolgreich geändert'),
-                err => this.toasts.addHttpErrorToast('Beschreibung konnte nicht geändert werden', err));
+            .then(() => this.toasts.addSuccessToast('TOPIC_UPDATED_DESCRIPTION_SUCCESS'),
+                err => this.toasts.addHttpErrorToast('TOPIC_UPDATED_DESCRIPTION_ERROR', err));
     }
 
     async handleUnDeprecationRequest() {
         return this.topicService
             .unDeprecateTopic(this.topic.name)
-            .then(() => this.toasts.addSuccessToast('Deprecation-Markierung erfolgreich entfernt'),
-                err => this.toasts.addHttpErrorToast('Deprecation-Markierung konnte nicht entfernt werden', err));
+            .then(() => this.toasts.addSuccessToast('DELETE_DEPRECATION_MARK_SUCCESS'),
+                err => this.toasts.addHttpErrorToast('DELETE_DEPRECATION_MARK_ERROR', err));
     }
 
     getEolDateForCurrentLang(eolDate) {
@@ -138,7 +138,7 @@ export class TopicMetadataTableComponent implements OnInit {
         this.topicData = this.topicService
             .getTopicData(this.topic.name, environment.id)
             .catch(err => {
-                this.toasts.addHttpErrorToast(this.translateService.instant('Could not read topic data'), err);
+                this.toasts.addHttpErrorToast('Could not read topic data', err);
                 return [];
             })
             .finally(() => {
@@ -155,12 +155,12 @@ export class TopicMetadataTableComponent implements OnInit {
             () => {
                 const msg =
                     subscription.state === 'PENDING'
-                        ? 'Die Abonnements-Anfrage wurde gelöscht.'
-                        : 'Die Anwendung abonniert dieses Topic nicht länger. ACHTUNG: Die Leserechte wurden entzogen!';
+                        ? 'DELETE_ABO_REQUEST'
+                        : 'END_ABO_TOPIC';
                 this.toasts.addSuccessToast(msg);
                 this.subsChanged.emit();
             },
-            err => this.toasts.addHttpErrorToast('Das Abonnement konnte nicht gelöscht werden', err)
+            err => this.toasts.addHttpErrorToast('DELETE_ABO_ERROR', err)
         );
     }
 
@@ -183,18 +183,18 @@ export class TopicMetadataTableComponent implements OnInit {
         const environment = await this.environmentsService.getCurrentEnvironment().pipe(take(1)).toPromise();
         return this.topicService.changeTopicOwner(environment.id, topicName, newOwnerId).then(
             () => {
-                this.toasts.addSuccessToast('Producer wurde erfolgreich zum neuen Topic Besitzer befördert.');
+                this.toasts.addSuccessToast('PRODUCER_PROMOTED_TOPIC_OWNER_SUCCESS');
             },
-            err => this.toasts.addHttpErrorToast('Producer konnte nicht zum neuen Topic Besitzer befördert werden.', err));
+            err => this.toasts.addHttpErrorToast('PRODUCER_PROMOTED_TOPIC_OWNER_ERROR', err));
     }
 
     async deleteProducer(topicName: string, producerAppId: string): Promise<any> {
         const environment = await this.environmentsService.getCurrentEnvironment().pipe(take(1)).toPromise();
         return this.topicService.deleteProducerFromTopic(environment.id, topicName, producerAppId).then(
             () => {
-                this.toasts.addSuccessToast('Producer wurde erfolgreich entfernt.');
+                this.toasts.addSuccessToast('PRODUCER_REMOVED_SUCCESS');
             },
-            err => this.toasts.addHttpErrorToast('Producer konnte nicht entfernt werden.', err));
+            err => this.toasts.addHttpErrorToast('PRODUCER_REMOVED_ERROR', err));
     }
 
     private async updateSubscription(sub: TopicSubscription, approve: boolean, successMessage: string, errorMessage: string) {
