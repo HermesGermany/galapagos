@@ -14,6 +14,7 @@ import * as moment from 'moment';
 import { TranslateService } from '@ngx-translate/core';
 import { ApplicationInfo, ApplicationsService } from '../../shared/services/applications.service';
 import { Location } from '@angular/common';
+import { NgbDateStruct } from '@ng-bootstrap/ng-bootstrap';
 
 @Component({
     selector: 'app-dashboard',
@@ -43,10 +44,18 @@ export class DashboardComponent implements OnInit {
 
     configTemplatesCopiedValue = false;
 
+    date: NgbDateStruct;
+
+    amountOfChanges: number;
+
+
+
     constructor(private environments: EnvironmentsService, private applicationsService: ApplicationsService,
                 private serverInfoService: ServerInfoService, private location: Location,
                 private translate: TranslateService) {
         this.allEnvironments = environments.getEnvironments();
+        this.amountOfChanges = 10;
+        this.date = { day: new Date().getUTCDay(), month: new Date().getUTCMonth(), year: new Date().getUTCFullYear() -1 };
         this.selectedEnvironment = environments.getCurrentEnvironment();
         this.serverInfos = environments.getCurrentEnvironmentServerInfo();
         this.changelog = this.selectedEnvironment.pipe(flatMap(env => environments.getChangeLog(env.id)))
@@ -97,13 +106,31 @@ export class DashboardComponent implements OnInit {
         });
     }
 
+    applyFilterCriteria(){
+        this.changelog = this.selectedEnvironment.pipe(flatMap(env => this.environments.getChangeLog(env.id)))
+            .pipe(map(changes => this.formatChanges(changes))).pipe(shareReplay(1));
+    }
+
     private formatChanges(changes: ChangelogEntry[]): ChangelogEntry[] {
+        changes
+            .map(change => {
+                change.change.html = this.changeHtml(change.change);
+                return change;
+            }).forEach(change => {
+                console.log(new Date(change.timestamp));
+                console.log(new Date(this.date.year,this.date.month-1, this.date.day));
+                console.log(new Date(change.timestamp) > new Date(this.date.year,this.date.month-1, this.date.day));
+            });
         return changes
             .map(change => {
                 change.change.html = this.changeHtml(change.change);
                 return change;
             })
-            .filter(change => change.change.html !== null).slice(0, 10);
+
+            .filter(change => change.change.html !== null)
+            .filter(change => new Date(change.timestamp) >= new Date(this.date.year,this.date.month-1, this.date.day))
+            .slice(0, this.amountOfChanges);
+        //.filter(change => change.change.html !== null).slice(0, 10);
     }
 
     private changeHtml(change: Change): Observable<string> {

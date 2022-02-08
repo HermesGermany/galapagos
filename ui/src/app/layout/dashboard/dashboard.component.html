@@ -119,6 +119,28 @@
                     <i class="fa fa-hammer mr-3"></i>{{ 'Latest Changes' | translate }}
                 </div>
                 <div class="card-body">
+
+                    <form class="form-group form-inline">
+                        <div class="form-group">
+                                <label for="numberInputEx">Amount: </label>
+                                <input type="number" class="form-control ml-2 form-control-sm col-md-4" [(ngModel)]="amountOfChanges" name="amountOfChanges" id="numberInputEx"mdbInput>
+
+                        </div>
+                        <div class="form-group">
+                            <div class="input-group">
+                                <label for="dateInput">Since: </label>
+                                <input class="form-control" id="dateInput"[(ngModel)]="date" ngbDatepicker
+                                        name="date" #p="ngbDatepicker">
+                                <div class="input-group-append">
+                                    <button class="fas fa-calendar-alt" (click)="p.toggle()"
+                                            type="button"></button>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="btn btn-secondary ml-4" (click)="applyFilterCriteria()"> Apply Filter</button>
+                    </form>
+                <hr>
+                <div class="card-body">
                     <ul class="chat" *ngIf="(changelog | async)?.length">
                         <li class="left clearfix" *ngFor="let change of changelog | async">
                             <span class="chat-img float-left">
