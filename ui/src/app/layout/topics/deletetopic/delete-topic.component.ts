@@ -47,10 +47,10 @@ export class DeleteTopicComponent {
 
         return this.topicService.deleteTopic(environment.id, this.topic.name).then(
             () => {
-                this.toasts.addSuccessToast('Das Topic wurde gelöscht.');
+                this.toasts.addSuccessToast('TOPIC_DELETE_SUCCESS');
                 this.router.navigateByUrl('/topics');
             },
-            err => this.toasts.addHttpErrorToast('Das Topic konnte nicht gelöscht werden', err)
+            err => this.toasts.addHttpErrorToast('TOPIC_DELETE_ERROR', err)
         );
     }
 

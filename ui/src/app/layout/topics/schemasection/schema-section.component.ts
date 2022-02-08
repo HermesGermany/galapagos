@@ -90,10 +90,10 @@ export class SchemaSectionComponent implements OnInit, OnChanges {
         return this.topicService.addTopicSchema(this.topic.name, environment.id, this.newSchemaText, this.schemaChangeDescription).then(
             () => {
                 this.editSchemaMode = false;
-                this.toasts.addSuccessToast('Das Schema wurde erfolgreich veröffentlicht.');
+                this.toasts.addSuccessToast('SCHEMA_PUBLISH_SUCCESS');
                 this.loadSchemas(this.topic, environment.id);
             },
-            err => this.toasts.addHttpErrorToast('Das Schema konnte nicht veröffentlicht werden', err)
+            err => this.toasts.addHttpErrorToast('SCHEMA_PUBLISH_ERROR', err)
         );
     }
 
@@ -102,10 +102,10 @@ export class SchemaSectionComponent implements OnInit, OnChanges {
 
         return this.topicService.deleteLatestSchema(this.topic.name, environment.id).then(
             () => {
-                this.toasts.addSuccessToast('Das Schema wurde erfolgreich gelöscht.');
+                this.toasts.addSuccessToast('SCHEMA_DELETE_SUCCESS');
                 this.loadSchemas(this.topic, environment.id);
             },
-            err => this.toasts.addHttpErrorToast('Das Schema konnte nicht gelöscht werden', err)
+            err => this.toasts.addHttpErrorToast('SCHEMA_DELETE_ERROR', err)
         );
     }
 
