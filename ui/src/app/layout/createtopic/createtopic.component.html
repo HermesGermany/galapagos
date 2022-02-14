@@ -48,10 +48,10 @@
                             <label style="margin-right: 1em">{{ 'Topic Type' | translate }}</label>
                             <select class="form-control" name="topicType" [(ngModel)]="topicType"
                                     (change)="topicNameSpinner.while(suggestTopicName())">
-                                <option value="EVENTS">{{ 'Events' | translate }}</option>
-                                <option value="DATA">{{ 'Master Data' | translate }}</option>
-                                <option value="COMMANDS">{{ 'Commands' | translate }}</option>
-                                <option value="INTERNAL">{{ 'App internal' | translate }}</option>
+                                <option value="EVENTS">{{ 'EVENTS' | translate }}</option>
+                                <option value="DATA">{{ 'DATA' | translate }}</option>
+                                <option value="COMMANDS">{{ 'COMMANDS' | translate }}</option>
+                                <option value="INTERNAL">{{ 'INTERNAL' | translate }}</option>
                             </select>
                         </div>
                         <div class="form-group form-inline" *ngIf="(topicType !== 'INTERNAL') && selectedApplication">

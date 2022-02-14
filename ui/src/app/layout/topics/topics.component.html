@@ -46,8 +46,7 @@
                             <span class="deprecationText">{{topic.deprecationText}}</span>
                             </span>
                         </td>
-                        <td>{{topic.topicType === 'DATA' ? ("Master Data" | translate).toUpperCase()
-                            : (topic.topicType.charAt(0)+topic.topicType.substring(1).toLowerCase() | translate).toUpperCase() }}</td>
+                        <td>{{topic.topicType | translate}}</td>
                         <td>
                             <a *ngIf="topic.ownerApplication && topic.ownerApplication.infoUrl"
                                [href]="topic.ownerApplication.infoUrl" target="_blank">

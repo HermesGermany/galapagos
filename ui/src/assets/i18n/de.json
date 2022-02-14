@@ -274,9 +274,8 @@
     "TOPIC_PRODUCER_APPLICATION_REMOVED_STAGING": "Produzent <code>${this.applicationInfo(change.producerApplicationId).name} ` + `</code> entfernen für Topic <code>{{topicName}}</code>",
     "TOPIC_SUBSCRIPTION_APPROVAL_REQUIRED_FLAG_UPDATED_STAGING": "Für Topic <code>{{topicName}}</code> die Freigabe von Abonnements erforderlich machen",
     "OTHER_CHANGE_STAGING": "Änderung vom Typ <code>{{changeType}}</code> durchführen",
-    "Events": "Ereignisse",
-    "Master Data": "Stammdaten",
-    "Commands": "Befehle",
-    "App internal": "Interne App"
-
+    "EVENTS": "Events",
+    "DATA": "Master Data",
+    "COMMANDS": "Commands",
+    "INTERNAL": "Anwendungsintern"
 }
