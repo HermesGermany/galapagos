@@ -80,8 +80,6 @@ export class CreateTopicComponent implements OnInit {
     }
 
     async checkAuthentication() {
-        this.selectedBusinessCapability = null;
-        this.topicName = null;
         if (!this.selectedApplication || !this.selectedEnvironment) {
             return;
         }
@@ -106,6 +104,8 @@ export class CreateTopicComponent implements OnInit {
                 this.toasts.addHttpErrorToast('TOPIC_CREATED_CHECK_CERTIFICATES_ERROR', e);
             }
         }
+        this.topicName = null;
+        this.selectedBusinessCapability = null;
     }
 
     selectEnvironment(envId: string) {
