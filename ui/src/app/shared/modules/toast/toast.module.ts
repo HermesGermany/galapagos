@@ -5,8 +5,7 @@ import { CommonModule } from '@angular/common';
 @NgModule({
     declarations: [GalapagosToastComponent, GalapagosToastHeaderDirective],
     imports: [CommonModule],
-    exports: [GalapagosToastComponent, GalapagosToastHeaderDirective],
-    entryComponents: [GalapagosToastComponent]
+    exports: [GalapagosToastComponent, GalapagosToastHeaderDirective]
 })
 export class GalapagosToastModule {
 }
