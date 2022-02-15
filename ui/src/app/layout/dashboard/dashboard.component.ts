@@ -104,6 +104,7 @@ export class DashboardComponent implements OnInit {
         return changes
             .map(change => {
                 change.change.html = this.changeHtml(change.change);
+                console.log(change);
                 return change;
             }).filter(change => change.change.html !== null);
     }
