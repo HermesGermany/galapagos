@@ -44,9 +44,6 @@ export class DashboardComponent implements OnInit {
 
     configTemplatesCopiedValue = false;
 
-    date: NgbDateStruct;
-
-    amountOfChanges: number;
 
 
 
@@ -54,8 +51,6 @@ export class DashboardComponent implements OnInit {
                 private serverInfoService: ServerInfoService, private location: Location,
                 private translate: TranslateService) {
         this.allEnvironments = environments.getEnvironments();
-        this.amountOfChanges = 10;
-        this.date = { day: new Date().getUTCDay(), month: new Date().getUTCMonth(), year: new Date().getUTCFullYear() -1 };
         this.selectedEnvironment = environments.getCurrentEnvironment();
         this.serverInfos = environments.getCurrentEnvironmentServerInfo();
         this.changelog = this.selectedEnvironment.pipe(flatMap(env => environments.getChangeLog(env.id)))
