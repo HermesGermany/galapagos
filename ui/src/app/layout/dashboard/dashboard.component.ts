@@ -106,20 +106,12 @@ export class DashboardComponent implements OnInit {
         });
     }
 
-    applyFilterCriteria(){
-        this.changelog = this.selectedEnvironment.pipe(flatMap(env => this.environments.getChangeLog(env.id)))
-            .pipe(map(changes => this.formatChanges(changes))).pipe(shareReplay(1));
-    }
-
     private formatChanges(changes: ChangelogEntry[]): ChangelogEntry[] {
         return changes
             .map(change => {
                 change.change.html = this.changeHtml(change.change);
                 return change;
-            });
-        //.filter(change => new Date(change.timestamp) >= new Date(this.date.year,this.date.month-1, this.date.day))
-
-        //.filter(change => change.change.html !== null).slice(0, 10);
+            }).filter(change => change.change.html !== null);
     }
 
     private changeHtml(change: Change): Observable<string> {
