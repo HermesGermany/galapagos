@@ -167,8 +167,6 @@ export class DashboardComponent implements OnInit {
                 topicLink = this.urlForRouterLink('/topics/' + topicName);
                 return this.applicationInfo(change.subscriptionMetadata.clientApplicationId).pipe(
                     flatMap(app => {
-                        console.log(state);
-                        console.log(state === 'APPROVED');
                         if(state === 'APPROVED'){
                             if (!app) {
                                 return this.translate.stream('(unknown)').pipe(
@@ -231,8 +229,6 @@ export class DashboardComponent implements OnInit {
                 topicLink = this.urlForRouterLink('/topics/' + topicName);
                 return this.applicationInfo(change.subscriptionMetadata.clientApplicationId).pipe(
                     flatMap(app => {
-                        console.log(state);
-                        console.log(state === 'APPROVED');
                         if(state === 'APPROVED'){
                             if (!app) {
                                 return this.translate.stream('(unknown)').pipe(
