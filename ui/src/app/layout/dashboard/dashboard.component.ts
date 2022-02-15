@@ -112,24 +112,13 @@ export class DashboardComponent implements OnInit {
     }
 
     private formatChanges(changes: ChangelogEntry[]): ChangelogEntry[] {
-        changes
-            .map(change => {
-                change.change.html = this.changeHtml(change.change);
-                return change;
-            }).forEach(change => {
-                console.log(new Date(change.timestamp));
-                console.log(new Date(this.date.year,this.date.month-1, this.date.day));
-                console.log(new Date(change.timestamp) > new Date(this.date.year,this.date.month-1, this.date.day));
-            });
         return changes
             .map(change => {
                 change.change.html = this.changeHtml(change.change);
                 return change;
-            })
+            });
+        //.filter(change => new Date(change.timestamp) >= new Date(this.date.year,this.date.month-1, this.date.day))
 
-            .filter(change => change.change.html !== null)
-            .filter(change => new Date(change.timestamp) >= new Date(this.date.year,this.date.month-1, this.date.day))
-            .slice(0, this.amountOfChanges);
         //.filter(change => change.change.html !== null).slice(0, 10);
     }
 

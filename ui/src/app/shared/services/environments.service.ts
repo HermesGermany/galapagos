@@ -113,7 +113,7 @@ export class EnvironmentsService {
     }
 
     public getChangeLog(environmentId: string): Observable<ChangelogEntry[]> {
-        return this.http.get('/api/environments/' + environmentId + '/changelog?limit=100').pipe(map(d => d as ChangelogEntry[]));
+        return this.http.get('/api/environments/' + environmentId + '/changelog').pipe(map(d => d as ChangelogEntry[]));
     }
 
     public prepareStaging(applicationId: string, environment: KafkaEnvironment): Promise<Staging> {
