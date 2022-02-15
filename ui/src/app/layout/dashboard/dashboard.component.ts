@@ -167,33 +167,27 @@ export class DashboardComponent implements OnInit {
                 topicLink = this.urlForRouterLink('/topics/' + topicName);
                 return this.applicationInfo(change.subscriptionMetadata.clientApplicationId).pipe(
                     flatMap(app => {
-                        if(state === 'APPROVED'){
-                            if (!app) {
-                                return this.translate.stream('(unknown)').pipe(
-                                    flatMap(s => this.translate.stream('CHANGELOG_TOPIC_SUBSCRIBED_HTML_NO_APP_LINK',
-                                        { topicName: topicName, topicLink: topicLink, appInfo: { name: s } })));
-                            }
-                            if (!app.infoUrl) {
-                                return this.translate.stream('CHANGELOG_TOPIC_SUBSCRIBED_HTML_NO_APP_LINK',
-                                    { topicName: topicName, topicLink: topicLink, appInfo: app });
-                            }
-
-                            return this.translate.stream('CHANGELOG_TOPIC_SUBSCRIBED_HTML',
-                                { topicName: topicName, topicLink: topicLink, appInfo: app });
-                        }else if(state === 'PENDING'){
-                            if (!app) {
-                                return this.translate.stream('(unknown)').pipe(
-                                    flatMap(s => this.translate.stream('CHANGELOG_TOPIC_SUBSCRIBED_HTML_NO_APP_LINK_PENDING',
-                                        { topicName: topicName, topicLink: topicLink, appInfo: { name: s } })));
-                            }
-                            if (!app.infoUrl) {
-                                return this.translate.stream('CHANGELOG_TOPIC_SUBSCRIBED_HTML_NO_APP_LINK_PENDING',
-                                    { topicName: topicName, topicLink: topicLink, appInfo: app });
-                            }
-
-                            return this.translate.stream('CHANGELOG_TOPIC_SUBSCRIBED_HTML_PENDING',
+                        if (!app) {
+                            return this.translate.stream('(unknown)').pipe(
+                                flatMap(s => this.translate.stream(
+                                    state === 'APPROVED'
+                                        ? 'CHANGELOG_TOPIC_SUBSCRIBED_HTML_NO_APP_LINK'
+                                        : 'CHANGELOG_TOPIC_SUBSCRIBED_HTML_NO_APP_LINK_PENDING',
+                                    { topicName: topicName, topicLink: topicLink, appInfo: { name: s } })));
+                        }
+                        if (!app.infoUrl) {
+                            return this.translate.stream(
+                                state === 'APPROVED'
+                                    ? 'CHANGELOG_TOPIC_SUBSCRIBED_HTML_NO_APP_LINK'
+                                    : 'CHANGELOG_TOPIC_SUBSCRIBED_HTML_NO_APP_LINK_PENDING',
                                 { topicName: topicName, topicLink: topicLink, appInfo: app });
                         }
+
+                        return this.translate.stream(
+                            state === 'APPROVED'
+                                ? 'CHANGELOG_TOPIC_SUBSCRIBED_HTML'
+                                : 'CHANGELOG_TOPIC_SUBSCRIBED_HTML_PENDING',
+                            { topicName: topicName, topicLink: topicLink, appInfo: app });
                     }));
             case 'TOPIC_UNSUBSCRIBED':
                 topicName = change.subscriptionMetadata.topicName;
@@ -229,33 +223,27 @@ export class DashboardComponent implements OnInit {
                 topicLink = this.urlForRouterLink('/topics/' + topicName);
                 return this.applicationInfo(change.subscriptionMetadata.clientApplicationId).pipe(
                     flatMap(app => {
-                        if(state === 'APPROVED'){
-                            if (!app) {
-                                return this.translate.stream('(unknown)').pipe(
-                                    flatMap(s => this.translate.stream('CHANGELOG_TOPIC_SUBSCRIBED_HTML_NO_APP_LINK_APPROVED',
-                                        { topicName: topicName, topicLink: topicLink, appInfo: { name: s } })));
-                            }
-                            if (!app.infoUrl) {
-                                return this.translate.stream('CHANGELOG_TOPIC_SUBSCRIBED_HTML_NO_APP_LINK_APPROVED',
-                                    { topicName: topicName, topicLink: topicLink, appInfo: app });
-                            }
-
-                            return this.translate.stream('CHANGELOG_TOPIC_SUBSCRIBED_HTML_APPROVED',
-                                { topicName: topicName, topicLink: topicLink, appInfo: app });
-                        }else {
-                            if (!app) {
-                                return this.translate.stream('(unknown)').pipe(
-                                    flatMap(s => this.translate.stream('CHANGELOG_TOPIC_SUBSCRIBED_HTML_NO_APP_LINK_DECLINED',
-                                        { topicName: topicName, topicLink: topicLink, appInfo: { name: s } })));
-                            }
-                            if (!app.infoUrl) {
-                                return this.translate.stream('CHANGELOG_TOPIC_SUBSCRIBED_HTML_NO_APP_LINK_DECLINED',
-                                    { topicName: topicName, topicLink: topicLink, appInfo: app });
-                            }
-
-                            return this.translate.stream('CHANGELOG_TOPIC_SUBSCRIBED_HTML_DECLINED',
+                        if (!app) {
+                            return this.translate.stream('(unknown)').pipe(
+                                flatMap(s => this.translate.stream(
+                                    state === 'APPROVED'
+                                        ? 'CHANGELOG_TOPIC_SUBSCRIBED_HTML_NO_APP_LINK_APPROVED'
+                                        : 'CHANGELOG_TOPIC_SUBSCRIBED_HTML_NO_APP_LINK_DECLINED',
+                                    { topicName: topicName, topicLink: topicLink, appInfo: { name: s } })));
+                        }
+                        if (!app.infoUrl) {
+                            return this.translate.stream(
+                                state === 'APPROVED'
+                                    ? 'CHANGELOG_TOPIC_SUBSCRIBED_HTML_NO_APP_LINK_APPROVED'
+                                    : 'CHANGELOG_TOPIC_SUBSCRIBED_HTML_NO_APP_LINK_DECLINED',
                                 { topicName: topicName, topicLink: topicLink, appInfo: app });
                         }
+
+                        return this.translate.stream(
+                            state === 'APPROVED'
+                                ? 'CHANGELOG_TOPIC_SUBSCRIBED_HTML_APPROVED'
+                                : 'CHANGELOG_TOPIC_SUBSCRIBED_HTML_DECLINED',
+                            { topicName: topicName, topicLink: topicLink, appInfo: app });
                     }));
 
         }
