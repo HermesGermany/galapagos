@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import com.hermesworld.ais.galapagos.changes.config.GalapagosChangesConfig;
-import com.hermesworld.ais.galapagos.topics.config.GalapagosTopicConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
