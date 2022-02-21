@@ -8,7 +8,9 @@
         </tr>
         <tr>
             <th scope="row">{{ 'Topic Type' | translate }}</th>
-            <td>{{ topic.topicType === 'DATA' ? 'MASTER DATA' : topic.topicType}}</td>
+            <td>
+                {{topic.topicType | translate}}
+            </td>
         </tr>
         <tr>
             <th scope="row">{{ 'Description' | translate }}</th>
