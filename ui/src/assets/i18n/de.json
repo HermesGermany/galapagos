@@ -274,6 +274,7 @@
     "TOPIC_PRODUCER_APPLICATION_REMOVED_STAGING": "Produzent <code>${this.applicationInfo(change.producerApplicationId).name} ` + `</code> entfernen für Topic <code>{{topicName}}</code>",
     "TOPIC_SUBSCRIPTION_APPROVAL_REQUIRED_FLAG_UPDATED_STAGING": "Für Topic <code>{{topicName}}</code> die Freigabe von Abonnements erforderlich machen",
     "OTHER_CHANGE_STAGING": "Änderung vom Typ <code>{{changeType}}</code> durchführen",
+    "NOTICE_TOPIC_DATA_VIEW": "Diese Anzeige dient der <b>Datenvorschau</b> für dieses Topic. Es wird nur ein sehr begrenzter Teil der Daten angezeigt. Für eine detaillierte Betrachtung nutze bitte hierfür geeignete Software."
     "EVENTS": "Events",
     "DATA": "Master Data",
     "COMMANDS": "Commands",
