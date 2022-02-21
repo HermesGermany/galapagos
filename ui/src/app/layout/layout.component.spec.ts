@@ -66,8 +66,6 @@ describe('LayoutComponent', () => {
             family_name: 'Doe'
         };
         const ki: jasmine.SpyObj<KeycloakInstance> = jasmine.createSpyObj([], { idTokenParsed: token });
-
-        //spyOnProperty(ki,'idTokenParsed','get').and.returnValue(token);
         spyOn(keycloak, 'getKeycloakInstance').and.returnValue(ki);
     });
 
