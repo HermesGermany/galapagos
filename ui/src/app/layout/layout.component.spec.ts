@@ -22,6 +22,7 @@ import { ApplicationsService } from '../shared/services/applications.service';
 import { ServerInfoService } from '../shared/services/serverinfo.service';
 import { StagingModule } from './staging/staging.module';
 import { AdminComponent } from './admin/admin.component';
+import { KeycloakInstance } from 'keycloak-js';
 
 describe('LayoutComponent', () => {
     let component: LayoutComponent;
@@ -58,9 +59,16 @@ describe('LayoutComponent', () => {
         fixture = TestBed.createComponent(LayoutComponent);
         component = fixture.componentInstance;
         keycloak = fixture.debugElement.injector.get(KeycloakService);
-        spyOn(keycloak, 'getKeycloakInstance').and.returnValue({
-            loadUserInfo: () => Promise.resolve({ firstName: 'John', lastName: 'Doe' })
-        });
+        const token = {
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            given_name: 'John',
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            family_name: 'Doe'
+        };
+        const ki: jasmine.SpyObj<KeycloakInstance> = jasmine.createSpyObj([], { idTokenParsed: token });
+
+        //spyOnProperty(ki,'idTokenParsed','get').and.returnValue(token);
+        spyOn(keycloak, 'getKeycloakInstance').and.returnValue(ki);
     });
 
     it('should create Layout Component', () => {
