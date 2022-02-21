@@ -1,10 +1,32 @@
 /* You can add global styles to this file, and also import other style files */
 
-@import "bootstrap/bootstrap";
+
 @import "spinner";
 @import "utils";
 @import "rtl";
 @import "responsive";
+
+.dark{
+    $white: #121212 !default;
+    $gray-100: #212529 !default;
+    $gray-200: #343a40 !default;
+    $gray-300: #495057 !default;
+    $gray-400: #6c757d !default;
+    $gray-500: #adb5bd !default;
+    $gray-600: #ced4da !default;
+    $gray-700: #dee2e6 !default;
+    $gray-800: #e9ecef !default;
+    $gray-900: #f8f9fa !default;
+    $black: #ffffff !default;
+    $hermes: #adadad !default;
+    $lastChanges : #121212 !default;
+    $green: #155622 !default;
+    $topicSettings: #121212 !default;
+    $defaultInputValue: #E0F8E0 !default;
+    @import "bootstrap/bootstrap";
+}
+
+@import "bootstrap/bootstrap";
 
 @media print {
     .breadcrumb {
