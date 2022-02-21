@@ -28,23 +28,23 @@ public class ChangesController {
     }
 
     @GetMapping(value = "/api/environments/{environmentId}/changelog")
-    public List<ChangeData> getChangeLog(@PathVariable String environmentId){
+    public List<ChangeData> getChangeLog(@PathVariable String environmentId) {
         // TODO should throw a 404 if invalid environment ID; currently returning empty list then
-        return toChangeLog(changesService.getChangeLog(environmentId), this.changesConfig.getEntries(), this.changesConfig.getMinDays());
+        return toChangeLog(changesService.getChangeLog(environmentId), this.changesConfig.getEntries(),
+                this.changesConfig.getMinDays());
     }
 
     private List<ChangeData> toChangeLog(List<ChangeData> changes, int limit, int minDays) {
         List<ChangeData> result = new ArrayList<>(limit);
-        if(minDays > 0)
-        {
-            int i = changes.size()-1;
+        if (minDays > 0) {
+            int i = changes.size() - 1;
             Date threshold = new Date(System.currentTimeMillis() - TimeUnit.DAYS.toMillis(minDays));
-            while(Date.from(changes.get(i).getTimestamp().toInstant()).after(threshold))
-            {
+            while (Date.from(changes.get(i).getTimestamp().toInstant()).after(threshold)) {
                 result.add(changes.get(i));
                 i--;
             }
-        }else {
+        }
+        else {
             for (int i = changes.size() - 1; i >= 0 && result.size() < limit; i--) {
                 result.add(changes.get(i));
             }
