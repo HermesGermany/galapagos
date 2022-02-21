@@ -84,6 +84,7 @@ export class ApplicationBlockComponent implements OnChanges {
                         if (keys.authentications[env.id].authenticationType !== 'ccloud') {
                             return null;
                         }
+
                         this.apiKey = keys.authentications[env.id].authentication['apiKey'];
                         return keys.authentications[env.id].authentication as ApplicationApiKey;
                     };

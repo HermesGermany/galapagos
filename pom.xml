@@ -20,6 +20,7 @@
 		<keycloak.version>13.0.0</keycloak.version>
 		<lombok.version>1.18.12</lombok.version>
 		<kafka.version>2.7.2</kafka.version>
+		<node.version>v16.14.0</node.version>
 		<sonar-maven-plugin.version>3.7.0.1746</sonar-maven-plugin.version>
 		<sonar.sources>src/main/java</sonar.sources>
 		<sonar.exclusions>src/main/resources/*</sonar.exclusions>
@@ -223,7 +224,7 @@
 					</execution>
 				</executions>
 				<configuration>
-					<nodeVersion>v10.16.2</nodeVersion>
+					<nodeVersion>${node.version}</nodeVersion>
 					<workingDirectory>${basedir}/ui</workingDirectory>
 					<installDirectory>${project.build.directory}</installDirectory>
 					<arguments>run build-from-maven</arguments>

@@ -16,10 +16,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - name: Use Node.js 12
+      - name: Use Node.js 16
         uses: actions/setup-node@v1
         with:
-          node-version: 12
+          node-version: 16
       - name: Install modules
         run: npm i
         working-directory: ui
@@ -34,5 +34,5 @@ jobs:
         with:
           java-version: 11
       - name: Build with Maven
-        run: mvn -B package --file pom.xml
+        run: mvn -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=WARN package --file pom.xml
 
