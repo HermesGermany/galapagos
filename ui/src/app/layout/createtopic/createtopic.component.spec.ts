@@ -61,6 +61,8 @@ describe('CreateTopicComponent', () => {
             minDeprecationTime: {
                 days: 1, months: 0, years: 0
             },
+            changelogMinDays: 0,
+            changelogEntries: 10,
             customLinks: [
                 {
                     id: 'dummy',
@@ -97,6 +99,8 @@ describe('CreateTopicComponent', () => {
             minDeprecationTime: {
                 days: 1, months: 0, years: 0
             },
+            changelogMinDays: 0,
+            changelogEntries: 10,
             customLinks: [
                 {
                     id: 'dummy',
