@@ -241,7 +241,7 @@ public class UpdateApplicationAclsListener
 
             if (module != null && !StringUtils.isEmpty(authJson)) {
                 try {
-                    return module.extractKafkaUserName(metadata.getApplicationId(), new JSONObject(authJson));
+                    return module.extractKafkaUserName(new JSONObject(authJson));
                 }
                 catch (JSONException e) {
                     return null;

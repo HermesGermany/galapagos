@@ -65,9 +65,8 @@ public class UpdateApplicationAclsListenerTest {
     @Test
     public void testUpdateApplicationAcls() throws InterruptedException, ExecutionException {
         KafkaAuthenticationModule module = mock(KafkaAuthenticationModule.class);
-        when(module.extractKafkaUserName(ArgumentMatchers.matches("app01"),
-                ArgumentMatchers.argThat(obj -> obj.getString("dn").equals("CN=testapp"))))
-                        .thenReturn("User:CN=testapp");
+        when(module.extractKafkaUserName(ArgumentMatchers.argThat(obj -> obj.getString("dn").equals("CN=testapp"))))
+                .thenReturn("User:CN=testapp");
         when(kafkaClusters.getAuthenticationModule("_test")).thenReturn(Optional.of(module));
 
         UpdateApplicationAclsListener listener = new UpdateApplicationAclsListener(kafkaClusters, topicService,
@@ -226,9 +225,8 @@ public class UpdateApplicationAclsListenerTest {
     @Test
     public void testNoWriteAclsForInternalTopics() {
         KafkaAuthenticationModule module = mock(KafkaAuthenticationModule.class);
-        when(module.extractKafkaUserName(ArgumentMatchers.matches("app-1"),
-                ArgumentMatchers.argThat(obj -> obj.getString("dn").equals("CN=testapp"))))
-                        .thenReturn("User:CN=testapp");
+        when(module.extractKafkaUserName(ArgumentMatchers.argThat(obj -> obj.getString("dn").equals("CN=testapp"))))
+                .thenReturn("User:CN=testapp");
         when(kafkaClusters.getAuthenticationModule("_test")).thenReturn(Optional.of(module));
 
         ApplicationMetadata app1 = new ApplicationMetadata();
@@ -255,7 +253,7 @@ public class UpdateApplicationAclsListenerTest {
     @Test
     public void addedProducerGetsCorrectAcls() throws ExecutionException, InterruptedException {
         KafkaAuthenticationModule module = mock(KafkaAuthenticationModule.class);
-        when(module.extractKafkaUserName(any(), any())).thenReturn("User:12345");
+        when(module.extractKafkaUserName(any())).thenReturn("User:12345");
         when(kafkaClusters.getAuthenticationModule("_test")).thenReturn(Optional.of(module));
         GalapagosEventContext context = mock(GalapagosEventContext.class);
         when(context.getKafkaCluster()).thenReturn(cluster);
@@ -301,7 +299,7 @@ public class UpdateApplicationAclsListenerTest {
     @Test
     public void deletedProducerHasNoAcls() throws ExecutionException, InterruptedException {
         KafkaAuthenticationModule module = mock(KafkaAuthenticationModule.class);
-        when(module.extractKafkaUserName(any(), any())).thenReturn("User:12345");
+        when(module.extractKafkaUserName(any())).thenReturn("User:12345");
         when(kafkaClusters.getAuthenticationModule("_test")).thenReturn(Optional.of(module));
         GalapagosEventContext context = mock(GalapagosEventContext.class);
         when(context.getKafkaCluster()).thenReturn(cluster);
@@ -361,7 +359,7 @@ public class UpdateApplicationAclsListenerTest {
                 oldAuth, newAuth);
 
         KafkaAuthenticationModule authModule = mock(KafkaAuthenticationModule.class);
-        when(authModule.extractKafkaUserName(any(), any())).thenReturn("User:JohnDoe");
+        when(authModule.extractKafkaUserName(any())).thenReturn("User:JohnDoe");
         when(kafkaClusters.getAuthenticationModule("_test")).thenReturn(Optional.of(authModule));
         when(cluster.updateUserAcls(any())).thenReturn(FutureUtil.noop());
         when(cluster.removeUserAcls(any())).thenReturn(FutureUtil.noop());
@@ -391,9 +389,8 @@ public class UpdateApplicationAclsListenerTest {
                 new JSONObject(), newAuth);
 
         KafkaAuthenticationModule authModule = mock(KafkaAuthenticationModule.class);
-        when(authModule.extractKafkaUserName(any(), argThat(arg -> arg != null && arg.has("foo"))))
-                .thenReturn("User:JohnDoe");
-        when(authModule.extractKafkaUserName(any(), argThat(arg -> arg == null || !arg.has("foo")))).thenReturn(null);
+        when(authModule.extractKafkaUserName(argThat(arg -> arg != null && arg.has("foo")))).thenReturn("User:JohnDoe");
+        when(authModule.extractKafkaUserName(argThat(arg -> arg == null || !arg.has("foo")))).thenReturn(null);
         when(kafkaClusters.getAuthenticationModule("_test")).thenReturn(Optional.of(authModule));
         when(cluster.updateUserAcls(any())).thenReturn(FutureUtil.noop());
         when(cluster.removeUserAcls(any())).thenReturn(FutureUtil.noop());
@@ -409,9 +406,8 @@ public class UpdateApplicationAclsListenerTest {
     @Test
     public void testDefaultAcls() {
         KafkaAuthenticationModule module = mock(KafkaAuthenticationModule.class);
-        when(module.extractKafkaUserName(ArgumentMatchers.matches("app-1"),
-                ArgumentMatchers.argThat(obj -> obj.getString("dn").equals("CN=testapp"))))
-                        .thenReturn("User:CN=testapp");
+        when(module.extractKafkaUserName(ArgumentMatchers.argThat(obj -> obj.getString("dn").equals("CN=testapp"))))
+                .thenReturn("User:CN=testapp");
         when(kafkaClusters.getAuthenticationModule("_test")).thenReturn(Optional.of(module));
 
         ApplicationMetadata app1 = new ApplicationMetadata();

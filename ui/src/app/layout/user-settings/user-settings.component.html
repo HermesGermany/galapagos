@@ -1,23 +1,68 @@
 <div [@routerTransition]>
     <h2 class="text-muted">{{ 'User Settings' | translate }}</h2>
-    <hr />
+    <hr/>
+    <ng-container [ngSwitch]="authenticationMode | async">
+        <div *ngSwitchCase="'certificates'">
+            <ng-container *ngTemplateOutlet="developerCertificateBox"></ng-container>
+        </div>
+        <div *ngSwitchCase="'ccloud'">
+            <ng-container *ngTemplateOutlet="developerApiKeyBox"></ng-container>
+        </div>
+    </ng-container>
 
+</div>
+
+<ng-template #developerApiKeyBox>
     <div class="row">
         <div class="col-md-12">
             <div class="card mb-3">
                 <div class="card-header bg-hermes text-white">
-                    <i class="fas fa-award mr-3"></i>{{ 'Developer Certificate' | translate }}
+                    <i class="fas fa-award mr-3"></i>{{ 'Developer API Key'| translate }}
+                </div>
+                <div class="card-body">
+                    <p [innerHTML]="'DEVELOPER_API_KEY_HTML' | translate"></p>
+                    <div class="form-group form-inline mt-2">
+                        <label class="mr-3">{{ 'Kafka Environment' | translate }}</label>
+
+                        <select class="form-control form-inline mr-3" name="selectedEnv"
+                                [(ngModel)]="selectedEnvironment" (change)="updateExistingApiKeyMessage()">
+                            <option *ngFor="let env of devApikeysEnabledEnvironments | async"
+                                    [ngValue]="env">{{ env.name }}
+                            </option>
+                        </select>
+                        <button type="button" class="btn btn-warning" (click)="generateApikey()"
+                                [disabled]="!selectedEnvironment">
+                            <i class="fas fa-cogs mr-3"></i>{{ 'Generate Developer API Key' | translate }}
+                        </button>
+                    </div>
+                    <ngb-alert type="info" *ngIf="existingApiKeyMessage | async" [dismissible]="false">
+                        <span [innerHTML]="existingApiKeyMessage | async"></span>
+                    </ngb-alert>
+                </div>
+            </div>
+        </div>
+    </div>
+</ng-template>
+<ng-template #developerCertificateBox>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card mb-3">
+                <div class="card-header bg-hermes text-white">
+                    <i class="fas fa-award mr-3"></i>{{ 'Developer Certificate'| translate }}
                 </div>
                 <div class="card-body">
                     <p [innerHTML]="'DEVELOPER_CERTIFICATE_HTML' | translate"></p>
                     <div class="form-group form-inline mt-2">
                         <label class="mr-3">{{ 'Kafka Environment' | translate }}</label>
 
-                        <select class="form-control form-inline mr-3" name="selectedEnv" [(ngModel)]="selectedEnvironment" (change)="updateExistingCertificateMessage()">
-                            <option *ngFor="let env of devCertsEnabledEnvironments | async" [ngValue]="env">{{ env.name }}
+                        <select class="form-control form-inline mr-3" name="selectedEnv"
+                                [(ngModel)]="selectedEnvironment" (change)="updateExistingCertificateMessage()">
+                            <option *ngFor="let env of devCertsEnabledEnvironments | async"
+                                    [ngValue]="env">{{ env.name }}
                             </option>
                         </select>
-                        <button type="button" class="btn btn-warning" (click)="generateCertificate()" [disabled]="!selectedEnvironment">
+                        <button type="button" class="btn btn-warning" (click)="generateCertificate()"
+                                [disabled]="!selectedEnvironment">
                             <i class="fas fa-cogs mr-3"></i>{{ 'Generate Developer Certificate' | translate }}
                         </button>
                     </div>
@@ -28,4 +73,4 @@
             </div>
         </div>
     </div>
-</div>
+</ng-template>

@@ -1,34 +1,37 @@
-package com.hermesworld.ais.galapagos.devcerts.impl;
-
-import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.invocation.InvocationOnMock;
+package com.hermesworld.ais.galapagos.devauth.impl;
 
 import com.hermesworld.ais.galapagos.applications.ApplicationMetadata;
 import com.hermesworld.ais.galapagos.applications.ApplicationOwnerRequest;
 import com.hermesworld.ais.galapagos.applications.ApplicationsService;
 import com.hermesworld.ais.galapagos.applications.RequestState;
 import com.hermesworld.ais.galapagos.applications.impl.UpdateApplicationAclsListener;
-import com.hermesworld.ais.galapagos.devcerts.DevCertificateMetadata;
+import com.hermesworld.ais.galapagos.certificates.auth.CertificatesAuthenticationConfig;
+import com.hermesworld.ais.galapagos.certificates.auth.CertificatesAuthenticationModule;
+import com.hermesworld.ais.galapagos.devauth.DevAuthenticationMetadata;
 import com.hermesworld.ais.galapagos.events.ApplicationEvent;
 import com.hermesworld.ais.galapagos.events.GalapagosEventContext;
 import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
+import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.kafka.KafkaUser;
 import com.hermesworld.ais.galapagos.kafka.impl.TopicBasedRepositoryMock;
 import com.hermesworld.ais.galapagos.subscriptions.service.SubscriptionService;
 import com.hermesworld.ais.galapagos.util.FutureUtil;
 import com.hermesworld.ais.galapagos.util.TimeService;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.invocation.InvocationOnMock;
+
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class DevUserAclListenerTest {
 
@@ -36,15 +39,15 @@ public class DevUserAclListenerTest {
 
     private DevUserAclListener listener;
 
-    private TopicBasedRepositoryMock<DevCertificateMetadata> repository;
+    private TopicBasedRepositoryMock<DevAuthenticationMetadata> repository;
 
     private GalapagosEventContext context;
 
     private ZonedDateTime timestamp;
 
-    private List<InvocationOnMock> updateAclCalls = new ArrayList<InvocationOnMock>();
+    private final List<InvocationOnMock> updateAclCalls = new ArrayList<>();
 
-    @Before
+    @BeforeEach
     public void initMocks() {
         applicationsService = mock(ApplicationsService.class);
         SubscriptionService subscriptionService = mock(SubscriptionService.class);
@@ -60,7 +63,10 @@ public class DevUserAclListenerTest {
 
         UpdateApplicationAclsListener aclService = mock(UpdateApplicationAclsListener.class);
 
-        listener = new DevUserAclListener(applicationsService, subscriptionService, timeService, aclService);
+        KafkaClusters clusters = mock(KafkaClusters.class);
+        when(clusters.getAuthenticationModule(any())).thenReturn(Optional
+                .of(new CertificatesAuthenticationModule("test", mock(CertificatesAuthenticationConfig.class))));
+        listener = new DevUserAclListener(applicationsService, subscriptionService, timeService, aclService, clusters);
 
         KafkaCluster cluster = mock(KafkaCluster.class);
         when(cluster.updateUserAcls(any())).then(inv -> {
@@ -69,7 +75,7 @@ public class DevUserAclListenerTest {
         });
 
         repository = new TopicBasedRepositoryMock<>();
-        when(cluster.getRepository("devcerts", DevCertificateMetadata.class)).thenReturn(repository);
+        when(cluster.getRepository("devauth", DevAuthenticationMetadata.class)).thenReturn(repository);
 
         context = mock(GalapagosEventContext.class);
         when(context.getKafkaCluster()).thenReturn(cluster);
@@ -77,11 +83,10 @@ public class DevUserAclListenerTest {
 
     @Test
     public void testApplicationRegistered_invalidCertificate() throws Exception {
-        DevCertificateMetadata devcert = new DevCertificateMetadata();
-        devcert.setCertificateDn("CN=testuser");
-        devcert.setUserName("testuser");
-        devcert.setExpiryDate(timestamp.minusDays(10).toInstant());
-        repository.save(devcert);
+        DevAuthenticationMetadata devAuth = new DevAuthenticationMetadata();
+        devAuth.setUserName("testuser");
+        devAuth.setAuthenticationJson("{\"expiresAt\":\"2017-02-03T10:37:30Z\"}");
+        repository.save(devAuth).get();
 
         List<ApplicationOwnerRequest> requests = new ArrayList<>();
         ApplicationOwnerRequest request = new ApplicationOwnerRequest();
@@ -99,21 +104,21 @@ public class DevUserAclListenerTest {
 
         listener.handleApplicationRegistered(event).get();
 
-        assertEquals(0, updateAclCalls.size());
+        Assertions.assertEquals(0, updateAclCalls.size());
     }
 
     @Test
     public void testApplicationRegistered() throws Exception {
-        DevCertificateMetadata devcert = new DevCertificateMetadata();
-        devcert.setCertificateDn("CN=testuser");
-        devcert.setUserName("testuser");
-        devcert.setExpiryDate(timestamp.plusDays(10).toInstant());
-        repository.save(devcert);
-        devcert = new DevCertificateMetadata();
-        devcert.setCertificateDn("CN=testuser2");
-        devcert.setUserName("testuser2");
-        devcert.setExpiryDate(timestamp.plusDays(10).toInstant());
-        repository.save(devcert);
+        DevAuthenticationMetadata devAuth = new DevAuthenticationMetadata();
+        devAuth.setUserName("testuser");
+        devAuth.setAuthenticationJson(
+                "{\"expiresAt\":\"" + timestamp.plusDays(10).toInstant().toString() + "\",\"dn\":\"CN=testuser\"}");
+        repository.save(devAuth).get();
+        devAuth = new DevAuthenticationMetadata();
+        devAuth.setUserName("testuser2");
+        devAuth.setAuthenticationJson(
+                "{\"expiresAt\":\"" + timestamp.plusDays(10).toInstant().toString() + "\",\"dn\":\"CN=testuser2\"}");
+        repository.save(devAuth).get();
 
         List<ApplicationOwnerRequest> requests = new ArrayList<>();
         ApplicationOwnerRequest request = new ApplicationOwnerRequest();
@@ -131,11 +136,11 @@ public class DevUserAclListenerTest {
 
         listener.handleApplicationRegistered(event).get();
 
-        assertEquals(1, updateAclCalls.size());
+        Assertions.assertEquals(1, updateAclCalls.size());
 
         KafkaUser user = updateAclCalls.get(0).getArgument(0);
 
-        assertEquals("User:CN=testuser", user.getKafkaUserName());
+        Assertions.assertEquals("User:CN=testuser", user.getKafkaUserName());
 
     }
 

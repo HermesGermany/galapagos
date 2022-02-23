@@ -1,13 +1,15 @@
-package com.hermesworld.ais.galapagos.devcerts.impl;
+package com.hermesworld.ais.galapagos.devauth.impl;
 
 import com.hermesworld.ais.galapagos.applications.ApplicationMetadata;
 import com.hermesworld.ais.galapagos.applications.ApplicationsService;
 import com.hermesworld.ais.galapagos.applications.RequestState;
 import com.hermesworld.ais.galapagos.applications.impl.UpdateApplicationAclsListener;
-import com.hermesworld.ais.galapagos.devcerts.DevCertificateMetadata;
+import com.hermesworld.ais.galapagos.devauth.DevAuthenticationMetadata;
 import com.hermesworld.ais.galapagos.events.*;
 import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
+import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.kafka.KafkaUser;
+import com.hermesworld.ais.galapagos.kafka.auth.KafkaAuthenticationModule;
 import com.hermesworld.ais.galapagos.kafka.util.TopicBasedRepository;
 import com.hermesworld.ais.galapagos.subscriptions.service.SubscriptionService;
 import com.hermesworld.ais.galapagos.util.FutureUtil;
@@ -19,7 +21,10 @@ import org.apache.kafka.common.acl.AclPermissionType;
 import org.apache.kafka.common.resource.PatternType;
 import org.apache.kafka.common.resource.ResourcePattern;
 import org.apache.kafka.common.resource.ResourceType;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.springframework.stereotype.Component;
+import org.thymeleaf.util.StringUtils;
 
 import javax.annotation.CheckReturnValue;
 import java.util.Collection;
@@ -39,12 +44,16 @@ public class DevUserAclListener implements TopicEventsListener, SubscriptionEven
 
     private final UpdateApplicationAclsListener applicationsAclService;
 
+    private final KafkaClusters kafkaClusters;
+
     public DevUserAclListener(ApplicationsService applicationsService, SubscriptionService subscriptionService,
-            TimeService timeService, UpdateApplicationAclsListener applicationsAclService) {
+            TimeService timeService, UpdateApplicationAclsListener applicationsAclService,
+            KafkaClusters kafkaClusters) {
         this.applicationsService = applicationsService;
         this.subscriptionService = subscriptionService;
         this.timeService = timeService;
         this.applicationsAclService = applicationsAclService;
+        this.kafkaClusters = kafkaClusters;
     }
 
     @Override
@@ -127,7 +136,7 @@ public class DevUserAclListener implements TopicEventsListener, SubscriptionEven
     @Override
     @CheckReturnValue
     public CompletableFuture<Void> handleAddTopicProducer(TopicAddProducerEvent event) {
-        Set<DevCertificateMetadata> validDevCertificatesForApplication = new HashSet<>();
+        Set<DevAuthenticationMetadata> validDevCertificatesForApplication = new HashSet<>();
         validDevCertificatesForApplication.addAll(getValidDevCertificatesForApplication(
                 event.getContext().getKafkaCluster(), event.getProducerApplicationId()));
 
@@ -198,61 +207,84 @@ public class DevUserAclListener implements TopicEventsListener, SubscriptionEven
     }
 
     @CheckReturnValue
-    CompletableFuture<Void> updateAcls(KafkaCluster cluster, Set<DevCertificateMetadata> metadatas) {
+    CompletableFuture<Void> updateAcls(KafkaCluster cluster, Set<DevAuthenticationMetadata> metadatas) {
         CompletableFuture<Void> result = CompletableFuture.completedFuture(null);
-        for (DevCertificateMetadata metadata : metadatas) {
-            result = result.thenCompose(o -> cluster.updateUserAcls(new DevKafkaUser(metadata, cluster.getId())));
+        for (DevAuthenticationMetadata metadata : metadatas) {
+            result = result.thenCompose(
+                    o -> cluster.updateUserAcls(new DevAuthenticationKafkaUser(metadata, cluster.getId())));
         }
         return result;
     }
 
     @CheckReturnValue
-    CompletableFuture<Void> removeAcls(KafkaCluster cluster, Set<DevCertificateMetadata> metadatas) {
+    CompletableFuture<Void> removeAcls(KafkaCluster cluster, Set<DevAuthenticationMetadata> metadatas) {
         CompletableFuture<Void> result = CompletableFuture.completedFuture(null);
-        for (DevCertificateMetadata metadata : metadatas) {
-            result = result.thenCompose(o -> cluster.removeUserAcls(new DevKafkaUser(metadata, cluster.getId())));
+        for (DevAuthenticationMetadata metadata : metadatas) {
+            result = result.thenCompose(
+                    o -> cluster.removeUserAcls(new DevAuthenticationKafkaUser(metadata, cluster.getId())));
         }
         return result;
     }
 
-    private Set<DevCertificateMetadata> getValidDevCertificatesForApplication(KafkaCluster cluster,
+    // TODO rename method
+    private Set<DevAuthenticationMetadata> getValidDevCertificatesForApplication(KafkaCluster cluster,
             String applicationId) {
         Set<String> userNames = applicationsService.getAllApplicationOwnerRequests().stream()
                 .filter(req -> req.getState() == RequestState.APPROVED && applicationId.equals(req.getApplicationId()))
                 .map(req -> req.getUserName()).collect(Collectors.toSet());
 
         return getRepository(cluster).getObjects().stream()
-                .filter(dev -> isValid(dev) && userNames.contains(dev.getUserName())).collect(Collectors.toSet());
+                .filter(dev -> isValid(dev, cluster) && userNames.contains(dev.getUserName()))
+                .collect(Collectors.toSet());
     }
 
-    private Set<DevCertificateMetadata> getValidDevCertificateForUser(KafkaCluster cluster, String userName) {
+    // TODO rename method
+    private Set<DevAuthenticationMetadata> getValidDevCertificateForUser(KafkaCluster cluster, String userName) {
         return getRepository(cluster).getObjects().stream()
-                .filter(dev -> isValid(dev) && userName.equals(dev.getUserName())).collect(Collectors.toSet());
+                .filter(dev -> isValid(dev, cluster) && userName.equals(dev.getUserName())).collect(Collectors.toSet());
     }
 
-    private boolean isValid(DevCertificateMetadata metadata) {
-        return metadata.getExpiryDate() != null
-                && metadata.getExpiryDate().isAfter(timeService.getTimestamp().toInstant());
+    private boolean isValid(DevAuthenticationMetadata metadata, KafkaCluster cluster) {
+        JSONObject json = new JSONObject(metadata.getAuthenticationJson());
+        KafkaAuthenticationModule authModule = kafkaClusters.getAuthenticationModule(cluster.getId()).orElse(null);
+
+        if (authModule == null) {
+            return false;
+        }
+        return authModule.extractExpiryDate(json).isPresent()
+                && authModule.extractExpiryDate(json).get().isAfter(timeService.getTimestamp().toInstant());
+
     }
 
-    private TopicBasedRepository<DevCertificateMetadata> getRepository(KafkaCluster cluster) {
-        return DeveloperCertificateServiceImpl.getRepository(cluster);
+    private TopicBasedRepository<DevAuthenticationMetadata> getRepository(KafkaCluster cluster) {
+        return DeveloperAuthenticationServiceImpl.getRepository(cluster);
     }
 
-    private class DevKafkaUser implements KafkaUser {
+    private class DevAuthenticationKafkaUser implements KafkaUser {
 
-        private final DevCertificateMetadata metadata;
+        private final DevAuthenticationMetadata metadata;
 
         private final String environmentId;
 
-        public DevKafkaUser(DevCertificateMetadata metadata, String environmentId) {
+        public DevAuthenticationKafkaUser(DevAuthenticationMetadata metadata, String environmentId) {
             this.metadata = metadata;
             this.environmentId = environmentId;
         }
 
         @Override
         public String getKafkaUserName() {
-            return "User:" + metadata.getCertificateDn();
+            KafkaAuthenticationModule module = kafkaClusters.getAuthenticationModule(environmentId).orElse(null);
+            String authJson = metadata.getAuthenticationJson();
+
+            if (module != null && !StringUtils.isEmpty(authJson)) {
+                try {
+                    return module.extractKafkaUserName(new JSONObject(authJson));
+                }
+                catch (JSONException e) {
+                    return null;
+                }
+            }
+            return null;
         }
 
         @Override
