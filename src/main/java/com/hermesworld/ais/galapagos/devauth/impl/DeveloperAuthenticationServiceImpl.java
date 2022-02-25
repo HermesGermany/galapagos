@@ -48,7 +48,6 @@ public class DeveloperAuthenticationServiceImpl implements DeveloperAuthenticati
 
     @Override
     public void init(KafkaCluster cluster) {
-        // TODO delete old metadata topic
         getRepository(cluster).getObjects();
     }
 
