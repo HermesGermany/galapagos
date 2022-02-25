@@ -6,7 +6,6 @@ import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.kafka.auth.CreateAuthenticationResult;
 import com.hermesworld.ais.galapagos.kafka.auth.KafkaAuthenticationModule;
-import com.hermesworld.ais.galapagos.kafka.config.KafkaEnvironmentConfig;
 import com.hermesworld.ais.galapagos.kafka.util.InitPerCluster;
 import com.hermesworld.ais.galapagos.kafka.util.TopicBasedRepository;
 import com.hermesworld.ais.galapagos.security.CurrentUserService;
@@ -54,16 +53,15 @@ public class DeveloperAuthenticationServiceImpl implements DeveloperAuthenticati
     }
 
     @Override
-    public CompletableFuture<Void> createDeveloperAuthenticationForCurrentUser(String environmentId,
-            OutputStream outputStreamForSecret) {
+    public CompletableFuture<DevAuthenticationMetadata> createDeveloperAuthenticationForCurrentUser(
+            String environmentId, OutputStream outputStreamForSecret) {
         String userName = currentUserService.getCurrentUserName().orElse(null);
         if (userName == null) {
             return FutureUtil.noUser();
         }
 
         KafkaCluster cluster = kafkaClusters.getEnvironment(environmentId).orElse(null);
-        KafkaEnvironmentConfig metadata = kafkaClusters.getEnvironmentMetadata(environmentId).orElse(null);
-        if (metadata == null || cluster == null) {
+        if (cluster == null) {
             return FutureUtil.noSuchEnvironment(environmentId);
         }
 
@@ -84,7 +82,7 @@ public class DeveloperAuthenticationServiceImpl implements DeveloperAuthenticati
                 .orElse(FutureUtil.noop());
 
         return removeFuture.thenCompose(o -> authModule.createDeveloperAuthentication(userName, new JSONObject()))
-                .thenCompose(result -> saveMetadata(cluster, userName, result)).thenApply(result -> {
+                .thenCompose(result -> saveMetadata(cluster, userName, result).thenApply(meta -> {
                     byte[] secretData = result.getPrivateAuthenticationData();
                     if (secretData == null) {
                         log.error("No secret data for developer authentication returned by generation");
@@ -97,12 +95,9 @@ public class DeveloperAuthenticationServiceImpl implements DeveloperAuthenticati
                         log.warn("Could not write secret data of developer authentication to output stream", e);
                     }
 
-                    return (Void) null;
-                })
-                .thenCompose(o -> getRepository(cluster).getObject(userName)
-                        .map(meta -> aclUpdater.updateAcls(cluster, Collections.singleton(meta)))
-                        .orElse(FutureUtil.noop()))
-                .thenCompose(o -> clearExpiredDeveloperAuthenticationsOnAllClusters()).thenApply(o -> null);
+                    return meta;
+                }).thenCompose(meta -> aclUpdater.updateAcls(cluster, Collections.singleton(meta))
+                        .thenCompose(o -> clearExpiredDeveloperAuthenticationsOnAllClusters()).thenApply(o -> meta)));
     }
 
     @Override
@@ -137,17 +132,14 @@ public class DeveloperAuthenticationServiceImpl implements DeveloperAuthenticati
             if (authModule == null) {
                 return FutureUtil.noSuchEnvironment(cluster.getId());
             }
-            String authMode = kafkaClusters.getEnvironmentMetadata(cluster.getId())
-                    .map(KafkaEnvironmentConfig::getAuthenticationMode).orElse("");
-
-            if (!"certificates".equals(authMode) && !"ccloud".equals(authMode)) {
-                continue;
-            }
             Set<DevAuthenticationMetadata> expiredDevAuthentications = getRepository(cluster).getObjects().stream()
                     .filter(devAuth -> isExpired(devAuth, authModule)).collect(Collectors.toSet());
-            result = result.thenCompose(future -> aclUpdater.removeAcls(cluster, expiredDevAuthentications));
+            result = result.thenCompose(o -> aclUpdater.removeAcls(cluster, expiredDevAuthentications));
             for (DevAuthenticationMetadata devAuth : expiredDevAuthentications) {
-                result = result.thenCompose(o -> getRepository(cluster).delete(devAuth));
+                JSONObject authJson = new JSONObject(devAuth.getAuthenticationJson());
+                result = result
+                        .thenCompose(o -> authModule.deleteDeveloperAuthentication(devAuth.getUserName(), authJson))
+                        .thenCompose(o -> getRepository(cluster).delete(devAuth));
                 totalClearedDevAuthentications.incrementAndGet();
             }
         }
@@ -161,9 +153,10 @@ public class DeveloperAuthenticationServiceImpl implements DeveloperAuthenticati
                 .orElse(false);
     }
 
-    private CompletableFuture<CreateAuthenticationResult> saveMetadata(KafkaCluster cluster, String userName,
+    private CompletableFuture<DevAuthenticationMetadata> saveMetadata(KafkaCluster cluster, String userName,
             CreateAuthenticationResult result) {
-        return getRepository(cluster).save(toMetadata(userName, result)).thenApply(o -> result);
+        DevAuthenticationMetadata metadata = toMetadata(userName, result);
+        return getRepository(cluster).save(toMetadata(userName, result)).thenApply(o -> metadata);
     }
 
     static TopicBasedRepository<DevAuthenticationMetadata> getRepository(KafkaCluster cluster) {

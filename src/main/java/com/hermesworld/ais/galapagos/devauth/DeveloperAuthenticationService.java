@@ -10,7 +10,7 @@ public interface DeveloperAuthenticationService {
     Optional<DevAuthenticationMetadata> getDeveloperAuthenticationOfCurrentUser(String environmentId);
 
     @CheckReturnValue
-    CompletableFuture<Void> createDeveloperAuthenticationForCurrentUser(String environmentId,
+    CompletableFuture<DevAuthenticationMetadata> createDeveloperAuthenticationForCurrentUser(String environmentId,
             OutputStream outputStreamForSecret);
 
     @CheckReturnValue
