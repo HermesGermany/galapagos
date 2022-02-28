@@ -26,6 +26,10 @@
     @import "bootstrap/bootstrap";
 }
 
+.dark .text-white{
+    color: white !important;
+}
+
 @import "bootstrap/bootstrap";
 
 @media print {
