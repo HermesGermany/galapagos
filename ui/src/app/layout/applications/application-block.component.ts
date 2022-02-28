@@ -85,6 +85,7 @@ export class ApplicationBlockComponent implements OnChanges {
                             return null;
                         }
 
+                        this.apiKey = keys.authentications[env.id].authentication['apiKey'];
                         return keys.authentications[env.id].authentication as ApplicationApiKey;
                     };
 

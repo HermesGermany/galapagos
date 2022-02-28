@@ -153,7 +153,8 @@ describe('ApplicationBlockComponent', () => {
             name: 'prod',
             bootstrapServers: 'myBootstrapServers',
             production: true,
-            stagingOnly: true
+            stagingOnly: true,
+            authenticationMode: 'certificates'
         }));
 
         component.application = app;

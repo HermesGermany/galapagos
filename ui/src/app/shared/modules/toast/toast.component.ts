@@ -74,10 +74,10 @@ export class GalapagosToastComponent implements AfterContentInit, OnChanges {
      */
     @Input()
     @HostBinding('class.autohide')
-    autohide: boolean;
+        autohide: boolean;
 
     @Input()
-    type: 'info' | 'success' | 'danger' = 'info';
+        type: 'info' | 'success' | 'danger' = 'info';
 
     /**
      * Text to be used as toast's header.

@@ -32,8 +32,8 @@ export class HeaderComponent implements OnInit {
     ngOnInit() {
         this.pushRightClass = 'push-right';
 
-        this.userName = this.keycloak.getKeycloakInstance().loadUserInfo().then(
-            info => (info as any).given_name + ' ' + (info as any).family_name);
+        this.userName = Promise.resolve(this.keycloak.getKeycloakInstance().idTokenParsed.given_name
+            + ' ' + this.keycloak.getKeycloakInstance().idTokenParsed.family_name);
 
         this.router.events.subscribe(val => {
             if (
