@@ -104,17 +104,16 @@ export class DashboardComponent implements OnInit {
     }
 
     private formatChanges(changes: ChangelogEntry[], amountOfEntries: number, minDays: number): ChangelogEntry[] {
+        changes = changes
+            .map(change => {
+                change.change.html = this.changeHtml(change.change);
+                return change;
+            }).filter(change => change.change.html !== null);
         const index = changes.findIndex(
             change =>
                 new Date(change.timestamp) <
                 new Date(new Date().setDate(new Date().getDate() - minDays)));
-        return changes
-            .map(change => {
-                change.change.html = this.changeHtml(change.change);
-                return change;
-            })
-            .slice(0, Math.max(amountOfEntries,index-1))
-            .filter(change => change.change.html !== null);
+        return changes.slice(0, Math.max(amountOfEntries,index));
     }
 
     private changeHtml(change: Change): Observable<string> {
