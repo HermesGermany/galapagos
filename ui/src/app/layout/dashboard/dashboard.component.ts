@@ -51,12 +51,11 @@ export class DashboardComponent implements OnInit {
         this.allEnvironments = environments.getEnvironments();
         this.selectedEnvironment = environments.getCurrentEnvironment();
         this.serverInfos = environments.getCurrentEnvironmentServerInfo();
-        this.configAmountOfEntries = this.serverInfoService.getUiConfig().pipe(map(config => config.changelogEntries));
-
         this.changelog = this.serverInfoService.getUiConfig().pipe(switchMap(config =>
             this.selectedEnvironment
                 .pipe(flatMap(env => this.environments.getChangeLog(env.id)))
-                .pipe(map(changes => this.formatChanges(changes,config.changelogEntries,config.changelogMinDays))).pipe(shareReplay(1))));
+                .pipe(map(changes => this.formatChanges(changes, config.changelogEntries, config.changelogMinDays)))
+                .pipe(shareReplay(1))));
     }
 
     ngOnInit() {
@@ -113,7 +112,7 @@ export class DashboardComponent implements OnInit {
             change =>
                 new Date(change.timestamp) <
                 new Date(new Date().setDate(new Date().getDate() - minDays)));
-        return changes.slice(0, Math.max(amountOfEntries,index));
+        return changes.slice(0, Math.max(amountOfEntries, index));
     }
 
     private changeHtml(change: Change): Observable<string> {
