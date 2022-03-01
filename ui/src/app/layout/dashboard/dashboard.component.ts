@@ -109,6 +109,7 @@ export class DashboardComponent implements OnInit {
     private changeHtml(change: Change): Observable<string> {
         let topicName: string;
         let topicLink: string;
+        let state: string;
 
         switch (change.changeType) {
             case 'TOPIC_CREATED':
@@ -161,21 +162,31 @@ export class DashboardComponent implements OnInit {
                     topicLink: topicLink
                 });
             case 'TOPIC_SUBSCRIBED':
+                state = change.subscriptionMetadata.state;
                 topicName = change.subscriptionMetadata.topicName;
                 topicLink = this.urlForRouterLink('/topics/' + topicName);
                 return this.applicationInfo(change.subscriptionMetadata.clientApplicationId).pipe(
                     flatMap(app => {
                         if (!app) {
                             return this.translate.stream('(unknown)').pipe(
-                                flatMap(s => this.translate.stream('CHANGELOG_TOPIC_SUBSCRIBED_HTML_NO_APP_LINK',
+                                flatMap(s => this.translate.stream(
+                                    state === 'APPROVED'
+                                        ? 'CHANGELOG_TOPIC_SUBSCRIBED_HTML_NO_APP_LINK'
+                                        : 'CHANGELOG_TOPIC_SUBSCRIBED_HTML_NO_APP_LINK_PENDING',
                                     { topicName: topicName, topicLink: topicLink, appInfo: { name: s } })));
                         }
                         if (!app.infoUrl) {
-                            return this.translate.stream('CHANGELOG_TOPIC_SUBSCRIBED_HTML_NO_APP_LINK',
+                            return this.translate.stream(
+                                state === 'APPROVED'
+                                    ? 'CHANGELOG_TOPIC_SUBSCRIBED_HTML_NO_APP_LINK'
+                                    : 'CHANGELOG_TOPIC_SUBSCRIBED_HTML_NO_APP_LINK_PENDING',
                                 { topicName: topicName, topicLink: topicLink, appInfo: app });
                         }
 
-                        return this.translate.stream('CHANGELOG_TOPIC_SUBSCRIBED_HTML',
+                        return this.translate.stream(
+                            state === 'APPROVED'
+                                ? 'CHANGELOG_TOPIC_SUBSCRIBED_HTML'
+                                : 'CHANGELOG_TOPIC_SUBSCRIBED_HTML_PENDING',
                             { topicName: topicName, topicLink: topicLink, appInfo: app });
                     }));
             case 'TOPIC_UNSUBSCRIBED':
@@ -206,7 +217,34 @@ export class DashboardComponent implements OnInit {
                         producerName: producer.name
                     })
                 ));
+            case 'TOPIC_SUBSCRIPTION_UPDATED':
+                state = change.subscriptionMetadata.state;
+                topicName = change.subscriptionMetadata.topicName;
+                topicLink = this.urlForRouterLink('/topics/' + topicName);
+                return this.applicationInfo(change.subscriptionMetadata.clientApplicationId).pipe(
+                    flatMap(app => {
+                        if (!app) {
+                            return this.translate.stream('(unknown)').pipe(
+                                flatMap(s => this.translate.stream(
+                                    state === 'APPROVED'
+                                        ? 'CHANGELOG_TOPIC_SUBSCRIBED_HTML_NO_APP_LINK_APPROVED'
+                                        : 'CHANGELOG_TOPIC_SUBSCRIBED_HTML_NO_APP_LINK_DECLINED',
+                                    { topicName: topicName, topicLink: topicLink, appInfo: { name: s } })));
+                        }
+                        if (!app.infoUrl) {
+                            return this.translate.stream(
+                                state === 'APPROVED'
+                                    ? 'CHANGELOG_TOPIC_SUBSCRIBED_HTML_NO_APP_LINK_APPROVED'
+                                    : 'CHANGELOG_TOPIC_SUBSCRIBED_HTML_NO_APP_LINK_DECLINED',
+                                { topicName: topicName, topicLink: topicLink, appInfo: app });
+                        }
 
+                        return this.translate.stream(
+                            state === 'APPROVED'
+                                ? 'CHANGELOG_TOPIC_SUBSCRIBED_HTML_APPROVED'
+                                : 'CHANGELOG_TOPIC_SUBSCRIBED_HTML_DECLINED',
+                            { topicName: topicName, topicLink: topicLink, appInfo: app });
+                    }));
 
         }
         return null;
