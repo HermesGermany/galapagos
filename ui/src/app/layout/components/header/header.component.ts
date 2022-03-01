@@ -24,8 +24,6 @@ export class HeaderComponent implements OnInit {
 
     authenticationMode: Observable<string>;
 
-    public darkmode: boolean;
-
     constructor(private translate: TranslateService, public router: Router, private keycloak: KeycloakService,
                 private environments: EnvironmentsService) {
 
