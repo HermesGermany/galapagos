@@ -8,78 +8,85 @@ import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.kafka.KafkaUser;
 import com.hermesworld.ais.galapagos.kafka.TopicCreateParams;
 import com.hermesworld.ais.galapagos.kafka.auth.KafkaAuthenticationModule;
-import com.hermesworld.ais.galapagos.kafka.config.DefaultAclConfig;
-import com.hermesworld.ais.galapagos.kafka.config.KafkaEnvironmentsConfig;
+import com.hermesworld.ais.galapagos.kafka.util.AclSupport;
 import com.hermesworld.ais.galapagos.subscriptions.SubscriptionMetadata;
 import com.hermesworld.ais.galapagos.subscriptions.service.SubscriptionService;
 import com.hermesworld.ais.galapagos.topics.TopicMetadata;
 import com.hermesworld.ais.galapagos.topics.TopicType;
-import com.hermesworld.ais.galapagos.topics.service.TopicService;
 import com.hermesworld.ais.galapagos.util.FutureUtil;
+import org.apache.kafka.common.acl.AccessControlEntry;
 import org.apache.kafka.common.acl.AclBinding;
 import org.apache.kafka.common.acl.AclOperation;
 import org.apache.kafka.common.acl.AclPermissionType;
 import org.apache.kafka.common.resource.PatternType;
+import org.apache.kafka.common.resource.ResourcePattern;
 import org.apache.kafka.common.resource.ResourceType;
 import org.json.JSONObject;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.function.BiFunction;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 public class UpdateApplicationAclsListenerTest {
 
-    private static final List<AclOperation> WRITE_TOPIC_OPERATIONS = Arrays.asList(AclOperation.DESCRIBE,
-            AclOperation.DESCRIBE_CONFIGS, AclOperation.READ, AclOperation.WRITE);
-
-    private static final List<AclOperation> READ_TOPIC_OPERATIONS = Arrays.asList(AclOperation.DESCRIBE,
-            AclOperation.DESCRIBE_CONFIGS, AclOperation.READ);
-
+    @Mock
     private KafkaClusters kafkaClusters;
-    private TopicService topicService;
+
+    @Mock
+    private KafkaAuthenticationModule authenticationModule;
+
+    @Mock
     private ApplicationsService applicationsService;
+
+    @Mock
     private SubscriptionService subscriptionService;
+
+    @Mock
     private KafkaCluster cluster;
-    private KafkaEnvironmentsConfig kafkaConfig;
 
-    @Before
+    @Mock
+    private AclSupport aclSupport;
+
+    private AclBinding dummyBinding;
+
+    @BeforeEach
     public void feedMocks() {
-        topicService = mock(TopicService.class);
-        applicationsService = mock(ApplicationsService.class);
-        subscriptionService = mock(SubscriptionService.class);
-        kafkaClusters = mock(KafkaClusters.class);
-        kafkaConfig = mock(KafkaEnvironmentsConfig.class);
-
-        cluster = mock(KafkaCluster.class);
         when(cluster.getId()).thenReturn("_test");
-        when(kafkaClusters.getEnvironment("_test")).thenReturn(Optional.of(cluster));
+        lenient().when(kafkaClusters.getEnvironment("_test")).thenReturn(Optional.of(cluster));
+        when(kafkaClusters.getAuthenticationModule("_test")).thenReturn(Optional.of(authenticationModule));
+
+        dummyBinding = new AclBinding(new ResourcePattern(ResourceType.TOPIC, "testtopic", PatternType.LITERAL),
+                new AccessControlEntry("me", "*", AclOperation.ALL, AclPermissionType.ALLOW));
+
+        BiFunction<AclBinding, String, AclBinding> withName = (binding, name) -> new AclBinding(binding.pattern(),
+                new AccessControlEntry(name, binding.entry().host(), binding.entry().operation(),
+                        binding.entry().permissionType()));
+
+        lenient().when(aclSupport.getRequiredAclBindings(any(), any(), any(), anyBoolean()))
+                .then(inv -> Set.of(withName.apply(dummyBinding, inv.getArgument(2))));
     }
 
     @Test
     public void testUpdateApplicationAcls() throws InterruptedException, ExecutionException {
-        KafkaAuthenticationModule module = mock(KafkaAuthenticationModule.class);
-        when(module.extractKafkaUserName(ArgumentMatchers.argThat(obj -> obj.getString("dn").equals("CN=testapp"))))
+        when(authenticationModule
+                .extractKafkaUserName(ArgumentMatchers.argThat(obj -> obj.getString("dn").equals("CN=testapp"))))
                 .thenReturn("User:CN=testapp");
-        when(kafkaClusters.getAuthenticationModule("_test")).thenReturn(Optional.of(module));
 
-        UpdateApplicationAclsListener listener = new UpdateApplicationAclsListener(kafkaClusters, topicService,
-                subscriptionService, applicationsService, kafkaConfig);
+        when(cluster.updateUserAcls(any())).thenReturn(FutureUtil.noop());
+        lenient().when(cluster.removeUserAcls(any())).thenThrow(UnsupportedOperationException.class);
 
-        List<KafkaUser> users = new ArrayList<>();
-
-        when(cluster.updateUserAcls(any())).then(inv -> {
-            users.add(inv.getArgument(0));
-            return CompletableFuture.completedFuture(null);
-        });
-
-        when(cluster.removeUserAcls(any())).thenThrow(UnsupportedOperationException.class);
 
         ApplicationMetadata metadata = new ApplicationMetadata();
         metadata.setApplicationId("app01");
@@ -90,255 +97,151 @@ public class UpdateApplicationAclsListenerTest {
 
         GalapagosEventContext context = mock(GalapagosEventContext.class);
         when(context.getKafkaCluster()).thenReturn(cluster);
-        when(applicationsService.getApplicationMetadata("_test", "app01")).thenReturn(Optional.of(metadata));
 
         ApplicationEvent event = new ApplicationEvent(context, metadata);
 
+        UpdateApplicationAclsListener listener = new UpdateApplicationAclsListener(kafkaClusters, subscriptionService,
+                applicationsService, aclSupport);
+
         listener.handleApplicationRegistered(event).get();
 
-        assertEquals(1, users.size());
-        Collection<AclBinding> createdAcls = users.get(0).getRequiredAclBindings();
+        ArgumentCaptor<KafkaUser> captor = ArgumentCaptor.forClass(KafkaUser.class);
+        verify(cluster, times(1)).updateUserAcls(captor.capture());
+        assertEquals("User:CN=testapp", captor.getValue().getKafkaUserName());
 
-        assertEquals(8, createdAcls.size());
-
-        // check that cluster DESCRIBE and DESCRIBE_CONFIGS right is included
-        assertNotNull("No DESCRIBE_CONFIGS right for cluster included",
-                createdAcls.stream()
-                        .filter(b -> b.pattern().resourceType() == ResourceType.CLUSTER
-                                && b.pattern().patternType() == PatternType.LITERAL
-                                && b.pattern().name().equals("kafka-cluster")
-                                && b.entry().permissionType() == AclPermissionType.ALLOW
-                                && b.entry().operation() == AclOperation.DESCRIBE_CONFIGS)
-                        .findAny().orElse(null));
-        assertNotNull("No DESCRIBE right for cluster included",
-                createdAcls.stream()
-                        .filter(b -> b.pattern().resourceType() == ResourceType.CLUSTER
-                                && b.pattern().patternType() == PatternType.LITERAL
-                                && b.pattern().name().equals("kafka-cluster")
-                                && b.entry().permissionType() == AclPermissionType.ALLOW
-                                && b.entry().operation() == AclOperation.DESCRIBE)
-                        .findAny().orElse(null));
-
-        // two ACL for groups and two for topic prefixes must have been created
-        assertNotNull(createdAcls.stream()
-                .filter(binding -> binding.pattern().resourceType() == ResourceType.TOPIC
-                        && binding.pattern().patternType() == PatternType.PREFIXED
-                        && binding.pattern().name().equals("de.myapp.")
-                        && binding.entry().operation().equals(AclOperation.ALL))
-                .findAny().orElse(null));
-        assertNotNull(createdAcls.stream()
-                .filter(binding -> binding.pattern().resourceType() == ResourceType.TOPIC
-                        && binding.pattern().patternType() == PatternType.PREFIXED
-                        && binding.pattern().name().equals("de.myapp2.")
-                        && binding.entry().operation().equals(AclOperation.ALL))
-                .findAny().orElse(null));
-        assertNotNull(createdAcls.stream()
-                .filter(binding -> binding.pattern().resourceType() == ResourceType.GROUP
-                        && binding.pattern().patternType() == PatternType.PREFIXED
-                        && binding.pattern().name().equals("group.myapp."))
-                .findAny().orElse(null));
-        assertNotNull(createdAcls.stream()
-                .filter(binding -> binding.pattern().resourceType() == ResourceType.GROUP
-                        && binding.pattern().patternType() == PatternType.PREFIXED
-                        && binding.pattern().name().equals("group2.myapp."))
-                .findAny().orElse(null));
-
-        // transaction ACLs must have been created
-        assertNotNull(createdAcls.stream()
-                .filter(binding -> binding.pattern().resourceType() == ResourceType.TRANSACTIONAL_ID
-                        && binding.pattern().patternType() == PatternType.PREFIXED
-                        && binding.pattern().name().equals("de.myapp.")
-                        && binding.entry().operation() == AclOperation.DESCRIBE)
-                .findAny().orElse(null));
-        assertNotNull(createdAcls.stream()
-                .filter(binding -> binding.pattern().resourceType() == ResourceType.TRANSACTIONAL_ID
-                        && binding.pattern().patternType() == PatternType.PREFIXED
-                        && binding.pattern().name().equals("de.myapp.")
-                        && binding.entry().operation() == AclOperation.WRITE)
-                .findAny().orElse(null));
-
-        Collection<AclBinding> alreadyTested = new ArrayList<>(createdAcls);
-
-        TopicMetadata topic = new TopicMetadata();
-        topic.setName("topic1");
-        topic.setType(TopicType.EVENTS);
-        topic.setOwnerApplicationId("app01");
-
-        when(topicService.listTopics("_test")).thenReturn(Collections.singletonList(topic));
-
-        TopicCreatedEvent tcevent = new TopicCreatedEvent(context, topic, new TopicCreateParams(2, 3));
-        users.clear();
-
-        listener.handleTopicCreated(tcevent).get();
-
-        assertEquals(1, users.size());
-
-        createdAcls.clear();
-        createdAcls.addAll(users.get(0).getRequiredAclBindings());
-        createdAcls.removeAll(alreadyTested);
-
-        // WRITE rights must have been given
-        assertEquals(4, createdAcls.size());
-        WRITE_TOPIC_OPERATIONS.forEach(op -> assertNotNull("Did not find expected write ACL for topic",
-                createdAcls.stream()
-                        .filter(binding -> binding.pattern().resourceType() == ResourceType.TOPIC
-                                && binding.pattern().patternType() == PatternType.LITERAL
-                                && binding.pattern().name().equals("topic1") && binding.entry().operation() == op)
-                        .findAny().orElse(null)));
-
-        alreadyTested.addAll(createdAcls);
-
-        SubscriptionMetadata sub = new SubscriptionMetadata();
-        sub.setId("1");
-        sub.setClientApplicationId("app01");
-        sub.setTopicName("topic2");
-
-        when(subscriptionService.getSubscriptionsOfApplication("_test", "app01", false))
-                .thenReturn(Collections.singletonList(sub));
-
-        TopicMetadata topic2 = new TopicMetadata();
-        topic2.setName("topic2");
-        topic2.setType(TopicType.EVENTS);
-        topic2.setOwnerApplicationId("app02");
-
-        when(topicService.getTopic("_test", "topic2")).thenReturn(Optional.of(topic2));
-
-        createdAcls.clear();
-        users.clear();
-
-        listener.handleSubscriptionCreated(new SubscriptionEvent(context, sub)).get();
-
-        assertEquals(1, users.size());
-        createdAcls.addAll(users.get(0).getRequiredAclBindings());
-        createdAcls.removeAll(alreadyTested);
-
-        // READ rights must have been given
-        assertEquals(3, createdAcls.size());
-        READ_TOPIC_OPERATIONS
-                .forEach(op -> assertNotNull("Did not find expected read ACL for topic",
-                        createdAcls.stream().filter(binding -> binding.pattern().resourceType() == ResourceType.TOPIC
-                                && binding.pattern().patternType() == PatternType.LITERAL
-                                && binding.pattern().name().equals("topic2") && binding.entry().operation() == op
-                                && binding.entry().principal().equals("User:CN=testapp")).findAny().orElse(null)));
+        Collection<AclBinding> createdAcls = captor.getValue().getRequiredAclBindings();
+        assertEquals(1, createdAcls.size());
+        assertEquals("User:CN=testapp", createdAcls.iterator().next().entry().principal());
     }
 
     @Test
-    public void testNoWriteAclsForInternalTopics() {
-        KafkaAuthenticationModule module = mock(KafkaAuthenticationModule.class);
-        when(module.extractKafkaUserName(ArgumentMatchers.argThat(obj -> obj.getString("dn").equals("CN=testapp"))))
-                .thenReturn("User:CN=testapp");
-        when(kafkaClusters.getAuthenticationModule("_test")).thenReturn(Optional.of(module));
-
-        ApplicationMetadata app1 = new ApplicationMetadata();
-        app1.setApplicationId("app-1");
-        app1.setAuthenticationJson(new JSONObject(Map.of("dn", "CN=testapp")).toString());
-        app1.setConsumerGroupPrefixes(List.of("groups."));
-
-        TopicMetadata topic = new TopicMetadata();
-        topic.setName("int1");
-        topic.setType(TopicType.INTERNAL);
-        topic.setOwnerApplicationId("app-1");
-
-        when(topicService.listTopics("_test")).thenReturn(List.of(topic));
-
-        UpdateApplicationAclsListener listener = new UpdateApplicationAclsListener(kafkaClusters, topicService,
-                subscriptionService, applicationsService, kafkaConfig);
-
-        Collection<AclBinding> bindings = listener.getApplicationUser(app1, "_test").getRequiredAclBindings();
-
-        assertEquals(3, bindings.size());
-        assertFalse(bindings.stream().anyMatch(binding -> binding.pattern().resourceType() == ResourceType.TOPIC));
-    }
-
-    @Test
-    public void addedProducerGetsCorrectAcls() throws ExecutionException, InterruptedException {
-        KafkaAuthenticationModule module = mock(KafkaAuthenticationModule.class);
-        when(module.extractKafkaUserName(any())).thenReturn("User:12345");
-        when(kafkaClusters.getAuthenticationModule("_test")).thenReturn(Optional.of(module));
+    public void testHandleTopicCreated() throws ExecutionException, InterruptedException {
         GalapagosEventContext context = mock(GalapagosEventContext.class);
         when(context.getKafkaCluster()).thenReturn(cluster);
         when(cluster.getId()).thenReturn("_test");
 
-        List<KafkaUser> users = new ArrayList<>();
-
-        when(cluster.updateUserAcls(any())).then(inv -> {
-            users.add(inv.getArgument(0));
-            return CompletableFuture.completedFuture(null);
-        });
-
-        ApplicationMetadata producer1 = new ApplicationMetadata();
-        producer1.setApplicationId("producer1");
-        producer1.setAuthenticationJson(new JSONObject("{}").toString());
+        when(cluster.updateUserAcls(any())).thenReturn(FutureUtil.noop());
 
         TopicMetadata topic = new TopicMetadata();
         topic.setName("topic1");
         topic.setType(TopicType.EVENTS);
-        topic.setProducers(List.of("producer1"));
-        when(topicService.listTopics("_test")).thenReturn(List.of(topic));
+        topic.setOwnerApplicationId("producer1");
+
+        ApplicationMetadata producer1 = new ApplicationMetadata();
+        producer1.setApplicationId("producer1");
+        producer1.setAuthenticationJson(new JSONObject(Map.of("dn", "CN=producer1")).toString());
 
         when(applicationsService.getApplicationMetadata("_test", "producer1")).thenReturn(Optional.of(producer1));
+        when(authenticationModule
+                .extractKafkaUserName(ArgumentMatchers.argThat(obj -> obj.getString("dn").equals("CN=producer1"))))
+                        .thenReturn("User:CN=producer1");
 
-        TopicAddProducerEvent event = new TopicAddProducerEvent(context, "producer1", topic);
-        UpdateApplicationAclsListener listener = new UpdateApplicationAclsListener(kafkaClusters, topicService,
-                subscriptionService, applicationsService, kafkaConfig);
+        UpdateApplicationAclsListener listener = new UpdateApplicationAclsListener(kafkaClusters, subscriptionService,
+                applicationsService, aclSupport);
+
+        TopicCreatedEvent event = new TopicCreatedEvent(context, topic, new TopicCreateParams(1, 3));
+        listener.handleTopicCreated(event).get();
+
+        ArgumentCaptor<KafkaUser> captor = ArgumentCaptor.forClass(KafkaUser.class);
+        verify(cluster, times(1)).updateUserAcls(captor.capture());
+
+        assertEquals("User:CN=producer1", captor.getValue().getKafkaUserName());
+    }
+
+    @Test
+    public void testHandleAddProducer() throws ExecutionException, InterruptedException {
+        GalapagosEventContext context = mock(GalapagosEventContext.class);
+        when(context.getKafkaCluster()).thenReturn(cluster);
+        when(cluster.getId()).thenReturn("_test");
+
+        when(cluster.updateUserAcls(any())).thenReturn(FutureUtil.noop());
+
+        ApplicationMetadata producer1 = new ApplicationMetadata();
+        producer1.setApplicationId("producer1");
+        producer1.setAuthenticationJson(new JSONObject(Map.of("dn", "CN=producer1")).toString());
+
+        when(applicationsService.getApplicationMetadata("_test", "producer1")).thenReturn(Optional.of(producer1));
+        when(authenticationModule
+                .extractKafkaUserName(ArgumentMatchers.argThat(obj -> obj.getString("dn").equals("CN=producer1"))))
+                        .thenReturn("User:CN=producer1");
+
+        TopicAddProducerEvent event = new TopicAddProducerEvent(context, "producer1", new TopicMetadata());
+        UpdateApplicationAclsListener listener = new UpdateApplicationAclsListener(kafkaClusters, subscriptionService,
+                applicationsService, aclSupport);
 
         listener.handleAddTopicProducer(event).get();
 
-        Collection<AclBinding> createdAcls = users.get(0).getRequiredAclBindings();
+        ArgumentCaptor<KafkaUser> captor = ArgumentCaptor.forClass(KafkaUser.class);
+        verify(cluster, times(1)).updateUserAcls(captor.capture());
 
-        verify(cluster, times(1)).updateUserAcls(any());
+        assertEquals("User:CN=producer1", captor.getValue().getKafkaUserName());
 
-        WRITE_TOPIC_OPERATIONS
-                .forEach(op -> assertNotNull("Did not find expected write ACL for topic",
-                        createdAcls.stream().filter(binding -> binding.pattern().resourceType() == ResourceType.TOPIC
-                                && binding.pattern().patternType() == PatternType.LITERAL
-                                && binding.pattern().name().equals("topic1") && binding.entry().operation() == op
-                                && binding.entry().principal().equals("User:12345")).findAny().orElse(null)));
+        Collection<AclBinding> createdAcls = captor.getValue().getRequiredAclBindings();
+        assertEquals(1, createdAcls.size());
+        assertEquals("User:CN=producer1", createdAcls.iterator().next().entry().principal());
     }
 
     @Test
-    public void deletedProducerHasNoAcls() throws ExecutionException, InterruptedException {
-        KafkaAuthenticationModule module = mock(KafkaAuthenticationModule.class);
-        when(module.extractKafkaUserName(any())).thenReturn("User:12345");
-        when(kafkaClusters.getAuthenticationModule("_test")).thenReturn(Optional.of(module));
+    public void testHandleRemoveProducer() throws ExecutionException, InterruptedException {
+        // more or less, this is same as add() - updateUserAcls for the removed producer must be called.
         GalapagosEventContext context = mock(GalapagosEventContext.class);
         when(context.getKafkaCluster()).thenReturn(cluster);
         when(cluster.getId()).thenReturn("_test");
 
-        List<KafkaUser> users = new ArrayList<>();
-
-        when(cluster.updateUserAcls(any())).then(inv -> {
-            users.add(inv.getArgument(0));
-            return CompletableFuture.completedFuture(null);
-        });
-
-        ApplicationMetadata app = new ApplicationMetadata();
-        app.setApplicationId("app1");
-        app.setAuthenticationJson(new JSONObject("{}").toString());
+        when(cluster.updateUserAcls(any())).thenReturn(FutureUtil.noop());
 
         ApplicationMetadata producer1 = new ApplicationMetadata();
         producer1.setApplicationId("producer1");
-        producer1.setAuthenticationJson(new JSONObject("{}").toString());
-
-        TopicMetadata topic = new TopicMetadata();
-        topic.setName("topic1");
-        topic.setType(TopicType.EVENTS);
-        topic.setOwnerApplicationId("app1");
-        when(topicService.listTopics("_test")).thenReturn(List.of(topic));
+        producer1.setAuthenticationJson(new JSONObject(Map.of("dn", "CN=producer1")).toString());
 
         when(applicationsService.getApplicationMetadata("_test", "producer1")).thenReturn(Optional.of(producer1));
+        when(authenticationModule
+                .extractKafkaUserName(ArgumentMatchers.argThat(obj -> obj.getString("dn").equals("CN=producer1"))))
+                        .thenReturn("User:CN=producer1");
 
-        TopicRemoveProducerEvent event = new TopicRemoveProducerEvent(context, "producer1", topic);
-        UpdateApplicationAclsListener listener = new UpdateApplicationAclsListener(kafkaClusters, topicService,
-                subscriptionService, applicationsService, kafkaConfig);
+        TopicRemoveProducerEvent event = new TopicRemoveProducerEvent(context, "producer1", new TopicMetadata());
+        UpdateApplicationAclsListener listener = new UpdateApplicationAclsListener(kafkaClusters, subscriptionService,
+                applicationsService, aclSupport);
 
         listener.handleRemoveTopicProducer(event).get();
 
-        Collection<AclBinding> bindings = users.get(0).getRequiredAclBindings();
+        ArgumentCaptor<KafkaUser> captor = ArgumentCaptor.forClass(KafkaUser.class);
+        verify(cluster, times(1)).updateUserAcls(captor.capture());
+        assertEquals("User:CN=producer1", captor.getValue().getKafkaUserName());
+    }
 
-        verify(cluster, times(1)).updateUserAcls(any());
-        assertFalse(bindings.stream().anyMatch(binding -> binding.pattern().resourceType() == ResourceType.TOPIC));
+    @Test
+    public void testSubscriptionCreated() throws ExecutionException, InterruptedException {
+        GalapagosEventContext context = mock(GalapagosEventContext.class);
+        when(context.getKafkaCluster()).thenReturn(cluster);
+        when(cluster.getId()).thenReturn("_test");
 
+        when(cluster.updateUserAcls(any())).thenReturn(FutureUtil.noop());
+
+        ApplicationMetadata app1 = new ApplicationMetadata();
+        app1.setApplicationId("app01");
+        app1.setAuthenticationJson(new JSONObject(Map.of("dn", "CN=testapp")).toString());
+
+        when(applicationsService.getApplicationMetadata("_test", "app01")).thenReturn(Optional.of(app1));
+        when(authenticationModule
+                .extractKafkaUserName(ArgumentMatchers.argThat(obj -> obj.getString("dn").equals("CN=testapp"))))
+                        .thenReturn("User:CN=testapp");
+
+        SubscriptionMetadata metadata = new SubscriptionMetadata();
+        metadata.setClientApplicationId("app01");
+        metadata.setTopicName("topic1");
+
+        SubscriptionEvent event = new SubscriptionEvent(context, metadata);
+
+        UpdateApplicationAclsListener listener = new UpdateApplicationAclsListener(kafkaClusters, subscriptionService,
+                applicationsService, aclSupport);
+
+        listener.handleSubscriptionCreated(event).get();
+
+        ArgumentCaptor<KafkaUser> captor = ArgumentCaptor.forClass(KafkaUser.class);
+        verify(cluster, times(1)).updateUserAcls(captor.capture());
+
+        assertEquals("User:CN=testapp", captor.getValue().getKafkaUserName());
     }
 
     @Test
@@ -362,10 +265,10 @@ public class UpdateApplicationAclsListenerTest {
         when(authModule.extractKafkaUserName(any())).thenReturn("User:JohnDoe");
         when(kafkaClusters.getAuthenticationModule("_test")).thenReturn(Optional.of(authModule));
         when(cluster.updateUserAcls(any())).thenReturn(FutureUtil.noop());
-        when(cluster.removeUserAcls(any())).thenReturn(FutureUtil.noop());
+        lenient().when(cluster.removeUserAcls(any())).thenReturn(FutureUtil.noop());
 
-        UpdateApplicationAclsListener listener = new UpdateApplicationAclsListener(kafkaClusters, topicService,
-                subscriptionService, applicationsService, kafkaConfig);
+        UpdateApplicationAclsListener listener = new UpdateApplicationAclsListener(kafkaClusters, subscriptionService,
+                applicationsService, aclSupport);
         listener.handleApplicationAuthenticationChanged(event).get();
 
         verify(cluster).updateUserAcls(any());
@@ -373,9 +276,7 @@ public class UpdateApplicationAclsListenerTest {
     }
 
     @Test
-    public void testNoDeleteAclsWhenUNoPreviousUser() throws Exception {
-        // tests that, when an AuthenticationChanged event occurs but the resulting Kafka User Name is the same, the
-        // listener does not delete the ACLs of the user after updating them (because that would result in zero ACLs).
+    public void testNoDeleteAclsWhenNoPreviousUser() throws Exception {
         GalapagosEventContext context = mock(GalapagosEventContext.class);
         when(context.getKafkaCluster()).thenReturn(cluster);
 
@@ -393,57 +294,14 @@ public class UpdateApplicationAclsListenerTest {
         when(authModule.extractKafkaUserName(argThat(arg -> arg == null || !arg.has("foo")))).thenReturn(null);
         when(kafkaClusters.getAuthenticationModule("_test")).thenReturn(Optional.of(authModule));
         when(cluster.updateUserAcls(any())).thenReturn(FutureUtil.noop());
-        when(cluster.removeUserAcls(any())).thenReturn(FutureUtil.noop());
+        lenient().when(cluster.removeUserAcls(any())).thenReturn(FutureUtil.noop());
 
-        UpdateApplicationAclsListener listener = new UpdateApplicationAclsListener(kafkaClusters, topicService,
-                subscriptionService, applicationsService, kafkaConfig);
+        UpdateApplicationAclsListener listener = new UpdateApplicationAclsListener(kafkaClusters, subscriptionService,
+                applicationsService, aclSupport);
         listener.handleApplicationAuthenticationChanged(event).get();
 
         verify(cluster).updateUserAcls(any());
         verify(cluster, times(0)).removeUserAcls(any());
     }
 
-    @Test
-    public void testDefaultAcls() {
-        KafkaAuthenticationModule module = mock(KafkaAuthenticationModule.class);
-        when(module.extractKafkaUserName(ArgumentMatchers.argThat(obj -> obj.getString("dn").equals("CN=testapp"))))
-                .thenReturn("User:CN=testapp");
-        when(kafkaClusters.getAuthenticationModule("_test")).thenReturn(Optional.of(module));
-
-        ApplicationMetadata app1 = new ApplicationMetadata();
-        app1.setApplicationId("app-1");
-        app1.setAuthenticationJson(new JSONObject(Map.of("dn", "CN=testapp")).toString());
-        app1.setConsumerGroupPrefixes(List.of("groups."));
-
-        List<DefaultAclConfig> defaultAcls = new ArrayList<>();
-        defaultAcls.add(defaultAclConfig("test-group", ResourceType.GROUP, PatternType.PREFIXED, AclOperation.READ));
-        defaultAcls.add(defaultAclConfig("test-topic", ResourceType.TOPIC, PatternType.LITERAL, AclOperation.CREATE));
-        when(kafkaConfig.getDefaultAcls()).thenReturn(defaultAcls);
-
-        UpdateApplicationAclsListener listener = new UpdateApplicationAclsListener(kafkaClusters, topicService,
-                subscriptionService, applicationsService, kafkaConfig);
-
-        Collection<AclBinding> bindings = listener.getApplicationUser(app1, "_test").getRequiredAclBindings();
-
-        assertTrue(bindings.stream()
-                .anyMatch(b -> b.pattern().patternType() == PatternType.PREFIXED
-                        && b.pattern().name().equals("test-group") && b.pattern().resourceType() == ResourceType.GROUP
-                        && b.entry().operation() == AclOperation.READ
-                        && b.entry().permissionType() == AclPermissionType.ALLOW && b.entry().host().equals("*")));
-        assertTrue(bindings.stream()
-                .anyMatch(b -> b.pattern().patternType() == PatternType.LITERAL
-                        && b.pattern().name().equals("test-topic") && b.pattern().resourceType() == ResourceType.TOPIC
-                        && b.entry().operation() == AclOperation.CREATE
-                        && b.entry().permissionType() == AclPermissionType.ALLOW && b.entry().host().equals("*")));
-    }
-
-    private DefaultAclConfig defaultAclConfig(String name, ResourceType resourceType, PatternType patternType,
-            AclOperation operation) {
-        DefaultAclConfig config = new DefaultAclConfig();
-        config.setName(name);
-        config.setResourceType(resourceType);
-        config.setPatternType(patternType);
-        config.setOperation(operation);
-        return config;
-    }
 }

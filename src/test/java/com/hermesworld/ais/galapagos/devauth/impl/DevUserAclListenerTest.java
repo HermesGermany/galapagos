@@ -4,7 +4,6 @@ import com.hermesworld.ais.galapagos.applications.ApplicationMetadata;
 import com.hermesworld.ais.galapagos.applications.ApplicationOwnerRequest;
 import com.hermesworld.ais.galapagos.applications.ApplicationsService;
 import com.hermesworld.ais.galapagos.applications.RequestState;
-import com.hermesworld.ais.galapagos.applications.impl.UpdateApplicationAclsListener;
 import com.hermesworld.ais.galapagos.certificates.auth.CertificatesAuthenticationConfig;
 import com.hermesworld.ais.galapagos.certificates.auth.CertificatesAuthenticationModule;
 import com.hermesworld.ais.galapagos.devauth.DevAuthenticationMetadata;
@@ -14,6 +13,7 @@ import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.kafka.KafkaUser;
 import com.hermesworld.ais.galapagos.kafka.impl.TopicBasedRepositoryMock;
+import com.hermesworld.ais.galapagos.kafka.util.AclSupport;
 import com.hermesworld.ais.galapagos.subscriptions.service.SubscriptionService;
 import com.hermesworld.ais.galapagos.util.FutureUtil;
 import com.hermesworld.ais.galapagos.util.TimeService;
@@ -53,20 +53,14 @@ public class DevUserAclListenerTest {
         SubscriptionService subscriptionService = mock(SubscriptionService.class);
 
         timestamp = ZonedDateTime.of(LocalDateTime.of(2020, 10, 5, 10, 0, 0), ZoneOffset.UTC);
+        TimeService timeService = () -> timestamp;
 
-        TimeService timeService = new TimeService() {
-            @Override
-            public ZonedDateTime getTimestamp() {
-                return timestamp;
-            }
-        };
-
-        UpdateApplicationAclsListener aclService = mock(UpdateApplicationAclsListener.class);
+        AclSupport aclSupport = mock(AclSupport.class);
 
         KafkaClusters clusters = mock(KafkaClusters.class);
         when(clusters.getAuthenticationModule(any())).thenReturn(Optional
                 .of(new CertificatesAuthenticationModule("test", mock(CertificatesAuthenticationConfig.class))));
-        listener = new DevUserAclListener(applicationsService, subscriptionService, timeService, aclService, clusters);
+        listener = new DevUserAclListener(applicationsService, subscriptionService, timeService, aclSupport, clusters);
 
         KafkaCluster cluster = mock(KafkaCluster.class);
         when(cluster.updateUserAcls(any())).then(inv -> {
@@ -141,7 +135,6 @@ public class DevUserAclListenerTest {
         KafkaUser user = updateAclCalls.get(0).getArgument(0);
 
         Assertions.assertEquals("User:CN=testuser", user.getKafkaUserName());
-
     }
 
 }

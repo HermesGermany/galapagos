@@ -3,11 +3,11 @@ package com.hermesworld.ais.galapagos.adminjobs.impl;
 import com.hermesworld.ais.galapagos.applications.ApplicationMetadata;
 import com.hermesworld.ais.galapagos.applications.ApplicationsService;
 import com.hermesworld.ais.galapagos.applications.KnownApplication;
-import com.hermesworld.ais.galapagos.applications.impl.UpdateApplicationAclsListener;
 import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.kafka.KafkaUser;
 import com.hermesworld.ais.galapagos.kafka.impl.ConnectedKafkaCluster;
+import com.hermesworld.ais.galapagos.kafka.util.AclSupport;
 import org.apache.kafka.clients.admin.CreateAclsResult;
 import org.apache.kafka.clients.admin.DeleteAclsResult;
 import org.apache.kafka.common.acl.AclBinding;
@@ -40,15 +40,15 @@ import java.util.stream.Collectors;
 @Component
 public class UpdateApplicationAclsJob extends SingleClusterAdminJob {
 
-    private final UpdateApplicationAclsListener aclUpdater;
+    private final AclSupport aclSupport;
 
     private final ApplicationsService applicationsService;
 
     @Autowired
-    public UpdateApplicationAclsJob(KafkaClusters kafkaClusters, UpdateApplicationAclsListener aclUpdater,
+    public UpdateApplicationAclsJob(KafkaClusters kafkaClusters, AclSupport aclSupport,
             ApplicationsService applicationsService) {
         super(kafkaClusters);
-        this.aclUpdater = aclUpdater;
+        this.aclSupport = aclSupport;
         this.applicationsService = applicationsService;
     }
 
@@ -104,7 +104,9 @@ public class UpdateApplicationAclsJob extends SingleClusterAdminJob {
                 else {
                     System.out.println("Following ACLs are required for " + applications.get(id).getName());
                     System.out.println(
-                            aclUpdater.getApplicationUser(opMeta.get(), cluster.getId()).getRequiredAclBindings());
+                            new ToolingUser(opMeta.get(), cluster.getId(),
+                                    kafkaClusters.getAuthenticationModule(cluster.getId()).orElseThrow(), aclSupport)
+                                            .getRequiredAclBindings());
                 }
                 updateApplicationAcl(cluster, opMeta.get());
             }
@@ -122,8 +124,9 @@ public class UpdateApplicationAclsJob extends SingleClusterAdminJob {
 
     private void updateApplicationAcl(KafkaCluster cluster, ApplicationMetadata metadata)
             throws ExecutionException, InterruptedException {
-        KafkaUser user = aclUpdater.getApplicationUser(metadata, cluster.getId());
-        if (user != null && !StringUtils.isEmpty(user.getKafkaUserName())) {
+        KafkaUser user = new ToolingUser(metadata, cluster.getId(),
+                kafkaClusters.getAuthenticationModule(cluster.getId()).orElseThrow(), aclSupport);
+        if (!StringUtils.isEmpty(user.getKafkaUserName())) {
             cluster.updateUserAcls(user).get();
         }
     }

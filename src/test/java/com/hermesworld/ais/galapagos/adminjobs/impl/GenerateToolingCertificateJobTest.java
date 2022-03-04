@@ -1,22 +1,23 @@
 package com.hermesworld.ais.galapagos.adminjobs.impl;
 
-import com.hermesworld.ais.galapagos.applications.ApplicationMetadata;
-import com.hermesworld.ais.galapagos.applications.impl.UpdateApplicationAclsListener;
 import com.hermesworld.ais.galapagos.certificates.auth.CertificatesAuthenticationConfig;
 import com.hermesworld.ais.galapagos.certificates.auth.CertificatesAuthenticationModule;
 import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
-import com.hermesworld.ais.galapagos.kafka.KafkaUser;
 import com.hermesworld.ais.galapagos.kafka.auth.KafkaAuthenticationModule;
 import com.hermesworld.ais.galapagos.kafka.config.KafkaEnvironmentConfig;
 import com.hermesworld.ais.galapagos.kafka.config.KafkaEnvironmentsConfig;
+import com.hermesworld.ais.galapagos.kafka.util.AclSupport;
 import com.hermesworld.ais.galapagos.naming.ApplicationPrefixes;
 import com.hermesworld.ais.galapagos.naming.NamingService;
 import com.hermesworld.ais.galapagos.util.CertificateUtil;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.util.StreamUtils;
@@ -31,20 +32,25 @@ import java.security.cert.X509Certificate;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 public class GenerateToolingCertificateJobTest {
 
+    @Mock
     private KafkaClusters kafkaClusters;
 
+    @Mock
     private KafkaEnvironmentsConfig kafkaConfig;
 
+    @Mock
     private NamingService namingService;
 
-    private UpdateApplicationAclsListener aclListener;
+    @Mock
+    private AclSupport aclSupport;
 
     private final File testFile = new File("target/test.p12");
 
@@ -54,12 +60,10 @@ public class GenerateToolingCertificateJobTest {
 
     private static final String DATA_MARKER = "CERTIFICATE DATA: ";
 
-    @Before
+    @BeforeEach
     public void feedMocks() throws Exception {
         Security.setProperty("crypto.policy", "unlimited");
         Security.addProvider(new BouncyCastleProvider());
-
-        kafkaClusters = mock(KafkaClusters.class);
 
         KafkaCluster testCluster = mock(KafkaCluster.class);
         when(testCluster.getId()).thenReturn("test");
@@ -81,10 +85,7 @@ public class GenerateToolingCertificateJobTest {
         authModule.init().get();
         when(kafkaClusters.getAuthenticationModule("test")).thenReturn(Optional.of(authModule));
 
-        kafkaConfig = mock(KafkaEnvironmentsConfig.class);
         when(kafkaConfig.getMetadataTopicsPrefix()).thenReturn("galapagos.testing.");
-
-        namingService = mock(NamingService.class);
 
         ApplicationPrefixes testPrefixes = mock(ApplicationPrefixes.class);
         when(testPrefixes.getInternalTopicPrefixes()).thenReturn(List.of("test.galapagos.internal."));
@@ -92,20 +93,13 @@ public class GenerateToolingCertificateJobTest {
         when(testPrefixes.getConsumerGroupPrefixes()).thenReturn(List.of("galapagos."));
         when(namingService.getAllowedPrefixes(any())).thenReturn(testPrefixes);
 
-        aclListener = new UpdateApplicationAclsListener(kafkaClusters, null, null, null, kafkaConfig) {
-            @Override
-            public KafkaUser getApplicationUser(ApplicationMetadata metadata, String environmentId) {
-                return null;
-            }
-        };
-
         // redirect STDOUT to String
         oldOut = System.out;
         stdoutData = new ByteArrayOutputStream();
         System.setOut(new PrintStream(stdoutData));
     }
 
-    @After
+    @AfterEach
     public void cleanup() {
         // noinspection ResultOfMethodCallIgnored
         testFile.delete();
@@ -114,7 +108,7 @@ public class GenerateToolingCertificateJobTest {
 
     @Test
     public void testStandard() throws Exception {
-        GenerateToolingCertificateJob job = new GenerateToolingCertificateJob(kafkaClusters, aclListener, namingService,
+        GenerateToolingCertificateJob job = new GenerateToolingCertificateJob(kafkaClusters, aclSupport, namingService,
                 kafkaConfig);
 
         ApplicationArguments args = mock(ApplicationArguments.class);
@@ -135,7 +129,7 @@ public class GenerateToolingCertificateJobTest {
 
     @Test
     public void testDataOnStdout() throws Exception {
-        GenerateToolingCertificateJob job = new GenerateToolingCertificateJob(kafkaClusters, aclListener, namingService,
+        GenerateToolingCertificateJob job = new GenerateToolingCertificateJob(kafkaClusters, aclSupport, namingService,
                 kafkaConfig);
 
         ApplicationArguments args = mock(ApplicationArguments.class);

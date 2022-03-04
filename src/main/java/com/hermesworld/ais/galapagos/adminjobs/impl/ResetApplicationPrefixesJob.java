@@ -1,9 +1,9 @@
 package com.hermesworld.ais.galapagos.adminjobs.impl;
 
 import com.hermesworld.ais.galapagos.applications.ApplicationsService;
-import com.hermesworld.ais.galapagos.applications.impl.UpdateApplicationAclsListener;
 import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
+import com.hermesworld.ais.galapagos.kafka.util.AclSupport;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.stereotype.Component;
@@ -42,14 +42,14 @@ public class ResetApplicationPrefixesJob extends SingleClusterAdminJob {
 
     private final ApplicationsService applicationsService;
 
-    private final UpdateApplicationAclsListener aclUpdater;
+    private final AclSupport aclSupport;
 
     @Autowired
     public ResetApplicationPrefixesJob(KafkaClusters kafkaClusters, ApplicationsService applicationsService,
-            UpdateApplicationAclsListener aclUpdater) {
+            AclSupport aclSupport) {
         super(kafkaClusters);
         this.applicationsService = applicationsService;
-        this.aclUpdater = aclUpdater;
+        this.aclSupport = aclSupport;
     }
 
     @Override
@@ -65,7 +65,9 @@ public class ResetApplicationPrefixesJob extends SingleClusterAdminJob {
         try {
             System.out.println("===== Resetting Prefixes and ACLs for Application " + applicationId + " =====");
             applicationsService.resetApplicationPrefixes(cluster.getId(), applicationId).thenCompose(
-                    metadata -> cluster.updateUserAcls(aclUpdater.getApplicationUser(metadata, cluster.getId()))).get();
+                    metadata -> cluster.updateUserAcls(new ToolingUser(metadata, cluster.getId(),
+                            kafkaClusters.getAuthenticationModule(cluster.getId()).orElseThrow(), aclSupport)))
+                    .get();
             System.out.println("===== Prefixes and ACL Reset SUCCESSFUL =====");
         }
         catch (ExecutionException e) {

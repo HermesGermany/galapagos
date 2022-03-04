@@ -3,13 +3,13 @@ package com.hermesworld.ais.galapagos.adminjobs.impl;
 import com.hermesworld.ais.galapagos.applications.ApplicationMetadata;
 import com.hermesworld.ais.galapagos.applications.KnownApplication;
 import com.hermesworld.ais.galapagos.applications.impl.KnownApplicationImpl;
-import com.hermesworld.ais.galapagos.applications.impl.UpdateApplicationAclsListener;
 import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.kafka.auth.CreateAuthenticationResult;
 import com.hermesworld.ais.galapagos.kafka.auth.KafkaAuthenticationModule;
 import com.hermesworld.ais.galapagos.kafka.config.KafkaEnvironmentConfig;
 import com.hermesworld.ais.galapagos.kafka.config.KafkaEnvironmentsConfig;
+import com.hermesworld.ais.galapagos.kafka.util.AclSupport;
 import com.hermesworld.ais.galapagos.naming.ApplicationPrefixes;
 import com.hermesworld.ais.galapagos.naming.NamingService;
 import com.hermesworld.ais.galapagos.util.CertificateUtil;
@@ -51,17 +51,17 @@ import java.util.Optional;
 @Component
 public class GenerateToolingCertificateJob extends SingleClusterAdminJob {
 
-    private final UpdateApplicationAclsListener aclUpdater;
+    private final AclSupport aclSupport;
 
     private final NamingService namingService;
 
     private final KafkaEnvironmentsConfig kafkaConfig;
 
     @Autowired
-    public GenerateToolingCertificateJob(KafkaClusters kafkaClusters, UpdateApplicationAclsListener aclUpdater,
+    public GenerateToolingCertificateJob(KafkaClusters kafkaClusters, AclSupport aclSupport,
             NamingService namingService, KafkaEnvironmentsConfig kafkaConfig) {
         super(kafkaClusters);
-        this.aclUpdater = aclUpdater;
+        this.aclSupport = aclSupport;
         this.namingService = namingService;
         this.kafkaConfig = kafkaConfig;
     }
@@ -120,7 +120,7 @@ public class GenerateToolingCertificateJob extends SingleClusterAdminJob {
         toolMetadata.setConsumerGroupPrefixes(prefixes.getConsumerGroupPrefixes());
         toolMetadata.setTransactionIdPrefixes(prefixes.getTransactionIdPrefixes());
 
-        cluster.updateUserAcls(aclUpdater.getApplicationUser(toolMetadata, cluster.getId())).get();
+        cluster.updateUserAcls(new ToolingUser(toolMetadata, cluster.getId(), authModule, aclSupport)).get();
 
         if (!StringUtils.isEmpty(outputFilename)) {
             try (FileOutputStream fos = new FileOutputStream(outputFilename)) {
@@ -162,4 +162,5 @@ public class GenerateToolingCertificateJob extends SingleClusterAdminJob {
         System.out.println();
         System.out.println("==============================================================================");
     }
+
 }

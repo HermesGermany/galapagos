@@ -3,28 +3,21 @@ package com.hermesworld.ais.galapagos.devauth.impl;
 import com.hermesworld.ais.galapagos.applications.ApplicationMetadata;
 import com.hermesworld.ais.galapagos.applications.ApplicationsService;
 import com.hermesworld.ais.galapagos.applications.RequestState;
-import com.hermesworld.ais.galapagos.applications.impl.UpdateApplicationAclsListener;
 import com.hermesworld.ais.galapagos.devauth.DevAuthenticationMetadata;
 import com.hermesworld.ais.galapagos.events.*;
 import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.kafka.KafkaUser;
 import com.hermesworld.ais.galapagos.kafka.auth.KafkaAuthenticationModule;
-import com.hermesworld.ais.galapagos.kafka.util.TopicBasedRepository;
+import com.hermesworld.ais.galapagos.kafka.util.AclSupport;
 import com.hermesworld.ais.galapagos.subscriptions.service.SubscriptionService;
 import com.hermesworld.ais.galapagos.util.FutureUtil;
 import com.hermesworld.ais.galapagos.util.TimeService;
-import org.apache.kafka.common.acl.AccessControlEntry;
 import org.apache.kafka.common.acl.AclBinding;
-import org.apache.kafka.common.acl.AclOperation;
-import org.apache.kafka.common.acl.AclPermissionType;
-import org.apache.kafka.common.resource.PatternType;
-import org.apache.kafka.common.resource.ResourcePattern;
-import org.apache.kafka.common.resource.ResourceType;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import org.thymeleaf.util.StringUtils;
 
 import javax.annotation.CheckReturnValue;
 import java.util.Collection;
@@ -32,6 +25,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Component
 public class DevUserAclListener implements TopicEventsListener, SubscriptionEventsListener, ApplicationEventsListener {
@@ -42,17 +36,16 @@ public class DevUserAclListener implements TopicEventsListener, SubscriptionEven
 
     private final TimeService timeService;
 
-    private final UpdateApplicationAclsListener applicationsAclService;
+    private final AclSupport aclSupport;
 
     private final KafkaClusters kafkaClusters;
 
     public DevUserAclListener(ApplicationsService applicationsService, SubscriptionService subscriptionService,
-            TimeService timeService, UpdateApplicationAclsListener applicationsAclService,
-            KafkaClusters kafkaClusters) {
+            TimeService timeService, AclSupport aclSupport, KafkaClusters kafkaClusters) {
         this.applicationsService = applicationsService;
         this.subscriptionService = subscriptionService;
         this.timeService = timeService;
-        this.applicationsAclService = applicationsAclService;
+        this.aclSupport = aclSupport;
         this.kafkaClusters = kafkaClusters;
     }
 
@@ -62,7 +55,7 @@ public class DevUserAclListener implements TopicEventsListener, SubscriptionEven
         KafkaCluster cluster = event.getContext().getKafkaCluster();
         String applicationId = event.getMetadata().getApplicationId();
 
-        return updateAcls(cluster, getValidDevCertificatesForApplication(cluster, applicationId));
+        return updateAcls(cluster, getValidDevAuthenticationsForApplication(cluster, applicationId));
     }
 
     @Override
@@ -81,7 +74,7 @@ public class DevUserAclListener implements TopicEventsListener, SubscriptionEven
     @CheckReturnValue
     public CompletableFuture<Void> handleApplicationOwnerRequestUpdated(ApplicationOwnerRequestEvent event) {
         KafkaCluster cluster = event.getContext().getKafkaCluster();
-        return updateAcls(cluster, getValidDevCertificateForUser(cluster, event.getRequest().getUserName()));
+        return updateAcls(cluster, getValidDevAuthenticationForUser(cluster, event.getRequest().getUserName()));
     }
 
     @Override
@@ -96,7 +89,7 @@ public class DevUserAclListener implements TopicEventsListener, SubscriptionEven
         KafkaCluster cluster = event.getContext().getKafkaCluster();
         String applicationId = event.getMetadata().getClientApplicationId();
 
-        return updateAcls(cluster, getValidDevCertificatesForApplication(cluster, applicationId));
+        return updateAcls(cluster, getValidDevAuthenticationsForApplication(cluster, applicationId));
     }
 
     @Override
@@ -126,7 +119,8 @@ public class DevUserAclListener implements TopicEventsListener, SubscriptionEven
                     .orElse(null);
             if (appMeta != null) {
                 result = result
-                        .thenCompose(o -> updateAcls(cluster, getValidDevCertificatesForApplication(cluster, appId)));
+                        .thenCompose(
+                                o -> updateAcls(cluster, getValidDevAuthenticationsForApplication(cluster, appId)));
             }
         }
 
@@ -137,7 +131,7 @@ public class DevUserAclListener implements TopicEventsListener, SubscriptionEven
     @CheckReturnValue
     public CompletableFuture<Void> handleAddTopicProducer(TopicAddProducerEvent event) {
         Set<DevAuthenticationMetadata> validDevCertificatesForApplication = new HashSet<>(
-                getValidDevCertificatesForApplication(event.getContext().getKafkaCluster(),
+                getValidDevAuthenticationsForApplication(event.getContext().getKafkaCluster(),
                         event.getProducerApplicationId()));
 
         return updateAcls(event.getContext().getKafkaCluster(), validDevCertificatesForApplication);
@@ -146,7 +140,7 @@ public class DevUserAclListener implements TopicEventsListener, SubscriptionEven
     @Override
     @CheckReturnValue
     public CompletableFuture<Void> handleRemoveTopicProducer(TopicRemoveProducerEvent event) {
-        return updateAcls(event.getContext().getKafkaCluster(), getValidDevCertificatesForApplication(
+        return updateAcls(event.getContext().getKafkaCluster(), getValidDevAuthenticationsForApplication(
                 event.getContext().getKafkaCluster(), event.getProducerApplicationId()));
     }
 
@@ -171,15 +165,11 @@ public class DevUserAclListener implements TopicEventsListener, SubscriptionEven
         Set<String> clientApplicationIds = subscriptionService
                 .getSubscriptionsForTopic(cluster.getId(), event.getMetadata().getName(), false).stream()
                 .map(s -> s.getClientApplicationId()).collect(Collectors.toSet());
+        Set<DevAuthenticationMetadata> allCertificates = Stream.of(Set.of(applicationId), clientApplicationIds)
+                .flatMap(s -> s.stream()).flatMap(id -> getValidDevAuthenticationsForApplication(cluster, id).stream())
+                .collect(Collectors.toSet());
 
-        return updateAcls(cluster, getValidDevCertificatesForApplication(cluster, applicationId)).thenCompose(o -> {
-            CompletableFuture<Void> updateSubscribers = CompletableFuture.completedFuture(null);
-            for (String applId : clientApplicationIds) {
-                updateSubscribers = updateSubscribers
-                        .thenCompose(oo -> updateAcls(cluster, getValidDevCertificatesForApplication(cluster, applId)));
-            }
-            return updateSubscribers;
-        });
+        return allCertificates.isEmpty() ? FutureUtil.noop() : updateAcls(cluster, allCertificates);
     }
 
     @Override
@@ -226,21 +216,19 @@ public class DevUserAclListener implements TopicEventsListener, SubscriptionEven
         return result;
     }
 
-    // TODO rename method
-    private Set<DevAuthenticationMetadata> getValidDevCertificatesForApplication(KafkaCluster cluster,
+    private Set<DevAuthenticationMetadata> getValidDevAuthenticationsForApplication(KafkaCluster cluster,
             String applicationId) {
         Set<String> userNames = applicationsService.getAllApplicationOwnerRequests().stream()
                 .filter(req -> req.getState() == RequestState.APPROVED && applicationId.equals(req.getApplicationId()))
                 .map(req -> req.getUserName()).collect(Collectors.toSet());
 
-        return getRepository(cluster).getObjects().stream()
+        return DeveloperAuthenticationServiceImpl.getRepository(cluster).getObjects().stream()
                 .filter(dev -> isValid(dev, cluster) && userNames.contains(dev.getUserName()))
                 .collect(Collectors.toSet());
     }
 
-    // TODO rename method
-    private Set<DevAuthenticationMetadata> getValidDevCertificateForUser(KafkaCluster cluster, String userName) {
-        return getRepository(cluster).getObjects().stream()
+    private Set<DevAuthenticationMetadata> getValidDevAuthenticationForUser(KafkaCluster cluster, String userName) {
+        return DeveloperAuthenticationServiceImpl.getRepository(cluster).getObjects().stream()
                 .filter(dev -> isValid(dev, cluster) && userName.equals(dev.getUserName())).collect(Collectors.toSet());
     }
 
@@ -256,10 +244,6 @@ public class DevUserAclListener implements TopicEventsListener, SubscriptionEven
 
     }
 
-    private TopicBasedRepository<DevAuthenticationMetadata> getRepository(KafkaCluster cluster) {
-        return DeveloperAuthenticationServiceImpl.getRepository(cluster);
-    }
-
     private class DevAuthenticationKafkaUser implements KafkaUser {
 
         private final DevAuthenticationMetadata metadata;
@@ -273,38 +257,25 @@ public class DevUserAclListener implements TopicEventsListener, SubscriptionEven
 
         @Override
         public String getKafkaUserName() {
-            KafkaAuthenticationModule module = kafkaClusters.getAuthenticationModule(environmentId).orElse(null);
-            String authJson = metadata.getAuthenticationJson();
-
-            if (module != null && !StringUtils.isEmpty(authJson)) {
-                try {
-                    return module.extractKafkaUserName(new JSONObject(authJson));
-                }
-                catch (JSONException e) {
-                    return null;
-                }
+            JSONObject authData;
+            try {
+                authData = new JSONObject(metadata.getAuthenticationJson());
+                return kafkaClusters.getAuthenticationModule(environmentId).map(m -> m.extractKafkaUserName(authData))
+                        .orElse(null);
             }
-            return null;
+            catch (JSONException e) {
+                LoggerFactory.getLogger(DevUserAclListener.class).warn(
+                        "Could not parse authentication JSON of developer authentication for user {}",
+                        metadata.getUserName(), e);
+                return null;
+            }
         }
 
         @Override
         public Collection<AclBinding> getRequiredAclBindings() {
-            Set<ApplicationMetadata> applications = getApplicationsOfUser(metadata.getUserName(), environmentId);
-
-            Set<AclBinding> result = new HashSet<>();
-
-            // all topics which the application owns or is subscribed to -> READ
-            for (ApplicationMetadata application : applications) {
-                applicationsAclService.getApplicationUser(application, environmentId).getRequiredAclBindings().stream()
-                        .map(acl -> toOwnAcl(acl)).forEach(result::add);
-            }
-
-            // and the mighty CLUSTER_DESCRIBE
-            result.add(new AclBinding(new ResourcePattern(ResourceType.CLUSTER, "kafka-cluster", PatternType.LITERAL),
-                    new AccessControlEntry(getKafkaUserName(), "*", AclOperation.DESCRIBE_CONFIGS,
-                            AclPermissionType.ALLOW)));
-
-            return result;
+            return getApplicationsOfUser(metadata.getUserName(), environmentId).stream()
+                    .map(a -> aclSupport.getRequiredAclBindings(environmentId, a, getKafkaUserName(), true))
+                    .flatMap(c -> c.stream()).collect(Collectors.toSet());
         }
 
         private Set<ApplicationMetadata> getApplicationsOfUser(String userName, String environmentId) {
@@ -313,14 +284,6 @@ public class DevUserAclListener implements TopicEventsListener, SubscriptionEven
                     .map(req -> applicationsService.getApplicationMetadata(environmentId, req.getApplicationId())
                             .orElse(null))
                     .filter(m -> m != null).collect(Collectors.toSet());
-        }
-
-        private AclBinding toOwnAcl(AclBinding acl) {
-            return new AclBinding(
-                    new ResourcePattern(acl.pattern().resourceType(), acl.pattern().name(),
-                            acl.pattern().patternType()),
-                    new AccessControlEntry(getKafkaUserName(), acl.entry().host(), acl.entry().operation(),
-                            acl.entry().permissionType()));
         }
 
     }
