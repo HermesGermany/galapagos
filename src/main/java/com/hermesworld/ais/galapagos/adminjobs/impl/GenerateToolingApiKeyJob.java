@@ -43,8 +43,8 @@ public class GenerateToolingApiKeyJob extends SingleClusterAdminJob {
     private final AclSupport aclSupport;
 
     @Autowired
-    public GenerateToolingApiKeyJob(KafkaClusters kafkaClusters, AclSupport aclSupport,
-            NamingService namingService, KafkaEnvironmentsConfig kafkaConfig) {
+    public GenerateToolingApiKeyJob(KafkaClusters kafkaClusters, AclSupport aclSupport, NamingService namingService,
+            KafkaEnvironmentsConfig kafkaConfig) {
         super(kafkaClusters);
         this.aclSupport = aclSupport;
         this.namingService = namingService;

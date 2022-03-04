@@ -103,10 +103,9 @@ public class UpdateApplicationAclsJob extends SingleClusterAdminJob {
                 }
                 else {
                     System.out.println("Following ACLs are required for " + applications.get(id).getName());
-                    System.out.println(
-                            new ToolingUser(opMeta.get(), cluster.getId(),
-                                    kafkaClusters.getAuthenticationModule(cluster.getId()).orElseThrow(), aclSupport)
-                                            .getRequiredAclBindings());
+                    System.out.println(new ToolingUser(opMeta.get(), cluster.getId(),
+                            kafkaClusters.getAuthenticationModule(cluster.getId()).orElseThrow(), aclSupport)
+                                    .getRequiredAclBindings());
                 }
                 updateApplicationAcl(cluster, opMeta.get());
             }

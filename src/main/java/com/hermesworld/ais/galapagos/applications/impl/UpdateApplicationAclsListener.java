@@ -206,16 +206,16 @@ public class UpdateApplicationAclsListener
         @Override
         public String getKafkaUserName() {
             JSONObject authData;
-                try {
-                    authData = new JSONObject(metadata.getAuthenticationJson());
-                    return kafkaClusters.getAuthenticationModule(environmentId)
-                            .map(m -> m.extractKafkaUserName(authData)).orElse(null);
-                }
-                catch (JSONException e) {
-                    LoggerFactory.getLogger(UpdateApplicationAclsListener.class).warn(
-                            "Could not parse authentication JSON of application {}", metadata.getApplicationId(), e);
-                    return null;
-                }
+            try {
+                authData = new JSONObject(metadata.getAuthenticationJson());
+                return kafkaClusters.getAuthenticationModule(environmentId).map(m -> m.extractKafkaUserName(authData))
+                        .orElse(null);
+            }
+            catch (JSONException e) {
+                LoggerFactory.getLogger(UpdateApplicationAclsListener.class)
+                        .warn("Could not parse authentication JSON of application {}", metadata.getApplicationId(), e);
+                return null;
+            }
         }
 
         @Override

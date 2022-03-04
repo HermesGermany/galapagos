@@ -82,11 +82,10 @@ public class UpdateApplicationAclsListenerTest {
     public void testUpdateApplicationAcls() throws InterruptedException, ExecutionException {
         when(authenticationModule
                 .extractKafkaUserName(ArgumentMatchers.argThat(obj -> obj.getString("dn").equals("CN=testapp"))))
-                .thenReturn("User:CN=testapp");
+                        .thenReturn("User:CN=testapp");
 
         when(cluster.updateUserAcls(any())).thenReturn(FutureUtil.noop());
         lenient().when(cluster.removeUserAcls(any())).thenThrow(UnsupportedOperationException.class);
-
 
         ApplicationMetadata metadata = new ApplicationMetadata();
         metadata.setApplicationId("app01");

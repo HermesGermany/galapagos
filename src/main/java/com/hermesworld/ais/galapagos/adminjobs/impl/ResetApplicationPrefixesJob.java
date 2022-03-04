@@ -64,8 +64,8 @@ public class ResetApplicationPrefixesJob extends SingleClusterAdminJob {
 
         try {
             System.out.println("===== Resetting Prefixes and ACLs for Application " + applicationId + " =====");
-            applicationsService.resetApplicationPrefixes(cluster.getId(), applicationId).thenCompose(
-                    metadata -> cluster.updateUserAcls(new ToolingUser(metadata, cluster.getId(),
+            applicationsService.resetApplicationPrefixes(cluster.getId(), applicationId)
+                    .thenCompose(metadata -> cluster.updateUserAcls(new ToolingUser(metadata, cluster.getId(),
                             kafkaClusters.getAuthenticationModule(cluster.getId()).orElseThrow(), aclSupport)))
                     .get();
             System.out.println("===== Prefixes and ACL Reset SUCCESSFUL =====");

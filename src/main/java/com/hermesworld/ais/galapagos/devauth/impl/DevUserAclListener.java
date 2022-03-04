@@ -118,9 +118,8 @@ public class DevUserAclListener implements TopicEventsListener, SubscriptionEven
             ApplicationMetadata appMeta = applicationsService.getApplicationMetadata(cluster.getId(), appId)
                     .orElse(null);
             if (appMeta != null) {
-                result = result
-                        .thenCompose(
-                                o -> updateAcls(cluster, getValidDevAuthenticationsForApplication(cluster, appId)));
+                result = result.thenCompose(
+                        o -> updateAcls(cluster, getValidDevAuthenticationsForApplication(cluster, appId)));
             }
         }
 
