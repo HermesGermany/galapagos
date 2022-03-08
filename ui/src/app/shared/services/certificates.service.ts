@@ -111,6 +111,9 @@ export class CertificateService {
     public async downloadDeveloperCertificate(environmentId: string): Promise<any> {
         return this.http.post('/api/me/certificates/' + environmentId, '').toPromise().then(resp => {
             const ra = resp as any;
+            //TODO
+            console.log(ra);
+            console.log(ra.fileContentsBase64, ra.fileName);
             saveAs(base64ToBlob(ra.fileContentsBase64), ra.fileName);
         });
     }

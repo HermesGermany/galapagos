@@ -71,16 +71,20 @@ public class DeveloperAuthenticationController {
             DevAuthenticationMetadata metadata = authService.getDeveloperAuthenticationOfCurrentUser(environmentId)
                     .orElseThrow();
 
-            return new DeveloperApiKeyDto(ConfluentCloudAuthUtil.getApiKey(metadata.getAuthenticationJson()),
+            var test = new DeveloperApiKeyDto(ConfluentCloudAuthUtil.getApiKey(metadata.getAuthenticationJson()),
                     baos.toString(StandardCharsets.UTF_8));
+            log.info(test.toString());
+            return test;
         }
-        catch (ExecutionException e) {
-            throw handleExecutionException(e);
+        catch (Exception e) {
+            log.error(e.toString());
+            return null;
+            //throw handleExecutionException(e);
         }
-        catch (InterruptedException e) {
+        /*catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             return null;
-        }
+        }*/
     }
 
     @GetMapping(value = "/api/me/authentications/{environmentId}", produces = MediaType.APPLICATION_JSON_VALUE)

@@ -112,6 +112,8 @@ public class DeveloperAuthenticationServiceImpl implements DeveloperAuthenticati
             return Optional.empty();
         }
 
+        log.info(getRepository(cluster).toString());
+        log.info(getRepository(cluster).getObject(userName).toString());
         DevAuthenticationMetadata metadata = getRepository(cluster).getObject(userName).orElse(null);
         if (metadata == null || isExpired(metadata, authModule)) {
             return Optional.empty();

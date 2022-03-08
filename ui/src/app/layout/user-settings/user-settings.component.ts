@@ -81,22 +81,31 @@ export class UserSettingsComponent implements OnInit {
         }
 
         this.certificateService.getDeveloperAuthenticationInfo(this.selectedEnvironment.id)
-            .pipe(take(1)).toPromise().then(val =>
+            .pipe(take(1)).toPromise().then(val => {
                 this.existingCertificateInfo.next({
                     dn: val.authentications[this.selectedEnvironment.id].authentication.dn,
                     expiresAt: val.authentications[this.selectedEnvironment.id].authentication.expiresAt
-                })
+                });
+            }
             ).catch(err => {
                 this.toasts.addHttpErrorToast('DEVELOPER_CERTIFICATE_INFO_ERROR', err);
             });
+
+
+        this.existingCertificateInfo.pipe(take(1)).toPromise().then(val => console.log(val));
     }
 
     async generateCertificate() {
+        //TODO delet log
+        console.log('CERTIFICATE');
         const successMsg = await this.translate.get('MSG_DEVELOPER_CERTIFICATE_SUCCESS').pipe(take(1)).toPromise();
         const errorMsg = await this.translate.get('MSG_DEVELOPER_CERTIFICATE_ERROR').pipe(take(1)).toPromise();
 
         this.certificateService.downloadDeveloperCertificate(this.selectedEnvironment.id).then(
-            () => this.toasts.addSuccessToast(successMsg),
+            val => {
+                console.log(val);
+                this.toasts.addSuccessToast(successMsg);
+            },
             err => this.toasts.addHttpErrorToast(errorMsg, err)
         )
             .then(() => this.updateExistingCertificateMessage());
@@ -122,9 +131,12 @@ export class UserSettingsComponent implements OnInit {
 
         this.certificateService.getDeveloperAuthenticationInfo(this.selectedEnvironment.id)
             .pipe(take(1)).toPromise().then(val => {
-                this.existingApikeyInfo.next({
-                    expiresAt: val.authentications[this.selectedEnvironment.id].authentication.expiresAt
-                });
+                {
+                    console.log(val);
+                    this.existingApikeyInfo.next({
+                        expiresAt: val.authentications[this.selectedEnvironment.id].authentication.expiresAt
+                    });
+                }
             }).catch(err => {
                 this.toasts.addHttpErrorToast('DEVELOPER_API_KEY_INFO_ERROR', err);
             });
