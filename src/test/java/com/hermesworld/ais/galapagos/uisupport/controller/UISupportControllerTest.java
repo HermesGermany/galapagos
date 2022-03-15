@@ -43,7 +43,7 @@ public class UISupportControllerTest {
 
     @Test
     public void testKafkaDoc() {
-        List<KafkaConfigDescriptionDto> result = new UISupportController(null, null, null, null, null, null)
+        List<KafkaConfigDescriptionDto> result = new UISupportController(null, null, null, null, null, null, null)
                 .getSupportedKafkaConfigs();
         assertNotNull(result);
         assertTrue(result.size() > 10);
