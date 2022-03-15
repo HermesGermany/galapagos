@@ -110,6 +110,16 @@ public class SchemaUtilTest {
     }
 
     @Test
+    public void testRemoveOptionalWithNoAdditionalProperties_success() throws Exception {
+        SchemaUtil.verifyCompatibleTo(readSchema("test09a"), readSchema("test09b"));
+    }
+
+    @Test(expected = IncompatibleSchemaException.class)
+    public void testRemoveOptionalWithAdditionalProperties_fail() throws Exception {
+        SchemaUtil.verifyCompatibleTo(readSchema("test09a"), readSchema("test09c"));
+    }
+
+    @Test
     public void testPatternField_success() throws Exception {
         SchemaUtil.verifyCompatibleTo(readSchema("test-pattern-field"),
                 readSchema("test-pattern-field-with-another-prop"));
