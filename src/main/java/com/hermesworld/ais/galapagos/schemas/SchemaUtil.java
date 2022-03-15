@@ -406,8 +406,7 @@ public final class SchemaUtil {
                         "Reference at " + propLocationName(prefix) + " could not be resolved");
             }
 
-            verifyCompatibleTo(oldSchema.getReferredSchema(), newSchema.getReferredSchema(),
-                    prefix + oldSchema);
+            verifyCompatibleTo(oldSchema.getReferredSchema(), newSchema.getReferredSchema(), prefix + oldSchema);
         }
     }
 
