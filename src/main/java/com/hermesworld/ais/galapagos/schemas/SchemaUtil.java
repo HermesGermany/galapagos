@@ -20,11 +20,6 @@ public final class SchemaUtil {
     }
 
     public static boolean areEqual(Schema schema1, Schema schema2) {
-        // TODO: Shall changes descriptive fields (title, description, default,
-        // examples) also be considered?
-        // The current logic considers these!
-        // Perhaps this is OK, as you maybe WANT to publish (or replace) a new schema
-        // version because you improved the documentation.
         return schema1.getClass() == schema2.getClass() && schema1.equals(schema2);
     }
 
@@ -94,7 +89,7 @@ public final class SchemaUtil {
     private static void verifyCompatibleTo(ObjectSchema oldSchema, ObjectSchema newSchema, String prefix)
             throws IncompatibleSchemaException {
         if (!oldSchema.permitsAdditionalProperties() && newSchema.permitsAdditionalProperties()) {
-            throw new IncompatibleSchemaException("additionalPropertiesAllowed must not be introduced "
+            throw new IncompatibleSchemaException("additionalProperties must not be introduced "
                     + "in a newer schema version (old consumers could rely on no additional properties being present)");
         }
 
@@ -117,11 +112,12 @@ public final class SchemaUtil {
         // Previously strongly typed (optional) properties must still be available with
         // same format
         oldPropsLoop: for (String property : oldSchema.getPropertySchemas().keySet()) {
+            Schema oldPropSchema = oldSchema.getPropertySchemas().get(property);
+
             // simple case: still exists directly
             Schema newPropSchema = newSchema.getPropertySchemas().get(property);
             if (newPropSchema != null) {
-                verifyCompatibleTo(oldSchema.getPropertySchemas().get(property), newPropSchema,
-                        fullPropName(prefix, property));
+                verifyCompatibleTo(oldPropSchema, newPropSchema, fullPropName(prefix, property));
                 continue;
             }
 
@@ -135,8 +131,7 @@ public final class SchemaUtil {
                 }
                 newPropSchema = ((ObjectSchema) newDepSchema).getPropertySchemas().get(property);
                 if (newPropSchema != null) {
-                    verifyCompatibleTo(oldSchema.getPropertySchemas().get(property), newPropSchema,
-                            fullPropName(prefix, property));
+                    verifyCompatibleTo(oldPropSchema, newPropSchema, fullPropName(prefix, property));
                     found = true;
                 }
             }
@@ -148,11 +143,15 @@ public final class SchemaUtil {
             Map<Regexp, Schema> newPatternSchemas = getPatternProperties(newSchema);
             for (Map.Entry<Regexp, Schema> entry : newPatternSchemas.entrySet()) {
                 if (entry.getKey().patternMatchingFailure(property).isEmpty()) {
-                    verifyCompatibleTo(oldSchema.getPropertySchemas().get(property), entry.getValue(),
-                            fullPropName(prefix, property));
+                    verifyCompatibleTo(oldPropSchema, entry.getValue(), fullPropName(prefix, property));
                     // JSON Schema logic: First matching pattern wins...
                     continue oldPropsLoop;
                 }
+            }
+
+            // if no additionalProperties allowed in new schema, we are fine, because will not occur in different format
+            if (!newSchema.permitsAdditionalProperties() && !oldSchema.getRequiredProperties().contains(property)) {
+                continue;
             }
 
             // OK, defined nowhere, so we can't be sure that it will still be generated in
@@ -178,7 +177,7 @@ public final class SchemaUtil {
 
             // directly compare, while we're here
             verifyCompatibleTo(pattern.getValue(), newPatternSchemas.get(newKey.get()),
-                    fullPropName(prefix, "(" + pattern.toString() + ")"));
+                    fullPropName(prefix, "(" + pattern + ")"));
         }
     }
 
@@ -408,7 +407,7 @@ public final class SchemaUtil {
             }
 
             verifyCompatibleTo(oldSchema.getReferredSchema(), newSchema.getReferredSchema(),
-                    prefix + oldSchema.toString());
+                    prefix + oldSchema);
         }
     }
 
