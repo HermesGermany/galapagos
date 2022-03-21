@@ -78,15 +78,15 @@ export class HeaderComponent implements OnInit {
         this.environments.setCurrentEnvironment(env);
     }
 
-    darkmodeButton(): void{
+    darkmodeButton(): void {
         this.changeDarkmode(localStorage.getItem('galapagos.darkmode') === 'true');
     }
 
-    changeDarkmode(darkmode: boolean): void{
-        if(darkmode) {
+    changeDarkmode(darkmode: boolean): void {
+        if (darkmode) {
             document.documentElement.classList.remove('dark');
             localStorage.setItem('galapagos.darkmode', 'false');
-        }else{
+        } else {
             document.documentElement.classList.add('dark');
             localStorage.setItem('galapagos.darkmode', 'true');
         }
