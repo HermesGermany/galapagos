@@ -63,6 +63,8 @@ describe('CreateTopicComponent', () => {
             },
             changelogMinDays: 0,
             changelogEntries: 10,
+            profilePicture: 'outlook',
+            defaultPicture: 'initials',
             customLinks: [
                 {
                     id: 'dummy',
@@ -101,6 +103,8 @@ describe('CreateTopicComponent', () => {
             },
             changelogMinDays: 0,
             changelogEntries: 10,
+            profilePicture: 'outlook',
+            defaultPicture: 'initials',
             customLinks: [
                 {
                     id: 'dummy',
