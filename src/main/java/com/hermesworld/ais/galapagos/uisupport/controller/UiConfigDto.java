@@ -19,4 +19,8 @@ public class UiConfigDto {
 
     private int changelogMinDays;
 
+    private ProfilePicture profilePicture;
+
+    private ProfilePicture defaultPicture;
+
 }

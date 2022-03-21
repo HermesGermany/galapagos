@@ -7,13 +7,14 @@ import {
     EnvironmentsService,
     KafkaEnvironment
 } from '../../shared/services/environments.service';
-import { Observable, switchMap } from 'rxjs';
+import { Observable, switchMap, firstValueFrom } from 'rxjs';
 import { flatMap, map, mergeMap, shareReplay, startWith, take, tap } from 'rxjs/operators';
 import { CustomLink, ServerInfo, ServerInfoService } from '../../shared/services/serverinfo.service';
 import * as moment from 'moment';
 import { TranslateService } from '@ngx-translate/core';
 import { ApplicationInfo, ApplicationsService } from '../../shared/services/applications.service';
 import { Location } from '@angular/common';
+import { Md5 } from 'ts-md5';
 
 @Component({
     selector: 'app-dashboard',
@@ -43,7 +44,10 @@ export class DashboardComponent implements OnInit {
 
     configTemplatesCopiedValue = false;
 
-    configAmountOfEntries: Observable<number>;
+    changelogProfilePicture: string;
+
+    changelogDefaultPicture: string;
+
 
     constructor(private environments: EnvironmentsService, private applicationsService: ApplicationsService,
                 private serverInfoService: ServerInfoService, private location: Location,
@@ -56,6 +60,10 @@ export class DashboardComponent implements OnInit {
                 .pipe(flatMap(env => this.environments.getChangeLog(env.id)))
                 .pipe(map(changes => this.formatChanges(changes, config.changelogEntries, config.changelogMinDays)))
                 .pipe(shareReplay(1))));
+        firstValueFrom(this.serverInfoService.getUiConfig()).then(r => {
+            this.changelogProfilePicture = r.profilePicture;
+            this.changelogDefaultPicture = r.defaultPicture;
+        });
     }
 
     ngOnInit() {
@@ -82,6 +90,47 @@ export class DashboardComponent implements OnInit {
 
     agoTimeStamp(timestamp: string): string {
         return moment(timestamp).locale(this.translate.currentLang).format('L LT');
+    }
+
+    getInitialsProfilePicture(user: string): string {
+        const name = user.split('@')[0].replace('.','+');
+        return `https://ui-avatars.com/api/?name=${name}&background=random`;
+    }
+
+    getOutlookProfilePicture(user: string): string {
+        return `https://outlook.office.com/owa/service.svc/s/GetPersonaPhoto?email=${user}&size=HR64x64`;
+    }
+
+    getGravtarProfilePicture(user: string): string {
+        const md5 = new Md5();
+        md5.appendStr(user.trim().toLowerCase());
+        const hash = md5.end();
+        return `https://www.gravatar.com/avatar/${hash}?d=identicon`;
+    }
+
+    getProfilePicture(user: string) {
+        switch (this.changelogProfilePicture.toLowerCase()) {
+            case 'outlook':
+                return this.getOutlookProfilePicture(user);
+                break;
+            case 'gravtar':
+                return this.getGravtarProfilePicture(user);
+            case 'initials':
+                return this.getInitialsProfilePicture(user);
+            default:
+                return '/assets/images/default_avatar.png';
+        }
+    }
+
+    getDefaultPicture(user: string) {
+        switch (this.changelogDefaultPicture.toLowerCase()) {
+            case 'gravtar':
+                return this.getGravtarProfilePicture(user);
+            case 'initials':
+                return this.getInitialsProfilePicture(user);
+            default:
+                return '/assets/images/default_avatar.png';
+        }
     }
 
     copyValueFromObservable(observer: Observable<string>) {

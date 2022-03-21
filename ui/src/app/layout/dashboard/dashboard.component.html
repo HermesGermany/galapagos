@@ -122,8 +122,10 @@
                     <ul class="chat" *ngIf="(changelog | async)?.length">
                         <li class="left clearfix" *ngFor="let change of changelog | async">
                             <span class="chat-img float-left">
-                                <!-- TODO gravatar? MS Office 365? -->
-                                <img src="/assets/images/default_avatar.png" class="img-circle">
+                                <div class="imageContainer">
+                                      <img class="image1" src='{{getDefaultPicture(change.principal)}}'>
+                                      <img class="image2" src='{{getProfilePicture(change.principal)}}'>
+                                </div>
                             </span>
                             <div class="chat-body clearfix">
                                 <div class="header">
