@@ -5,7 +5,7 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ToastService } from '../../../shared/modules/toast/toast.service';
 import { Topic, TopicRecord, TopicsService, TopicSubscription } from '../../../shared/services/topics.service';
 import { EnvironmentsService, KafkaEnvironment } from '../../../shared/services/environments.service';
-import * as moment from 'moment';
+import { DateTime } from 'luxon';
 import { map, take } from 'rxjs/operators';
 import { ApplicationInfo, ApplicationsService } from '../../../shared/services/applications.service';
 
@@ -95,7 +95,7 @@ export class TopicMetadataTableComponent implements OnInit {
 
     getEolDateForCurrentLang(eolDate) {
         if (eolDate) {
-            return moment(eolDate).locale(this.translateService.currentLang).format('L');
+            return DateTime.fromISO(eolDate).setLocale(this.translateService.currentLang).toFormat('D');
         }
 
         return '';

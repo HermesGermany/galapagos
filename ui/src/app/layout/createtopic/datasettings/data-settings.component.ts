@@ -1,7 +1,7 @@
 import { Component, Input } from '@angular/core';
 import { TopicType } from '../../../shared/services/topics.service';
 import { KafkaEnvironment } from '../../../shared/services/environments.service';
-import * as moment from 'moment';
+import { DateTime } from 'luxon';
 import { ChangeContext, Options } from '@angular-slider/ngx-slider';
 
 type CleanUpStrategy = 'compact' | 'delete';
@@ -137,7 +137,7 @@ export class DataSettingsComponent {
     }
 
     private toMilliSeconds(time, unit) {
-        return moment.duration(time, unit).asMilliseconds();
+        return DateTime.duration(time, unit).asMilliseconds();
     }
 
     private resolveData(index: number): MessagesPerDay {

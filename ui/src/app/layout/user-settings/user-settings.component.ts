@@ -6,8 +6,7 @@ import { EnvironmentsService, KafkaEnvironment } from 'src/app/shared/services/e
 import { flatMap, map, shareReplay, take } from 'rxjs/operators';
 import { ToastService } from 'src/app/shared/modules/toast/toast.service';
 import { TranslateService } from '@ngx-translate/core';
-import * as moment from 'moment';
-import 'moment/min/locales';
+import { DateTime } from 'luxon';
 
 @Component({
     selector: 'app-user-settings',
@@ -44,7 +43,7 @@ export class UserSettingsComponent implements OnInit {
                 if (!values[1].dn) {
                     return of(null);
                 }
-                const expiresAt = moment(values[1].expiresAt).locale(values[0]).format('L LT');
+                const expiresAt = DateTime.fromISO(values[1].expiresAt).locale(values[0]).format('L LT');
                 return this.translate.get('EXISTING_DEVELOPER_CERTIFICATE_HTML', { expiresAt: expiresAt })
                     .pipe(map(o => o as string));
             })).pipe(shareReplay());

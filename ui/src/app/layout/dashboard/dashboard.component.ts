@@ -10,7 +10,7 @@ import {
 import { Observable, switchMap } from 'rxjs';
 import { flatMap, map, mergeMap, shareReplay, startWith, take, tap } from 'rxjs/operators';
 import { CustomLink, ServerInfo, ServerInfoService } from '../../shared/services/serverinfo.service';
-import * as moment from 'moment';
+import { DateTime } from 'luxon';
 import { TranslateService } from '@ngx-translate/core';
 import { ApplicationInfo, ApplicationsService } from '../../shared/services/applications.service';
 import { Location } from '@angular/common';
@@ -77,11 +77,11 @@ export class DashboardComponent implements OnInit {
     }
 
     agoString(timestamp: string): string {
-        return moment(timestamp).locale(this.translate.currentLang).fromNow();
+        return DateTime.fromISO(timestamp).toLocal(this.translate.currentLang).toRelative();
     }
 
     agoTimeStamp(timestamp: string): string {
-        return moment(timestamp).locale(this.translate.currentLang).format('L LT');
+        return DateTime.fromISO(timestamp).toLocal(this.translate.currentLang).toFormat('f');
     }
 
     copyValueFromObservable(observer: Observable<string>) {
@@ -142,7 +142,7 @@ export class DashboardComponent implements OnInit {
                 topicName = change.topicName;
                 const obsLang = this.translate.onLangChange.pipe(map(evt => evt.lang))
                     .pipe(startWith(this.translate.currentLang)).pipe(shareReplay(1));
-                const obsEolDate = obsLang.pipe(map(lang => moment(change.eolDate).locale(lang).format('L')));
+                const obsEolDate = obsLang.pipe(map(lang => DateTime.fromISO(change.eolDate).setLocale(lang).toFormat('D')));
                 return obsEolDate.pipe(map(date => this.translate.instant('CHANGELOG_TOPIC_DEPRECATED_HTML', {
                     topicName: topicName,
                     topicLink: topicLink,

@@ -1,9 +1,9 @@
-import * as moment from 'moment';
+import { DateTime } from 'luxon';
 
 export const toNiceTimestamp: (utc: string) => string = utc => {
     if (!utc || !utc.length) {
         return '';
     }
 
-    return moment.utc(utc).local().format('DD.MM.YYYY HH:mm');
+    return DateTime.utc(utc).local().format('DD.MM.YYYY HH:mm');
 };

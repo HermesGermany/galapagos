@@ -11,7 +11,7 @@ import {
 import { combineLatest, Observable, of } from 'rxjs';
 import { toNiceTimestamp } from '../../shared/util/time-util';
 
-import * as moment from 'moment';
+import { DateTime } from 'luxon';
 import { map, mergeMap, shareReplay, startWith } from 'rxjs/operators';
 import { EnvironmentsService, KafkaEnvironment } from '../../shared/services/environments.service';
 import { ToastService } from '../../shared/modules/toast/toast.service';
@@ -110,12 +110,12 @@ export class ApplicationsComponent implements OnInit {
     }
 
     ngOnInit() {
-        const now = moment();
+        const now = DateTime.now();
 
         this.currentLang = this.translateService.onLangChange.pipe(map(evt => evt.lang))
             .pipe(startWith(this.translateService.currentLang)).pipe(shareReplay(1));
 
-        const relevant = (req: ApplicationOwnerRequest) => moment.utc(req.lastStatusChangeAt).subtract(30, 'days').isBefore(now);
+        const relevant = (req: ApplicationOwnerRequest) => DateTime.utc(req.lastStatusChangeAt).minus(30, 'days').isBefore(now);
         this.availableApplications = this.applicationsService.getAvailableApplications(true).pipe(
             map(val => {
                 this.appListLoading = false;
@@ -270,14 +270,14 @@ export class ApplicationsComponent implements OnInit {
                 this.certificateDlgData.keyfileName = this.certificateDlgData.commonName + '_' + env.id + '.key';
 
                 const isoExpiryDate = this.certificateDlgData.existingCertificate.expiresAt;
-                const now = moment();
-                const expiryWarnLevel = moment(isoExpiryDate).isBefore(now) ? 'danger' :
-                    (moment(isoExpiryDate).diff(now, 'days') < 90 ? 'warning' : 'info');
+                const now = DateTime.now();
+                const expiryWarnLevel = DateTime.fromISO(isoExpiryDate).isBefore(now) ? 'danger' :
+                    (DateTime.fromISO(isoExpiryDate).diff(now, 'days') < 90 ? 'warning' : 'info');
 
                 this.certificateDlgData.expiryWarningType = expiryWarnLevel;
                 this.certificateDlgData.expiryWarningHtml = this.currentLang.pipe(mergeMap(lang =>
                     this.translateService.get(expiryWarnLevel === 'danger' ? 'CERTIFICATE_EXPIRED_HTML' : 'CERTIFICATE_EXPIRY_HTML',
-                        { expiryDate: moment(isoExpiryDate).locale(lang).format('L') })));
+                        { expiryDate: DateTime.fromISO(isoExpiryDate).locale(lang).format('L') })));
             } else {
                 this.certificateDlgData.commonName = 'app';
                 this.certificateDlgData.keyfileName = 'app.key';
