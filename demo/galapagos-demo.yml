@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: galapagos-container
-          image: hermesgermany/galapagos:1.7.0
+          image: hermesgermany/galapagos:2.3.0
           resources:
             limits:
               cpu: "800m"
