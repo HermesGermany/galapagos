@@ -167,14 +167,15 @@ public class ValidatingTopicServiceImpl implements ValidatingTopicService {
 
     @Override
     public CompletableFuture<SchemaMetadata> addTopicSchemaVersion(String environmentId, String topicName,
-            String jsonSchema, String changeDescription) {
-        return checkOnNonStaging(environmentId, "add JSON schemas", SchemaMetadata.class).orElseGet(
-                () -> topicService.addTopicSchemaVersion(environmentId, topicName, jsonSchema, changeDescription));
+            String jsonSchema, String changeDescription, boolean skipCompatCheck) {
+        return checkOnNonStaging(environmentId, "add JSON schemas", SchemaMetadata.class).orElseGet(() -> topicService
+                .addTopicSchemaVersion(environmentId, topicName, jsonSchema, changeDescription, skipCompatCheck));
     }
 
     @Override
-    public CompletableFuture<SchemaMetadata> addTopicSchemaVersion(String environmentId, SchemaMetadata metadata) {
-        return topicService.addTopicSchemaVersion(environmentId, metadata);
+    public CompletableFuture<SchemaMetadata> addTopicSchemaVersion(String environmentId, SchemaMetadata metadata,
+            boolean skipCompatCheck) {
+        return topicService.addTopicSchemaVersion(environmentId, metadata, skipCompatCheck);
     }
 
     private Optional<CompletableFuture<Void>> checkOnNonStaging(String environmentId, String action) {

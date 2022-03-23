@@ -85,7 +85,7 @@ public class TopicControllerTest {
                 .thenReturn(FutureUtil.noop());
         when(applicationsService.isUserAuthorizedFor("app-1")).thenReturn(true);
         TopicController controller = new TopicController(topicService, kafkaClusters, applicationsService,
-                namingService);
+                namingService, userService);
 
         controller.updateTopic("test", "topic-1", dto);
         verify(topicService, times(1)).updateTopicDescription("test", "topic-1", "updated description goes here");
@@ -105,7 +105,7 @@ public class TopicControllerTest {
         when(applicationsService.isUserAuthorizedFor("app-1")).thenReturn(true);
 
         TopicController controller = new TopicController(topicService, kafkaClusters, applicationsService,
-                namingService);
+                namingService, userService);
         when(topicService.changeTopicOwner("test", "topic-1", "producer1")).thenReturn(FutureUtil.noop());
 
         ChangeTopicOwnerDto dto = new ChangeTopicOwnerDto();
@@ -127,7 +127,7 @@ public class TopicControllerTest {
         when(topicService.getTopic("test", "topic-1")).thenReturn(Optional.of(topic));
 
         TopicController controller = new TopicController(topicService, kafkaClusters, applicationsService,
-                namingService);
+                namingService, userService);
 
         ChangeTopicOwnerDto dto = new ChangeTopicOwnerDto();
         dto.setProducerApplicationId("producer1");
@@ -147,7 +147,7 @@ public class TopicControllerTest {
         ValidatingTopicService topicService = mock(ValidatingTopicService.class);
 
         TopicController controller = new TopicController(topicService, kafkaClusters, applicationsService,
-                namingService);
+                namingService, userService);
 
         // WHEN I am authorized for the topic owning application, but not the producer application
         when(applicationsService.isUserAuthorizedFor("app-1")).thenReturn(true);
@@ -174,7 +174,7 @@ public class TopicControllerTest {
         ValidatingTopicService topicService = mock(ValidatingTopicService.class);
 
         TopicController controller = new TopicController(topicService, kafkaClusters, applicationsService,
-                namingService);
+                namingService, userService);
 
         // WHEN I am authorized for the producer, but not the topic owning application
         when(applicationsService.isUserAuthorizedFor("app-9")).thenReturn(true);
@@ -206,7 +206,7 @@ public class TopicControllerTest {
         ValidatingTopicService topicService = mock(ValidatingTopicService.class);
 
         TopicController controller = new TopicController(topicService, kafkaClusters, applicationsService,
-                namingService);
+                namingService, userService);
 
         // WHEN I am authorized for the topic owning application, but not the producer application
         when(applicationsService.isUserAuthorizedFor("app-1")).thenReturn(true);
@@ -231,7 +231,7 @@ public class TopicControllerTest {
         ValidatingTopicService topicService = mock(ValidatingTopicService.class);
 
         TopicController controller = new TopicController(topicService, kafkaClusters, applicationsService,
-                namingService);
+                namingService, userService);
 
         // WHEN I am authorized for the producer, but not the topic owning application
         when(applicationsService.isUserAuthorizedFor("app-9")).thenReturn(true);

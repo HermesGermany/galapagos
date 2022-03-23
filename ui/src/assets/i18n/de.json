@@ -284,5 +284,6 @@
     "EVENTS": "Events",
     "DATA": "Master Data",
     "COMMANDS": "Commands",
-    "INTERNAL": "Anwendungsintern"
+    "INTERNAL": "Anwendungsintern",
+    "Skip compatibility check": "Schema-Kompatibilitätsprüfung überspringen"
 }

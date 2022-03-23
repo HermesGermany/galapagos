@@ -587,7 +587,7 @@ final class PublishTopicSchemaVersionChange extends ChangeBase {
 
     @Override
     public CompletableFuture<?> applyTo(ApplyChangeContext context) {
-        return context.getTopicService().addTopicSchemaVersion(context.getTargetEnvironmentId(), schemaMetadata);
+        return context.getTopicService().addTopicSchemaVersion(context.getTargetEnvironmentId(), schemaMetadata, false);
     }
 
 }

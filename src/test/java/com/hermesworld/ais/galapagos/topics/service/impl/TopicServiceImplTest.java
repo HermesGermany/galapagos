@@ -566,7 +566,7 @@ public class TopicServiceImplTest {
         String newSchema = buildJsonSchema(List.of("propA"), List.of("string"));
 
         try {
-            service.addTopicSchemaVersion("test", "topic-1", newSchema, null).get();
+            service.addTopicSchemaVersion("test", "topic-1", newSchema, null, false).get();
             fail("addTopicSchemaVersion() should have failed because same schema should not be added again");
         }
         catch (ExecutionException e) {
@@ -598,12 +598,34 @@ public class TopicServiceImplTest {
         String newSchema = buildJsonSchema(List.of("propB"), List.of("integer"));
 
         try {
-            service.addTopicSchemaVersion("test", "topic-1", newSchema, null).get();
+            service.addTopicSchemaVersion("test", "topic-1", newSchema, null, false).get();
             fail("addTopicSchemaVersion() should have failed for incompatible schema");
         }
         catch (ExecutionException e) {
             assertTrue(e.getCause() instanceof IncompatibleSchemaException);
         }
+    }
+
+    @Test
+    @DisplayName("should not to check for compatibility if skipCompatCheck is set to true")
+    public void testAddSchemaVersion_skipCompatibleSchemaCheckForAdmins() throws Exception {
+        TopicServiceImpl service = new TopicServiceImpl(kafkaClusters, applicationsService, namingService, userService,
+                topicConfig, eventManager);
+
+        TopicMetadata topic1 = new TopicMetadata();
+        topic1.setName("topic-1");
+        topicRepository.save(topic1).get();
+
+        SchemaMetadata schema1 = new SchemaMetadata();
+        schema1.setTopicName("topic-1");
+        schema1.setJsonSchema(buildJsonSchema(List.of("propA"), List.of("string")));
+        schema1.setSchemaVersion(1);
+        schemaRepository.save(schema1).get();
+
+        String newSchema = buildJsonSchema(List.of("propB"), List.of("integer"));
+        System.out.println(schema1.getJsonSchema());
+        System.out.println(newSchema);
+        service.addTopicSchemaVersion("test", "topic-1", newSchema, "some change decs", true).get();
     }
 
     @Test
@@ -635,7 +657,7 @@ public class TopicServiceImplTest {
         schema2.setSchemaVersion(2);
         schema2.setChangeDescription("some nice description :)");
 
-        SchemaMetadata newSchemaMetadata = service.addTopicSchemaVersion("test", schema2).get();
+        SchemaMetadata newSchemaMetadata = service.addTopicSchemaVersion("test", schema2, false).get();
         assertEquals("9999", newSchemaMetadata.getId());
         assertEquals(2, newSchemaMetadata.getSchemaVersion());
         assertTrue(newSchemaMetadata.getJsonSchema().contains("propB"));
@@ -662,7 +684,7 @@ public class TopicServiceImplTest {
         schema1.setSchemaVersion(2);
 
         try {
-            service.addTopicSchemaVersion("test", schema1).get();
+            service.addTopicSchemaVersion("test", schema1, false).get();
             fail("addTopicSchemaVersion() should have failed because version #2 and no version existing for topic");
         }
         catch (ExecutionException e) {
@@ -699,7 +721,7 @@ public class TopicServiceImplTest {
         schema2.setSchemaVersion(3);
 
         try {
-            service.addTopicSchemaVersion("test", schema2).get();
+            service.addTopicSchemaVersion("test", schema2, false).get();
             fail("addTopicSchemaVersion() should have failed because version #3 and only version #1 existing for topic");
         }
         catch (ExecutionException e) {
@@ -720,7 +742,7 @@ public class TopicServiceImplTest {
         topicRepository.save(topic1).get();
 
         try {
-            service.addTopicSchemaVersion("test", "topic-1", "{ \"title\": 17 }", null).get();
+            service.addTopicSchemaVersion("test", "topic-1", "{ \"title\": 17 }", null, false).get();
             fail("addTopicSchemaVersion() should have failed because JSON is no JSON schema");
         }
         catch (ExecutionException e) {
@@ -741,7 +763,7 @@ public class TopicServiceImplTest {
         topicRepository.save(topic1).get();
 
         try {
-            service.addTopicSchemaVersion("test", "topic-1", "{", null).get();
+            service.addTopicSchemaVersion("test", "topic-1", "{", null, false).get();
             fail("addTopicSchemaVersion() should have failed because no valid JSON");
         }
         catch (ExecutionException e) {
@@ -766,7 +788,7 @@ public class TopicServiceImplTest {
         topicRepository.save(topic1).get();
 
         try {
-            service.addTopicSchemaVersion("test", "topic-1", testJsonSchema, null).get();
+            service.addTopicSchemaVersion("test", "topic-1", testJsonSchema, null, false).get();
             fail("addTopicSchemaVersion() should have failed because there is a Data-Object in JSON Schema");
         }
         catch (ExecutionException e) {
@@ -790,7 +812,7 @@ public class TopicServiceImplTest {
 
         topicRepository.save(topic1).get();
 
-        service.addTopicSchemaVersion("test", "topic-1", testJsonSchema, null).get();
+        service.addTopicSchemaVersion("test", "topic-1", testJsonSchema, null, false).get();
     }
 
     @Test
@@ -810,7 +832,7 @@ public class TopicServiceImplTest {
         topicRepository.save(topic1).get();
 
         try {
-            service.addTopicSchemaVersion("test", "topic-1", testJsonSchema, null).get();
+            service.addTopicSchemaVersion("test", "topic-1", testJsonSchema, null, false).get();
             fail("addTopicSchemaVersion() should have failed because there is no schema prop in JSON Schema");
         }
         catch (ExecutionException e) {
@@ -1065,7 +1087,7 @@ public class TopicServiceImplTest {
 
         topicRepository.save(topic1).get();
 
-        service.addTopicSchemaVersion("test", "topic-1", testJsonSchema, null).get();
+        service.addTopicSchemaVersion("test", "topic-1", testJsonSchema, null, false).get();
     }
 
     @Test
@@ -1096,7 +1118,7 @@ public class TopicServiceImplTest {
         newSchema.setSchemaVersion(2);
         newSchema.setChangeDescription("Added new schema which is better");
 
-        service.addTopicSchemaVersion("test", newSchema).get();
+        service.addTopicSchemaVersion("test", newSchema, false).get();
 
         String changedDesc = schemaRepository.getObject("9999").get().getChangeDescription();
 
@@ -1125,7 +1147,7 @@ public class TopicServiceImplTest {
         newSchema.setChangeDescription("Added new schema which is better");
 
         try {
-            service.addTopicSchemaVersion("test", newSchema).get();
+            service.addTopicSchemaVersion("test", newSchema, false).get();
             fail("Exception expected when adding change description for first published schema");
         }
         catch (ExecutionException e) {

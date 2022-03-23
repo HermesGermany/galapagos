@@ -11,6 +11,7 @@ import com.hermesworld.ais.galapagos.kafka.config.KafkaEnvironmentConfig;
 import com.hermesworld.ais.galapagos.naming.InvalidTopicNameException;
 import com.hermesworld.ais.galapagos.naming.NamingService;
 import com.hermesworld.ais.galapagos.schemas.IncompatibleSchemaException;
+import com.hermesworld.ais.galapagos.security.CurrentUserService;
 import com.hermesworld.ais.galapagos.topics.SchemaMetadata;
 import com.hermesworld.ais.galapagos.topics.TopicMetadata;
 import com.hermesworld.ais.galapagos.topics.TopicType;
@@ -49,6 +50,8 @@ public class TopicController {
 
     private final NamingService namingService;
 
+    private final CurrentUserService userService;
+
     private static final Supplier<ResponseStatusException> badRequest = () -> new ResponseStatusException(
             HttpStatus.BAD_REQUEST);
 
@@ -59,11 +62,12 @@ public class TopicController {
 
     @Autowired
     public TopicController(ValidatingTopicService topicService, KafkaClusters kafkaEnvironments,
-            ApplicationsService applicationsService, NamingService namingService) {
+            ApplicationsService applicationsService, NamingService namingService, CurrentUserService userService) {
         this.topicService = topicService;
         this.kafkaEnvironments = kafkaEnvironments;
         this.applicationsService = applicationsService;
         this.namingService = namingService;
+        this.userService = userService;
     }
 
     @GetMapping(value = "/api/topics/{environmentId}", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -361,7 +365,8 @@ public class TopicController {
 
     @PutMapping(value = "/api/schemas/{environmentId}/{topicName}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> addTopicSchemaVersion(@PathVariable String environmentId,
-            @PathVariable String topicName, @RequestBody AddSchemaVersionDto schemaVersionDto) {
+            @PathVariable String topicName, @RequestParam boolean skipCompatCheck,
+            @RequestBody AddSchemaVersionDto schemaVersionDto) {
         TopicMetadata topic = topicService.listTopics(environmentId).stream().filter(t -> topicName.equals(t.getName()))
                 .findAny().orElseThrow(notFound);
         if (!applicationsService.isUserAuthorizedFor(topic.getOwnerApplicationId())) {
@@ -373,9 +378,13 @@ public class TopicController {
                     "JSON Schema (jsonSchema property) is missing from request body");
         }
 
+        if (skipCompatCheck && !userService.isAdmin()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
+
         try {
             SchemaMetadata metadata = topicService.addTopicSchemaVersion(environmentId, topicName,
-                    schemaVersionDto.getJsonSchema(), schemaVersionDto.getChangeDescription()).get();
+                    schemaVersionDto.getJsonSchema(), schemaVersionDto.getChangeDescription(), skipCompatCheck).get();
 
             return ResponseEntity.created(new URI("/schema/" + metadata.getId())).build();
         }

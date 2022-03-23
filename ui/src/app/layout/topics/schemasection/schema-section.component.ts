@@ -7,6 +7,7 @@ import { Observable } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ServerInfoService } from '../../../shared/services/serverinfo.service';
+import { KeycloakService } from 'keycloak-angular';
 
 @Component({
     selector: 'app-schema-section',
@@ -39,13 +40,18 @@ export class SchemaSectionComponent implements OnInit, OnChanges {
 
     schemaDeleteWithSub: Observable<boolean>;
 
+    isAdmin = false;
+
+    skipCompatCheck = false;
+
     constructor(
         private topicService: TopicsService,
         private environmentsService: EnvironmentsService,
         private translateService: TranslateService,
         private toasts: ToastService,
         private modalService: NgbModal,
-        private serverInfo: ServerInfoService
+        private serverInfo: ServerInfoService,
+        private keycloakService: KeycloakService
     ) {
         this.currentText = translateService.stream('(current)');
     }
@@ -63,6 +69,8 @@ export class SchemaSectionComponent implements OnInit, OnChanges {
             .pipe(map(info => info.toggles.schemaDeleteWithSub === 'true')).pipe(shareReplay(1));
 
         this.selectedEnvironment = this.environmentsService.getCurrentEnvironment();
+
+        this.isAdmin = this.keycloakService.getUserRoles().some(role => role === 'admin');
     }
 
     async ngOnChanges(changes: SimpleChanges) {
@@ -86,8 +94,7 @@ export class SchemaSectionComponent implements OnInit, OnChanges {
 
     async publishNewSchema(): Promise<any> {
         const environment = await this.environmentsService.getCurrentEnvironment().pipe(take(1)).toPromise();
-
-        return this.topicService.addTopicSchema(this.topic.name, environment.id, this.newSchemaText, this.schemaChangeDescription).then(
+        return this.topicService.addTopicSchema(this.topic.name, environment.id, this.newSchemaText, this.skipCompatCheck, this.schemaChangeDescription).then(
             () => {
                 this.editSchemaMode = false;
                 this.toasts.addSuccessToast('SCHEMA_PUBLISH_SUCCESS');

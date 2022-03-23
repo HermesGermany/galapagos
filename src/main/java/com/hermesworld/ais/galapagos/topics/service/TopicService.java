@@ -88,7 +88,7 @@ public interface TopicService {
 
     @CheckReturnValue
     CompletableFuture<SchemaMetadata> addTopicSchemaVersion(String environmentId, String topicName, String jsonSchema,
-            String changeDescription);
+            String changeDescription, boolean skipCompatCheck);
 
     @CheckReturnValue
     CompletableFuture<Void> deleteLatestTopicSchemaVersion(String environmentId, String topicName);
@@ -106,7 +106,8 @@ public interface TopicService {
      *         added.
      */
     @CheckReturnValue
-    CompletableFuture<SchemaMetadata> addTopicSchemaVersion(String environmentId, SchemaMetadata metadata);
+    CompletableFuture<SchemaMetadata> addTopicSchemaVersion(String environmentId, SchemaMetadata metadata,
+            boolean skipCompatCheck);
 
     @CheckReturnValue
     CompletableFuture<TopicCreateParams> buildTopicCreateParams(String environmentId, String topicName);

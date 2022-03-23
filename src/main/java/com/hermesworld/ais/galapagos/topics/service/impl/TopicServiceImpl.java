@@ -314,7 +314,7 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
 
     @Override
     public CompletableFuture<SchemaMetadata> addTopicSchemaVersion(String environmentId, String topicName,
-            String jsonSchema, String changeDescription) {
+            String jsonSchema, String changeDescription, boolean skipCompatCheck) {
         String userName = userService.getCurrentUserName().orElse(null);
         if (userName == null) {
             return CompletableFuture.failedFuture(new IllegalStateException("No user currently logged in"));
@@ -339,7 +339,7 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
         newSchemaVersion.setChangeDescription(changeDescription);
         newSchemaVersion.setSchemaVersion(nextVersionNo);
 
-        return addTopicSchemaVersion(environmentId, newSchemaVersion);
+        return addTopicSchemaVersion(environmentId, newSchemaVersion, skipCompatCheck);
     }
 
     @Override
@@ -371,8 +371,8 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
     }
 
     @Override
-    public CompletableFuture<SchemaMetadata> addTopicSchemaVersion(String environmentId,
-            SchemaMetadata schemaMetadata) {
+    public CompletableFuture<SchemaMetadata> addTopicSchemaVersion(String environmentId, SchemaMetadata schemaMetadata,
+            boolean skipCompatCheck) {
         String userName = userService.getCurrentUserName().orElse(null);
         if (userName == null) {
             return CompletableFuture.failedFuture(new IllegalStateException("No user currently logged in"));
@@ -443,8 +443,12 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
                 }
 
                 boolean reverse = metadata.getType() == TopicType.COMMANDS;
-                SchemaUtil.verifyCompatibleTo(reverse ? newSchema : previousSchema,
-                        reverse ? previousSchema : newSchema);
+
+                if (!skipCompatCheck) {
+                    SchemaUtil.verifyCompatibleTo(reverse ? newSchema : previousSchema,
+                            reverse ? previousSchema : newSchema);
+                }
+
             }
             catch (JSONException e) {
                 // how, on earth, did it get into the repo then???
