@@ -94,7 +94,8 @@ export class SchemaSectionComponent implements OnInit, OnChanges {
 
     async publishNewSchema(): Promise<any> {
         const environment = await this.environmentsService.getCurrentEnvironment().pipe(take(1)).toPromise();
-        return this.topicService.addTopicSchema(this.topic.name, environment.id, this.newSchemaText, this.skipCompatCheck, this.schemaChangeDescription).then(
+        return this.topicService.addTopicSchema(this.topic.name, environment.id, this.newSchemaText,
+            this.skipCompatCheck, this.schemaChangeDescription).then(
             () => {
                 this.editSchemaMode = false;
                 this.toasts.addSuccessToast('SCHEMA_PUBLISH_SUCCESS');

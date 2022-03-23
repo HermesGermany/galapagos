@@ -280,13 +280,15 @@ export class TopicsService {
             .pipe(map(schemas => this.markLatest(schemas))).toPromise();
     }
 
-    public addTopicSchema(topicName: string, environmentId: string, jsonSchema: string, skipCompatCheck: boolean, schemaChangeDescription?: string): Promise<any> {
+    public addTopicSchema(topicName: string, environmentId: string, jsonSchema: string,
+        skipCompatCheck: boolean, schemaChangeDescription?: string): Promise<any> {
         const body = JSON.stringify({
             jsonSchema: jsonSchema,
             changeDescription: schemaChangeDescription ? schemaChangeDescription : null
         });
 
-        return this.http.put('/api/schemas/' + environmentId + '/' + topicName + `?skipCompatCheck=${skipCompatCheck}`, body, { headers: jsonHeader() }).toPromise();
+        return this.http.put('/api/schemas/' + environmentId + '/' + topicName + `?skipCompatCheck=${skipCompatCheck}`,
+            body, { headers: jsonHeader() }).toPromise();
     }
 
     public deleteLatestSchema(topicName: string, environmentId: string): Promise<any> {
