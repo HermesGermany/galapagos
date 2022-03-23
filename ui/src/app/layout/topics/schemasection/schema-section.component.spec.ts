@@ -107,8 +107,6 @@ describe('SchemaSectionComponent', () => {
         const topicsService = fixture.debugElement.injector.get(TopicsService);
         const environmentsService = fixture.debugElement.injector.get(EnvironmentsService);
         const serverInfoService = fixture.debugElement.injector.get(ServerInfoService);
-
-        fixture.detectChanges();
         const serviceSpy: jasmine.Spy = spyOn(topicsService, 'getTopicSchemas').and.returnValue(Promise.resolve([{
             id: '123',
             topicName: 'myTopic',
