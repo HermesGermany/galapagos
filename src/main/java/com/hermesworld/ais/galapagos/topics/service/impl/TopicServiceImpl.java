@@ -367,7 +367,13 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
                     new IllegalStateException("The selected schema already exists on the next stage! To delete "
                             + "this schema you have to delete it there first!"));
         }
-        return getSchemaRepository(kafkaCluster).delete(latestSchemaOnCurrentStage);
+
+        GalapagosEventSink eventSink = eventManager.newEventSink(kafkaCluster);
+        TopicMetadata metadata = getTopicRepository(kafkaCluster).getObject(topicName).orElse(null);
+        if (metadata == null) {
+            return noSuchTopic(environmentId, topicName);
+        }
+        return getSchemaRepository(kafkaCluster).delete(latestSchemaOnCurrentStage).thenCompose(o -> eventSink.handleTopicSchemaDeleted(metadata));
     }
 
     @Override

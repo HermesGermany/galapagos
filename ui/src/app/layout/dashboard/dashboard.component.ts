@@ -108,12 +108,37 @@ export class DashboardComponent implements OnInit {
                 change.change.html = this.changeHtml(change.change);
                 return change;
             }).filter(change => change.change.html !== null);
+
         const index = changes.findIndex(
             change =>
                 new Date(change.timestamp) <
                 new Date(new Date().setDate(new Date().getDate() - minDays)));
-        return changes.slice(0, Math.max(amountOfEntries, index));
+
+        // eslint-disable-next-line @typescript-eslint/prefer-for-of
+        let keeper = [changes[0]];
+        for (let i = 0; i < changes.length; i++) {
+            keeper.push(this.detectMultipleJsonSchemaChangesInARow(changes,i,i+1));
+        }
+        keeper = keeper.filter(keep => keep !== null);
+        return keeper.slice(0, Math.max(amountOfEntries, index));
     }
+
+    private detectMultipleJsonSchemaChangesInARow(changes: ChangelogEntry[], indexOne: number, indexTwo: number) {
+        if (
+            (changes[indexOne].change.changeType === 'TOPIC_SCHEMA_VERSION_DELETED' ||
+                changes[indexOne].change.changeType === 'TOPIC_SCHEMA_VERSION_PUBLISHED')
+            &&
+            (changes[indexTwo].change.changeType === 'TOPIC_SCHEMA_VERSION_DELETED' ||
+                changes[indexTwo].change.changeType === 'TOPIC_SCHEMA_VERSION_PUBLISHED')
+
+            &&
+            changes[indexTwo].change.topicName === changes[indexOne].change.topicName
+        ) {
+            return null;
+        }
+        return changes[indexTwo];
+    }
+
 
     private changeHtml(change: Change): Observable<string> {
         let topicName: string;
@@ -159,6 +184,11 @@ export class DashboardComponent implements OnInit {
                 topicName = change.topicName;
                 topicLink = this.urlForRouterLink('/topics/' + topicName);
                 return this.translate.stream('CHANGELOG_TOPIC_SCHEMA_VERSION_REGISTERED_HTML',
+                    { topicName: topicName, topicLink: topicLink });
+            case 'TOPIC_SCHEMA_VERSION_DELETED':
+                topicName = change.topicName;
+                topicLink = this.urlForRouterLink('/topics/' + topicName);
+                return this.translate.stream('CHANGELOG_TOPIC_SCHEMA_VERSION_DELETED_HTML',
                     { topicName: topicName, topicLink: topicLink });
             case 'TOPIC_DESCRIPTION_CHANGED':
                 if (change.internalTopic) {

@@ -202,6 +202,11 @@ public class UpdateApplicationAclsListener
         return FutureUtil.noop();
     }
 
+    @Override
+    public CompletableFuture<Void> handleTopicSchemaDeleted(TopicSchemaRemovedEvent event) {
+        return FutureUtil.noop();
+    }
+
     /**
      * Allows external access to the ACL logic for applications, which is quite complex. Currently known user is the
      * Update Listener of the Dev Certificates (DevUserAclListener).

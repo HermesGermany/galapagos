@@ -105,6 +105,10 @@ public abstract class ChangeBase implements ApplicableChange {
         return new PublishTopicSchemaVersionChange(topicName, schemaVersion);
     }
 
+    public static ChangeBase deleteTopicSchemaVersion(String topicName) {
+        return new DeleteTopicSchemaVersionChange(topicName);
+    }
+
     public static ChangeBase addTopicProducer(String topicName, String producerApplicationId) {
         return new TopicProducerAddChange(topicName, producerApplicationId);
     }
@@ -570,6 +574,7 @@ final class PublishTopicSchemaVersionChange extends ChangeBase {
         this.schemaMetadata = schemaMetadata;
     }
 
+
     public String getTopicName() {
         return topicName;
     }
@@ -588,6 +593,35 @@ final class PublishTopicSchemaVersionChange extends ChangeBase {
     @Override
     public CompletableFuture<?> applyTo(ApplyChangeContext context) {
         return context.getTopicService().addTopicSchemaVersion(context.getTargetEnvironmentId(), schemaMetadata);
+    }
+
+}
+
+
+@JsonSerialize
+final class DeleteTopicSchemaVersionChange extends ChangeBase {
+
+    private final String topicName;
+
+    public DeleteTopicSchemaVersionChange(String topicName) {
+        super(ChangeType.TOPIC_SCHEMA_VERSION_DELETED);
+        this.topicName = topicName;
+    }
+
+
+    public String getTopicName() {
+        return topicName;
+    }
+
+    @Override
+    protected boolean isEqualTo(ChangeBase other) {
+        PublishTopicSchemaVersionChange change = (PublishTopicSchemaVersionChange) other;
+        return Objects.equals(topicName, change.getTopicName());
+    }
+
+    @Override
+    public CompletableFuture<?> applyTo(ApplyChangeContext context) {
+        throw new UnsupportedOperationException("Cannot apply changes to deleted Schema");
     }
 
 }
