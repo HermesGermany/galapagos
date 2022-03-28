@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { routerTransition } from '../../router.animations';
 import { CertificateService, DeveloperCertificateInfo } from '../../shared/services/certificates.service';
-import { combineLatest, concat, Observable, of, Subject } from 'rxjs';
+import { combineLatest, concat, firstValueFrom, Observable, of, Subject } from 'rxjs';
 import { EnvironmentsService, KafkaEnvironment } from 'src/app/shared/services/environments.service';
 import { flatMap, map, shareReplay, take } from 'rxjs/operators';
 import { ToastService } from 'src/app/shared/modules/toast/toast.service';
@@ -57,15 +57,15 @@ export class UserSettingsComponent implements OnInit {
             return;
         }
 
-        this.certificateService.getDeveloperCertificateInfo(this.selectedEnvironment.id)
-            .pipe(take(1)).toPromise().then(val => this.existingCertificateInfo.next(val)).catch(err => {
-                this.toasts.addHttpErrorToast('DEVELOPER_CERTIFICATE_INFO_ERROR', err);
-            });
+        firstValueFrom(this.certificateService.getDeveloperCertificateInfo(this.selectedEnvironment.id)
+            .pipe(take(1))).then(val => this.existingCertificateInfo.next(val)).catch(err => {
+            this.toasts.addHttpErrorToast('DEVELOPER_CERTIFICATE_INFO_ERROR', err);
+        });
     }
 
     async generateCertificate() {
-        const successMsg = await this.translate.get('MSG_DEVELOPER_CERTIFICATE_SUCCESS').pipe(take(1)).toPromise();
-        const errorMsg = await this.translate.get('MSG_DEVELOPER_CERTIFICATE_ERROR').pipe(take(1)).toPromise();
+        const successMsg = await firstValueFrom(this.translate.get('MSG_DEVELOPER_CERTIFICATE_SUCCESS').pipe(take(1)));
+        const errorMsg = await firstValueFrom(this.translate.get('MSG_DEVELOPER_CERTIFICATE_ERROR').pipe(take(1)));
 
         this.certificateService.downloadDeveloperCertificate(this.selectedEnvironment.id).then(
             () => this.toasts.addSuccessToast(successMsg),

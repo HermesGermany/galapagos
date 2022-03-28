@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { map, take } from 'rxjs/operators';
 import { jsonHeader, ReplayContainer } from './services-common';
+import { firstValueFrom } from 'rxjs';
 
 export interface ApplicationApiKeyAndSecret {
     environmentId: string;
@@ -51,13 +52,12 @@ export class ApiKeyService {
     }
 
     public getApplicationApiKeysPromise(applicationId: string): Promise<ApplicationApikeyAuthData> {
-        return this.getApplicationApiKeys(applicationId).getObservable().pipe(take(1)).toPromise();
+        return firstValueFrom(this.getApplicationApiKeys(applicationId).getObservable().pipe(take(1)));
     }
 
     public async requestApiKey(applicationId: string, environmentId: string): Promise<ApplicationApiKeyAndSecret> {
-        return this.http.post<ApplicationApiKeyAndSecret>('/api/apikeys/' + applicationId + '/' + environmentId,
-            {}, { headers: jsonHeader() })
-            .toPromise();
+        return firstValueFrom(this.http.post<ApplicationApiKeyAndSecret>('/api/apikeys/' + applicationId + '/' + environmentId,
+            {}, { headers: jsonHeader() }));
     }
 
 }

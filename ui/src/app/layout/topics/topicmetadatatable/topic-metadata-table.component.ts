@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, OnInit, Output, TemplateRef } from '@angular/core';
-import { Observable } from 'rxjs';
+import { firstValueFrom, Observable } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ToastService } from '../../../shared/modules/toast/toast.service';
@@ -132,7 +132,7 @@ export class TopicMetadataTableComponent implements OnInit {
     }
 
     async openDataDlg(content: any) {
-        const environment = await this.environmentsService.getCurrentEnvironment().pipe(take(1)).toPromise();
+        const environment = await firstValueFrom(this.environmentsService.getCurrentEnvironment().pipe(take(1)));
 
         this.topicDataLoading = true;
         this.topicData = this.topicService
@@ -148,7 +148,7 @@ export class TopicMetadataTableComponent implements OnInit {
     }
 
     async unsubscribe(subscription: TopicSubscription): Promise<any> {
-        const environment = await this.environmentsService.getCurrentEnvironment().pipe(take(1)).toPromise();
+        const environment = await firstValueFrom(this.environmentsService.getCurrentEnvironment().pipe(take(1)));
 
         return this.topicService.unsubscribeFromTopic(environment.id, subscription.clientApplication.id, subscription.id).then(
             () => {
@@ -179,7 +179,7 @@ export class TopicMetadataTableComponent implements OnInit {
     }
 
     async changeTopicOwner(topicName: string, newOwnerId: string): Promise<any> {
-        const environment = await this.environmentsService.getCurrentEnvironment().pipe(take(1)).toPromise();
+        const environment = await firstValueFrom(this.environmentsService.getCurrentEnvironment().pipe(take(1)));
         return this.topicService.changeTopicOwner(environment.id, topicName, newOwnerId).then(
             () => {
                 this.toasts.addSuccessToast('PRODUCER_PROMOTED_TOPIC_OWNER_SUCCESS');
@@ -188,7 +188,7 @@ export class TopicMetadataTableComponent implements OnInit {
     }
 
     async deleteProducer(topicName: string, producerAppId: string): Promise<any> {
-        const environment = await this.environmentsService.getCurrentEnvironment().pipe(take(1)).toPromise();
+        const environment = await firstValueFrom(this.environmentsService.getCurrentEnvironment().pipe(take(1)));
         return this.topicService.deleteProducerFromTopic(environment.id, topicName, producerAppId).then(
             () => {
                 this.toasts.addSuccessToast('PRODUCER_REMOVED_SUCCESS');
@@ -197,7 +197,7 @@ export class TopicMetadataTableComponent implements OnInit {
     }
 
     private async updateSubscription(sub: TopicSubscription, approve: boolean, successMessage: string, errorMessage: string) {
-        const environment = await this.environmentsService.getCurrentEnvironment().pipe(take(1)).toPromise();
+        const environment = await firstValueFrom(this.environmentsService.getCurrentEnvironment().pipe(take(1)));
 
         return this.topicService.updateTopicSubscription(environment.id, this.topic.name, sub.id, approve).then(
             () => {

@@ -2,7 +2,7 @@ import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { routerTransition } from '../../router.animations';
 import { ActivatedRoute } from '@angular/router';
 import { Topic, TopicsService, TopicSubscription } from '../../shared/services/topics.service';
-import { combineLatest, Observable } from 'rxjs';
+import { combineLatest, firstValueFrom, last, lastValueFrom, Observable } from 'rxjs';
 import { finalize, map, shareReplay, take } from 'rxjs/operators';
 import { ApplicationsService, UserApplicationInfo } from '../../shared/services/applications.service';
 import { EnvironmentsService, KafkaEnvironment } from '../../shared/services/environments.service';
@@ -52,16 +52,15 @@ export class SingleTopicComponent implements OnInit {
             next: params => {
                 if (params.has('environment')) {
                     const envId = params.get('environment');
-                    environmentsService
+                    firstValueFrom(environmentsService
                         .getEnvironments()
                         .pipe(take(1))
-                        .toPromise()
-                        .then(envs => {
-                            const env = envs.find(e => e.id === envId);
-                            if (env) {
-                                environmentsService.setCurrentEnvironment(env);
-                            }
-                        });
+                    ).then(envs => {
+                        const env = envs.find(e => e.id === envId);
+                        if (env) {
+                            environmentsService.setCurrentEnvironment(env);
+                        }
+                    });
                 }
             }
         });
@@ -97,8 +96,8 @@ export class SingleTopicComponent implements OnInit {
 
 
     async refreshChildData() {
-        const topic = await this.topic.pipe(take(1)).toPromise();
-        const environment = await this.environmentsService.getCurrentEnvironment().pipe(take(1)).toPromise();
+        const topic = await firstValueFrom(this.topic.pipe(take(1)));
+        const environment = await firstValueFrom(this.environmentsService.getCurrentEnvironment().pipe(take(1)));
         this.loadSubscribers(topic, environment.id);
     }
 
@@ -115,24 +114,22 @@ export class SingleTopicComponent implements OnInit {
 
         const ownerAppId = topic.ownerApplication ? topic.ownerApplication.id : null;
 
-        this.topicSubscribers
-            .pipe(take(1))
-            .toPromise()
-            .then(subs => {
-                this.loadingApplications = this.applicationsService.getUserApplications().getLoadingStatus();
-                this.availableApplications = this.applicationsService
-                    .getUserApplications()
-                    .getObservable()
-                    .pipe(
-                        map(apps =>
-                            apps.filter(
-                                app =>
-                                    (!ownerAppId || app.id !== ownerAppId) &&
+        firstValueFrom(this.topicSubscribers.pipe(take(1))
+        ).then(subs => {
+            this.loadingApplications = this.applicationsService.getUserApplications().getLoadingStatus();
+            this.availableApplications = this.applicationsService
+                .getUserApplications()
+                .getObservable()
+                .pipe(
+                    map(apps =>
+                        apps.filter(
+                            app =>
+                                (!ownerAppId || app.id !== ownerAppId) &&
                                     !subs.find(sub => sub.clientApplication && sub.clientApplication.id === app.id)
-                            )
                         )
-                    );
-            });
+                    )
+                );
+        });
     }
 
 }

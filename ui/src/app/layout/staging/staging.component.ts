@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { routerTransition } from '../../router.animations';
 import { ApplicationInfo, ApplicationsService, UserApplicationInfo } from '../../shared/services/applications.service';
-import { Observable } from 'rxjs';
+import { firstValueFrom, Observable } from 'rxjs';
 import {
     Change,
     EnvironmentsService,
@@ -57,7 +57,7 @@ export class StagingComponent implements OnInit {
     ngOnInit() {
         this.availableApplications = this.applicationsService.getUserApplications().getObservable();
         this.availableEnvironments = this.environmentsService.getEnvironments().pipe(map(envs => envs.filter(env => !env.production)));
-        this.environmentsService.getCurrentEnvironment().pipe(take(1)).toPromise().then(env => {
+        firstValueFrom(this.environmentsService.getCurrentEnvironment().pipe(take(1))).then(env => {
             this.selectedEnvironment = env;
             this.updateTargetEnvironment();
         });
@@ -67,7 +67,7 @@ export class StagingComponent implements OnInit {
         if (!this.selectedEnvironment) {
             this.targetEnvironment = '';
         } else {
-            this.environmentsService.getEnvironments().pipe(take(1)).toPromise().then(envs => {
+            firstValueFrom(this.environmentsService.getEnvironments().pipe(take(1))).then(envs => {
                 const idx = envs.findIndex(env => env === this.selectedEnvironment);
                 if (idx > -1 && idx < envs.length - 1) {
                     this.targetEnvironment = envs[idx + 1].name;

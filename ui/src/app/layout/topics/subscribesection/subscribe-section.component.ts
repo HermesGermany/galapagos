@@ -4,7 +4,7 @@ import { Topic, TopicsService } from '../../../shared/services/topics.service';
 import { EnvironmentsService, KafkaEnvironment } from '../../../shared/services/environments.service';
 import { take } from 'rxjs/operators';
 import { UserApplicationInfo } from '../../../shared/services/applications.service';
-import { Observable } from 'rxjs';
+import { firstValueFrom, Observable } from 'rxjs';
 import { ApiKeyService } from '../../../shared/services/apikey.service';
 
 @Component({
@@ -49,7 +49,7 @@ export class SubscriptionSectionComponent implements OnInit {
             return;
         }
         try {
-            const env = await this.selectedEnvironment.pipe(take(1)).toPromise();
+            const env = await firstValueFrom(this.selectedEnvironment.pipe(take(1)));
             const apikey = await this.apiKeyService.getApplicationApiKeysPromise(this.selectedApplication.id);
             this.showRegistrationWarning = !apikey.authentications[env.id];
         } catch (e) {
@@ -62,7 +62,7 @@ export class SubscriptionSectionComponent implements OnInit {
             return Promise.resolve();
         }
 
-        const environment = await this.environmentsService.getCurrentEnvironment().pipe(take(1)).toPromise();
+        const environment = await firstValueFrom(this.environmentsService.getCurrentEnvironment().pipe(take(1)));
 
         return this.topicService.subscribeToTopic(this.topic.name, environment.id,
             this.selectedApplication.id, this.subscriptionDescription)

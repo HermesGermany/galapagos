@@ -5,6 +5,7 @@ import { ToastService } from '../../../shared/modules/toast/toast.service';
 import { take } from 'rxjs/operators';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { Router } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
     selector: 'app-delete-topic-component',
@@ -43,7 +44,7 @@ export class DeleteTopicComponent {
     }
 
     async deleteTopic(): Promise<any> {
-        const environment = await this.environmentsService.getCurrentEnvironment().pipe(take(1)).toPromise();
+        const environment = await firstValueFrom(this.environmentsService.getCurrentEnvironment().pipe(take(1)));
 
         return this.topicService.deleteTopic(environment.id, this.topic.name).then(
             () => {

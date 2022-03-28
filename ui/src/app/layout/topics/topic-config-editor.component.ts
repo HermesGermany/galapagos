@@ -1,7 +1,7 @@
 import { Component, OnInit, Input, ChangeDetectorRef, AfterViewChecked } from '@angular/core';
 import { TopicConfigValues, TopicsService, TopicConfigDescriptor, TopicUpdateConfigValue } from '../../shared/services/topics.service';
 import { EnvironmentsService, KafkaEnvironment } from '../../shared/services/environments.service';
-import { Observable } from 'rxjs';
+import { firstValueFrom, Observable } from 'rxjs';
 import {  shareReplay, map, take, flatMap } from 'rxjs/operators';
 import { ActivatedRoute } from '@angular/router';
 import { routerTransition } from '../../router.animations';
@@ -42,11 +42,11 @@ export class TopicConfigEditorComponent implements OnInit, AfterViewChecked {
         this.allConfigurationProperties = this.topicsService.getSupportedConfigProperties();
 
         // for each environment, retrieve the topic and default configuration, and update our config maps
-        this.environments.pipe(take(1)).toPromise().then(envs => envs.forEach(env => {
-            this.topicsService.getDefaultTopicConfig(env.id).pipe(take(1)).toPromise().then(
+        firstValueFrom(this.environments.pipe(take(1))).then(envs => envs.forEach(env => {
+            firstValueFrom(this.topicsService.getDefaultTopicConfig(env.id).pipe(take(1))).then(
                 config => this.defaultTopicConfigs[env.id] = { ...config });
-            this.topicName.pipe(take(1)).toPromise().then(topicName =>
-                this.topicsService.getTopicConfig(topicName, env.id).pipe(take(1)).toPromise().then(
+            firstValueFrom(this.topicName.pipe(take(1))).then(topicName =>
+                firstValueFrom(this.topicsService.getTopicConfig(topicName, env.id).pipe(take(1))).then(
                     config => this.configuration[env.id] = { ...config }));
         }));
     }
@@ -64,9 +64,9 @@ export class TopicConfigEditorComponent implements OnInit, AfterViewChecked {
     }
 
     async saveConfig(): Promise<void> {
-        const envs = await this.environments.pipe(take(1)).toPromise();
-        const props = await this.allConfigurationProperties.pipe(take(1)).toPromise();
-        const topicName = await this.topicName.pipe(take(1)).toPromise();
+        const envs = await firstValueFrom(this.environments.pipe(take(1)));
+        const props = await firstValueFrom(this.allConfigurationProperties.pipe(take(1)));
+        const topicName = await firstValueFrom(this.topicName.pipe(take(1)));
 
         let result = Promise.resolve();
 
@@ -80,8 +80,8 @@ export class TopicConfigEditorComponent implements OnInit, AfterViewChecked {
             result = result.then(() => this.topicsService.updateTopicConfig(topicName, env.id, config));
         });
 
-        const successMsg = await this.translateService.get('TOPIC_CONFIG_UPDATE_SUCCESS').pipe(take(1)).toPromise();
-        const errorMsg = await this.translateService.get('TOPIC_CONFIG_UPDATE_ERROR').pipe(take(1)).toPromise();
+        const successMsg = await firstValueFrom(this.translateService.get('TOPIC_CONFIG_UPDATE_SUCCESS').pipe(take(1)));
+        const errorMsg = await firstValueFrom(this.translateService.get('TOPIC_CONFIG_UPDATE_ERROR').pipe(take(1)));
 
         return result.then(() => this.toasts.addSuccessToast(successMsg), err => this.toasts.addHttpErrorToast(errorMsg, err));
     }

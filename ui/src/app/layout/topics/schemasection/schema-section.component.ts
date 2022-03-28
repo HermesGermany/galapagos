@@ -3,7 +3,7 @@ import { SchemaMetadata, Topic, TopicsService, TopicSubscription } from '../../.
 import { map, shareReplay, take } from 'rxjs/operators';
 import { EnvironmentsService, KafkaEnvironment } from '../../../shared/services/environments.service';
 import { ToastService } from '../../../shared/modules/toast/toast.service';
-import { Observable } from 'rxjs';
+import { firstValueFrom, Observable } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ServerInfoService } from '../../../shared/services/serverinfo.service';
@@ -69,7 +69,7 @@ export class SchemaSectionComponent implements OnInit, OnChanges {
         if (changes.topic) {
             const change = changes.topic;
             if (change.currentValue) {
-                const env = await this.environmentsService.getCurrentEnvironment().pipe(take(1)).toPromise();
+                const env = await firstValueFrom(this.environmentsService.getCurrentEnvironment().pipe(take(1)));
                 this.loadSchemas(change.currentValue, env.id);
             }
         }
@@ -85,7 +85,7 @@ export class SchemaSectionComponent implements OnInit, OnChanges {
     }
 
     async publishNewSchema(): Promise<any> {
-        const environment = await this.environmentsService.getCurrentEnvironment().pipe(take(1)).toPromise();
+        const environment = await firstValueFrom(this.environmentsService.getCurrentEnvironment().pipe(take(1)));
 
         return this.topicService.addTopicSchema(this.topic.name, environment.id, this.newSchemaText, this.schemaChangeDescription).then(
             () => {
@@ -98,7 +98,7 @@ export class SchemaSectionComponent implements OnInit, OnChanges {
     }
 
     async deleteLatestSchema(): Promise<any> {
-        const environment = await this.environmentsService.getCurrentEnvironment().pipe(take(1)).toPromise();
+        const environment = await firstValueFrom(this.environmentsService.getCurrentEnvironment().pipe(take(1)));
 
         return this.topicService.deleteLatestSchema(this.topic.name, environment.id).then(
             () => {
