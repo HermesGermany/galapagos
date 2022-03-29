@@ -169,8 +169,7 @@ public class NotificationEventListener
 
     @Override
     public CompletableFuture<Void> handleTopicSchemaDeleted(TopicSchemaRemovedEvent event) {
-        return handleTopicChange(event,
-                "ein JSON-Schema wurde gelöscht ( )");
+        return handleTopicChange(event, "ein JSON-Schema wurde gelöscht ( )");
     }
 
     @Override

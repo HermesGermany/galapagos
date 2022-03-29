@@ -102,8 +102,7 @@ public class ChangesServiceImpl
 
     @Override
     public CompletableFuture<Void> handleTopicSchemaDeleted(TopicSchemaRemovedEvent event) {
-        return logChange(ChangeBase.deleteTopicSchemaVersion(event.getMetadata().getName()),
-                event);
+        return logChange(ChangeBase.deleteTopicSchemaVersion(event.getMetadata().getName()), event);
     }
 
     @Override

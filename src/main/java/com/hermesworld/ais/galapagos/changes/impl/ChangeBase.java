@@ -574,7 +574,6 @@ final class PublishTopicSchemaVersionChange extends ChangeBase {
         this.schemaMetadata = schemaMetadata;
     }
 
-
     public String getTopicName() {
         return topicName;
     }
@@ -597,7 +596,6 @@ final class PublishTopicSchemaVersionChange extends ChangeBase {
 
 }
 
-
 @JsonSerialize
 final class DeleteTopicSchemaVersionChange extends ChangeBase {
 
@@ -607,7 +605,6 @@ final class DeleteTopicSchemaVersionChange extends ChangeBase {
         super(ChangeType.TOPIC_SCHEMA_VERSION_DELETED);
         this.topicName = topicName;
     }
-
 
     public String getTopicName() {
         return topicName;

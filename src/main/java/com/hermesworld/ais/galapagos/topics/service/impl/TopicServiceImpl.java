@@ -373,7 +373,8 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
         if (metadata == null) {
             return noSuchTopic(environmentId, topicName);
         }
-        return getSchemaRepository(kafkaCluster).delete(latestSchemaOnCurrentStage).thenCompose(o -> eventSink.handleTopicSchemaDeleted(metadata));
+        return getSchemaRepository(kafkaCluster).delete(latestSchemaOnCurrentStage)
+                .thenCompose(o -> eventSink.handleTopicSchemaDeleted(metadata));
     }
 
     @Override
