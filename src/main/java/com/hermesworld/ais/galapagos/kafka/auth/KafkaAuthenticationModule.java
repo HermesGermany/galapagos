@@ -8,6 +8,7 @@ import java.time.Instant;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Interface of modules being able to provide (create, delete) authentication data (e.g. user name / password) for
@@ -54,4 +55,11 @@ public interface KafkaAuthenticationModule {
 
     @CheckReturnValue
     CompletableFuture<Void> deleteDeveloperAuthentication(String userName, JSONObject existingAuthData);
+
+    @CheckReturnValue
+    CompletableFuture<CreateAuthenticationResult> createToolingAuthentication(String applicationName,
+            JSONObject createParams) throws ExecutionException, InterruptedException;
+
+    @CheckReturnValue
+    CompletableFuture<Void> deleteToolingAuthentication(JSONObject existingAuthData);
 }
