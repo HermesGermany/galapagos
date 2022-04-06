@@ -9,7 +9,7 @@ import org.json.JSONObject;
 
 import java.util.Collection;
 
-class ToolingUser implements KafkaUser {
+public class ToolingUser implements KafkaUser {
 
     private final ApplicationMetadata metadata;
 

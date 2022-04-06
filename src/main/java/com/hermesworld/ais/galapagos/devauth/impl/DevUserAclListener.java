@@ -13,10 +13,10 @@ import com.hermesworld.ais.galapagos.kafka.util.AclSupport;
 import com.hermesworld.ais.galapagos.subscriptions.service.SubscriptionService;
 import com.hermesworld.ais.galapagos.util.FutureUtil;
 import com.hermesworld.ais.galapagos.util.TimeService;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.acl.AclBinding;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.CheckReturnValue;
@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Component
+@Slf4j
 public class DevUserAclListener implements TopicEventsListener, SubscriptionEventsListener, ApplicationEventsListener {
 
     private final ApplicationsService applicationsService;
@@ -263,8 +264,7 @@ public class DevUserAclListener implements TopicEventsListener, SubscriptionEven
                         .orElse(null);
             }
             catch (JSONException e) {
-                LoggerFactory.getLogger(DevUserAclListener.class).warn(
-                        "Could not parse authentication JSON of developer authentication for user {}",
+                log.warn("Could not parse authentication JSON of developer authentication for user {}",
                         metadata.getUserName(), e);
                 return null;
             }

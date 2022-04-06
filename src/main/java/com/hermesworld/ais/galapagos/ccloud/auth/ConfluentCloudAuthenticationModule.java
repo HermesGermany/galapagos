@@ -17,6 +17,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 public class ConfluentCloudAuthenticationModule implements KafkaAuthenticationModule {
 
@@ -24,9 +25,13 @@ public class ConfluentCloudAuthenticationModule implements KafkaAuthenticationMo
 
     private final static String DEVELOPER_SERVICE_ACCOUNT_DESC = "DEV_{0}";
 
+    private final static String TOOLING_SERVICE_ACCOUNT_DESC = "DEV_{0}";
+
     private final static String API_KEY_DESC = "Application {0}";
 
     private final static String API_DEVELOPER_KEY_DESC = "Developer {0}";
+
+    private final static String API_TOOLING_KEY_DESC = "Tooling {0}";
 
     private final static String JSON_API_KEY = "apiKey";
 
@@ -133,6 +138,31 @@ public class ConfluentCloudAuthenticationModule implements KafkaAuthenticationMo
     }
 
     @Override
+    public CompletableFuture<CreateAuthenticationResult> createToolingAuthentication(String applicationName,
+            JSONObject createParams) throws ExecutionException, InterruptedException {
+        String apiKeyDesc = MessageFormat.format(API_TOOLING_KEY_DESC, applicationName);
+        Optional<ServiceAccountInfo> sa = findServiceAccountForTooling(applicationName).get();
+
+        if (sa.isPresent()) {
+            return CompletableFuture.failedFuture(
+                    new IllegalStateException("There already exists a Service account for the tooling api key."));
+        }
+
+        return client
+                .createServiceAccount("tooling-" + applicationName, toolingServiceAccountDescription(applicationName))
+                .toFuture()
+                .thenCompose(account -> client
+                        .createApiKey(config.getEnvironmentId(), config.getClusterId(), apiKeyDesc, account.getId())
+                        .toFuture().thenApply(keyInfo -> toCreateAuthResult(keyInfo, null)));
+
+    }
+
+    @Override
+    public CompletableFuture<Void> deleteToolingAuthentication(JSONObject existingAuthData) {
+        return deleteApplicationAuthentication(null, existingAuthData);
+    }
+
+    @Override
     public Optional<Instant> extractExpiryDate(JSONObject authData) {
         if (authData.has(EXPIRES_AT)) {
             return Optional.of(Instant.from(DateTimeFormatter.ISO_INSTANT.parse(authData.getString(EXPIRES_AT))));
@@ -156,12 +186,22 @@ public class ConfluentCloudAuthenticationModule implements KafkaAuthenticationMo
                 .thenApply(ls -> ls.stream().filter(acc -> desc.equals(acc.getServiceDescription())).findAny());
     }
 
+    private CompletableFuture<Optional<ServiceAccountInfo>> findServiceAccountForTooling(String applicationName) {
+        String desc = toolingServiceAccountDescription(applicationName);
+        return ensureClientLoggedIn().thenCompose(o -> client.listServiceAccounts().toFuture())
+                .thenApply(ls -> ls.stream().filter(acc -> desc.equals(acc.getServiceDescription())).findAny());
+    }
+
     private String appServiceAccountDescription(String applicationId) {
         return MessageFormat.format(APP_SERVICE_ACCOUNT_DESC, applicationId);
     }
 
     private String devServiceAccountDescription(String userName) {
         return MessageFormat.format(DEVELOPER_SERVICE_ACCOUNT_DESC, userName);
+    }
+
+    private String toolingServiceAccountDescription(String userName) {
+        return MessageFormat.format(TOOLING_SERVICE_ACCOUNT_DESC, userName);
     }
 
     private CompletableFuture<Void> ensureClientLoggedIn() {

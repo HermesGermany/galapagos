@@ -162,6 +162,19 @@ public class CertificatesAuthenticationModule implements KafkaAuthenticationModu
         return FutureUtil.noop();
     }
 
+    @Override
+    public CompletableFuture<CreateAuthenticationResult> createToolingAuthentication(String applicationName,
+            JSONObject createParams) {
+        ByteArrayOutputStream outSecret = new ByteArrayOutputStream();
+        return createToolingCertificateAndPrivateKey(outSecret)
+                .thenApply(result -> new CreateAuthenticationResult(result, outSecret.toByteArray()));
+    }
+
+    @Override
+    public CompletableFuture<Void> deleteToolingAuthentication(JSONObject existingAuthData) {
+        return FutureUtil.noop();
+    }
+
     private CompletableFuture<JSONObject> createApplicationCertificateFromCsr(String applicationId,
             String normalizedApplicationName, String csrData, String existingDn, OutputStream outputStreamForCerFile) {
         CompletableFuture<CertificateSignResult> future = existingDn != null
@@ -205,6 +218,19 @@ public class CertificatesAuthenticationModule implements KafkaAuthenticationModu
     private CompletableFuture<JSONObject> createDeveloperCertificateAndPrivateKey(String userName,
             OutputStream outputStreamForP12File) {
         return caManager.createDeveloperCertificateAndPrivateKey(userName).thenCompose(result -> {
+            try {
+                outputStreamForP12File.write(result.getP12Data().orElse(new byte[0]));
+            }
+            catch (IOException e) {
+                return CompletableFuture.failedFuture(e);
+            }
+
+            return CompletableFuture.completedFuture(toAuthJson(result));
+        });
+    }
+
+    private CompletableFuture<JSONObject> createToolingCertificateAndPrivateKey(OutputStream outputStreamForP12File) {
+        return caManager.createToolingCertificateAndPrivateKey().thenCompose(result -> {
             try {
                 outputStreamForP12File.write(result.getP12Data().orElse(new byte[0]));
             }
