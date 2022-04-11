@@ -55,9 +55,6 @@ export class HeaderComponent implements OnInit {
             this.changeDarkmode(localStorage.getItem('galapagos.darkmode') !== 'true');
         }
 
-
-
-
         this.currentEnvironmentName = this.environments.getCurrentEnvironment().pipe(map(env => env.name));
         this.currentEnvironmentIcon = this.environments.getCurrentEnvironment().pipe(
             map(env => env.production ? 'fas fa-exclamation-triangle text-danger' : 'fas fa-database'));
