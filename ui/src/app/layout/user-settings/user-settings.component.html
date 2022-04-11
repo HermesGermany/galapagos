@@ -17,7 +17,7 @@
         <div class="col-md-12">
             <div class="card mb-3">
                 <div class="card-header bg-hermes text-white">
-                    <i class="fas fa-award mr-3"></i>{{ 'Developer API Key'| translate }}
+                    <i class="fas fa-award mr-3"></i>{{ 'Developer API Key' | translate }}
                 </div>
                 <div class="card-body">
                     <p [innerHTML]="'DEVELOPER_API_KEY_HTML' | translate"></p>
@@ -26,7 +26,7 @@
 
                         <select class="form-control form-inline mr-3" name="selectedEnv"
                                 [(ngModel)]="selectedEnvironment" (change)="updateExistingApiKeyMessage()">
-                            <option *ngFor="let env of devApikeysEnabledEnvironments | async"
+                            <option *ngFor="let env of devApiKeysEnabledEnvironments | async"
                                     [ngValue]="env">{{ env.name }}
                             </option>
                         </select>
@@ -74,7 +74,7 @@
         <div class="col-md-12">
             <div class="card mb-3">
                 <div class="card-header bg-hermes text-white">
-                    <i class="fas fa-award mr-3"></i>{{ 'Developer Certificate'| translate }}
+                    <i class="fas fa-award mr-3"></i>{{ 'Developer Certificate' | translate }}
                 </div>
                 <div class="card-body">
                     <p [innerHTML]="'DEVELOPER_CERTIFICATE_HTML' | translate"></p>
