@@ -99,7 +99,8 @@ public class DeveloperAuthenticationServiceImpl implements DeveloperAuthenticati
                 }).thenCompose(meta -> meta == null
                         ? CompletableFuture.failedFuture(new NoSuchElementException("No authentication received"))
                         : aclUpdater.updateAcls(cluster, Collections.singleton(meta))
-                        .thenCompose(o -> clearExpiredDeveloperAuthenticationsOnAllClusters()).thenApply(o -> meta)));
+                                .thenCompose(o -> clearExpiredDeveloperAuthenticationsOnAllClusters())
+                                .thenApply(o -> meta)));
     }
 
     @Override
