@@ -24,6 +24,8 @@ export class HeaderComponent implements OnInit {
 
     authenticationMode: Observable<string>;
 
+    darkmodeActive: boolean;
+
     constructor(private translate: TranslateService, public router: Router, private keycloak: KeycloakService,
                 private environments: EnvironmentsService) {
 
@@ -44,6 +46,14 @@ export class HeaderComponent implements OnInit {
                 this.toggleSidebar();
             }
         });
+
+        if (window.matchMedia &&
+            window.matchMedia('(prefers-color-scheme: dark)').matches &&
+            localStorage.getItem('galapagos.darkmode') === null) {
+            this.changeDarkmode(false);
+        } else {
+            this.changeDarkmode(localStorage.getItem('galapagos.darkmode') !== 'true');
+        }
 
         this.currentEnvironmentName = this.environments.getCurrentEnvironment().pipe(map(env => env.name));
         this.currentEnvironmentIcon = this.environments.getCurrentEnvironment().pipe(
@@ -75,4 +85,22 @@ export class HeaderComponent implements OnInit {
     selectEnvironment(env: KafkaEnvironment) {
         this.environments.setCurrentEnvironment(env);
     }
+
+    darkmodeButton(): void {
+        this.changeDarkmode(localStorage.getItem('galapagos.darkmode') === 'true');
+    }
+
+    changeDarkmode(darkmode: boolean): void {
+        if (darkmode) {
+            document.documentElement.classList.remove('dark');
+            localStorage.setItem('galapagos.darkmode', 'false');
+            this.darkmodeActive = false;
+        } else {
+            document.documentElement.classList.add('dark');
+            localStorage.setItem('galapagos.darkmode', 'true');
+            this.darkmodeActive = true;
+        }
+    }
+
+
 }

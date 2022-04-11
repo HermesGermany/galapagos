@@ -1,10 +1,157 @@
 /* You can add global styles to this file, and also import other style files */
 
-@import "bootstrap/bootstrap";
 @import "spinner";
 @import "utils";
 @import "rtl";
 @import "responsive";
+
+.dark {
+    $white: #121212 !default;
+    $gray-100: #212529 !default;
+    $gray-200: #343a40 !default;
+    $gray-300: #495057 !default;
+    $gray-400: #6c757d !default;
+    $gray-500: #adb5bd !default;
+    $gray-600: #ced4da !default;
+    $gray-700: #dee2e6 !default;
+    $gray-800: #e9ecef !default;
+    $gray-900: #f8f9fa !default;
+    $black: #ffffff !default;
+    $hermes: #adadad !default;
+    $lastChanges: #121212 !default;
+    $green: #155622 !default;
+    $topicSettings: #121212 !default;
+    $defaultInputValue: #E0F8E0 !default;
+    @import "bootstrap/bootstrap";
+}
+
+.dark .spinner > div {
+    background-color: white
+}
+
+.dark .text-white {
+    color: white !important;
+}
+
+.dark .bg-hermes-deprecation {
+    color: white !important;
+}
+
+input[name="eolDate"] {
+    background: black !important;
+
+}
+
+.dark .dropdown-menu {
+    background-color: black;
+}
+
+.dark .ngb-dp-header {
+    background-color: black;
+}
+
+.dark .ngb-dp-week {
+    background-color: black;
+}
+
+.dark .btn-light {
+    background-color: black;
+    color: white;
+}
+
+.dark .btn-light:hover {
+    color: #007BFFFF;
+}
+
+.dark .bg-secondary,
+.dark .bg-hermes-deprecation,
+.dark .bg-danger,
+.dark .bg-warning,
+.dark .bg-success {
+    background-color: rgba(255, 255, 255, 0.03) !important;
+}
+
+.dark .btn-warning,
+.dark .btn-danger,
+.dark .btn-success {
+    color: white;
+    background-color: rgba(255, 255, 255, 0.03);
+    border: solid 1px white;
+}
+
+.dark .btn-warning:hover,
+.dark .btn-warning:focus,
+.dark .btn-warning:active,
+.dark .btn-danger:hover,
+.dark .btn-danger:focus,
+.dark .btn-danger:active,
+.dark .btn-success:hover,
+.dark .btn-success:focus,
+.dark .btn-success:active {
+    color: white;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: solid 1px white;
+}
+
+.dark .btn-success:not(:disabled):not(.disabled):active,
+.dark .btn-success:not(:disabled):not(.disabled).active,
+.dark .btn-warning:not(:disabled):not(.disabled).active,
+.dark .btn-warning:not(:disabled):not(.disabled):active,
+.dark .btn-warning:focus,
+.dark .btn-danger:not(:disabled):not(.disabled).active,
+.dark .btn-danger:not(:disabled):not(.disabled):active,
+.dark .btn-danger:focus,
+.dark .btn-success:focus {
+    box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.5) !important;
+    color: #a2a2a2 !important;
+    border-color: white;
+    background-color: rgba(255, 255, 255, 0.12) !important;
+
+}
+
+.dark .btn-warning:disabled,
+.dark .btn-danger:disabled,
+.dark .btn-success:disabled {
+    background-color: rgba(255, 255, 255, 0.12);
+    border-color: black;
+    color: rgba(255, 255, 255, 0.3);
+}
+
+.dark .badge-danger,
+.dark .badge-success,
+.dark .badge-warning {
+    color: white;
+}
+
+.dark .badge-warning {
+    background-color: #a07800;
+}
+
+.dark .sidebar {
+    background-color: black !important;
+}
+
+
+.dark .list-group-item {
+    background-color: black !important;
+    color: white !important;
+}
+
+.dark .router-link-active {
+    background-color: #343434 !important;
+}
+
+.dark .list-group-item:hover {
+    background-color: #262626 !important;
+}
+
+.dark .toggle-button {
+    background-color: black !important;
+    color: white !important;
+    border-color: #262626;
+}
+
+@import "bootstrap/bootstrap";
 
 @media print {
     .breadcrumb {
