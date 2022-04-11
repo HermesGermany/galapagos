@@ -194,6 +194,11 @@
     "TOPIC_SUBSCRIPTION_APPROVAL_REQUIRED_FLAG_UPDATED_STAGING": "For Topic <code>{{topicName}}</code> require the release of subscriptions",
     "OTHER_CHANGE_STAGING": "Apply Type <code>{{changeType}}</code> changes",
     "DELETE_CONFIRMATION_TEXT": "If you delete this topic on the environment <b>{{environmentName}}</b>, all data in the topic will also be deleted and <b>cannot</b> be restored. <br>To delete the topic <code>{{topicName}}</code>, please enter the name of the topic here and click on 'Delete topic'.",
-    "NOTICE_TOPIC_DATA_VIEW": "This is only a <b>preview</b> of the data in this topic. Only a very limited amount of data is displayed. For a full view, please use suitable software."
+    "NOTICE_TOPIC_DATA_VIEW": "This is only a <b>preview</b> of the data in this topic. Only a very limited amount of data is displayed. For a full view, please use suitable software.",
+    "DEVELOPER_API_KEY_INFO_ERROR": "Could not get Developer API Key info: ",
+    "MSG_DEVELOPER_API_KEY_ERROR": "Could not create Developer API",
+    "MSG_DEVELOPER_API_KEY_SUCCESS": "Developer API Key created successfully.",
+    "EXISTING_DEVELOPER_API_Key_HTML": "The currently issued Developer API Key <b>{{apiKey}}</b> expires on <b>{{expiresAt}}</b>.",
+    "DEVELOPER_API_KEY_HTML": "You can get one <i>developer API key</i> per environment, which has the same rights as the applications you manage. However, administrators can disable this feature for individual environments. The API key has a limited scope Runtime; You can replace it with a new one at any time on this page.<br><br>You always get the API key <b>and</b> the corresponding secret generated here."
 }
 

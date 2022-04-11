@@ -3,6 +3,7 @@ package com.hermesworld.ais.galapagos.uisupport.controller;
 import com.hermesworld.ais.galapagos.applications.ApplicationsService;
 import com.hermesworld.ais.galapagos.applications.BusinessCapability;
 import com.hermesworld.ais.galapagos.applications.KnownApplication;
+import com.hermesworld.ais.galapagos.ccloud.auth.ConfluentCloudAuthenticationModule;
 import com.hermesworld.ais.galapagos.certificates.auth.CertificatesAuthenticationModule;
 import com.hermesworld.ais.galapagos.changes.config.GalapagosChangesConfig;
 import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
@@ -193,6 +194,12 @@ public class UISupportController {
                 .collect(Collectors.toList());
     }
 
+    @GetMapping(value = "/api/util/supported-apikey-environments", produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<String> getEnvironmentsWithDeveloperApikeySupport() {
+        return kafkaClusters.getEnvironmentIds().stream().map(id -> supportsEnvironmentDeveloperApikey(id) ? id : null)
+                .filter(Objects::nonNull).collect(Collectors.toList());
+    }
+
     private boolean supportsEnvironmentDeveloperCertificate(String environmentId) {
         return getCertificatesAuthenticationModuleForEnv(environmentId)
                 .map(CertificatesAuthenticationModule::supportsDeveloperCertificates).orElse(false);
@@ -205,6 +212,22 @@ public class UISupportController {
         if (authModule.isPresent() && authModule.get() instanceof CertificatesAuthenticationModule) {
             certificateModule = (CertificatesAuthenticationModule) authModule.get();
             return Optional.of(certificateModule);
+        }
+        return Optional.empty();
+    }
+
+    private boolean supportsEnvironmentDeveloperApikey(String environmentId) {
+        return getConfluentAuthenticationModuleForEnv(environmentId)
+                .map(ConfluentCloudAuthenticationModule::supportsDeveloperApikeys).orElse(false);
+    }
+
+    private Optional<ConfluentCloudAuthenticationModule> getConfluentAuthenticationModuleForEnv(String environmentId) {
+        ConfluentCloudAuthenticationModule confluentModule;
+        Optional<KafkaAuthenticationModule> authModule = kafkaClusters.getAuthenticationModule(environmentId);
+
+        if (authModule.isPresent() && authModule.get() instanceof ConfluentCloudAuthenticationModule) {
+            confluentModule = (ConfluentCloudAuthenticationModule) authModule.get();
+            return Optional.of(confluentModule);
         }
         return Optional.empty();
     }

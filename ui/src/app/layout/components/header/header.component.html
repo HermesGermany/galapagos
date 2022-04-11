@@ -41,7 +41,7 @@
                     <i class="fa fa-user"></i>&nbsp;&nbsp; {{ userName | async }} <b class="caret"></b>
                 </a>
                 <div class="dropdown-menu-right" ngbDropdownMenu>
-                    <a *ngIf="(authenticationMode| async) === 'certificates'" class="dropdown-item"
+                    <a class="dropdown-item"
                        [routerLink]="['/user-settings']">
                         <i class="fa fa-fw fa-wrench"></i> {{ 'User Settings' | translate }}
                     </a>

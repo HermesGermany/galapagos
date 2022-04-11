@@ -1,7 +1,7 @@
 package com.hermesworld.ais.galapagos.adminjobs.impl;
 
 import com.hermesworld.ais.galapagos.adminjobs.AdminJob;
-import com.hermesworld.ais.galapagos.devcerts.DeveloperCertificateService;
+import com.hermesworld.ais.galapagos.devauth.DeveloperAuthenticationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.stereotype.Component;
@@ -9,10 +9,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class CleanupDeveloperCertificatesJob implements AdminJob {
 
-    private final DeveloperCertificateService developerCertificateService;
+    private final DeveloperAuthenticationService developerCertificateService;
 
     @Autowired
-    public CleanupDeveloperCertificatesJob(DeveloperCertificateService developerCertificateService) {
+    public CleanupDeveloperCertificatesJob(DeveloperAuthenticationService developerCertificateService) {
         this.developerCertificateService = developerCertificateService;
     }
 
@@ -29,7 +29,7 @@ public class CleanupDeveloperCertificatesJob implements AdminJob {
         System.out.println();
 
         System.out.println("========================= Cleanup of total "
-                + developerCertificateService.clearExpiredDeveloperCertificatesOnAllClusters().get()
+                + developerCertificateService.clearExpiredDeveloperAuthenticationsOnAllClusters().get()
                 + " expired Developer Certificates on all Kafka clusters was successful ========================");
     }
 

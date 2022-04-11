@@ -2,10 +2,10 @@ package com.hermesworld.ais.galapagos.certificates.reminders.impl;
 
 import com.hermesworld.ais.galapagos.applications.ApplicationMetadata;
 import com.hermesworld.ais.galapagos.applications.ApplicationsService;
-import com.hermesworld.ais.galapagos.certificates.auth.CertificatesAuthenticationModule;
 import com.hermesworld.ais.galapagos.certificates.reminders.CertificateExpiryReminder;
 import com.hermesworld.ais.galapagos.certificates.reminders.CertificateExpiryReminderService;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
+import com.hermesworld.ais.galapagos.kafka.auth.KafkaAuthenticationModule;
 import com.hermesworld.ais.galapagos.notifications.NotificationParams;
 import com.hermesworld.ais.galapagos.notifications.NotificationService;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +23,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -97,10 +98,12 @@ public class CertificateExpiryReminderRunner {
 
     private ZonedDateTime getDateOfExpiry(String applicationId, String environmentId) {
         return applicationsService.getApplicationMetadata(environmentId, applicationId)
-                .map(meta -> getDateOfExpiry(meta)).orElse(null);
+                .map(meta -> getDateOfExpiry(meta, environmentId)).orElse(null);
     }
 
-    private ZonedDateTime getDateOfExpiry(ApplicationMetadata metadata) {
+    private ZonedDateTime getDateOfExpiry(ApplicationMetadata metadata, String environmentId) {
+        KafkaAuthenticationModule authModule = kafkaClusters.getAuthenticationModule(environmentId).orElseThrow();
+
         if (StringUtils.isEmpty(metadata.getAuthenticationJson())) {
             return null;
         }
@@ -113,9 +116,8 @@ public class CertificateExpiryReminderRunner {
         }
 
         try {
-            Instant expAt = CertificatesAuthenticationModule
-                    .getExpiresAtFromJson(new JSONObject(metadata.getAuthenticationJson()));
-            return expAt == null ? null : ZonedDateTime.ofInstant(expAt, tz);
+            Optional<Instant> expAt = authModule.extractExpiryDate(new JSONObject(metadata.getAuthenticationJson()));
+            return expAt.isEmpty() ? null : ZonedDateTime.ofInstant(expAt.get(), tz);
         }
         catch (JSONException e) {
             log.error("Invalid Authentication JSON for application ID " + metadata.getApplicationId());
