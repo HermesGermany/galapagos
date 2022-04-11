@@ -19,6 +19,7 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Collections;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -95,7 +96,9 @@ public class DeveloperAuthenticationServiceImpl implements DeveloperAuthenticati
                     }
 
                     return meta;
-                }).thenCompose(meta -> aclUpdater.updateAcls(cluster, Collections.singleton(meta))
+                }).thenCompose(meta -> meta == null
+                        ? CompletableFuture.failedFuture(new NoSuchElementException("No authentication received"))
+                        : aclUpdater.updateAcls(cluster, Collections.singleton(meta))
                         .thenCompose(o -> clearExpiredDeveloperAuthenticationsOnAllClusters()).thenApply(o -> meta)));
     }
 
@@ -112,8 +115,6 @@ public class DeveloperAuthenticationServiceImpl implements DeveloperAuthenticati
             return Optional.empty();
         }
 
-        log.info(getRepository(cluster).toString());
-        log.info(getRepository(cluster).getObject(userName).toString());
         DevAuthenticationMetadata metadata = getRepository(cluster).getObject(userName).orElse(null);
         if (metadata == null || isExpired(metadata, authModule)) {
             return Optional.empty();

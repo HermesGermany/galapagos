@@ -164,11 +164,11 @@ public class DevUserAclListener implements TopicEventsListener, SubscriptionEven
         Set<String> clientApplicationIds = subscriptionService
                 .getSubscriptionsForTopic(cluster.getId(), event.getMetadata().getName(), false).stream()
                 .map(s -> s.getClientApplicationId()).collect(Collectors.toSet());
-        Set<DevAuthenticationMetadata> allCertificates = Stream.of(Set.of(applicationId), clientApplicationIds)
+        Set<DevAuthenticationMetadata> allAuthentications = Stream.of(Set.of(applicationId), clientApplicationIds)
                 .flatMap(s -> s.stream()).flatMap(id -> getValidDevAuthenticationsForApplication(cluster, id).stream())
                 .collect(Collectors.toSet());
 
-        return allCertificates.isEmpty() ? FutureUtil.noop() : updateAcls(cluster, allCertificates);
+        return allAuthentications.isEmpty() ? FutureUtil.noop() : updateAcls(cluster, allAuthentications);
     }
 
     @Override
