@@ -31,6 +31,16 @@ export class UserSettingsComponent implements OnInit {
 
     existingApikeyInfo = new Subject<AuthenticationResponse>();
 
+    newApiKey: string;
+
+    copiedKey: boolean;
+
+    newApiSecret: string;
+
+    copiedSecret: boolean;
+
+    showApiKeyTable: boolean;
+
     authenticationMode: Observable<string>;
 
     constructor(private environmentsService: EnvironmentsService, private certificateService: CertificateService,
@@ -71,6 +81,10 @@ export class UserSettingsComponent implements OnInit {
                 return this.translate.get('EXISTING_DEVELOPER_API_Key_HTML', { expiresAt: expiresAt })
                     .pipe(map(o => o as string));
             })).pipe(shareReplay());
+
+        this.copiedKey = false;
+        this.copiedSecret = false;
+        this.showApiKeyTable = false;
     }
 
     updateExistingCertificateMessage() {
@@ -90,36 +104,33 @@ export class UserSettingsComponent implements OnInit {
             ).catch(err => {
                 this.toasts.addHttpErrorToast('DEVELOPER_CERTIFICATE_INFO_ERROR', err);
             });
-
-
-        this.existingCertificateInfo.pipe(take(1)).toPromise().then(val => console.log(val));
     }
 
     async generateCertificate() {
-        //TODO delet log
-        console.log('CERTIFICATE');
         const successMsg = await this.translate.get('MSG_DEVELOPER_CERTIFICATE_SUCCESS').pipe(take(1)).toPromise();
         const errorMsg = await this.translate.get('MSG_DEVELOPER_CERTIFICATE_ERROR').pipe(take(1)).toPromise();
 
         this.certificateService.downloadDeveloperCertificate(this.selectedEnvironment.id).then(
-            val => {
-                console.log(val);
-                this.toasts.addSuccessToast(successMsg);
-            },
+            () =>  this.toasts.addSuccessToast(successMsg),
             err => this.toasts.addHttpErrorToast(errorMsg, err)
         )
             .then(() => this.updateExistingCertificateMessage());
     }
 
-    async generateApikey() {
+    async generateApikey(): Promise<any> {
         const successMsg = await this.translate.get('MSG_DEVELOPER_API_KEY_SUCCESS').pipe(take(1)).toPromise();
         const errorMsg = await this.translate.get('MSG_DEVELOPER_API_KEY_ERROR').pipe(take(1)).toPromise();
 
-        this.certificateService.downloadDeveloperApiKey(this.selectedEnvironment.id).then(
-            () => this.toasts.addSuccessToast(successMsg),
+        return this.certificateService.downloadDeveloperApiKey(this.selectedEnvironment.id).then(
+            val => {
+                this.newApiKey = val.key;
+                this.newApiSecret = val.secret;
+                this.toasts.addSuccessToast(successMsg);
+                this.showApiKeyTable = true;
+                this.existingApiKeyMessage = null;
+            },
             err => this.toasts.addHttpErrorToast(errorMsg, err)
-        )
-            .then(() => this.updateExistingApiKeyMessage());
+        ).then(() => this.updateExistingApiKeyMessage());
     }
 
     updateExistingApiKeyMessage() {
@@ -131,14 +142,33 @@ export class UserSettingsComponent implements OnInit {
 
         this.certificateService.getDeveloperAuthenticationInfo(this.selectedEnvironment.id)
             .pipe(take(1)).toPromise().then(val => {
-                {
-                    console.log(val);
-                    this.existingApikeyInfo.next({
-                        expiresAt: val.authentications[this.selectedEnvironment.id].authentication.expiresAt
-                    });
-                }
+                this.existingApikeyInfo.next({
+                    expiresAt: val.authentications[this.selectedEnvironment.id].authentication.expiresAt
+                });
             }).catch(err => {
                 this.toasts.addHttpErrorToast('DEVELOPER_API_KEY_INFO_ERROR', err);
             });
+    }
+
+    copyValue(value: string) {
+        const selBox = document.createElement('textarea');
+        selBox.style.position = 'fixed';
+        selBox.style.left = '0';
+        selBox.style.top = '0';
+        selBox.style.opacity = '0';
+        selBox.value = value;
+        document.body.appendChild(selBox);
+        selBox.focus();
+        selBox.select();
+        document.execCommand('copy');
+        document.body.removeChild(selBox);
+
+        if (value === this.newApiKey) {
+            this.copiedKey = true;
+            this.copiedSecret = false;
+        } else {
+            this.copiedKey = false;
+            this.copiedSecret = true;
+        }
     }
 }

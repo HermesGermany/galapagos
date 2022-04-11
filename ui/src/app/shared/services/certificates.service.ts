@@ -111,9 +111,6 @@ export class CertificateService {
     public async downloadDeveloperCertificate(environmentId: string): Promise<any> {
         return this.http.post('/api/me/certificates/' + environmentId, '').toPromise().then(resp => {
             const ra = resp as any;
-            //TODO
-            console.log(ra);
-            console.log(ra.fileContentsBase64, ra.fileName);
             saveAs(base64ToBlob(ra.fileContentsBase64), ra.fileName);
         });
     }
@@ -121,9 +118,9 @@ export class CertificateService {
     public async downloadDeveloperApiKey(environmentId: string): Promise<any> {
         return this.http.post('/api/me/apikey/' + environmentId, '').toPromise().then(resp => {
             const ra = resp as ApikeyInfo;
-            console.log(ra);
-            const content = `Key: ${ra.apiKey}, Secret: ${ra.secret}`;
-            saveAs(new Blob([content], { type: 'application/octet-stream' }));
+            const content = { key: ra.apiKey, secret: ra.secret };
+            return content;
+            //saveAs(new Blob([content], { type: 'application/octet-stream' }));
         });
     }
 
