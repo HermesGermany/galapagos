@@ -120,7 +120,6 @@ export class CertificateService {
             const ra = resp as ApikeyInfo;
             const content = { key: ra.apiKey, secret: ra.secret };
             return content;
-            //saveAs(new Blob([content], { type: 'application/octet-stream' }));
         });
     }
 
