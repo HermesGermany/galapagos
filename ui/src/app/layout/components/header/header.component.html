@@ -48,9 +48,14 @@
                     <a class="dropdown-item" href="#" (click)="onLoggedout()">
                         <i class="fa fa-fw fa-power-off"></i> {{ 'Log Out' | translate }}
                     </a>
-                    <p class="dropdown-item" type="button" (click)="darkmodeButton()">
-                        <i class="fa fa-fw fa-moon"></i> {{ 'Darkmode' | translate }}
-                    </p>
+                    <a class="dropdown-item" type="button" (click)="darkmodeButton()">
+                       <div *ngIf="!darkmodeActive">
+                            <i class="fa fa-fw fa-moon"></i> {{ 'Darkmode' | translate }}
+                       </div>
+                        <div *ngIf="darkmodeActive">
+                            <i class="fa fa-fw fa-sun"></i> {{ 'Lightmode' | translate }}
+                        </div>
+                    </a>
                 </div>
             </li>
         </ul>
