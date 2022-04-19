@@ -37,9 +37,32 @@
     color: white !important;
 }
 
-input[name="eolDate"] {
-    background: black !important;
+.dark input[name="eolDate"] {
+    background: #121212 !important;
+}
 
+.dark ::-webkit-scrollbar {
+    height: 12px;
+    width: 12px;
+    background: #000;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+    background: #343a40;
+    -webkit-border-radius: 1ex;
+    -webkit-box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.75);
+}
+
+.dark ::-webkit-scrollbar-corner {
+    background: #000;
+}
+
+.dark code{
+    background-color: #2e3538;
+}
+
+.dark .hljs-string{
+    color: #92d1ed;
 }
 
 .dark .dropdown-menu {
