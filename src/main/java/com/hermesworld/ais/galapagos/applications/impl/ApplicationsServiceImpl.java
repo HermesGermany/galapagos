@@ -1,6 +1,8 @@
 package com.hermesworld.ais.galapagos.applications.impl;
 
 import com.hermesworld.ais.galapagos.applications.*;
+import com.hermesworld.ais.galapagos.ccloud.apiclient.ServiceAccountInfo;
+import com.hermesworld.ais.galapagos.ccloud.auth.ConfluentCloudAuthenticationModule;
 import com.hermesworld.ais.galapagos.events.GalapagosEventManager;
 import com.hermesworld.ais.galapagos.events.GalapagosEventSink;
 import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
@@ -25,6 +27,7 @@ import java.io.OutputStream;
 import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -284,6 +287,32 @@ public class ApplicationsServiceImpl implements ApplicationsService, InitPerClus
                     }
                     return eventSink.handleApplicationRegistered(meta).thenApply(o -> meta);
                 });
+    }
+
+    @Override
+    public CompletableFuture<Integer> getServiceAccountIdForApplication(String applicationId, String environmentId)
+            throws ExecutionException, InterruptedException {
+        KafkaAuthenticationModule authModule = kafkaClusters.getAuthenticationModule(environmentId).orElse(null);
+        if (authModule == null) {
+            return unknownEnvironment(environmentId);
+        }
+
+        KafkaCluster kafkaCluster = kafkaClusters.getEnvironment(environmentId).orElse(null);
+        if (kafkaCluster == null) {
+            return unknownEnvironment(environmentId);
+        }
+
+        KnownApplication knownApplication = getKnownApplication(applicationId).orElse(null);
+        if (knownApplication == null) {
+            return unknownApplication(applicationId);
+        }
+
+        Optional<ServiceAccountInfo> serviceAccount = Optional.empty();
+        if (authModule instanceof ConfluentCloudAuthenticationModule) {
+            serviceAccount = ((ConfluentCloudAuthenticationModule) authModule).findServiceAccountForApp(applicationId)
+                    .get();
+        }
+        return CompletableFuture.completedFuture(serviceAccount.get().getId());
     }
 
     @Override

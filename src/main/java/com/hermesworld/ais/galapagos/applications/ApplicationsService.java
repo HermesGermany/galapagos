@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 public interface ApplicationsService {
@@ -39,6 +40,9 @@ public interface ApplicationsService {
 
     CompletableFuture<ApplicationMetadata> registerApplicationOnEnvironment(String environmentId, String applicationId,
             JSONObject registerParams, OutputStream outputStreamForSecret);
+
+    CompletableFuture<Integer> getServiceAccountIdForApplication(String applicationId, String environmentId)
+            throws ExecutionException, InterruptedException;
 
     /**
      * Resets the allowed prefixes for the given application on the given environment to their defaults, as resulting

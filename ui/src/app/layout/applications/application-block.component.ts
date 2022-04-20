@@ -54,6 +54,8 @@ export class ApplicationBlockComponent implements OnChanges {
 
     expiryDateString: Observable<string>;
 
+    serviceAccountId: string;
+
     constructor(private apiKeyService: ApiKeyService, public environmentsService: EnvironmentsService,
                 private certificateService: CertificateService, private translateService: TranslateService) {
     }
@@ -94,6 +96,10 @@ export class ApplicationBlockComponent implements OnChanges {
                         this.environmentsService.getCurrentEnvironment()]).pipe(map(
                         ([keys, env]) => extractApiKey(keys, env)
                     ));
+
+                    this.apiKeyService.getApplicationServiceAccountId(app.id, this.currentEnv.id).then(serviceAccountId => {
+                        this.serviceAccountId = serviceAccountId.accountId;
+                    });
                 }
             } else {
                 this.internalTopicPrefixes = of([]);

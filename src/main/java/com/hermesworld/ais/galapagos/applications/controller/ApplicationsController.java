@@ -7,6 +7,7 @@ import com.hermesworld.ais.galapagos.ccloud.apiclient.ConfluentApiException;
 import com.hermesworld.ais.galapagos.ccloud.auth.ConfluentCloudAuthUtil;
 import com.hermesworld.ais.galapagos.changes.Change;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
+import com.hermesworld.ais.galapagos.kafka.auth.KafkaAuthenticationModule;
 import com.hermesworld.ais.galapagos.kafka.config.KafkaEnvironmentConfig;
 import com.hermesworld.ais.galapagos.naming.ApplicationPrefixes;
 import com.hermesworld.ais.galapagos.staging.Staging;
@@ -251,6 +252,34 @@ public class ApplicationsController {
         ApplicationAuthenticationsDto result = new ApplicationAuthenticationsDto();
         result.setAuthentications(authPerEnv);
         return result;
+    }
+
+    @GetMapping(value = "/api/service-account/{environmentId}/{applicationId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ServiceAccountIdDto getServiceAccountIdForApp(@PathVariable String environmentId,
+            @PathVariable String applicationId) {
+        if (!applicationsService.isUserAuthorizedFor(applicationId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
+
+        KafkaAuthenticationModule kafkaAuthenticationModule = kafkaClusters.getAuthenticationModule(environmentId)
+                .orElse(null);
+        if (kafkaAuthenticationModule == null) {
+            throw new IllegalStateException("Could not get authentication module.");
+        }
+
+        try {
+            return new ServiceAccountIdDto(
+                    applicationsService.getServiceAccountIdForApplication(applicationId, environmentId).get());
+        }
+        catch (JSONException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
+        catch (ExecutionException e) {
+            throw handleExecutionException(e, "Could not get service account id: ");
+        }
+        catch (InterruptedException e) {
+            return null;
+        }
     }
 
     @GetMapping(value = "/api/environments/{environmentId}/staging/{applicationId}", produces = MediaType.APPLICATION_JSON_VALUE)

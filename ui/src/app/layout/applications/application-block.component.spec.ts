@@ -125,7 +125,8 @@ describe('ApplicationBlockComponent', () => {
         component.currentEnvApplicationApiKey = of({
             apiKey: 'myKey',
             issuedAt: 'some Day',
-            userId: '1'
+            userId: '1',
+            serviceAccountId: '1234'
         });
         fixture.detectChanges();
 
@@ -164,7 +165,8 @@ describe('ApplicationBlockComponent', () => {
         component.currentEnvApplicationApiKey = of({
             apiKey: 'myKey',
             issuedAt: 'some Day',
-            userId: '1'
+            userId: '1',
+            serviceAccountId: '1234'
         });
         component.apiKey = 'myKey';
         component.currentEnv = {

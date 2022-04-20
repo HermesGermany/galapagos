@@ -18,6 +18,11 @@ export interface ApplicationApiKey {
     issuedAt: string;
 
     userId: string;
+
+}
+
+export interface ServiceAccountId {
+    accountId: string;
 }
 
 export interface AuthenticationDetail {
@@ -52,6 +57,10 @@ export class ApiKeyService {
 
     public getApplicationApiKeysPromise(applicationId: string): Promise<ApplicationApikeyAuthData> {
         return this.getApplicationApiKeys(applicationId).getObservable().pipe(take(1)).toPromise();
+    }
+
+    public getApplicationServiceAccountId(applicationId: string, environmentId: string): Promise<ServiceAccountId> {
+        return this.http.get<ServiceAccountId>('/api/service-account/' + environmentId + '/' + applicationId).toPromise();
     }
 
     public async requestApiKey(applicationId: string, environmentId: string): Promise<ApplicationApiKeyAndSecret> {
