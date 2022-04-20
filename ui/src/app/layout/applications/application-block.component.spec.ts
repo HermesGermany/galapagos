@@ -117,7 +117,14 @@ describe('ApplicationBlockComponent', () => {
 
         component.authenticationMode = 'ccloud';
         component.application = app;
-
+        component.currentEnv = {
+            id: 'prod',
+            name: 'prod',
+            bootstrapServers: 'myBootstrapServers',
+            production: true,
+            stagingOnly: true,
+            authenticationMode: 'ccloud'
+        };
         component.ngOnChanges({
             application: new SimpleChange(undefined, app, false)
         });
@@ -125,8 +132,7 @@ describe('ApplicationBlockComponent', () => {
         component.currentEnvApplicationApiKey = of({
             apiKey: 'myKey',
             issuedAt: 'some Day',
-            userId: '1',
-            serviceAccountId: '1234'
+            userId: '1'
         });
         fixture.detectChanges();
 
@@ -165,8 +171,7 @@ describe('ApplicationBlockComponent', () => {
         component.currentEnvApplicationApiKey = of({
             apiKey: 'myKey',
             issuedAt: 'some Day',
-            userId: '1',
-            serviceAccountId: '1234'
+            userId: '1'
         });
         component.apiKey = 'myKey';
         component.currentEnv = {
