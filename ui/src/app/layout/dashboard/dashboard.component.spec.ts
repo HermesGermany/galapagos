@@ -80,7 +80,8 @@ describe('DashboardComponent', () => {
             name: 'dev stage',
             bootstrapServers: 'someServer',
             production: false,
-            stagingOnly: false
+            stagingOnly: false,
+            authenticationMode: 'certificates'
         }));
 
         const debugElement = fixture.debugElement;

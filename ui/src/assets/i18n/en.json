@@ -38,6 +38,10 @@
     "Register": "Register",
     "Log in": "Log in",
     "SUCCESS": "SUCCESS",
+    "EVENTS": "Events",
+    "DATA": "Master Data",
+    "COMMANDS": "Commands",
+    "INTERNAL": "App internal",
     "NO_APPS_FOR_CREATING_TOPIC": "Unfortunately, you do not yet have administrative rights for at least one application. Please request such rights on the \"My Applications\" page first.",
     "SUBSCRIBE_INFO_TEXT": "You can subscribe to this topic with one (or more) of your applications. This will grant read access (or write access, for COMMAND topics) to your application's API Key for the currently selected Kafka Environment.",
     "NO_APPS_FOR_SUBSCRIPTION": "Currently, no (more) applications are available for subscribing to this topic. Make sure that you have Application Owner rights for your application. Note that the owning application cannot subscribe to its own topic (it already has required rights).",
@@ -70,6 +74,12 @@
     "CHANGELOG_TOPIC_DESCRIPTION_CHANGE_HTML": "has updated the description of Topic <b><a href='{{ topicLink }}'>{{ topicName }}</a></b>.",
     "CHANGELOG_TOPIC_SUBSCRIBED_HTML": "has subscribed Application <b><a href='{{ appInfo.infoUrl }}'>{{ appInfo.name }}</a></b> to Topic <b><a href='{{ topicLink }}'>{{ topicName }}</a></b>.",
     "CHANGELOG_TOPIC_SUBSCRIBED_HTML_NO_APP_LINK": "has subscribed Application <b>{{ appInfo.name }}</b> to Topic <b><a href='{{ topicLink }}'>{{ topicName }}</a></b>.",
+    "CHANGELOG_TOPIC_SUBSCRIBED_HTML_PENDING": "has requested to subscribe Application <b><a href='{{ appInfo.infoUrl }}'>{{ appInfo.name }}</a></b> to Topic <b><a href='{{ topicLink }}'>{{ topicName }}</a></b>.",
+    "CHANGELOG_TOPIC_SUBSCRIBED_HTML_NO_APP_LINK_PENDING": "has requested to subscribe Application <b>{{ appInfo.name }}</b> to Topic <b><a href='{{ topicLink }}'>{{ topicName }}</a></b>.",
+    "CHANGELOG_TOPIC_SUBSCRIBED_HTML_APPROVED": "has <b>approved</b> to subscribe Application <b><a href='{{ appInfo.infoUrl }}'>{{ appInfo.name }}</a></b> to Topic <b><a href='{{ topicLink }}'>{{ topicName }}</a></b>.",
+    "CHANGELOG_TOPIC_SUBSCRIBED_HTML_NO_APP_LINK_APPROVED": "has <b>approved</b> to subscribe Application <b>{{ appInfo.name }}</b> to Topic <b><a href='{{ topicLink }}'>{{ topicName }}</a></b>.",
+    "CHANGELOG_TOPIC_SUBSCRIBED_HTML_DECLINED": "has <b>declined</b> to subscribe Application <b><a href='{{ appInfo.infoUrl }}'>{{ appInfo.name }}</a></b> to Topic <b><a href='{{ topicLink }}'>{{ topicName }}</a></b>.",
+    "CHANGELOG_TOPIC_SUBSCRIBED_HTML_NO_APP_LINK_DECLINED": "has <b>declined</b> to subscribe Application <b>{{ appInfo.name }}</b> to Topic <b><a href='{{ topicLink }}'>{{ topicName }}</a></b>.",
     "CHANGELOG_TOPIC_UNSUBSCRIBED_HTML": "has unsubscribed Application <b><a href='{{ appInfo.infoUrl }}'>{{ appInfo.name }}</a></b> from Topic <b><a href='{{ topicLink }}'>{{ topicName }}</a></b>.",
     "CHANGELOG_TOPIC_UNSUBSCRIBED_HTML_NO_APP_LINK": "has unsubscribed Application <b>{{ appInfo.name }}</b> from Topic <b><a href='{{ topicLink }}'>{{ topicName }}</a></b>.",
     "CHANGELOG_TOPIC_SCHEMA_VERSION_REGISTERED_HTML": "has published <b>a new JSON Schema</b> for Topic <b><a href='{{ topicLink }}'>{{ topicName }}</a></b>.",
@@ -183,6 +193,12 @@
     "TOPIC_PRODUCER_APPLICATION_REMOVED_STAGING": "Remove producer <code>${this.applicationInfo(change.producerApplicationId).name} ` + `</code> from Topic <code>{{topicName}}</code>",
     "TOPIC_SUBSCRIPTION_APPROVAL_REQUIRED_FLAG_UPDATED_STAGING": "For Topic <code>{{topicName}}</code> require the release of subscriptions",
     "OTHER_CHANGE_STAGING": "Apply Type <code>{{changeType}}</code> changes",
-    "DELETE_CONFIRMATION_TEXT": "If you delete this topic on the environment <b>{{environmentName}}</b>, all data in the topic will also be deleted and <b>cannot</b> be restored. <br>To delete the topic <code>{{topicName}}</code>, please enter the name of the topic here and click on 'Delete topic'."
+    "DELETE_CONFIRMATION_TEXT": "If you delete this topic on the environment <b>{{environmentName}}</b>, all data in the topic will also be deleted and <b>cannot</b> be restored. <br>To delete the topic <code>{{topicName}}</code>, please enter the name of the topic here and click on 'Delete topic'.",
+    "NOTICE_TOPIC_DATA_VIEW": "This is only a <b>preview</b> of the data in this topic. Only a very limited amount of data is displayed. For a full view, please use suitable software.",
+    "DEVELOPER_API_KEY_INFO_ERROR": "Could not get Developer API Key info: ",
+    "MSG_DEVELOPER_API_KEY_ERROR": "Could not create Developer API",
+    "MSG_DEVELOPER_API_KEY_SUCCESS": "Developer API Key created successfully.",
+    "EXISTING_DEVELOPER_API_Key_HTML": "The currently issued Developer API Key <b>{{apiKey}}</b> expires on <b>{{expiresAt}}</b>.",
+    "DEVELOPER_API_KEY_HTML": "You can get one <i>developer API key</i> per environment, which has the same rights as the applications you manage. However, administrators can disable this feature for individual environments. The API key has a limited scope Runtime; You can replace it with a new one at any time on this page.<br><br>You always get the API key <b>and</b> the corresponding secret generated here."
 }
 

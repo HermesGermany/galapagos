@@ -15,4 +15,8 @@ public class UiConfigDto {
 
     private List<CustomLinkConfig> customLinks;
 
+    private int changelogEntries;
+
+    private int changelogMinDays;
+
 }

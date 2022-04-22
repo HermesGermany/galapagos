@@ -22,11 +22,18 @@ export interface DeveloperCertificateInfo {
     expiresAt: string;
 }
 
-interface AuthenticationResponse{
+export interface ApikeyInfo {
+    apiKey: string;
+
+    secret: string;
+
+}
+
+export interface AuthenticationResponse {
     [env: string]: EnvAuthenticationResponse;
 }
 
-interface EnvAuthenticationResponse{
+interface EnvAuthenticationResponse {
     authenticationType: string;
     authentication: any;
 }
@@ -54,6 +61,8 @@ const base64ToBlob = (b64Data: string, sliceSize: number = 512) => {
 export class CertificateService {
 
     private envsWithDevCertSupport = new ReplayContainer<string[]>(() => this.http.get('/api/util/supported-devcert-environments'));
+
+    private envsWithDevApiKeySupport = new ReplayContainer<string[]>(() => this.http.get('/api/util/supported-apikey-environments'));
 
     private appCertificates: { [appId: string]: ReplayContainer<ApplicationCertificate[]> } = {};
 
@@ -106,12 +115,23 @@ export class CertificateService {
         });
     }
 
-    public getDeveloperCertificateInfo(environmentId: string): Observable<DeveloperCertificateInfo> {
-        return this.http.get('/api/me/certificates/' + environmentId).pipe(map(data => data as DeveloperCertificateInfo));
+    public async createDeveloperApiKey(environmentId: string): Promise<any> {
+        return this.http.post('/api/me/apikey/' + environmentId, '').toPromise().then(resp => {
+            const ra = resp as ApikeyInfo;
+            return { key: ra.apiKey, secret: ra.secret };
+        });
+    }
+
+    public getDeveloperAuthenticationInfo(environmentId: string): Observable<AuthenticationResponse> {
+        return this.http.get('/api/me/authentications/' + environmentId).pipe(map(data => data as AuthenticationResponse));
     }
 
     public getEnvironmentsWithDevCertSupport(): Observable<string[]> {
         return this.envsWithDevCertSupport.getObservable();
+    }
+
+    public getEnvironmentsWithDevApikeySupport(): Observable<string[]> {
+        return this.envsWithDevApiKeySupport.getObservable();
     }
 
     private toApplicationCertificates(response: AuthenticationResponse): ApplicationCertificate[] {

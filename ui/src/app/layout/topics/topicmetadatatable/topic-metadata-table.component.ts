@@ -144,7 +144,6 @@ export class TopicMetadataTableComponent implements OnInit {
             .finally(() => {
                 this.topicDataLoading = false;
             });
-
         this.modalService.open(content, { ariaLabelledBy: 'modal-title', size: 'lg', scrollable: true });
     }
 

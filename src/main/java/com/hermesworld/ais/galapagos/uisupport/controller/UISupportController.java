@@ -3,7 +3,9 @@ package com.hermesworld.ais.galapagos.uisupport.controller;
 import com.hermesworld.ais.galapagos.applications.ApplicationsService;
 import com.hermesworld.ais.galapagos.applications.BusinessCapability;
 import com.hermesworld.ais.galapagos.applications.KnownApplication;
+import com.hermesworld.ais.galapagos.ccloud.auth.ConfluentCloudAuthenticationModule;
 import com.hermesworld.ais.galapagos.certificates.auth.CertificatesAuthenticationModule;
+import com.hermesworld.ais.galapagos.changes.config.GalapagosChangesConfig;
 import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.kafka.auth.KafkaAuthenticationModule;
@@ -57,6 +59,8 @@ public class UISupportController {
 
     private final GalapagosTopicConfig topicConfig;
 
+    private final GalapagosChangesConfig changesConfig;
+
     private final CustomLinksConfig customLinksConfig;
 
     private static final Supplier<ResponseStatusException> badRequest = () -> new ResponseStatusException(
@@ -76,13 +80,14 @@ public class UISupportController {
     @Autowired
     public UISupportController(ApplicationsService applicationsService, TopicService topicService,
             KafkaClusters kafkaClusters, NamingService namingService, GalapagosTopicConfig topicConfig,
-            CustomLinksConfig customLinksConfig) {
+            CustomLinksConfig customLinksConfig, GalapagosChangesConfig changesConfig) {
         this.applicationsService = applicationsService;
         this.topicService = topicService;
         this.kafkaClusters = kafkaClusters;
         this.namingService = namingService;
         this.topicConfig = topicConfig;
         this.customLinksConfig = customLinksConfig;
+        this.changesConfig = changesConfig;
     }
 
     /**
@@ -96,6 +101,8 @@ public class UISupportController {
         UiConfigDto result = new UiConfigDto();
         result.setMinDeprecationTime(toPeriodDto(topicConfig.getMinDeprecationTime()));
         result.setCustomLinks(customLinksConfig.getLinks());
+        result.setChangelogEntries(changesConfig.getEntries());
+        result.setChangelogMinDays(changesConfig.getMinDays());
         return result;
     }
 
@@ -187,6 +194,12 @@ public class UISupportController {
                 .collect(Collectors.toList());
     }
 
+    @GetMapping(value = "/api/util/supported-apikey-environments", produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<String> getEnvironmentsWithDeveloperApikeySupport() {
+        return kafkaClusters.getEnvironmentIds().stream().map(id -> supportsEnvironmentDeveloperApikey(id) ? id : null)
+                .filter(Objects::nonNull).collect(Collectors.toList());
+    }
+
     private boolean supportsEnvironmentDeveloperCertificate(String environmentId) {
         return getCertificatesAuthenticationModuleForEnv(environmentId)
                 .map(CertificatesAuthenticationModule::supportsDeveloperCertificates).orElse(false);
@@ -199,6 +212,22 @@ public class UISupportController {
         if (authModule.isPresent() && authModule.get() instanceof CertificatesAuthenticationModule) {
             certificateModule = (CertificatesAuthenticationModule) authModule.get();
             return Optional.of(certificateModule);
+        }
+        return Optional.empty();
+    }
+
+    private boolean supportsEnvironmentDeveloperApikey(String environmentId) {
+        return getConfluentAuthenticationModuleForEnv(environmentId)
+                .map(ConfluentCloudAuthenticationModule::supportsDeveloperApikeys).orElse(false);
+    }
+
+    private Optional<ConfluentCloudAuthenticationModule> getConfluentAuthenticationModuleForEnv(String environmentId) {
+        ConfluentCloudAuthenticationModule confluentModule;
+        Optional<KafkaAuthenticationModule> authModule = kafkaClusters.getAuthenticationModule(environmentId);
+
+        if (authModule.isPresent() && authModule.get() instanceof ConfluentCloudAuthenticationModule) {
+            confluentModule = (ConfluentCloudAuthenticationModule) authModule.get();
+            return Optional.of(confluentModule);
         }
         return Optional.empty();
     }

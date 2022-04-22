@@ -33,6 +33,8 @@ export interface CustomLink {
 }
 
 export interface UiConfig {
+    changelogEntries: number;
+    changelogMinDays: number;
     minDeprecationTime: {
         years: number;
         months: number;
