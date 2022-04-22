@@ -9,7 +9,7 @@ import {
 } from '../../shared/services/environments.service';
 import { Observable } from 'rxjs';
 import { flatMap, map, mergeMap, shareReplay, startWith, take, tap } from 'rxjs/operators';
-import { CustomLink, ServerInfo, ServerInfoService } from '../../shared/services/serverinfo.service';
+import {CustomLink, ServerInfo, ServerInfoService} from '../../shared/services/serverinfo.service';
 import * as moment from 'moment';
 import { TranslateService } from '@ngx-translate/core';
 import { ApplicationInfo, ApplicationsService } from '../../shared/services/applications.service';
@@ -30,6 +30,8 @@ export class DashboardComponent implements OnInit {
     serverInfos: Observable<EnvironmentServerInfo[]>;
 
     appServerInfo: Observable<ServerInfo>;
+
+    instanceNameInfo: Observable<string>;
 
     customLinks: Observable<CustomLink[]>;
 
@@ -58,6 +60,7 @@ export class DashboardComponent implements OnInit {
         this.updateConfigTemplate('spring');
         this.customLinks = this.serverInfoService.getUiConfig().pipe(map(config => config.customLinks));
         this.kafkaVersion = this.selectedEnvironment.pipe(flatMap(env => this.serverInfoService.getKafkaVersion(env.id)));
+        this.instanceNameInfo = this.serverInfoService.getServerInfo().pipe(map(info => info.galapagos.instanceName));
     }
 
     selectEnvironment(envId: string) {

@@ -19,6 +19,10 @@ export interface ServerInfo {
     app: AppInfo;
 
     toggles?: TogglesInfo;
+
+    galapagos:{
+        instanceName:string;
+    };
 }
 
 export interface CustomLink {
