@@ -84,7 +84,7 @@ export class UserSettingsComponent implements OnInit {
             flatMap(values => {
                 const expiresAt = moment(values[1].expiresAt).locale(values[0]).format('L LT');
                 return this.translate.get('EXISTING_DEVELOPER_API_Key_HTML', { expiresAt: expiresAt, apiKey: values[1].authenticationId })
-                    .pipe(map(o => o as string));
+                    .pipe(map(o => o as string)).pipe(map( s => (values[1].expiresAt) ? s : null));
             })).pipe(shareReplay());
 
         this.copiedKey = false;
@@ -147,10 +147,12 @@ export class UserSettingsComponent implements OnInit {
 
         this.certificateService.getDeveloperAuthenticationInfo(this.selectedEnvironment.id)
             .pipe(take(1)).toPromise().then(val => {
-                this.existingAuthenticationInfo.next({
-                    expiresAt: val.authentications[this.selectedEnvironment.id].authentication.expiresAt,
-                    authenticationId: val.authentications[this.selectedEnvironment.id].authentication.apiKey
-                });
+                if (val.authentications[this.selectedEnvironment.id]) {
+                    this.existingAuthenticationInfo.next({
+                        expiresAt: val.authentications[this.selectedEnvironment.id].authentication.expiresAt,
+                        authenticationId: val.authentications[this.selectedEnvironment.id].authentication.apiKey
+                    });
+                }
             }).catch(err => {
                 this.toasts.addHttpErrorToast('DEVELOPER_API_KEY_INFO_ERROR', err);
             });
