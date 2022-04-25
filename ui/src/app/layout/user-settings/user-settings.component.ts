@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { routerTransition } from '../../router.animations';
 import { ApikeyInfo, AuthenticationResponse, CertificateService } from '../../shared/services/certificates.service';
-import { combineLatest, concat, Observable, of, ReplaySubject, Subject } from 'rxjs';
+import { combineLatest, concat, Observable, of, Subject } from 'rxjs';
 import { EnvironmentsService, KafkaEnvironment } from 'src/app/shared/services/environments.service';
 import { flatMap, map, shareReplay, take } from 'rxjs/operators';
 import { ToastService } from 'src/app/shared/modules/toast/toast.service';
