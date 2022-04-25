@@ -57,12 +57,16 @@
     background: #000;
 }
 
-.dark code{
+.dark code {
     background-color: #2e3538;
 }
 
-.dark .hljs-string{
+.dark .hljs-string {
     color: #92d1ed;
+}
+
+.dark .fas {
+    font-family: "Font Awesome 6 Free";
 }
 
 .dark .dropdown-menu {
