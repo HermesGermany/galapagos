@@ -123,10 +123,11 @@ public class ConfluentCloudAuthenticationModule implements KafkaAuthenticationMo
         String apiKeyDesc = MessageFormat.format(API_DEVELOPER_KEY_DESC, userName);
         Duration validity = getDeveloperApiKeyValidity().orElseThrow();
         Instant expiresAt = Instant.now().plus(validity);
+        String finalUserName = userName.split("@")[0];
         return findServiceAccountForDev(userName)
                 .thenCompose(
                         account -> account.map(a -> CompletableFuture.completedFuture(a))
-                                .orElseGet(() -> client.createServiceAccount("developer-" + userName,
+                                .orElseGet(() -> client.createServiceAccount("developer-" + finalUserName,
                                         devServiceAccountDescription(userName)).toFuture()))
                 .thenCompose(account -> client
                         .createApiKey(config.getEnvironmentId(), config.getClusterId(), apiKeyDesc, account.getId())
