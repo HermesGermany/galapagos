@@ -9,7 +9,7 @@ import {
 } from '../../shared/services/environments.service';
 import { Observable, switchMap } from 'rxjs';
 import { flatMap, map, mergeMap, shareReplay, startWith, take, tap } from 'rxjs/operators';
-import {CustomLink, ServerInfo, ServerInfoService} from '../../shared/services/serverinfo.service';
+import { CustomLink, ServerInfo, ServerInfoService } from '../../shared/services/serverinfo.service';
 import * as moment from 'moment';
 import { TranslateService } from '@ngx-translate/core';
 import { ApplicationInfo, ApplicationsService } from '../../shared/services/applications.service';
