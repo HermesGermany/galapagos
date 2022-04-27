@@ -20,7 +20,9 @@ import com.hermesworld.ais.galapagos.util.TimeService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.invocation.InvocationOnMock;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -30,49 +32,45 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class DevUserAclListenerTest {
 
+    @Mock
     private ApplicationsService applicationsService;
+
+    @Mock
+    private KafkaCluster cluster;
+
+    @Mock
+    private GalapagosEventContext context;
 
     private DevUserAclListener listener;
 
     private TopicBasedRepositoryMock<DevAuthenticationMetadata> repository;
 
-    private GalapagosEventContext context;
-
     private ZonedDateTime timestamp;
-
-    private final List<InvocationOnMock> updateAclCalls = new ArrayList<>();
 
     @BeforeEach
     public void initMocks() {
-        applicationsService = mock(ApplicationsService.class);
+        MockitoAnnotations.openMocks(this);
         SubscriptionService subscriptionService = mock(SubscriptionService.class);
 
         timestamp = ZonedDateTime.of(LocalDateTime.of(2020, 10, 5, 10, 0, 0), ZoneOffset.UTC);
         TimeService timeService = () -> timestamp;
 
         AclSupport aclSupport = mock(AclSupport.class);
-
         KafkaClusters clusters = mock(KafkaClusters.class);
         when(clusters.getAuthenticationModule(any())).thenReturn(Optional
                 .of(new CertificatesAuthenticationModule("test", mock(CertificatesAuthenticationConfig.class))));
         listener = new DevUserAclListener(applicationsService, subscriptionService, timeService, aclSupport, clusters);
-
-        KafkaCluster cluster = mock(KafkaCluster.class);
-        when(cluster.updateUserAcls(any())).then(inv -> {
-            updateAclCalls.add(inv);
-            return FutureUtil.noop();
-        });
 
         repository = new TopicBasedRepositoryMock<>();
         when(cluster.getRepository("devauth", DevAuthenticationMetadata.class)).thenReturn(repository);
 
         context = mock(GalapagosEventContext.class);
         when(context.getKafkaCluster()).thenReturn(cluster);
+        when(cluster.updateUserAcls(any())).thenReturn(FutureUtil.noop());
     }
 
     @Test
@@ -98,7 +96,7 @@ public class DevUserAclListenerTest {
 
         listener.handleApplicationRegistered(event).get();
 
-        Assertions.assertEquals(0, updateAclCalls.size());
+        verify(cluster, times(0)).updateUserAcls(any());
     }
 
     @Test
@@ -130,10 +128,10 @@ public class DevUserAclListenerTest {
 
         listener.handleApplicationRegistered(event).get();
 
-        Assertions.assertEquals(1, updateAclCalls.size());
+        ArgumentCaptor<KafkaUser> userCaptor = ArgumentCaptor.forClass(KafkaUser.class);
+        verify(cluster, times(1)).updateUserAcls(userCaptor.capture());
 
-        KafkaUser user = updateAclCalls.get(0).getArgument(0);
-
+        KafkaUser user = userCaptor.getValue();
         Assertions.assertEquals("User:CN=testuser", user.getKafkaUserName());
     }
 

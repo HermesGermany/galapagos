@@ -115,12 +115,10 @@ export class CertificateService {
         });
     }
 
-    public async downloadDeveloperApiKey(environmentId: string): Promise<any> {
+    public async createDeveloperApiKey(environmentId: string): Promise<any> {
         return this.http.post('/api/me/apikey/' + environmentId, '').toPromise().then(resp => {
             const ra = resp as ApikeyInfo;
-            console.log(ra);
-            const content = `Key: ${ra.apiKey}, Secret: ${ra.secret}`;
-            saveAs(new Blob([content], { type: 'application/octet-stream' }));
+            return { key: ra.apiKey, secret: ra.secret };
         });
     }
 

@@ -55,7 +55,6 @@ public interface KafkaAuthenticationModule {
 
     @CheckReturnValue
     CompletableFuture<Void> deleteDeveloperAuthentication(String userName, JSONObject existingAuthData);
-
     @CheckReturnValue
     CompletableFuture<CreateAuthenticationResult> createToolingAuthentication(String applicationName,
             JSONObject createParams) throws ExecutionException, InterruptedException;

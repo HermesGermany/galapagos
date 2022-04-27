@@ -13,10 +13,10 @@ import com.hermesworld.ais.galapagos.kafka.util.AclSupport;
 import com.hermesworld.ais.galapagos.subscriptions.service.SubscriptionService;
 import com.hermesworld.ais.galapagos.util.FutureUtil;
 import com.hermesworld.ais.galapagos.util.TimeService;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.acl.AclBinding;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.CheckReturnValue;
@@ -28,7 +28,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Component
-@Slf4j
 public class DevUserAclListener implements TopicEventsListener, SubscriptionEventsListener, ApplicationEventsListener {
 
     private final ApplicationsService applicationsService;
@@ -165,11 +164,11 @@ public class DevUserAclListener implements TopicEventsListener, SubscriptionEven
         Set<String> clientApplicationIds = subscriptionService
                 .getSubscriptionsForTopic(cluster.getId(), event.getMetadata().getName(), false).stream()
                 .map(s -> s.getClientApplicationId()).collect(Collectors.toSet());
-        Set<DevAuthenticationMetadata> allCertificates = Stream.of(Set.of(applicationId), clientApplicationIds)
+        Set<DevAuthenticationMetadata> allAuthentications = Stream.of(Set.of(applicationId), clientApplicationIds)
                 .flatMap(s -> s.stream()).flatMap(id -> getValidDevAuthenticationsForApplication(cluster, id).stream())
                 .collect(Collectors.toSet());
 
-        return allCertificates.isEmpty() ? FutureUtil.noop() : updateAcls(cluster, allCertificates);
+        return allAuthentications.isEmpty() ? FutureUtil.noop() : updateAcls(cluster, allAuthentications);
     }
 
     @Override
@@ -264,7 +263,8 @@ public class DevUserAclListener implements TopicEventsListener, SubscriptionEven
                         .orElse(null);
             }
             catch (JSONException e) {
-                log.warn("Could not parse authentication JSON of developer authentication for user {}",
+                LoggerFactory.getLogger(DevUserAclListener.class).warn(
+                        "Could not parse authentication JSON of developer authentication for user {}",
                         metadata.getUserName(), e);
                 return null;
             }

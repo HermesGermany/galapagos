@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { routerTransition } from '../../router.animations';
-import { AuthenticationResponse, CertificateService } from '../../shared/services/certificates.service';
+import { CertificateService } from '../../shared/services/certificates.service';
 import { combineLatest, concat, Observable, of, Subject } from 'rxjs';
 import { EnvironmentsService, KafkaEnvironment } from 'src/app/shared/services/environments.service';
 import { flatMap, map, shareReplay, take } from 'rxjs/operators';
@@ -8,6 +8,14 @@ import { ToastService } from 'src/app/shared/modules/toast/toast.service';
 import { TranslateService } from '@ngx-translate/core';
 import * as moment from 'moment';
 import 'moment/min/locales';
+
+interface ExistingAuthenticationInfo {
+
+    authenticationId?: string;
+
+    expiresAt: string;
+
+}
 
 @Component({
     selector: 'app-user-settings',
@@ -19,7 +27,7 @@ export class UserSettingsComponent implements OnInit {
 
     devCertsEnabledEnvironments: Observable<KafkaEnvironment[]>;
 
-    devApikeysEnabledEnvironments: Observable<KafkaEnvironment[]>;
+    devApiKeysEnabledEnvironments: Observable<KafkaEnvironment[]>;
 
     selectedEnvironment: KafkaEnvironment;
 
@@ -27,9 +35,17 @@ export class UserSettingsComponent implements OnInit {
 
     existingApiKeyMessage: Observable<string>;
 
-    existingCertificateInfo = new Subject<AuthenticationResponse>();
+    existingAuthenticationInfo = new Subject<ExistingAuthenticationInfo>();
 
-    existingApikeyInfo = new Subject<AuthenticationResponse>();
+    newApiKey: string;
+
+    copiedKey: boolean;
+
+    newApiSecret: string;
+
+    copiedSecret: boolean;
+
+    showApiKeyTable: boolean;
 
     authenticationMode: Observable<string>;
 
@@ -44,7 +60,7 @@ export class UserSettingsComponent implements OnInit {
                 this.environmentsService.getEnvironments()])
             .pipe(map(value => value[1].filter(env => value[0].indexOf(env.id) > -1)));
 
-        this.devApikeysEnabledEnvironments = combineLatest(
+        this.devApiKeysEnabledEnvironments = combineLatest(
             [this.certificateService.getEnvironmentsWithDevApikeySupport(),
                 this.environmentsService.getEnvironments()])
             .pipe(map(value => value[1].filter(env => value[0].indexOf(env.id) > -1)));
@@ -53,39 +69,42 @@ export class UserSettingsComponent implements OnInit {
         const lang = concat(of(this.translate.currentLang), this.translate.onLangChange
             .pipe(map(event => event.lang))).pipe(shareReplay(1));
 
-        this.existingCertificateMessage = combineLatest([lang, this.existingCertificateInfo]).pipe(
+        this.existingCertificateMessage = combineLatest([lang, this.existingAuthenticationInfo]).pipe(
             flatMap(values => {
-                if (!values[1].dn) {
+                if (!values[1].authenticationId) {
                     return of(null);
                 }
-                // @ts-ignore
                 const expiresAt = moment(values[1].expiresAt).locale(values[0]).format('L LT');
                 return this.translate.get('EXISTING_DEVELOPER_CERTIFICATE_HTML', { expiresAt: expiresAt })
                     .pipe(map(o => o as string));
             })).pipe(shareReplay());
 
-        this.existingApiKeyMessage = combineLatest([lang, this.existingApikeyInfo]).pipe(
+        this.existingApiKeyMessage = combineLatest([lang, this.existingAuthenticationInfo]).pipe(
             flatMap(values => {
-                // @ts-ignore
                 const expiresAt = moment(values[1].expiresAt).locale(values[0]).format('L LT');
-                return this.translate.get('EXISTING_DEVELOPER_API_Key_HTML', { expiresAt: expiresAt })
-                    .pipe(map(o => o as string));
+                return this.translate.get('EXISTING_DEVELOPER_API_Key_HTML', { expiresAt: expiresAt, apiKey: values[1].authenticationId })
+                    .pipe(map(o => o as string)).pipe(map(s => (values[1].expiresAt) ? s : null));
             })).pipe(shareReplay());
+
+        this.copiedKey = false;
+        this.copiedSecret = false;
+        this.showApiKeyTable = false;
     }
 
     updateExistingCertificateMessage() {
-        this.existingCertificateInfo.next({ dn: null, expiresAt: null });
+        this.existingAuthenticationInfo.next({ authenticationId: null, expiresAt: null });
 
         if (!this.selectedEnvironment) {
             return;
         }
 
         this.certificateService.getDeveloperAuthenticationInfo(this.selectedEnvironment.id)
-            .pipe(take(1)).toPromise().then(val =>
-                this.existingCertificateInfo.next({
-                    dn: val.authentications[this.selectedEnvironment.id].authentication.dn,
+            .pipe(take(1)).toPromise().then(val => {
+                this.existingAuthenticationInfo.next({
+                    authenticationId: val.authentications[this.selectedEnvironment.id].authentication.dn,
                     expiresAt: val.authentications[this.selectedEnvironment.id].authentication.expiresAt
-                })
+                });
+            }
             ).catch(err => {
                 this.toasts.addHttpErrorToast('DEVELOPER_CERTIFICATE_INFO_ERROR', err);
             });
@@ -102,19 +121,24 @@ export class UserSettingsComponent implements OnInit {
             .then(() => this.updateExistingCertificateMessage());
     }
 
-    async generateApikey() {
+    async generateApikey(): Promise<any> {
         const successMsg = await this.translate.get('MSG_DEVELOPER_API_KEY_SUCCESS').pipe(take(1)).toPromise();
         const errorMsg = await this.translate.get('MSG_DEVELOPER_API_KEY_ERROR').pipe(take(1)).toPromise();
 
-        this.certificateService.downloadDeveloperApiKey(this.selectedEnvironment.id).then(
-            () => this.toasts.addSuccessToast(successMsg),
+        return this.certificateService.createDeveloperApiKey(this.selectedEnvironment.id).then(
+            val => {
+                this.newApiKey = val.key;
+                this.newApiSecret = val.secret;
+                this.toasts.addSuccessToast(successMsg);
+                this.showApiKeyTable = true;
+                this.existingApiKeyMessage = null;
+            },
             err => this.toasts.addHttpErrorToast(errorMsg, err)
-        )
-            .then(() => this.updateExistingApiKeyMessage());
+        ).then(() => this.updateExistingApiKeyMessage());
     }
 
     updateExistingApiKeyMessage() {
-        this.existingApikeyInfo.next({ expiresAt: null });
+        this.existingAuthenticationInfo.next({ expiresAt: null });
 
         if (!this.selectedEnvironment) {
             return;
@@ -122,11 +146,36 @@ export class UserSettingsComponent implements OnInit {
 
         this.certificateService.getDeveloperAuthenticationInfo(this.selectedEnvironment.id)
             .pipe(take(1)).toPromise().then(val => {
-                this.existingApikeyInfo.next({
-                    expiresAt: val.authentications[this.selectedEnvironment.id].authentication.expiresAt
-                });
+                if (val.authentications[this.selectedEnvironment.id]) {
+                    this.existingAuthenticationInfo.next({
+                        expiresAt: val.authentications[this.selectedEnvironment.id].authentication.expiresAt,
+                        authenticationId: val.authentications[this.selectedEnvironment.id].authentication.apiKey
+                    });
+                }
             }).catch(err => {
                 this.toasts.addHttpErrorToast('DEVELOPER_API_KEY_INFO_ERROR', err);
             });
+    }
+
+    copyValue(value: string) {
+        const selBox = document.createElement('textarea');
+        selBox.style.position = 'fixed';
+        selBox.style.left = '0';
+        selBox.style.top = '0';
+        selBox.style.opacity = '0';
+        selBox.value = value;
+        document.body.appendChild(selBox);
+        selBox.focus();
+        selBox.select();
+        document.execCommand('copy');
+        document.body.removeChild(selBox);
+
+        if (value === this.newApiKey) {
+            this.copiedKey = true;
+            this.copiedSecret = false;
+        } else {
+            this.copiedKey = false;
+            this.copiedSecret = true;
+        }
     }
 }

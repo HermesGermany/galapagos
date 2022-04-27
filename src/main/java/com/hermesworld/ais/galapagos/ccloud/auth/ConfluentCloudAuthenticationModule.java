@@ -14,6 +14,7 @@ import java.text.MessageFormat;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
@@ -48,6 +49,12 @@ public class ConfluentCloudAuthenticationModule implements KafkaAuthenticationMo
     public ConfluentCloudAuthenticationModule(ConfluentCloudAuthConfig config) {
         this.client = new ConfluentApiClient();
         this.config = config;
+        try {
+            this.getDeveloperApiKeyValidity();
+        }
+        catch (DateTimeParseException e) {
+            throw new IllegalArgumentException("Invalid date for developer API key validity", e);
+        }
     }
 
     @Override
@@ -225,7 +232,7 @@ public class ConfluentCloudAuthenticationModule implements KafkaAuthenticationMo
         return new CreateAuthenticationResult(info, keyInfo.getSecret().getBytes(StandardCharsets.UTF_8));
     }
 
-    private boolean supportsDeveloperApiKeys() {
+    public boolean supportsDeveloperApiKeys() {
         return getDeveloperApiKeyValidity().isPresent();
     }
 

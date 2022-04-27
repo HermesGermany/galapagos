@@ -7,7 +7,7 @@ import {
     EnvironmentsService,
     KafkaEnvironment
 } from '../../shared/services/environments.service';
-import { Observable } from 'rxjs';
+import { Observable, switchMap } from 'rxjs';
 import { flatMap, map, mergeMap, shareReplay, startWith, take, tap } from 'rxjs/operators';
 import { CustomLink, ServerInfo, ServerInfoService } from '../../shared/services/serverinfo.service';
 import * as moment from 'moment';
@@ -43,14 +43,19 @@ export class DashboardComponent implements OnInit {
 
     configTemplatesCopiedValue = false;
 
+    configAmountOfEntries: Observable<number>;
+
     constructor(private environments: EnvironmentsService, private applicationsService: ApplicationsService,
                 private serverInfoService: ServerInfoService, private location: Location,
                 private translate: TranslateService) {
         this.allEnvironments = environments.getEnvironments();
         this.selectedEnvironment = environments.getCurrentEnvironment();
         this.serverInfos = environments.getCurrentEnvironmentServerInfo();
-        this.changelog = this.selectedEnvironment.pipe(flatMap(env => environments.getChangeLog(env.id)))
-            .pipe(map(changes => this.formatChanges(changes))).pipe(shareReplay(1));
+        this.changelog = this.serverInfoService.getUiConfig().pipe(switchMap(config =>
+            this.selectedEnvironment
+                .pipe(flatMap(env => this.environments.getChangeLog(env.id)))
+                .pipe(map(changes => this.formatChanges(changes, config.changelogEntries, config.changelogMinDays)))
+                .pipe(shareReplay(1))));
     }
 
     ngOnInit() {
@@ -97,18 +102,23 @@ export class DashboardComponent implements OnInit {
         });
     }
 
-    private formatChanges(changes: ChangelogEntry[]): ChangelogEntry[] {
-        return changes
+    private formatChanges(changes: ChangelogEntry[], amountOfEntries: number, minDays: number): ChangelogEntry[] {
+        changes = changes
             .map(change => {
                 change.change.html = this.changeHtml(change.change);
                 return change;
-            })
-            .filter(change => change.change.html !== null).slice(0, 10);
+            }).filter(change => change.change.html !== null);
+        const index = changes.findIndex(
+            change =>
+                new Date(change.timestamp) <
+                new Date(new Date().setDate(new Date().getDate() - minDays)));
+        return changes.slice(0, Math.max(amountOfEntries, index));
     }
 
     private changeHtml(change: Change): Observable<string> {
         let topicName: string;
         let topicLink: string;
+        let state: string;
 
         switch (change.changeType) {
             case 'TOPIC_CREATED':
@@ -161,21 +171,31 @@ export class DashboardComponent implements OnInit {
                     topicLink: topicLink
                 });
             case 'TOPIC_SUBSCRIBED':
+                state = change.subscriptionMetadata.state;
                 topicName = change.subscriptionMetadata.topicName;
                 topicLink = this.urlForRouterLink('/topics/' + topicName);
                 return this.applicationInfo(change.subscriptionMetadata.clientApplicationId).pipe(
                     flatMap(app => {
                         if (!app) {
                             return this.translate.stream('(unknown)').pipe(
-                                flatMap(s => this.translate.stream('CHANGELOG_TOPIC_SUBSCRIBED_HTML_NO_APP_LINK',
+                                flatMap(s => this.translate.stream(
+                                    state === 'APPROVED'
+                                        ? 'CHANGELOG_TOPIC_SUBSCRIBED_HTML_NO_APP_LINK'
+                                        : 'CHANGELOG_TOPIC_SUBSCRIBED_HTML_NO_APP_LINK_PENDING',
                                     { topicName: topicName, topicLink: topicLink, appInfo: { name: s } })));
                         }
                         if (!app.infoUrl) {
-                            return this.translate.stream('CHANGELOG_TOPIC_SUBSCRIBED_HTML_NO_APP_LINK',
+                            return this.translate.stream(
+                                state === 'APPROVED'
+                                    ? 'CHANGELOG_TOPIC_SUBSCRIBED_HTML_NO_APP_LINK'
+                                    : 'CHANGELOG_TOPIC_SUBSCRIBED_HTML_NO_APP_LINK_PENDING',
                                 { topicName: topicName, topicLink: topicLink, appInfo: app });
                         }
 
-                        return this.translate.stream('CHANGELOG_TOPIC_SUBSCRIBED_HTML',
+                        return this.translate.stream(
+                            state === 'APPROVED'
+                                ? 'CHANGELOG_TOPIC_SUBSCRIBED_HTML'
+                                : 'CHANGELOG_TOPIC_SUBSCRIBED_HTML_PENDING',
                             { topicName: topicName, topicLink: topicLink, appInfo: app });
                     }));
             case 'TOPIC_UNSUBSCRIBED':
@@ -206,7 +226,34 @@ export class DashboardComponent implements OnInit {
                         producerName: producer.name
                     })
                 ));
+            case 'TOPIC_SUBSCRIPTION_UPDATED':
+                state = change.subscriptionMetadata.state;
+                topicName = change.subscriptionMetadata.topicName;
+                topicLink = this.urlForRouterLink('/topics/' + topicName);
+                return this.applicationInfo(change.subscriptionMetadata.clientApplicationId).pipe(
+                    flatMap(app => {
+                        if (!app) {
+                            return this.translate.stream('(unknown)').pipe(
+                                flatMap(s => this.translate.stream(
+                                    state === 'APPROVED'
+                                        ? 'CHANGELOG_TOPIC_SUBSCRIBED_HTML_NO_APP_LINK_APPROVED'
+                                        : 'CHANGELOG_TOPIC_SUBSCRIBED_HTML_NO_APP_LINK_DECLINED',
+                                    { topicName: topicName, topicLink: topicLink, appInfo: { name: s } })));
+                        }
+                        if (!app.infoUrl) {
+                            return this.translate.stream(
+                                state === 'APPROVED'
+                                    ? 'CHANGELOG_TOPIC_SUBSCRIBED_HTML_NO_APP_LINK_APPROVED'
+                                    : 'CHANGELOG_TOPIC_SUBSCRIBED_HTML_NO_APP_LINK_DECLINED',
+                                { topicName: topicName, topicLink: topicLink, appInfo: app });
+                        }
 
+                        return this.translate.stream(
+                            state === 'APPROVED'
+                                ? 'CHANGELOG_TOPIC_SUBSCRIBED_HTML_APPROVED'
+                                : 'CHANGELOG_TOPIC_SUBSCRIBED_HTML_DECLINED',
+                            { topicName: topicName, topicLink: topicLink, appInfo: app });
+                    }));
 
         }
         return null;

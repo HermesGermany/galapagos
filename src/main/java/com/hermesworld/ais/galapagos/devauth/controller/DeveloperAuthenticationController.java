@@ -1,6 +1,7 @@
 package com.hermesworld.ais.galapagos.devauth.controller;
 
 import com.hermesworld.ais.galapagos.applications.controller.AuthenticationDto;
+import com.hermesworld.ais.galapagos.ccloud.apiclient.ConfluentApiException;
 import com.hermesworld.ais.galapagos.ccloud.auth.ConfluentCloudAuthUtil;
 import com.hermesworld.ais.galapagos.devauth.DevAuthenticationMetadata;
 import com.hermesworld.ais.galapagos.devauth.DeveloperAuthenticationService;
@@ -67,12 +68,11 @@ public class DeveloperAuthenticationController {
     public DeveloperApiKeyDto createDeveloperApiKey(@PathVariable String environmentId) {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try {
-            authService.createDeveloperAuthenticationForCurrentUser(environmentId, baos).get();
-            DevAuthenticationMetadata metadata = authService.getDeveloperAuthenticationOfCurrentUser(environmentId)
-                    .orElseThrow();
-
+            DevAuthenticationMetadata metadata = authService
+                    .createDeveloperAuthenticationForCurrentUser(environmentId, baos).get();
             return new DeveloperApiKeyDto(ConfluentCloudAuthUtil.getApiKey(metadata.getAuthenticationJson()),
-                    baos.toString(StandardCharsets.UTF_8));
+                    baos.toString(StandardCharsets.UTF_8),
+                    ConfluentCloudAuthUtil.getExpiresAt(metadata.getAuthenticationJson()));
         }
         catch (ExecutionException e) {
             throw handleExecutionException(e);
@@ -106,6 +106,9 @@ public class DeveloperAuthenticationController {
         Throwable t = e.getCause();
         if (t instanceof CertificateException) {
             return new ResponseStatusException(HttpStatus.BAD_REQUEST, t.getMessage());
+        }
+        if (t instanceof ConfluentApiException) {
+            return new ResponseStatusException(HttpStatus.BAD_GATEWAY, t.getMessage());
         }
         if (t instanceof NoSuchElementException) {
             return new ResponseStatusException(HttpStatus.NOT_FOUND);
