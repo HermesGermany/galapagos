@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { routerTransition } from '../../router.animations';
 import { CertificateService } from '../../shared/services/certificates.service';
 import { combineLatest, concat, Observable, of, Subject } from 'rxjs';
@@ -24,7 +24,7 @@ interface ExistingAuthenticationInfo {
     styleUrls: ['./user-settings.component.scss'],
     animations: [routerTransition()]
 })
-export class UserSettingsComponent implements OnInit {
+export class UserSettingsComponent implements OnInit, OnDestroy {
 
     devCertsEnabledEnvironments: Observable<KafkaEnvironment[]>;
 
@@ -96,6 +96,10 @@ export class UserSettingsComponent implements OnInit {
         this.copiedKey = false;
         this.copiedSecret = false;
         this.showApiKeyTable = false;
+    }
+
+    ngOnDestroy(): void {
+        this.existingAuthenticationInfo.unsubscribe();
     }
 
     updateExistingCertificateMessage() {
@@ -189,4 +193,5 @@ export class UserSettingsComponent implements OnInit {
             this.copiedSecret = true;
         }
     }
+
 }

@@ -108,7 +108,7 @@
     "UNSUBSCRIBE_CONFIRM_DLG_HTML": "Caution! If you cancel this subscription, application <b>{{clientApplicationName}}</b> is no longer able to access this topic on the current environment. This can have negative impact of that application's operational level, up to a <b>complete breakdown</b>. Only do this if your Application does not need to read from this topic anymore.",
     "SUBSCRIPTION_DESCRIPTION_LABEL": "Description (e.g. reason for usage)",
     "NO_API_KEY_FOR_APP": "No Api Key has been created yet for this application on this environment.",
-    "SAVE_KEY_WARNING": "Please <b>save</b> the secret, before you close this dialogue! The secret will not be stored in Galapagos.",
+    "SAVE_KEY_WARNING": "Please <b>save</b> the secret, before you close this dialogue! The secret will not be stored in Galapagos. Please also note that the API key has the following <b>expiry date</b>: {{ expiresAt }}",
     "APPLICATION_ENV_HINT_HTML": "This information is valid for current environment <b>{{ environmentName }}</b>.",
     "Cleanup Strategy": "Cleanup Strategy",
     "Log Compaction": "Log Compaction",
