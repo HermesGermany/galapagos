@@ -1,7 +1,7 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { routerTransition } from '../../router.animations';
 import { CertificateService } from '../../shared/services/certificates.service';
-import { combineLatest, concat, Observable, of, Subject } from 'rxjs';
+import { combineLatest, concat, Observable, of, ReplaySubject, switchMap } from 'rxjs';
 import { EnvironmentsService, KafkaEnvironment } from 'src/app/shared/services/environments.service';
 import { flatMap, map, shareReplay, take } from 'rxjs/operators';
 import { ToastService } from 'src/app/shared/modules/toast/toast.service';
@@ -24,7 +24,7 @@ interface ExistingAuthenticationInfo {
     styleUrls: ['./user-settings.component.scss'],
     animations: [routerTransition()]
 })
-export class UserSettingsComponent implements OnInit, OnDestroy {
+export class UserSettingsComponent implements OnInit {
 
     devCertsEnabledEnvironments: Observable<KafkaEnvironment[]>;
 
@@ -38,7 +38,7 @@ export class UserSettingsComponent implements OnInit, OnDestroy {
 
     saveKeyWarning: Observable<string>;
 
-    existingAuthenticationInfo = new Subject<ExistingAuthenticationInfo>();
+    existingAuthenticationInfo = new ReplaySubject<ExistingAuthenticationInfo>(1);
 
     newApiKey: string;
 
@@ -82,24 +82,20 @@ export class UserSettingsComponent implements OnInit, OnDestroy {
                     .pipe(map(o => o as string));
             })).pipe(shareReplay());
 
-        this.existingAuthenticationInfo.subscribe(info => {
-            this.existingApiKeyMessage = this.translate.get('EXISTING_DEVELOPER_API_Key_HTML', {
+        this.existingApiKeyMessage = this.existingAuthenticationInfo.pipe(switchMap(info => this.translate.get(
+            'EXISTING_DEVELOPER_API_Key_HTML', {
                 expiresAt: moment(info.expiresAt).locale(this.translate.currentLang).format('L LT'),
                 apiKey: info.authenticationId
-            }).pipe(map(o => o as string));
+            }).pipe(map(s => (info.expiresAt) ? s : null)))).pipe(map(o => o as string));
 
-            this.saveKeyWarning = this.translate.get('SAVE_KEY_WARNING', {
+        this.saveKeyWarning = this.existingAuthenticationInfo.pipe(switchMap(info => this.translate.get(
+            'SAVE_KEY_WARNING', {
                 expiresAt: moment(info.expiresAt).locale(this.translate.currentLang).format('L LT')
-            }).pipe(map(o => o as string));
-        });
+            }))).pipe(map(o => o as string));
 
         this.copiedKey = false;
         this.copiedSecret = false;
         this.showApiKeyTable = false;
-    }
-
-    ngOnDestroy(): void {
-        this.existingAuthenticationInfo.unsubscribe();
     }
 
     updateExistingCertificateMessage() {
