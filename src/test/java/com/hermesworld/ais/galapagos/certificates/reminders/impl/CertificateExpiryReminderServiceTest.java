@@ -2,6 +2,8 @@ package com.hermesworld.ais.galapagos.certificates.reminders.impl;
 
 import com.hermesworld.ais.galapagos.applications.ApplicationMetadata;
 import com.hermesworld.ais.galapagos.applications.ApplicationsService;
+import com.hermesworld.ais.galapagos.certificates.auth.CertificatesAuthenticationConfig;
+import com.hermesworld.ais.galapagos.certificates.auth.CertificatesAuthenticationModule;
 import com.hermesworld.ais.galapagos.certificates.reminders.CertificateExpiryReminder;
 import com.hermesworld.ais.galapagos.certificates.reminders.ReminderType;
 import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
@@ -46,7 +48,9 @@ public class CertificateExpiryReminderServiceTest {
         when(clusters.getEnvironment("test")).thenReturn(Optional.of(cluster));
         when(clusters.getEnvironments()).thenCallRealMethod();
         when(clusters.getEnvironmentMetadata("test")).thenReturn(Optional.of(envMeta));
-
+        CertificatesAuthenticationConfig certConfig = new CertificatesAuthenticationConfig();
+        when(clusters.getAuthenticationModule("test"))
+                .thenReturn(Optional.of(new CertificatesAuthenticationModule("test", certConfig)));
         when(cluster.getRepository("reminders", ReminderMetadata.class)).thenReturn(reminderRepository);
 
         service = new CertificateExpiryReminderServiceImpl(clusters, applicationsService);
@@ -159,6 +163,9 @@ public class CertificateExpiryReminderServiceTest {
         KafkaEnvironmentConfig envMeta = mock(KafkaEnvironmentConfig.class);
         when(envMeta.getAuthenticationMode()).thenReturn("certificates");
         when(clusters.getEnvironmentMetadata("test2")).thenReturn(Optional.of(envMeta));
+        CertificatesAuthenticationConfig certConfig = new CertificatesAuthenticationConfig();
+        when(clusters.getAuthenticationModule("test2"))
+                .thenReturn(Optional.of(new CertificatesAuthenticationModule("test2", certConfig)));
 
         metadata = new ApplicationMetadata();
         metadata.setApplicationId("123");

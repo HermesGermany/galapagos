@@ -21,6 +21,7 @@ import java.security.GeneralSecurityException;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
 
@@ -124,12 +125,6 @@ public class CertificatesAuthenticationModule implements KafkaAuthenticationModu
     }
 
     @Override
-    public CompletableFuture<Void> deleteApplicationAuthentication(String applicationId, JSONObject existingAuthData) {
-        // nothing to do here - enough to remove ACLs (done via update listener)
-        return FutureUtil.noop();
-    }
-
-    @Override
     public void addRequiredKafkaProperties(Properties props) {
         props.put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, "SSL");
         props.put(CommonClientConfigs.RECONNECT_BACKOFF_MAX_MS_CONFIG, "60000");
@@ -144,8 +139,27 @@ public class CertificatesAuthenticationModule implements KafkaAuthenticationModu
     }
 
     @Override
-    public String extractKafkaUserName(String applicationId, JSONObject existingAuthData) throws JSONException {
+    public String extractKafkaUserName(JSONObject existingAuthData) throws JSONException {
         return "User:" + existingAuthData.getString(DN);
+    }
+
+    @Override
+    public CompletableFuture<CreateAuthenticationResult> createDeveloperAuthentication(String userName,
+            JSONObject createParams) {
+        ByteArrayOutputStream outSecret = new ByteArrayOutputStream();
+        return createDeveloperCertificateAndPrivateKey(userName, outSecret)
+                .thenApply(result -> new CreateAuthenticationResult(result, outSecret.toByteArray()));
+    }
+
+    @Override
+    public CompletableFuture<Void> deleteApplicationAuthentication(String applicationId, JSONObject existingAuthData) {
+        // nothing to do here - enough to remove ACLs (done via update listener)
+        return FutureUtil.noop();
+    }
+
+    @Override
+    public CompletableFuture<Void> deleteDeveloperAuthentication(String userName, JSONObject existingAuthData) {
+        return FutureUtil.noop();
     }
 
     private CompletableFuture<JSONObject> createApplicationCertificateFromCsr(String applicationId,
@@ -188,6 +202,20 @@ public class CertificatesAuthenticationModule implements KafkaAuthenticationModu
                 });
     }
 
+    private CompletableFuture<JSONObject> createDeveloperCertificateAndPrivateKey(String userName,
+            OutputStream outputStreamForP12File) {
+        return caManager.createDeveloperCertificateAndPrivateKey(userName).thenCompose(result -> {
+            try {
+                outputStreamForP12File.write(result.getP12Data().orElse(new byte[0]));
+            }
+            catch (IOException e) {
+                return CompletableFuture.failedFuture(e);
+            }
+
+            return CompletableFuture.completedFuture(toAuthJson(result));
+        });
+    }
+
     private void createDynamicTruststore() throws IOException, PKCSException {
         byte[] truststore = caManager.buildTrustStore();
         File outFile = new File(config.getCertificatesWorkdir(), "kafka_" + environmentId + "_truststore.jks");
@@ -204,11 +232,12 @@ public class CertificatesAuthenticationModule implements KafkaAuthenticationModu
         return new JSONObject(Map.of(DN, result.getDn(), EXPIRES_AT, expiresAt.toString()));
     }
 
-    public static Instant getExpiresAtFromJson(JSONObject authData) {
+    @Override
+    public Optional<Instant> extractExpiryDate(JSONObject authData) {
         if (authData.has(EXPIRES_AT)) {
-            return Instant.from(DateTimeFormatter.ISO_INSTANT.parse(authData.getString(EXPIRES_AT)));
+            return Optional.of(Instant.from(DateTimeFormatter.ISO_INSTANT.parse(authData.getString(EXPIRES_AT))));
         }
-        return null;
+        return Optional.empty();
     }
 
     public static String getDnFromJson(JSONObject authData) {

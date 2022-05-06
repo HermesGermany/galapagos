@@ -40,12 +40,6 @@ public interface ApplicationsService {
     CompletableFuture<ApplicationMetadata> registerApplicationOnEnvironment(String environmentId, String applicationId,
             JSONObject registerParams, OutputStream outputStreamForSecret);
 
-//    CompletableFuture<ApplicationMetadata> createApplicationCertificateFromCsr(String environmentId,
-//            String applicationId, String csrData, boolean extendCertificate, OutputStream outputStreamForCerFile);
-//
-//    CompletableFuture<ApplicationMetadata> createApplicationCertificateAndPrivateKey(String environmentId,
-//            String applicationId, OutputStream outputStreamForP12File);
-
     /**
      * Resets the allowed prefixes for the given application on the given environment to their defaults, as resulting
      * from current Galapagos configuration for naming rules. Kafka ACLs are <b>not</b> updated by this method, and

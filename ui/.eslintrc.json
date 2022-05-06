@@ -93,7 +93,9 @@
                     "error",
                     "always"
                 ],
-                "object-shorthand": "off"
+                "object-shorthand": "off",
+                "keyword-spacing": "error",
+                "space-before-blocks": "error"
             }
         },
         {

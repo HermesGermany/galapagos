@@ -110,7 +110,8 @@ describe('SchemaSectionComponent', () => {
             createdAt: 'someTime',
             schemaVersion: 1,
             jsonSchema: '{}',
-            isLatest: false
+            isLatest: false,
+            changeDescription: null
         }, {
             id: '1234',
             topicName: 'myTopic',
@@ -128,7 +129,8 @@ describe('SchemaSectionComponent', () => {
                 name: 'devtest',
                 bootstrapServers: 'myBootstrapServers',
                 production: false,
-                stagingOnly: false
+                stagingOnly: false,
+                authenticationMode: 'certificates'
             }));
 
         const serverInfoSpy: jasmine.Spy = spyOn(serverInfoService, 'getServerInfo').and.returnValue(of({
@@ -193,7 +195,8 @@ describe('SchemaSectionComponent', () => {
             createdAt: 'someTime',
             schemaVersion: 1,
             jsonSchema: '{}',
-            isLatest: true
+            isLatest: true,
+            changeDescription: null
         }]));
 
         const envSpy: jasmine.Spy = spyOn(environmentsService, 'getCurrentEnvironment')
@@ -202,7 +205,8 @@ describe('SchemaSectionComponent', () => {
                 name: 'prod',
                 bootstrapServers: 'myBootstrapServers',
                 production: true,
-                stagingOnly: true
+                stagingOnly: true,
+                authenticationMode: 'certificates'
             }));
 
         const serverInfoSpy: jasmine.Spy = spyOn(serverInfoService, 'getServerInfo').and.returnValue(of({
@@ -250,7 +254,10 @@ describe('SchemaSectionComponent', () => {
             topicName: 'myTopic',
             schemaVersion: 1,
             jsonSchema: '{}',
-            isLatest: true
+            isLatest: true,
+            changeDescription: null,
+            createdBy: 'someUser',
+            createdAt: 'someTime'
         }]));
         const envSpy: jasmine.Spy = spyOn(environmentsService, 'getCurrentEnvironment')
             .and.returnValue(of({
@@ -258,7 +265,8 @@ describe('SchemaSectionComponent', () => {
                 name: 'devtest',
                 bootstrapServers: 'myBootstrapServers',
                 production: false,
-                stagingOnly: false
+                stagingOnly: false,
+                authenticationMode: 'certificates'
             }));
 
         const serverInfoSpy: jasmine.Spy = spyOn(serverInfoService, 'getServerInfo').and.returnValue(of({
