@@ -89,7 +89,7 @@ export class UserSettingsComponent implements OnInit {
             }).pipe(map(s => (info.expiresAt) ? s : null)))).pipe(map(o => o as string));
 
         this.saveKeyWarning = this.existingAuthenticationInfo.pipe(switchMap(info => this.translate.get(
-            'SAVE_KEY_WARNING', {
+            'SAVE_DEV_KEY_WARNING', {
                 expiresAt: moment(info.expiresAt).locale(this.translate.currentLang).format('L LT')
             }))).pipe(map(o => o as string));
 
