@@ -291,5 +291,5 @@
     "DATA": "Master Data",
     "COMMANDS": "Commands",
     "INTERNAL": "Anwendungsintern",
-    "SAVE_DEV_KEY_WARNING": "Bitte <b>speichere</b> das Secret, bevor du diesen Dialog schließt! Das Secret wird nicht in Galapagos gespeichert. Bitte beachte auch, dass der API Key folgendes <b>Verfallsdatum</b> besitzt: {{ expiresAt }}"
+    "SAVE_DEV_KEY_WARNING": "Bitte <b>speichere</b> das Secret, bevor du diese Seite verlässt! Das Secret wird nicht in Galapagos gespeichert. Bitte beachte auch, dass der API Key folgendes <b>Verfallsdatum</b> besitzt: {{ expiresAt }}"
 }

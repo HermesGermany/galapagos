@@ -200,6 +200,6 @@
     "MSG_DEVELOPER_API_KEY_SUCCESS": "Developer API Key created successfully.",
     "EXISTING_DEVELOPER_API_Key_HTML": "The currently issued Developer API Key <b>{{apiKey}}</b> expires on <b>{{expiresAt}}</b>.",
     "DEVELOPER_API_KEY_HTML": "You can get one <i>developer API key</i> per environment, which has the same rights as the applications you manage. However, administrators can disable this feature for individual environments. The API key has a limited scope Runtime; You can replace it with a new one at any time on this page.<br><br>You always get the API key <b>and</b> the corresponding secret generated here.",
-    "SAVE_DEV_KEY_WARNING": "Please <b>save</b> the secret, before you close this dialogue! The secret will not be stored in Galapagos. Please also note that the API key has the following <b>expiry date</b>: {{ expiresAt }}"
+    "SAVE_DEV_KEY_WARNING": "Please <b>save</b> the secret before leaving this page! The secret will not be stored in Galapagos. Please also note that the API key has the following <b>expiry date</b>: {{ expiresAt }}"
 }
 
