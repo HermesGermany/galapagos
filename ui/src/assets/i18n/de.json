@@ -226,7 +226,7 @@
     "Create Api Key now": "Jetzt API Key erstellen",
     "SAML Username": "SAML Benutzername",
     "New login details": "Neue Zugangsdaten",
-    "SAVE_KEY_WARNING": "Bitte <b>speichere</b> das Secret, bevor du diesen Dialog schließt! Das Secret wird nicht in Galapagos gespeichert. Bitte beachte auch, dass der API Key folgendes <b>Verfallsdatum</b> besitzt: {{ expiresAt }}",
+    "SAVE_KEY_WARNING": "Bitte <b>speichere</b> das Secret, bevor du diesen Dialog schließt! Das Secret wird nicht in Galapagos gespeichert.",
     "Generate API Key": "API Key generieren",
     "API_KEY_ALREADY_EXISTS_WARNING_HTML": "Für diese Anwendung wurde bereits ein API Key für die Umgebung <b>{{ env }}</b> erzeugt! Wird der Vorgang fortgesetzt, <strong>verliert</strong> der bisherige API Key seine zugeordneten Kafka-Berechtigungen und wird damit <strong>unbenutzbar</strong>.<br>(Existierende Berechtigungen werden auf den neuen API Key übertragen.).",
     "TOPIC_CREATED": "Das Topic wurde erfolgreich erstellt.",
@@ -290,5 +290,6 @@
     "EVENTS": "Events",
     "DATA": "Master Data",
     "COMMANDS": "Commands",
-    "INTERNAL": "Anwendungsintern"
+    "INTERNAL": "Anwendungsintern",
+    "SAVE_DEV_KEY_WARNING": "Bitte <b>speichere</b> das Secret, bevor du diese Seite verlässt! Das Secret wird nicht in Galapagos gespeichert. Bitte beachte auch, dass der API Key folgendes <b>Verfallsdatum</b> besitzt: {{ expiresAt }}"
 }
