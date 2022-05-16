@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { map, take } from 'rxjs/operators';
 import { jsonHeader, ReplayContainer } from './services-common';
 import { firstValueFrom } from 'rxjs';
+import { ApikeyInfo } from './certificates.service';
 
 export interface ApplicationApiKeyAndSecret {
     environmentId: string;
@@ -58,6 +59,13 @@ export class ApiKeyService {
     public async requestApiKey(applicationId: string, environmentId: string): Promise<ApplicationApiKeyAndSecret> {
         return firstValueFrom(this.http.post<ApplicationApiKeyAndSecret>('/api/apikeys/' + applicationId + '/' + environmentId,
             {}, { headers: jsonHeader() }));
+    }
+
+    public async createDeveloperApiKey(environmentId: string): Promise<any> {
+        return this.http.post('/api/me/apikey/' + environmentId, '').toPromise().then(resp => {
+            const ra = resp as ApikeyInfo;
+            return { key: ra.apiKey, secret: ra.secret };
+        });
     }
 
 }

@@ -41,15 +41,14 @@ public class ConfluentCloudAuthenticationModuleTest {
 
     @Test
     public void extractKafkaUserNameTest_positive() {
-        String kafkaUserName = authenticationModule.extractKafkaUserName("test", new JSONObject("{userId:1234}"));
+        String kafkaUserName = authenticationModule.extractKafkaUserName(new JSONObject("{userId:1234}"));
 
         assertEquals("User:1234", kafkaUserName);
     }
 
     @Test
     public void extractKafkaUserNameTest_negative() {
-        assertThrows(JSONException.class,
-                () -> authenticationModule.extractKafkaUserName("test", new JSONObject("{}")));
+        assertThrows(JSONException.class, () -> authenticationModule.extractKafkaUserName(new JSONObject("{}")));
     }
 
     @Test
@@ -107,6 +106,7 @@ public class ConfluentCloudAuthenticationModuleTest {
         String auth = app.getAuthenticationJson();
         authenticationModule.deleteApplicationAuthentication(app.getApplicationId(), new JSONObject(auth)).get();
         verify(client).deleteApiKey(apiKey1);
+        verify(client, times(0)).createApiKey(any(), any(), any(), any());
     }
 
     @Test

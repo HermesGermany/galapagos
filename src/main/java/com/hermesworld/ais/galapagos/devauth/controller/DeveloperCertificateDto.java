@@ -1,4 +1,4 @@
-package com.hermesworld.ais.galapagos.devcerts.controller;
+package com.hermesworld.ais.galapagos.devauth.controller;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Getter;
@@ -7,9 +7,9 @@ import lombok.Getter;
 @Getter
 public class DeveloperCertificateDto {
 
-    private String fileName;
+    private final String fileName;
 
-    private String fileContentsBase64;
+    private final String fileContentsBase64;
 
     public DeveloperCertificateDto(String fileName, String fileContentsBase64) {
         this.fileName = fileName;
