@@ -3,13 +3,13 @@ package com.hermesworld.ais.galapagos.adminjobs.impl;
 import com.hermesworld.ais.galapagos.applications.ApplicationMetadata;
 import com.hermesworld.ais.galapagos.applications.KnownApplication;
 import com.hermesworld.ais.galapagos.applications.impl.KnownApplicationImpl;
-import com.hermesworld.ais.galapagos.applications.impl.UpdateApplicationAclsListener;
 import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.kafka.auth.CreateAuthenticationResult;
 import com.hermesworld.ais.galapagos.kafka.auth.KafkaAuthenticationModule;
 import com.hermesworld.ais.galapagos.kafka.config.KafkaEnvironmentConfig;
 import com.hermesworld.ais.galapagos.kafka.config.KafkaEnvironmentsConfig;
+import com.hermesworld.ais.galapagos.kafka.util.AclSupport;
 import com.hermesworld.ais.galapagos.naming.ApplicationPrefixes;
 import com.hermesworld.ais.galapagos.naming.NamingService;
 import org.json.JSONObject;
@@ -36,17 +36,17 @@ import java.util.List;
 @Component
 public class GenerateToolingApiKeyJob extends SingleClusterAdminJob {
 
-    private final UpdateApplicationAclsListener aclUpdater;
-
     private final NamingService namingService;
 
     private final KafkaEnvironmentsConfig kafkaConfig;
 
+    private final AclSupport aclSupport;
+
     @Autowired
-    public GenerateToolingApiKeyJob(KafkaClusters kafkaClusters, UpdateApplicationAclsListener aclUpdater,
-            NamingService namingService, KafkaEnvironmentsConfig kafkaConfig) {
+    public GenerateToolingApiKeyJob(KafkaClusters kafkaClusters, AclSupport aclSupport, NamingService namingService,
+            KafkaEnvironmentsConfig kafkaConfig) {
         super(kafkaClusters);
-        this.aclUpdater = aclUpdater;
+        this.aclSupport = aclSupport;
         this.namingService = namingService;
         this.kafkaConfig = kafkaConfig;
     }
@@ -82,7 +82,7 @@ public class GenerateToolingApiKeyJob extends SingleClusterAdminJob {
         toolMetadata.setConsumerGroupPrefixes(prefixes.getConsumerGroupPrefixes());
         toolMetadata.setTransactionIdPrefixes(prefixes.getTransactionIdPrefixes());
 
-        cluster.updateUserAcls(aclUpdater.getApplicationUser(toolMetadata, cluster.getId())).get();
+        cluster.updateUserAcls(new ToolingUser(toolMetadata, cluster.getId(), authModule, aclSupport)).get();
 
         System.out.println();
         String samlUsername = new JSONObject(toolMetadata.getAuthenticationJson()).getString("apiKey");

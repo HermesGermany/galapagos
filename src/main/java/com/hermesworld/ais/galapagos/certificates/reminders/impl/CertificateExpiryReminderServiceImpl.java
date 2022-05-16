@@ -2,12 +2,12 @@ package com.hermesworld.ais.galapagos.certificates.reminders.impl;
 
 import com.hermesworld.ais.galapagos.applications.ApplicationMetadata;
 import com.hermesworld.ais.galapagos.applications.ApplicationsService;
-import com.hermesworld.ais.galapagos.certificates.auth.CertificatesAuthenticationModule;
 import com.hermesworld.ais.galapagos.certificates.reminders.CertificateExpiryReminder;
 import com.hermesworld.ais.galapagos.certificates.reminders.CertificateExpiryReminderService;
 import com.hermesworld.ais.galapagos.certificates.reminders.ReminderType;
 import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
+import com.hermesworld.ais.galapagos.kafka.auth.KafkaAuthenticationModule;
 import com.hermesworld.ais.galapagos.kafka.config.KafkaEnvironmentConfig;
 import com.hermesworld.ais.galapagos.kafka.util.InitPerCluster;
 import com.hermesworld.ais.galapagos.kafka.util.TopicBasedRepository;
@@ -19,10 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -53,7 +50,9 @@ public class CertificateExpiryReminderServiceImpl implements CertificateExpiryRe
 
         for (KafkaCluster cluster : kafkaClusters.getEnvironments()) {
             KafkaEnvironmentConfig envMeta = kafkaClusters.getEnvironmentMetadata(cluster.getId()).orElse(null);
-            if (envMeta == null || !"certificates".equals(envMeta.getAuthenticationMode())) {
+            KafkaAuthenticationModule authModule = kafkaClusters.getAuthenticationModule(cluster.getId()).orElse(null);
+
+            if (envMeta == null || authModule == null || !"certificates".equals(envMeta.getAuthenticationMode())) {
                 continue;
             }
             List<ApplicationMetadata> allMetadata = applicationsService.getAllApplicationMetadata(cluster.getId());
@@ -72,14 +71,14 @@ public class CertificateExpiryReminderServiceImpl implements CertificateExpiryRe
                     log.error("Invalid JSON in authentication data of application " + app.getApplicationId(), e);
                     continue;
                 }
-                Instant certExpires = CertificatesAuthenticationModule.getExpiresAtFromJson(authData);
-                if (certExpires == null) {
+                Optional<Instant> certExpires = authModule.extractExpiryDate(authData);
+                if (certExpires.isEmpty()) {
                     log.warn("No expiresAt found in authentication data of application " + app.getApplicationId());
                     continue;
                 }
 
                 for (ReminderType reminderType : ReminderType.values()) {
-                    if (certExpires.isBefore(reminderType.calculateInstant(now))) {
+                    if (certExpires.get().isBefore(reminderType.calculateInstant(now))) {
                         CertificateExpiryReminder reminder = new CertificateExpiryReminder(app.getApplicationId(),
                                 cluster.getId(), reminderType);
 

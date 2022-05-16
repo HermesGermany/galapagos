@@ -1,7 +1,78 @@
 <div [@routerTransition]>
     <h2 class="text-muted">{{ 'User Settings' | translate }}</h2>
-    <hr />
+    <hr/>
+    <ng-container [ngSwitch]="authenticationMode | async">
+        <div *ngSwitchCase="'certificates'">
+            <ng-container *ngTemplateOutlet="developerCertificateBox"></ng-container>
+        </div>
+        <div *ngSwitchCase="'ccloud'">
+            <ng-container *ngTemplateOutlet="developerApiKeyBox"></ng-container>
+        </div>
+    </ng-container>
 
+</div>
+
+<ng-template #developerApiKeyBox>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card mb-3">
+                <div class="card-header bg-hermes text-white">
+                    <i class="fas fa-award mr-3"></i>{{ 'Developer API Key' | translate }}
+                </div>
+                <div class="card-body">
+                    <p [innerHTML]="'DEVELOPER_API_KEY_HTML' | translate"></p>
+                    <div class="form-group form-inline mt-2">
+                        <label class="mr-3">{{ 'Kafka Environment' | translate }}</label>
+
+                        <select class="form-control form-inline mr-3" name="selectedEnv"
+                                [(ngModel)]="selectedEnvironment"
+                                (change)="updateExistingApiKeyMessage(true)">
+                            <option *ngFor="let env of devApiKeysEnabledEnvironments | async"
+                                    [ngValue]="env">{{ env.name }}
+                            </option>
+                        </select>
+                        <button appSpinnerWhile #d="appSpinnerWhile" type="button" class="btn btn-warning"
+                                (click)="d.while(generateApikey())"
+                                [disabled]="!selectedEnvironment">
+                            <i class="fas fa-cogs mr-3"></i>{{ 'Generate Developer API Key' | translate }}
+                        </button>
+                    </div>
+                    <ngb-alert type="info" *ngIf="(existingApiKeyMessage | async) && !showApiKeyTable"
+                               [dismissible]="false">
+                        <span [innerHTML]="existingApiKeyMessage | async"></span>
+                    </ngb-alert>
+                    <div *ngIf="showApiKeyTable">
+                        <ngb-alert [innerHTML]="saveKeyWarning | async" [dismissible]="false">
+                        </ngb-alert>
+                        <table class="table table-bordered table-sm">
+                            <tbody>
+                            <tr>
+                                <th scope="row"><i class="fas fa-key"></i>&nbsp;Key</th>
+                                <td>{{newApiKey}}</td>
+                                <button (click)="copyValue(newApiKey)"
+                                        class="btn btn-outline-secondary btn-sm ml-3 mt-1 mb-1"><i
+                                    class="fas fa-copy"></i>
+                                    <span class="ml-1" *ngIf="copiedKey"> {{ 'Copied!' | translate}}</span>
+                                </button>
+                            </tr>
+                            <tr>
+                                <th scope="row"><i class="fas fa-user-secret"></i>&nbsp;Secret</th>
+                                <td>{{newApiSecret}}</td>
+                                <button (click)="copyValue(newApiSecret)"
+                                        class="btn btn-outline-secondary btn-sm ml-3 mt-1 mb-1"><i
+                                    class="fas fa-copy"></i>
+                                    <span class="ml-1" *ngIf="copiedSecret"> {{ 'Copied!' | translate}}</span>
+                                </button>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</ng-template>
+<ng-template #developerCertificateBox>
     <div class="row">
         <div class="col-md-12">
             <div class="card mb-3">
@@ -13,11 +84,14 @@
                     <div class="form-group form-inline mt-2">
                         <label class="mr-3">{{ 'Kafka Environment' | translate }}</label>
 
-                        <select class="form-control form-inline mr-3" name="selectedEnv" [(ngModel)]="selectedEnvironment" (change)="updateExistingCertificateMessage()">
-                            <option *ngFor="let env of devCertsEnabledEnvironments | async" [ngValue]="env">{{ env.name }}
+                        <select class="form-control form-inline mr-3" name="selectedEnv"
+                                [(ngModel)]="selectedEnvironment" (change)="updateExistingCertificateMessage()">
+                            <option *ngFor="let env of devCertsEnabledEnvironments | async"
+                                    [ngValue]="env">{{ env.name }}
                             </option>
                         </select>
-                        <button type="button" class="btn btn-warning" (click)="generateCertificate()" [disabled]="!selectedEnvironment">
+                        <button type="button" class="btn btn-warning" (click)="generateCertificate()"
+                                [disabled]="!selectedEnvironment">
                             <i class="fas fa-cogs mr-3"></i>{{ 'Generate Developer Certificate' | translate }}
                         </button>
                     </div>
@@ -28,4 +102,4 @@
             </div>
         </div>
     </div>
-</div>
+</ng-template>
