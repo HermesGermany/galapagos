@@ -108,28 +108,31 @@ export class DashboardComponent implements OnInit {
         return `https://www.gravatar.com/avatar/${hash}?d=identicon`;
     }
 
-    getProfilePicture(user: string) {
-        switch (this.changelogProfilePicture.toLowerCase()) {
-            case 'outlook':
-                return this.getOutlookProfilePicture(user);
-                break;
-            case 'gravtar':
-                return this.getGravtarProfilePicture(user);
-            case 'initials':
-                return this.getInitialsProfilePicture(user);
-            default:
-                return '/assets/images/default_avatar.png';
-        }
-    }
-
-    getDefaultPicture(user: string) {
-        switch (this.changelogDefaultPicture.toLowerCase()) {
-            case 'gravtar':
-                return this.getGravtarProfilePicture(user);
-            case 'initials':
-                return this.getInitialsProfilePicture(user);
-            default:
-                return '/assets/images/default_avatar.png';
+    getProfilePicture(user: string, pictureType: string) {
+        if (pictureType === 'profile') {
+            //TODO DELETE LOG : 40 times
+            console.log('GET PROFILE PICTURE');
+            switch (this.changelogProfilePicture.toLowerCase()) {
+                case 'outlook':
+                    return this.getOutlookProfilePicture(user);
+                case 'gravtar':
+                    return this.getGravtarProfilePicture(user);
+                case 'initials':
+                    return this.getInitialsProfilePicture(user);
+                default:
+                    return '/assets/images/default_avatar.png;';
+            }
+        } else if (pictureType === 'default') {
+            //TODO DELETE LOG : 40 times
+            console.log('GET DEFAULT PICTURE');
+            switch (this.changelogDefaultPicture.toLowerCase()) {
+                case 'gravtar':
+                    return this.getGravtarProfilePicture(user);
+                case 'initials':
+                    return this.getInitialsProfilePicture(user);
+                default:
+                    return '/assets/images/default_avatar.png';
+            }
         }
     }
 
