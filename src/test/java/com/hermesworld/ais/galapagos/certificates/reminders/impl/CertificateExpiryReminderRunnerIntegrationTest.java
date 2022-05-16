@@ -4,6 +4,8 @@ import com.hermesworld.ais.galapagos.applications.ApplicationMetadata;
 import com.hermesworld.ais.galapagos.applications.ApplicationOwnerRequest;
 import com.hermesworld.ais.galapagos.applications.ApplicationsService;
 import com.hermesworld.ais.galapagos.applications.RequestState;
+import com.hermesworld.ais.galapagos.certificates.auth.CertificatesAuthenticationConfig;
+import com.hermesworld.ais.galapagos.certificates.auth.CertificatesAuthenticationModule;
 import com.hermesworld.ais.galapagos.certificates.reminders.CertificateExpiryReminder;
 import com.hermesworld.ais.galapagos.certificates.reminders.CertificateExpiryReminderService;
 import com.hermesworld.ais.galapagos.certificates.reminders.ReminderType;
@@ -75,6 +77,9 @@ public class CertificateExpiryReminderRunnerIntegrationTest {
         metadata.setApplicationId("123");
         metadata.setAuthenticationJson(new JSONObject(Map.of("expiresAt", "2020-11-10T10:20:00.000Z")).toString());
         when(applicationsService.getApplicationMetadata("test", "123")).thenReturn(Optional.of(metadata));
+
+        when(kafkaClusters.getAuthenticationModule("test")).thenReturn(
+                Optional.of(new CertificatesAuthenticationModule("test", new CertificatesAuthenticationConfig())));
     }
 
     @Test

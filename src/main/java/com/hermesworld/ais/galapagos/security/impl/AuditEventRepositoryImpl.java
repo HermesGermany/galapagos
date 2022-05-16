@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.hermesworld.ais.galapagos.util.JsonUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.KeycloakSecurityContext;
 import org.springframework.boot.actuate.audit.AuditEvent;
@@ -38,7 +39,7 @@ public class AuditEventRepositoryImpl extends InMemoryAuditEventRepository {
     private final ObjectMapper objectMapper;
 
     public AuditEventRepositoryImpl() {
-        this.objectMapper = new ObjectMapper();
+        this.objectMapper = JsonUtil.newObjectMapper();
         this.objectMapper.setConfig(
                 this.objectMapper.getSerializationConfig().without(SerializationFeature.FAIL_ON_EMPTY_BEANS));
 

@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.hermesworld.ais.galapagos.applications.*;
 import com.hermesworld.ais.galapagos.ccloud.apiclient.ConfluentApiException;
 import com.hermesworld.ais.galapagos.ccloud.auth.ConfluentCloudAuthUtil;
-import com.hermesworld.ais.galapagos.certificates.auth.CertificatesAuthenticationModule;
 import com.hermesworld.ais.galapagos.changes.Change;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.kafka.config.KafkaEnvironmentConfig;
@@ -30,7 +29,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.cert.CertificateException;
-import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
@@ -300,13 +298,6 @@ public class ApplicationsController {
         catch (InterruptedException e) {
             return Collections.emptyList();
         }
-    }
-
-    private ApplicationCertificateDto toAppCertDto(String environmentId, ApplicationMetadata metadata) {
-        JSONObject json = new JSONObject(metadata.getAuthenticationJson());
-        Instant expiresAt = CertificatesAuthenticationModule.getExpiresAtFromJson(json);
-        return new ApplicationCertificateDto(environmentId, CertificatesAuthenticationModule.getDnFromJson(json),
-                expiresAt == null ? null : expiresAt.toString());
     }
 
     private ResponseStatusException handleExecutionException(ExecutionException e, String msgPrefix) {

@@ -1,4 +1,4 @@
-package com.hermesworld.ais.galapagos.devcerts.controller;
+package com.hermesworld.ais.galapagos.devauth.controller;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonFormat.Shape;
@@ -9,14 +9,14 @@ import java.time.Instant;
 
 @JsonSerialize
 @Getter
-public class DeveloperCertificateInfoDto {
+public class DeveloperAuthenticationInfoDto {
 
     private final String dn;
 
     @JsonFormat(shape = Shape.STRING)
     private final Instant expiresAt;
 
-    public DeveloperCertificateInfoDto(String dn, Instant expiresAt) {
+    public DeveloperAuthenticationInfoDto(String dn, Instant expiresAt) {
         this.dn = dn;
         this.expiresAt = expiresAt;
     }
