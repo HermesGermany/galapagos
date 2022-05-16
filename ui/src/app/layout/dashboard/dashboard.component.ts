@@ -117,7 +117,7 @@ export class DashboardComponent implements OnInit {
         // eslint-disable-next-line @typescript-eslint/prefer-for-of
         let keeper = [changes[0]];
         for (let i = 0; i < changes.length; i++) {
-            keeper.push(this.detectMultipleJsonSchemaChangesInARow(changes,i,i+1));
+            keeper.push(this.detectMultipleJsonSchemaChangesInARow(changes, i, i+1));
         }
         keeper = keeper.filter(keep => keep !== null);
         return keeper.slice(0, Math.max(amountOfEntries, index));
