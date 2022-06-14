@@ -62,7 +62,7 @@ export class ApiKeyService {
     }
 
     public async createDeveloperApiKey(environmentId: string): Promise<any> {
-        return this.http.post('/api/me/apikey/' + environmentId, '').toPromise().then(resp => {
+        return firstValueFrom(this.http.post('/api/me/apikey/' + environmentId, '')).then(resp => {
             const ra = resp as ApikeyInfo;
             return { key: ra.apiKey, secret: ra.secret };
         });

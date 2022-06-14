@@ -129,8 +129,8 @@ export class UserSettingsComponent implements OnInit {
     }
 
     async generateApikey(): Promise<any> {
-        const successMsg = await this.translate.get('MSG_DEVELOPER_API_KEY_SUCCESS').pipe(take(1)).toPromise();
-        const errorMsg = await this.translate.get('MSG_DEVELOPER_API_KEY_ERROR').pipe(take(1)).toPromise();
+        const successMsg = await firstValueFrom(this.translate.get('MSG_DEVELOPER_API_KEY_SUCCESS').pipe(take(1)));
+        const errorMsg = await firstValueFrom(this.translate.get('MSG_DEVELOPER_API_KEY_ERROR').pipe(take(1)));
 
         return this.apiKeyService.createDeveloperApiKey(this.selectedEnvironment.id).then(
             val => {
@@ -151,20 +151,20 @@ export class UserSettingsComponent implements OnInit {
             return;
         }
 
-        this.certificateService.getDeveloperAuthenticationInfo(this.selectedEnvironment.id)
-            .pipe(take(1)).toPromise().then(val => {
-                if (val.authentications[this.selectedEnvironment.id]) {
-                    this.existingAuthenticationInfo.next({
-                        expiresAt: val.authentications[this.selectedEnvironment.id].authentication.expiresAt,
-                        authenticationId: val.authentications[this.selectedEnvironment.id].authentication.apiKey
-                    });
-                    if (hideTable) {
-                        this.showApiKeyTable = false;
-                    }
+        firstValueFrom(this.certificateService.getDeveloperAuthenticationInfo(this.selectedEnvironment.id)
+            .pipe(take(1))).then(val => {
+            if (val.authentications[this.selectedEnvironment.id]) {
+                this.existingAuthenticationInfo.next({
+                    expiresAt: val.authentications[this.selectedEnvironment.id].authentication.expiresAt,
+                    authenticationId: val.authentications[this.selectedEnvironment.id].authentication.apiKey
+                });
+                if (hideTable) {
+                    this.showApiKeyTable = false;
                 }
-            }).catch(err => {
-                this.toasts.addHttpErrorToast('DEVELOPER_API_KEY_INFO_ERROR', err);
-            });
+            }
+        }).catch(err => {
+            this.toasts.addHttpErrorToast('DEVELOPER_API_KEY_INFO_ERROR', err);
+        });
     }
 
 
