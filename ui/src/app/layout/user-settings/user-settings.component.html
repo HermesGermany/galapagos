@@ -25,21 +25,24 @@
                         <label class="mr-3">{{ 'Kafka Environment' | translate }}</label>
 
                         <select class="form-control form-inline mr-3" name="selectedEnv"
-                                [(ngModel)]="selectedEnvironment" (change)="updateExistingApiKeyMessage()">
+                                [(ngModel)]="selectedEnvironment"
+                                (change)="updateExistingApiKeyMessage(true)">
                             <option *ngFor="let env of devApiKeysEnabledEnvironments | async"
                                     [ngValue]="env">{{ env.name }}
                             </option>
                         </select>
-                        <button appSpinnerWhile #d="appSpinnerWhile" type="button" class="btn btn-warning" (click)="d.while(generateApikey())"
+                        <button appSpinnerWhile #d="appSpinnerWhile" type="button" class="btn btn-warning"
+                                (click)="d.while(generateApikey())"
                                 [disabled]="!selectedEnvironment">
                             <i class="fas fa-cogs mr-3"></i>{{ 'Generate Developer API Key' | translate }}
                         </button>
                     </div>
-                    <ngb-alert type="info" *ngIf="existingApiKeyMessage | async" [dismissible]="false">
+                    <ngb-alert type="info" *ngIf="(existingApiKeyMessage | async) && !showApiKeyTable"
+                               [dismissible]="false">
                         <span [innerHTML]="existingApiKeyMessage | async"></span>
                     </ngb-alert>
                     <div *ngIf="showApiKeyTable">
-                        <ngb-alert [innerHTML]="'SAVE_KEY_WARNING' | translate" [dismissible]="false">
+                        <ngb-alert [innerHTML]="saveKeyWarning | async" [dismissible]="false">
                         </ngb-alert>
                         <table class="table table-bordered table-sm">
                             <tbody>

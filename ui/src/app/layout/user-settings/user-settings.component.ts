@@ -1,14 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { routerTransition } from '../../router.animations';
-import { ApikeyInfo, AuthenticationResponse, CertificateService } from '../../shared/services/certificates.service';
-import { combineLatest, concat, Observable, of, Subject } from 'rxjs';
+import { CertificateService } from '../../shared/services/certificates.service';
+import { combineLatest, concat, Observable, of, ReplaySubject, switchMap } from 'rxjs';
 import { EnvironmentsService, KafkaEnvironment } from 'src/app/shared/services/environments.service';
 import { flatMap, map, shareReplay, take } from 'rxjs/operators';
 import { ToastService } from 'src/app/shared/modules/toast/toast.service';
 import { TranslateService } from '@ngx-translate/core';
 import * as moment from 'moment';
 import 'moment/min/locales';
-import { valueReferenceToExpression } from '@angular/compiler-cli/src/ngtsc/annotations/src/util';
+import { ApiKeyService } from '../../shared/services/apikey.service';
 
 interface ExistingAuthenticationInfo {
 
@@ -36,7 +36,9 @@ export class UserSettingsComponent implements OnInit {
 
     existingApiKeyMessage: Observable<string>;
 
-    existingAuthenticationInfo = new Subject<ExistingAuthenticationInfo>();
+    saveKeyWarning: Observable<string>;
+
+    existingAuthenticationInfo = new ReplaySubject<ExistingAuthenticationInfo>(1);
 
     newApiKey: string;
 
@@ -51,7 +53,7 @@ export class UserSettingsComponent implements OnInit {
     authenticationMode: Observable<string>;
 
     constructor(private environmentsService: EnvironmentsService, private certificateService: CertificateService,
-                private toasts: ToastService, private translate: TranslateService) {
+                private toasts: ToastService, private translate: TranslateService, private apiKeyService: ApiKeyService) {
     }
 
     ngOnInit() {
@@ -80,12 +82,16 @@ export class UserSettingsComponent implements OnInit {
                     .pipe(map(o => o as string));
             })).pipe(shareReplay());
 
-        this.existingApiKeyMessage = combineLatest([lang, this.existingAuthenticationInfo]).pipe(
-            flatMap(values => {
-                const expiresAt = moment(values[1].expiresAt).locale(values[0]).format('L LT');
-                return this.translate.get('EXISTING_DEVELOPER_API_Key_HTML', { expiresAt: expiresAt, apiKey: values[1].authenticationId })
-                    .pipe(map(o => o as string));
-            })).pipe(shareReplay());
+        this.existingApiKeyMessage = this.existingAuthenticationInfo.pipe(switchMap(info => this.translate.get(
+            'EXISTING_DEVELOPER_API_Key_HTML', {
+                expiresAt: moment(info.expiresAt).locale(this.translate.currentLang).format('L LT'),
+                apiKey: info.authenticationId
+            }).pipe(map(s => (info.expiresAt) ? s : null)))).pipe(map(o => o as string));
+
+        this.saveKeyWarning = this.existingAuthenticationInfo.pipe(switchMap(info => this.translate.get(
+            'SAVE_DEV_KEY_WARNING', {
+                expiresAt: moment(info.expiresAt).locale(this.translate.currentLang).format('L LT')
+            }))).pipe(map(o => o as string));
 
         this.copiedKey = false;
         this.copiedSecret = false;
@@ -126,7 +132,7 @@ export class UserSettingsComponent implements OnInit {
         const successMsg = await this.translate.get('MSG_DEVELOPER_API_KEY_SUCCESS').pipe(take(1)).toPromise();
         const errorMsg = await this.translate.get('MSG_DEVELOPER_API_KEY_ERROR').pipe(take(1)).toPromise();
 
-        return this.certificateService.createDeveloperApiKey(this.selectedEnvironment.id).then(
+        return this.apiKeyService.createDeveloperApiKey(this.selectedEnvironment.id).then(
             val => {
                 this.newApiKey = val.key;
                 this.newApiSecret = val.secret;
@@ -135,10 +141,10 @@ export class UserSettingsComponent implements OnInit {
                 this.existingApiKeyMessage = null;
             },
             err => this.toasts.addHttpErrorToast(errorMsg, err)
-        ).then(() => this.updateExistingApiKeyMessage());
+        ).then(() => this.updateExistingApiKeyMessage(false));
     }
 
-    updateExistingApiKeyMessage() {
+    updateExistingApiKeyMessage(hideTable: boolean) {
         this.existingAuthenticationInfo.next({ expiresAt: null });
 
         if (!this.selectedEnvironment) {
@@ -147,14 +153,20 @@ export class UserSettingsComponent implements OnInit {
 
         this.certificateService.getDeveloperAuthenticationInfo(this.selectedEnvironment.id)
             .pipe(take(1)).toPromise().then(val => {
-                this.existingAuthenticationInfo.next({
-                    expiresAt: val.authentications[this.selectedEnvironment.id].authentication.expiresAt,
-                    authenticationId: val.authentications[this.selectedEnvironment.id].authentication.apiKey
-                });
+                if (val.authentications[this.selectedEnvironment.id]) {
+                    this.existingAuthenticationInfo.next({
+                        expiresAt: val.authentications[this.selectedEnvironment.id].authentication.expiresAt,
+                        authenticationId: val.authentications[this.selectedEnvironment.id].authentication.apiKey
+                    });
+                    if (hideTable) {
+                        this.showApiKeyTable = false;
+                    }
+                }
             }).catch(err => {
                 this.toasts.addHttpErrorToast('DEVELOPER_API_KEY_INFO_ERROR', err);
             });
     }
+
 
     copyValue(value: string) {
         const selBox = document.createElement('textarea');
@@ -177,4 +189,5 @@ export class UserSettingsComponent implements OnInit {
             this.copiedSecret = true;
         }
     }
+
 }
