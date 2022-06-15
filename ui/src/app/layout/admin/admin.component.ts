@@ -1,12 +1,17 @@
 import { Component, OnInit } from '@angular/core';
 import { routerTransition } from '../../router.animations';
-import { ApplicationInfo, ApplicationOwnerRequest, ApplicationsService } from '../../shared/services/applications.service';
+import {
+    ApplicationInfo,
+    ApplicationOwnerRequest,
+    ApplicationsService
+} from '../../shared/services/applications.service';
 import { combineLatest, Observable, of } from 'rxjs';
 
 import { map, take } from 'rxjs/operators';
 import { KeycloakService } from 'keycloak-angular';
 import { SortEvent } from './sortable.directive';
 import { toNiceTimestamp } from 'src/app/shared/util/time-util';
+import { TranslateService } from '@ngx-translate/core';
 
 interface TranslatedApplicationOwnerRequest extends ApplicationOwnerRequest {
     applicationName?: string;
@@ -45,7 +50,9 @@ export class AdminComponent implements OnInit {
 
     searchTerm: string;
 
-    constructor(private applicationsService: ApplicationsService, private keycloakService: KeycloakService) { }
+    constructor(private applicationsService: ApplicationsService, private keycloakService: KeycloakService,
+                private translate: TranslateService) {
+    }
 
     ngOnInit() {
         this.isAdmin = this.keycloakService.getUserRoles().indexOf('admin') > -1;
@@ -81,7 +88,7 @@ export class AdminComponent implements OnInit {
     }
 
     niceTimestamp(str: string) {
-        return toNiceTimestamp(str);
+        return toNiceTimestamp(str, this.translate);
     }
 
     escapeComments(req: TranslatedApplicationOwnerRequest) {

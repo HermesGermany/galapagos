@@ -115,7 +115,8 @@ export class ApplicationsComponent implements OnInit {
         this.currentLang = this.translateService.onLangChange.pipe(map(evt => evt.lang))
             .pipe(startWith(this.translateService.currentLang)).pipe(shareReplay(1));
 
-        const relevant = (req: ApplicationOwnerRequest) => DateTime.utc(req.lastStatusChangeAt).minus(30, 'days').isBefore(now);
+        const relevant = (req: ApplicationOwnerRequest) => DateTime.fromISO(req.lastStatusChangeAt)
+            .minus(30, 'days') < now;
         this.availableApplications = this.applicationsService.getAvailableApplications(true).pipe(
             map(val => {
                 this.appListLoading = false;
@@ -316,8 +317,8 @@ export class ApplicationsComponent implements OnInit {
         }
     }
 
-    niceTimestamp(str: string): string {
-        return toNiceTimestamp(str);
+    niceTimestamp(str: string): Observable<string> {
+        return toNiceTimestamp(str, this.translateService);
     }
 
     toAppName(appId: string): Observable<string> {

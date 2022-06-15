@@ -1,13 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { routerTransition } from '../../router.animations';
 import { CertificateService } from '../../shared/services/certificates.service';
-import { combineLatest, concat, Observable, of, ReplaySubject, switchMap } from 'rxjs';
+import { combineLatest, Observable, ReplaySubject } from 'rxjs';
 import { EnvironmentsService, KafkaEnvironment } from 'src/app/shared/services/environments.service';
-import { flatMap, map, shareReplay, take } from 'rxjs/operators';
+import { map, shareReplay, take } from 'rxjs/operators';
 import { ToastService } from 'src/app/shared/modules/toast/toast.service';
 import { TranslateService } from '@ngx-translate/core';
 import { DateTime } from 'luxon';
 import { ApiKeyService } from '../../shared/services/apikey.service';
+import { withCurrentLanguage } from '../../shared/util/translate-util';
 
 interface ExistingAuthenticationInfo {
 
@@ -67,30 +68,26 @@ export class UserSettingsComponent implements OnInit {
                 this.environmentsService.getEnvironments()])
             .pipe(map(value => value[1].filter(env => value[0].indexOf(env.id) > -1)));
 
-        // wrap ngx-translate service EventEmitter into a useful replay observable
-        const lang = concat(of(this.translate.currentLang), this.translate.onLangChange
-            .pipe(map(event => event.lang))).pipe(shareReplay(1));
+        const messageFn = (lang: string, messageKey: string, info: ExistingAuthenticationInfo) => {
+            if (!info.expiresAt) {
+                return null;
+            }
+            const expiresAt = DateTime.fromISO(info.expiresAt).setLocale(lang).toFormat('f');
 
-        this.existingCertificateMessage = combineLatest([lang, this.existingAuthenticationInfo]).pipe(
-            flatMap(values => {
-                if (!values[1].authenticationId) {
-                    return of(null);
-                }
-                const expiresAt = DateTime.fromISO(values[1].expiresAt).locale(values[0]).format('L LT');
-                return this.translate.get('EXISTING_DEVELOPER_CERTIFICATE_HTML', { expiresAt: expiresAt })
-                    .pipe(map(o => o as string));
-            })).pipe(shareReplay());
-
-        this.existingApiKeyMessage = this.existingAuthenticationInfo.pipe(switchMap(info => this.translate.get(
-            'EXISTING_DEVELOPER_API_Key_HTML', {
-                expiresAt: DateTime.fromISO(info.expiresAt).locale(this.translate.currentLang).format('L LT'),
+            return this.translate.instant(messageKey, {
+                expiresAt: expiresAt,
                 apiKey: info.authenticationId
-            }).pipe(map(s => (info.expiresAt) ? s : null)))).pipe(map(o => o as string));
+            });
+        };
 
-        this.saveKeyWarning = this.existingAuthenticationInfo.pipe(switchMap(info => this.translate.get(
-            'SAVE_DEV_KEY_WARNING', {
-                expiresAt: DateTime.fromISO(info.expiresAt).locale(this.translate.currentLang).format('L LT')
-            }))).pipe(map(o => o as string));
+        this.existingCertificateMessage = withCurrentLanguage(this.translate, this.existingAuthenticationInfo,
+            (lang, info) => messageFn(lang, 'EXISTING_DEVELOPER_CERTIFICATE_HTML', info)).pipe(shareReplay());
+
+        this.existingApiKeyMessage = withCurrentLanguage(this.translate, this.existingAuthenticationInfo,
+            (lang, info) => messageFn(lang, 'EXISTING_DEVELOPER_API_Key_HTML', info)).pipe(shareReplay());
+
+        this.saveKeyWarning = withCurrentLanguage(this.translate, this.existingAuthenticationInfo,
+            (lang, info) => messageFn(lang, 'SAVE_DEV_KEY_WARNING', info)).pipe(shareReplay());
 
         this.copiedKey = false;
         this.copiedSecret = false;
@@ -121,7 +118,7 @@ export class UserSettingsComponent implements OnInit {
         const errorMsg = await this.translate.get('MSG_DEVELOPER_CERTIFICATE_ERROR').pipe(take(1)).toPromise();
 
         this.certificateService.downloadDeveloperCertificate(this.selectedEnvironment.id).then(
-            () =>  this.toasts.addSuccessToast(successMsg),
+            () => this.toasts.addSuccessToast(successMsg),
             err => this.toasts.addHttpErrorToast(errorMsg, err)
         )
             .then(() => this.updateExistingCertificateMessage());
