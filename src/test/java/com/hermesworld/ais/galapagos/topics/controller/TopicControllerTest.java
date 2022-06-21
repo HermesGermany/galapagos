@@ -13,6 +13,7 @@ import com.hermesworld.ais.galapagos.topics.TopicType;
 import com.hermesworld.ais.galapagos.topics.config.GalapagosTopicConfig;
 import com.hermesworld.ais.galapagos.topics.service.ValidatingTopicService;
 import com.hermesworld.ais.galapagos.util.FutureUtil;
+import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
@@ -22,6 +23,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
@@ -223,6 +225,33 @@ public class TopicControllerTest {
         controller.removeProducerFromTopic("test", "testtopic", "app-9");
 
         verify(topicService, times(1)).removeTopicProducer("test", "testtopic", "app-9");
+    }
+
+    @Test
+    @DisplayName("user cant skip compability check if not admin")
+    public void testSkipCombatCheckForSchemas_userNotAuthorized() {
+        ValidatingTopicService topicService = mock(ValidatingTopicService.class);
+
+        TopicController controller = new TopicController(topicService, kafkaClusters, applicationsService,
+                namingService, userService);
+
+        AddSchemaVersionDto dto = new AddSchemaVersionDto();
+        dto.setJsonSchema(new JSONObject(Map.of("a", "1", "b", "2")).toString());
+
+        TopicMetadata metadata = new TopicMetadata();
+        metadata.setName("testtopic");
+        metadata.setOwnerApplicationId("app-1");
+        when(topicService.listTopics("test")).thenReturn(List.of(metadata));
+        when(userService.isAdmin()).thenReturn(false);
+        when(applicationsService.isUserAuthorizedFor("app-1")).thenReturn(true);
+
+        try {
+            controller.addTopicSchemaVersion("test", "testtopic", true, dto);
+            fail("HttpStatus.FORBIDDEN expected, but skipping check succeeded");
+        }
+        catch (ResponseStatusException e) {
+            assertEquals(HttpStatus.FORBIDDEN, e.getStatus());
+        }
     }
 
     @Test

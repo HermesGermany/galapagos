@@ -12,6 +12,7 @@ import com.hermesworld.ais.galapagos.naming.InvalidTopicNameException;
 import com.hermesworld.ais.galapagos.naming.NamingService;
 import com.hermesworld.ais.galapagos.schemas.IncompatibleSchemaException;
 import com.hermesworld.ais.galapagos.security.CurrentUserService;
+import com.hermesworld.ais.galapagos.topics.SchemaCompatCheckMode;
 import com.hermesworld.ais.galapagos.topics.SchemaMetadata;
 import com.hermesworld.ais.galapagos.topics.TopicMetadata;
 import com.hermesworld.ais.galapagos.topics.TopicType;
@@ -365,7 +366,7 @@ public class TopicController {
 
     @PutMapping(value = "/api/schemas/{environmentId}/{topicName}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> addTopicSchemaVersion(@PathVariable String environmentId,
-            @PathVariable String topicName, @RequestParam boolean skipCompatCheck,
+            @PathVariable String topicName, @RequestParam(defaultValue = "false") boolean skipCompatCheck,
             @RequestBody AddSchemaVersionDto schemaVersionDto) {
         TopicMetadata topic = topicService.listTopics(environmentId).stream().filter(t -> topicName.equals(t.getName()))
                 .findAny().orElseThrow(notFound);
@@ -377,14 +378,16 @@ public class TopicController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "JSON Schema (jsonSchema property) is missing from request body");
         }
+        SchemaCompatCheckMode checkMode = skipCompatCheck ? SchemaCompatCheckMode.SKIP_SCHEMA_CHECK
+                : SchemaCompatCheckMode.CHECK_SCHEMA;
 
         if (skipCompatCheck && !userService.isAdmin()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
 
         try {
             SchemaMetadata metadata = topicService.addTopicSchemaVersion(environmentId, topicName,
-                    schemaVersionDto.getJsonSchema(), schemaVersionDto.getChangeDescription(), skipCompatCheck).get();
+                    schemaVersionDto.getJsonSchema(), schemaVersionDto.getChangeDescription(), checkMode).get();
 
             return ResponseEntity.created(new URI("/schema/" + metadata.getId())).build();
         }

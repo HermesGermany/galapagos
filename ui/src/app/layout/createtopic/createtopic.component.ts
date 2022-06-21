@@ -139,7 +139,7 @@ export class CreateTopicComponent implements OnInit {
     }
 
     private async createInitialSchema(topicName: string, environmentId: string, jsonSchema: string): Promise<any> {
-        return this.topicsSerivce.addTopicSchema(topicName, environmentId, jsonSchema, false).then(
+        return this.topicsSerivce.addTopicSchema(topicName, environmentId, jsonSchema, true).then(
             () => {
                 this.toasts.addSuccessToast('TOPIC_CREATED_JSON_SUCCESS');
             },

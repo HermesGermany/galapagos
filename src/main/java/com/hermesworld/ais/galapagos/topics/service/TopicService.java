@@ -1,6 +1,7 @@
 package com.hermesworld.ais.galapagos.topics.service;
 
 import com.hermesworld.ais.galapagos.kafka.TopicCreateParams;
+import com.hermesworld.ais.galapagos.topics.SchemaCompatCheckMode;
 import com.hermesworld.ais.galapagos.topics.SchemaMetadata;
 import com.hermesworld.ais.galapagos.topics.TopicMetadata;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -88,7 +89,7 @@ public interface TopicService {
 
     @CheckReturnValue
     CompletableFuture<SchemaMetadata> addTopicSchemaVersion(String environmentId, String topicName, String jsonSchema,
-            String changeDescription, boolean skipCompatCheck);
+            String changeDescription, SchemaCompatCheckMode skipCompatCheck);
 
     @CheckReturnValue
     CompletableFuture<Void> deleteLatestTopicSchemaVersion(String environmentId, String topicName);
@@ -107,7 +108,7 @@ public interface TopicService {
      */
     @CheckReturnValue
     CompletableFuture<SchemaMetadata> addTopicSchemaVersion(String environmentId, SchemaMetadata metadata,
-            boolean skipCompatCheck);
+            SchemaCompatCheckMode skipCompatCheck);
 
     @CheckReturnValue
     CompletableFuture<TopicCreateParams> buildTopicCreateParams(String environmentId, String topicName);

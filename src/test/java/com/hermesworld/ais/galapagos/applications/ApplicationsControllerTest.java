@@ -107,7 +107,7 @@ public class ApplicationsControllerTest {
         when(topicService.buildTopicCreateParams("dev", "app1.internal.topic-2"))
                 .thenReturn(CompletableFuture.completedFuture(new TopicCreateParams(2, 1)));
         when(topicService.createTopic(any(), any(), any(), any())).thenReturn(CompletableFuture.completedFuture(null));
-        when(topicService.addTopicSchemaVersion(any(), any(), anyBoolean()))
+        when(topicService.addTopicSchemaVersion(any(), any(), any()))
                 .thenReturn(CompletableFuture.completedFuture(null));
 
         when(applicationsService.isUserAuthorizedFor("app-1")).thenReturn(true);

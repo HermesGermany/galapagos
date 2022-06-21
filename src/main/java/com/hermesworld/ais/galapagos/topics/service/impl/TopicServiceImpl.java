@@ -15,10 +15,7 @@ import com.hermesworld.ais.galapagos.naming.NamingService;
 import com.hermesworld.ais.galapagos.schemas.IncompatibleSchemaException;
 import com.hermesworld.ais.galapagos.schemas.SchemaUtil;
 import com.hermesworld.ais.galapagos.security.CurrentUserService;
-import com.hermesworld.ais.galapagos.topics.Criticality;
-import com.hermesworld.ais.galapagos.topics.SchemaMetadata;
-import com.hermesworld.ais.galapagos.topics.TopicMetadata;
-import com.hermesworld.ais.galapagos.topics.TopicType;
+import com.hermesworld.ais.galapagos.topics.*;
 import com.hermesworld.ais.galapagos.topics.config.GalapagosTopicConfig;
 import com.hermesworld.ais.galapagos.topics.service.TopicService;
 import com.hermesworld.ais.galapagos.util.FutureUtil;
@@ -314,7 +311,7 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
 
     @Override
     public CompletableFuture<SchemaMetadata> addTopicSchemaVersion(String environmentId, String topicName,
-            String jsonSchema, String changeDescription, boolean skipCompatCheck) {
+            String jsonSchema, String changeDescription, SchemaCompatCheckMode skipCompatCheck) {
         String userName = userService.getCurrentUserName().orElse(null);
         if (userName == null) {
             return CompletableFuture.failedFuture(new IllegalStateException("No user currently logged in"));
@@ -372,7 +369,7 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
 
     @Override
     public CompletableFuture<SchemaMetadata> addTopicSchemaVersion(String environmentId, SchemaMetadata schemaMetadata,
-            boolean skipCompatCheck) {
+            SchemaCompatCheckMode skipCompatCheck) {
         String userName = userService.getCurrentUserName().orElse(null);
         if (userName == null) {
             return CompletableFuture.failedFuture(new IllegalStateException("No user currently logged in"));
@@ -432,7 +429,7 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
         SchemaMetadata previousVersion = existingVersions.isEmpty() ? null
                 : existingVersions.get(existingVersions.size() - 1);
 
-        if (previousVersion != null) {
+        if (previousVersion != null && skipCompatCheck == SchemaCompatCheckMode.CHECK_SCHEMA) {
             try {
                 Schema previousSchema = compileSchema(previousVersion.getJsonSchema());
 
@@ -444,10 +441,8 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
 
                 boolean reverse = metadata.getType() == TopicType.COMMANDS;
 
-                if (!skipCompatCheck) {
-                    SchemaUtil.verifyCompatibleTo(reverse ? newSchema : previousSchema,
-                            reverse ? previousSchema : newSchema);
-                }
+                SchemaUtil.verifyCompatibleTo(reverse ? newSchema : previousSchema,
+                        reverse ? previousSchema : newSchema);
 
             }
             catch (JSONException e) {

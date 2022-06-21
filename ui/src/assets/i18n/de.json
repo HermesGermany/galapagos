@@ -285,5 +285,6 @@
     "DATA": "Master Data",
     "COMMANDS": "Commands",
     "INTERNAL": "Anwendungsintern",
-    "Skip compatibility check": "Schema-Kompatibilitätsprüfung überspringen"
+    "Skip compatibility check": "Schema-Kompatibilitätsprüfung überspringen",
+    "SKIP_COMBAT_CHECK_WARNING": "<b>Achtung</b>: Dies ermöglicht inkompatible Änderungen in den Topic Daten. Verwende dies nur, wenn du wirklich weißt, was du tust."
 }

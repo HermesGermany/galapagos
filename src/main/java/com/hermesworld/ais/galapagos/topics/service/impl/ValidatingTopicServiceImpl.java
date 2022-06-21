@@ -6,10 +6,7 @@ import com.hermesworld.ais.galapagos.kafka.TopicCreateParams;
 import com.hermesworld.ais.galapagos.kafka.config.KafkaEnvironmentConfig;
 import com.hermesworld.ais.galapagos.subscriptions.SubscriptionMetadata;
 import com.hermesworld.ais.galapagos.subscriptions.service.SubscriptionService;
-import com.hermesworld.ais.galapagos.topics.SchemaMetadata;
-import com.hermesworld.ais.galapagos.topics.TopicInUseException;
-import com.hermesworld.ais.galapagos.topics.TopicMetadata;
-import com.hermesworld.ais.galapagos.topics.TopicType;
+import com.hermesworld.ais.galapagos.topics.*;
 import com.hermesworld.ais.galapagos.topics.config.GalapagosTopicConfig;
 import com.hermesworld.ais.galapagos.topics.service.TopicService;
 import com.hermesworld.ais.galapagos.topics.service.ValidatingTopicService;
@@ -167,14 +164,14 @@ public class ValidatingTopicServiceImpl implements ValidatingTopicService {
 
     @Override
     public CompletableFuture<SchemaMetadata> addTopicSchemaVersion(String environmentId, String topicName,
-            String jsonSchema, String changeDescription, boolean skipCompatCheck) {
+            String jsonSchema, String changeDescription, SchemaCompatCheckMode skipCompatCheck) {
         return checkOnNonStaging(environmentId, "add JSON schemas", SchemaMetadata.class).orElseGet(() -> topicService
                 .addTopicSchemaVersion(environmentId, topicName, jsonSchema, changeDescription, skipCompatCheck));
     }
 
     @Override
     public CompletableFuture<SchemaMetadata> addTopicSchemaVersion(String environmentId, SchemaMetadata metadata,
-            boolean skipCompatCheck) {
+            SchemaCompatCheckMode skipCompatCheck) {
         return topicService.addTopicSchemaVersion(environmentId, metadata, skipCompatCheck);
     }
 

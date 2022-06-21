@@ -53,6 +53,10 @@
                             <input [(ngModel)]="schemaChangeDescription" type="text" size="50"
                                    class="form-control"/><br>
                         </div>
+                        <ngb-alert *ngIf="skipCompatCheck" type="warning"
+                                   [dismissible]="false">
+                            <p [innerHTML]="'SKIP_COMBAT_CHECK_WARNING' | translate"></p>
+                        </ngb-alert>
                         <div *ngIf="isAdmin" class="checkbox">
                             <label>
                                 <input type="checkbox"
