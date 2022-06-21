@@ -4,6 +4,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import javax.annotation.CheckReturnValue;
+import java.time.Instant;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
 
@@ -31,16 +33,25 @@ public interface KafkaAuthenticationModule {
     void addRequiredKafkaProperties(Properties kafkaProperties);
 
     /**
-     * Returns the Kafka User Name which represents the given application, having the given authentication data which
-     * have been created by this module. The return value <b>must</b> include the <code>User:</code> prefix.
+     * Returns the Kafka username which represents the given application or developer from the given authentication data
+     * which have been created by this module. The return value <b>must</b> include the <code>User:</code> prefix.
      * 
-     * @param applicationId    ID of the application to return the Kafka user name of.
-     * @param existingAuthData Authentication data stored for the application, which have been created by this module.
+     * @param existingAuthData Authentication data stored for the application or developer, which have been created by
+     *                         this module.
      * 
-     * @return The Kafka User Name for the given application and authentication data, never <code>null</code>.
+     * @return The Kafka username for the given application or developer, never <code>null</code>.
      * 
-     * @throws JSONException If the User Name could not be determined from the authentication data.
+     * @throws JSONException If authentication data could not be parsed, or if the username could not be determined from
+     *                       the authentication data.
      */
-    String extractKafkaUserName(String applicationId, JSONObject existingAuthData) throws JSONException;
+    String extractKafkaUserName(JSONObject existingAuthData) throws JSONException;
 
+    Optional<Instant> extractExpiryDate(JSONObject existingAuthData) throws JSONException;
+
+    @CheckReturnValue
+    CompletableFuture<CreateAuthenticationResult> createDeveloperAuthentication(String userName,
+            JSONObject createParams);
+
+    @CheckReturnValue
+    CompletableFuture<Void> deleteDeveloperAuthentication(String userName, JSONObject existingAuthData);
 }

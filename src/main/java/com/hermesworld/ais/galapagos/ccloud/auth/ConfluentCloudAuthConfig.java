@@ -19,4 +19,6 @@ public class ConfluentCloudAuthConfig {
 
     private String clusterApiSecret;
 
+    private String developerApiKeyValidity;
+
 }
