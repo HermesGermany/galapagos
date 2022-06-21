@@ -272,13 +272,13 @@ export class ApplicationsComponent implements OnInit {
 
                 const isoExpiryDate = this.certificateDlgData.existingCertificate.expiresAt;
                 const now = DateTime.now();
-                const expiryWarnLevel = DateTime.fromISO(isoExpiryDate).isBefore(now) ? 'danger' :
-                    (DateTime.fromISO(isoExpiryDate).diff(now, 'days') < 90 ? 'warning' : 'info');
+                const expiryWarnLevel = DateTime.fromISO(isoExpiryDate) < now ? 'danger' :
+                    (DateTime.fromISO(isoExpiryDate).diff(now, 'days').toObject().days < 90 ? 'warning' : 'info');
 
                 this.certificateDlgData.expiryWarningType = expiryWarnLevel;
                 this.certificateDlgData.expiryWarningHtml = this.currentLang.pipe(mergeMap(lang =>
                     this.translateService.get(expiryWarnLevel === 'danger' ? 'CERTIFICATE_EXPIRED_HTML' : 'CERTIFICATE_EXPIRY_HTML',
-                        { expiryDate: DateTime.fromISO(isoExpiryDate).locale(lang).format('L') })));
+                        { expiryDate: DateTime.fromISO(isoExpiryDate).setLocale(lang).toFormat('L') })));
             } else {
                 this.certificateDlgData.commonName = 'app';
                 this.certificateDlgData.keyfileName = 'app.key';

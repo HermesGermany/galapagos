@@ -1,10 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { routerTransition } from '../../router.animations';
-import {
-    ApplicationInfo,
-    ApplicationOwnerRequest,
-    ApplicationsService
-} from '../../shared/services/applications.service';
+import { ApplicationInfo, ApplicationOwnerRequest, ApplicationsService } from '../../shared/services/applications.service';
 import { combineLatest, Observable, of } from 'rxjs';
 
 import { map, take } from 'rxjs/operators';
@@ -88,6 +84,7 @@ export class AdminComponent implements OnInit {
     }
 
     niceTimestamp(str: string) {
+        console.log(str);
         return toNiceTimestamp(str, this.translate);
     }
 

@@ -95,11 +95,17 @@ export class TopicMetadataTableComponent implements OnInit {
 
     getEolDateForCurrentLang(eolDate) {
         if (eolDate) {
-            return DateTime.fromISO(eolDate).setLocale(this.translateService.currentLang).toFormat('D');
+            return DateTime.fromISO(eolDate)
+                .setLocale(this.translateService.currentLang).toLocaleString({
+                    month: '2-digit',
+                    day: '2-digit',
+                    year: 'numeric'
+                });
         }
 
         return '';
     }
+
 
     formatDataValues() {
         const tryFormatValue = (rec: TopicRecord) => {

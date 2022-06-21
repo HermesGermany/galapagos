@@ -76,18 +76,16 @@ export class DeprecationComponent implements OnInit {
 
     private toPeriodText(period: { years: number; months: number; days: number }): string {
         const target = DateTime.now().plus({ years: period.years, month: period.months, days: period.days });
-        //const oldThreshold = DateTime.relativeTimeThreshold('d') as number;
+        // const oldThreshold = DateTime.relativeTimeThreshold('d') as number;
 
         // special treatment: If days set, avoid moment "rounding" to months
         // Note: this still produces wrong results for some values of "days"
         // moment.js should be replaced with a better library.
         if (period.days) {
-            //DateTime.relativeTimeThreshold('d', 99999);
+            DateTime.relativeTimeThreshold('d', 99999);
         }
-
-        //const result = DateTime.now().setLocale(this.translateService.currentLang).to(target, true);
-        const result = target.toRelative({ base: DateTime.now().setLocale(this.translateService.currentLang) });
+        // TODO needs to be cleared what the luxon alternative is for set/get threhold
         //DateTime.relativeTimeThreshold('d', oldThreshold);
-        return target.toRelativeCalendar();
+        return target.toRelativeCalendar({ locale: this.translateService.currentLang });
     }
 }

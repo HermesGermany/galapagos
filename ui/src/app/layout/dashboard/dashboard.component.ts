@@ -14,6 +14,7 @@ import { DateTime } from 'luxon';
 import { TranslateService } from '@ngx-translate/core';
 import { ApplicationInfo, ApplicationsService } from '../../shared/services/applications.service';
 import { Location } from '@angular/common';
+import { toNiceTimestamp } from '../../shared/util/time-util';
 
 @Component({
     selector: 'app-dashboard',
@@ -80,8 +81,8 @@ export class DashboardComponent implements OnInit {
         return DateTime.fromISO(timestamp).toLocal(this.translate.currentLang).toRelative();
     }
 
-    agoTimeStamp(timestamp: string): string {
-        return DateTime.fromISO(timestamp).toLocal(this.translate.currentLang).toFormat('f');
+    agoTimeStamp(timestamp: string): Observable<string> {
+        return toNiceTimestamp(timestamp, this.translate);
     }
 
     copyValueFromObservable(observer: Observable<string>) {
@@ -142,7 +143,11 @@ export class DashboardComponent implements OnInit {
                 topicName = change.topicName;
                 const obsLang = this.translate.onLangChange.pipe(map(evt => evt.lang))
                     .pipe(startWith(this.translate.currentLang)).pipe(shareReplay(1));
-                const obsEolDate = obsLang.pipe(map(lang => DateTime.fromISO(change.eolDate).setLocale(lang).toFormat('D')));
+                const obsEolDate = obsLang.pipe(map(lang => DateTime.fromISO(change.eolDate).setLocale(lang).toLocaleString({
+                    month: '2-digit',
+                    day: '2-digit',
+                    year: 'numeric'
+                })));
                 return obsEolDate.pipe(map(date => this.translate.instant('CHANGELOG_TOPIC_DEPRECATED_HTML', {
                     topicName: topicName,
                     topicLink: topicLink,
