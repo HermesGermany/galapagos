@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { EMPTY, firstValueFrom, Observable, ReplaySubject } from 'rxjs';
 import { jsonHeader, ReplayContainer } from './services-common';
 import { HttpClient } from '@angular/common/http';
-import { map, take } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 import { ToastService } from '../modules/toast/toast.service';
 
 const LOCAL_STORAGE_ENV_KEY = 'galapagos.environment';
@@ -84,7 +84,7 @@ export class EnvironmentsService {
 
 
     constructor(private http: HttpClient, toasts: ToastService) {
-        firstValueFrom(this.getEnvironments().pipe(take(1))).then(envs => {
+        firstValueFrom(this.getEnvironments()).then(envs => {
             if (envs.length) {
                 const userEnv = localStorage.getItem(LOCAL_STORAGE_ENV_KEY) || envs[0].id;
                 this.setCurrentEnvironment(envs.find(env => env.id === userEnv) || envs[0]);

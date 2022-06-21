@@ -3,7 +3,7 @@ import { routerTransition } from '../../router.animations';
 import { CertificateService } from '../../shared/services/certificates.service';
 import { combineLatest, concat, firstValueFrom, Observable, of, ReplaySubject, switchMap } from 'rxjs';
 import { EnvironmentsService, KafkaEnvironment } from 'src/app/shared/services/environments.service';
-import { flatMap, map, shareReplay, take } from 'rxjs/operators';
+import { flatMap, map, shareReplay } from 'rxjs/operators';
 import { ToastService } from 'src/app/shared/modules/toast/toast.service';
 import { TranslateService } from '@ngx-translate/core';
 import * as moment from 'moment';
@@ -106,7 +106,7 @@ export class UserSettingsComponent implements OnInit {
         }
 
         firstValueFrom(this.certificateService.getDeveloperAuthenticationInfo(this.selectedEnvironment.id)
-            .pipe(take(1))).then(val => {
+        ).then(val => {
             this.existingAuthenticationInfo.next({
                 authenticationId: val.authentications[this.selectedEnvironment.id].authentication.dn,
                 expiresAt: val.authentications[this.selectedEnvironment.id].authentication.expiresAt
@@ -118,19 +118,19 @@ export class UserSettingsComponent implements OnInit {
     }
 
     async generateCertificate() {
-        const successMsg = await firstValueFrom(this.translate.get('MSG_DEVELOPER_CERTIFICATE_SUCCESS').pipe(take(1)));
-        const errorMsg = await firstValueFrom(this.translate.get('MSG_DEVELOPER_CERTIFICATE_ERROR').pipe(take(1)));
+        const successMsg = await firstValueFrom(this.translate.get('MSG_DEVELOPER_CERTIFICATE_SUCCESS'));
+        const errorMsg = await firstValueFrom(this.translate.get('MSG_DEVELOPER_CERTIFICATE_ERROR'));
 
         this.certificateService.downloadDeveloperCertificate(this.selectedEnvironment.id).then(
-            () =>  this.toasts.addSuccessToast(successMsg),
+            () => this.toasts.addSuccessToast(successMsg),
             err => this.toasts.addHttpErrorToast(errorMsg, err)
         )
             .then(() => this.updateExistingCertificateMessage());
     }
 
     async generateApikey(): Promise<any> {
-        const successMsg = await firstValueFrom(this.translate.get('MSG_DEVELOPER_API_KEY_SUCCESS').pipe(take(1)));
-        const errorMsg = await firstValueFrom(this.translate.get('MSG_DEVELOPER_API_KEY_ERROR').pipe(take(1)));
+        const successMsg = await firstValueFrom(this.translate.get('MSG_DEVELOPER_API_KEY_SUCCESS'));
+        const errorMsg = await firstValueFrom(this.translate.get('MSG_DEVELOPER_API_KEY_ERROR'));
 
         return this.apiKeyService.createDeveloperApiKey(this.selectedEnvironment.id).then(
             val => {
@@ -152,7 +152,7 @@ export class UserSettingsComponent implements OnInit {
         }
 
         firstValueFrom(this.certificateService.getDeveloperAuthenticationInfo(this.selectedEnvironment.id)
-            .pipe(take(1))).then(val => {
+        ).then(val => {
             if (val.authentications[this.selectedEnvironment.id]) {
                 this.existingAuthenticationInfo.next({
                     expiresAt: val.authentications[this.selectedEnvironment.id].authentication.expiresAt,

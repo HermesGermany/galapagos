@@ -2,8 +2,8 @@ import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { routerTransition } from '../../router.animations';
 import { ActivatedRoute } from '@angular/router';
 import { Topic, TopicsService, TopicSubscription } from '../../shared/services/topics.service';
-import { combineLatest, firstValueFrom, last, lastValueFrom, Observable } from 'rxjs';
-import { finalize, map, shareReplay, take } from 'rxjs/operators';
+import { combineLatest, firstValueFrom, Observable } from 'rxjs';
+import { finalize, map, shareReplay } from 'rxjs/operators';
 import { ApplicationsService, UserApplicationInfo } from '../../shared/services/applications.service';
 import { EnvironmentsService, KafkaEnvironment } from '../../shared/services/environments.service';
 
@@ -54,7 +54,7 @@ export class SingleTopicComponent implements OnInit {
                     const envId = params.get('environment');
                     firstValueFrom(environmentsService
                         .getEnvironments()
-                        .pipe(take(1))
+
                     ).then(envs => {
                         const env = envs.find(e => e.id === envId);
                         if (env) {
@@ -96,8 +96,8 @@ export class SingleTopicComponent implements OnInit {
 
 
     async refreshChildData() {
-        const topic = await firstValueFrom(this.topic.pipe(take(1)));
-        const environment = await firstValueFrom(this.environmentsService.getCurrentEnvironment().pipe(take(1)));
+        const topic = await firstValueFrom(this.topic);
+        const environment = await firstValueFrom(this.environmentsService.getCurrentEnvironment());
         this.loadSubscribers(topic, environment.id);
     }
 
@@ -114,7 +114,7 @@ export class SingleTopicComponent implements OnInit {
 
         const ownerAppId = topic.ownerApplication ? topic.ownerApplication.id : null;
 
-        firstValueFrom(this.topicSubscribers.pipe(take(1))
+        firstValueFrom(this.topicSubscribers
         ).then(subs => {
             this.loadingApplications = this.applicationsService.getUserApplications().getLoadingStatus();
             this.availableApplications = this.applicationsService

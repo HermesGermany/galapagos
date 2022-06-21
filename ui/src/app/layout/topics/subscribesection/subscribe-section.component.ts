@@ -2,7 +2,6 @@ import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { ToastService } from '../../../shared/modules/toast/toast.service';
 import { Topic, TopicsService } from '../../../shared/services/topics.service';
 import { EnvironmentsService, KafkaEnvironment } from '../../../shared/services/environments.service';
-import { take } from 'rxjs/operators';
 import { UserApplicationInfo } from '../../../shared/services/applications.service';
 import { firstValueFrom, Observable } from 'rxjs';
 import { ApiKeyService } from '../../../shared/services/apikey.service';
@@ -49,7 +48,7 @@ export class SubscriptionSectionComponent implements OnInit {
             return;
         }
         try {
-            const env = await firstValueFrom(this.selectedEnvironment.pipe(take(1)));
+            const env = await firstValueFrom(this.selectedEnvironment);
             const apikey = await this.apiKeyService.getApplicationApiKeysPromise(this.selectedApplication.id);
             this.showRegistrationWarning = !apikey.authentications[env.id];
         } catch (e) {
@@ -62,7 +61,7 @@ export class SubscriptionSectionComponent implements OnInit {
             return Promise.resolve();
         }
 
-        const environment = await firstValueFrom(this.environmentsService.getCurrentEnvironment().pipe(take(1)));
+        const environment = await firstValueFrom(this.environmentsService.getCurrentEnvironment());
 
         return this.topicService.subscribeToTopic(this.topic.name, environment.id,
             this.selectedApplication.id, this.subscriptionDescription)

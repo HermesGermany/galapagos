@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { map, take } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 import { jsonHeader, ReplayContainer } from './services-common';
 import { firstValueFrom } from 'rxjs';
 import { ApikeyInfo } from './certificates.service';
@@ -53,7 +53,7 @@ export class ApiKeyService {
     }
 
     public getApplicationApiKeysPromise(applicationId: string): Promise<ApplicationApikeyAuthData> {
-        return firstValueFrom(this.getApplicationApiKeys(applicationId).getObservable().pipe(take(1)));
+        return firstValueFrom(this.getApplicationApiKeys(applicationId).getObservable());
     }
 
     public async requestApiKey(applicationId: string, environmentId: string): Promise<ApplicationApiKeyAndSecret> {

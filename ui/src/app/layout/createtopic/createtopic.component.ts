@@ -4,7 +4,7 @@ import { ApplicationsService, BusinessCapabilityInfo, UserApplicationInfo } from
 import { firstValueFrom, Observable } from 'rxjs';
 import { TopicCreateParams, TopicsService, TopicType } from 'src/app/shared/services/topics.service';
 import { EnvironmentsService, KafkaEnvironment } from 'src/app/shared/services/environments.service';
-import { map, shareReplay, take, tap } from 'rxjs/operators';
+import { map, shareReplay, tap } from 'rxjs/operators';
 import { ToastService } from 'src/app/shared/modules/toast/toast.service';
 import { CustomLink, ServerInfoService } from '../../shared/services/serverinfo.service';
 import { TopicSettingsData } from './datasettings/data-settings.component';
@@ -61,7 +61,7 @@ export class CreateTopicComponent implements OnInit {
         this.allEnvironments = this.environmentsService.getEnvironments();
         this.selectedEnvironment = this.environmentsService.getCurrentEnvironment().pipe(tap(() => this.checkAuthentication()))
             .pipe(shareReplay(1));
-        firstValueFrom(this.topicsSerivce.getTopicCreateDefaults().pipe(take(1))).then(
+        firstValueFrom(this.topicsSerivce.getTopicCreateDefaults()).then(
             val => this.createParams.partitionCount = val.defaultPartitionCount);
 
         this.showSubscriptionApprovalRequired = this.serverInfo.getServerInfo()
@@ -84,11 +84,11 @@ export class CreateTopicComponent implements OnInit {
             return;
         }
         const isCcloud = await firstValueFrom(this.selectedEnvironment
-            .pipe(map(env => env.authenticationMode === 'ccloud'), take(1)));
+            .pipe(map(env => env.authenticationMode === 'ccloud')));
 
         if (isCcloud) {
             try {
-                const env = await firstValueFrom(this.selectedEnvironment.pipe(take(1)));
+                const env = await firstValueFrom(this.selectedEnvironment);
                 const apiKey = await this.apiKeyService.getApplicationApiKeysPromise(this.selectedApplication.id);
                 this.showRegistrationWarning = !apiKey.authentications[env.id];
             } catch (e) {
@@ -96,7 +96,7 @@ export class CreateTopicComponent implements OnInit {
             }
         } else {
             try {
-                const env = await firstValueFrom(this.selectedEnvironment.pipe(take(1)));
+                const env = await firstValueFrom(this.selectedEnvironment);
                 const certificates = await this.certificateService.getApplicationCertificatesPromise(this.selectedApplication.id);
 
                 this.showRegistrationWarning = !certificates.find(c => c.environmentId === env.id);
@@ -109,7 +109,7 @@ export class CreateTopicComponent implements OnInit {
     }
 
     selectEnvironment(envId: string) {
-        firstValueFrom(this.allEnvironments.pipe(take(1))).then(
+        firstValueFrom(this.allEnvironments).then(
             envs => this.environmentsService.setCurrentEnvironment(envs.find(env => env.id === envId)));
     }
 
@@ -122,7 +122,7 @@ export class CreateTopicComponent implements OnInit {
         const app = this.selectedApplication;
         const initialSchema = this.initialSchema;
 
-        return firstValueFrom(this.environmentsService.getCurrentEnvironment().pipe(take(1))).then(env =>
+        return firstValueFrom(this.environmentsService.getCurrentEnvironment()).then(env =>
             this.topicsSerivce.createTopic(topicType, app, env.id, topicName, description, subscriptionApprovalRequired, initialSettings,
                 this.createParams).then(
                 () => {

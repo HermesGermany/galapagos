@@ -8,7 +8,7 @@ import {
     KafkaEnvironment
 } from '../../shared/services/environments.service';
 import { firstValueFrom, Observable, switchMap } from 'rxjs';
-import { flatMap, map, mergeMap, shareReplay, startWith, take, tap } from 'rxjs/operators';
+import { flatMap, map, mergeMap, shareReplay, startWith, tap } from 'rxjs/operators';
 import { CustomLink, ServerInfo, ServerInfoService } from '../../shared/services/serverinfo.service';
 import * as moment from 'moment';
 import { TranslateService } from '@ngx-translate/core';
@@ -66,7 +66,7 @@ export class DashboardComponent implements OnInit {
     }
 
     selectEnvironment(envId: string) {
-        firstValueFrom(this.allEnvironments.pipe(take(1))).then(
+        firstValueFrom(this.allEnvironments).then(
             envs => this.environments.setCurrentEnvironment(envs.find(env => env.id === envId)));
     }
 

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { map, take } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 
 import { saveAs } from 'file-saver';
 import { jsonHeader, ReplayContainer } from './services-common';
@@ -85,7 +85,7 @@ export class CertificateService {
     }
 
     public getApplicationCertificatesPromise(applicationId: string): Promise<ApplicationCertificate[]> {
-        return firstValueFrom(this.getApplicationCertificates(applicationId).getObservable().pipe(take(1)));
+        return firstValueFrom(this.getApplicationCertificates(applicationId).getObservable());
     }
 
     public async requestAndDownloadApplicationCertificate(applicationId: string, environmentId: string, csrData: string,

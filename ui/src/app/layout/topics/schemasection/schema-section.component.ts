@@ -1,6 +1,6 @@
 import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
 import { SchemaMetadata, Topic, TopicsService, TopicSubscription } from '../../../shared/services/topics.service';
-import { map, shareReplay, take } from 'rxjs/operators';
+import { map, shareReplay } from 'rxjs/operators';
 import { EnvironmentsService, KafkaEnvironment } from '../../../shared/services/environments.service';
 import { ToastService } from '../../../shared/modules/toast/toast.service';
 import { firstValueFrom, Observable } from 'rxjs';
@@ -69,7 +69,7 @@ export class SchemaSectionComponent implements OnInit, OnChanges {
         if (changes.topic) {
             const change = changes.topic;
             if (change.currentValue) {
-                const env = await firstValueFrom(this.environmentsService.getCurrentEnvironment().pipe(take(1)));
+                const env = await firstValueFrom(this.environmentsService.getCurrentEnvironment());
                 this.loadSchemas(change.currentValue, env.id);
             }
         }
@@ -85,7 +85,7 @@ export class SchemaSectionComponent implements OnInit, OnChanges {
     }
 
     async publishNewSchema(): Promise<any> {
-        const environment = await firstValueFrom(this.environmentsService.getCurrentEnvironment().pipe(take(1)));
+        const environment = await firstValueFrom(this.environmentsService.getCurrentEnvironment());
 
         return this.topicService.addTopicSchema(this.topic.name, environment.id, this.newSchemaText, this.schemaChangeDescription).then(
             () => {
@@ -98,7 +98,7 @@ export class SchemaSectionComponent implements OnInit, OnChanges {
     }
 
     async deleteLatestSchema(): Promise<any> {
-        const environment = await firstValueFrom(this.environmentsService.getCurrentEnvironment().pipe(take(1)));
+        const environment = await firstValueFrom(this.environmentsService.getCurrentEnvironment());
 
         return this.topicService.deleteLatestSchema(this.topic.name, environment.id).then(
             () => {

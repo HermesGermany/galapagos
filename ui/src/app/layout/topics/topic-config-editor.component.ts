@@ -1,8 +1,8 @@
-import { Component, OnInit, Input, ChangeDetectorRef, AfterViewChecked } from '@angular/core';
-import { TopicConfigValues, TopicsService, TopicConfigDescriptor, TopicUpdateConfigValue } from '../../shared/services/topics.service';
+import { AfterViewChecked, ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
+import { TopicConfigDescriptor, TopicConfigValues, TopicsService, TopicUpdateConfigValue } from '../../shared/services/topics.service';
 import { EnvironmentsService, KafkaEnvironment } from '../../shared/services/environments.service';
 import { firstValueFrom, Observable } from 'rxjs';
-import {  shareReplay, map, take, flatMap } from 'rxjs/operators';
+import { flatMap, map, shareReplay } from 'rxjs/operators';
 import { ActivatedRoute } from '@angular/router';
 import { routerTransition } from '../../router.animations';
 import { ToastService } from 'src/app/shared/modules/toast/toast.service';
@@ -42,11 +42,11 @@ export class TopicConfigEditorComponent implements OnInit, AfterViewChecked {
         this.allConfigurationProperties = this.topicsService.getSupportedConfigProperties();
 
         // for each environment, retrieve the topic and default configuration, and update our config maps
-        firstValueFrom(this.environments.pipe(take(1))).then(envs => envs.forEach(env => {
-            firstValueFrom(this.topicsService.getDefaultTopicConfig(env.id).pipe(take(1))).then(
+        firstValueFrom(this.environments).then(envs => envs.forEach(env => {
+            firstValueFrom(this.topicsService.getDefaultTopicConfig(env.id)).then(
                 config => this.defaultTopicConfigs[env.id] = { ...config });
-            firstValueFrom(this.topicName.pipe(take(1))).then(topicName =>
-                firstValueFrom(this.topicsService.getTopicConfig(topicName, env.id).pipe(take(1))).then(
+            firstValueFrom(this.topicName).then(topicName =>
+                firstValueFrom(this.topicsService.getTopicConfig(topicName, env.id)).then(
                     config => this.configuration[env.id] = { ...config }));
         }));
     }
@@ -64,9 +64,9 @@ export class TopicConfigEditorComponent implements OnInit, AfterViewChecked {
     }
 
     async saveConfig(): Promise<void> {
-        const envs = await firstValueFrom(this.environments.pipe(take(1)));
-        const props = await firstValueFrom(this.allConfigurationProperties.pipe(take(1)));
-        const topicName = await firstValueFrom(this.topicName.pipe(take(1)));
+        const envs = await firstValueFrom(this.environments);
+        const props = await firstValueFrom(this.allConfigurationProperties);
+        const topicName = await firstValueFrom(this.topicName);
 
         let result = Promise.resolve();
 
@@ -80,8 +80,8 @@ export class TopicConfigEditorComponent implements OnInit, AfterViewChecked {
             result = result.then(() => this.topicsService.updateTopicConfig(topicName, env.id, config));
         });
 
-        const successMsg = await firstValueFrom(this.translateService.get('TOPIC_CONFIG_UPDATE_SUCCESS').pipe(take(1)));
-        const errorMsg = await firstValueFrom(this.translateService.get('TOPIC_CONFIG_UPDATE_ERROR').pipe(take(1)));
+        const successMsg = await firstValueFrom(this.translateService.get('TOPIC_CONFIG_UPDATE_SUCCESS'));
+        const errorMsg = await firstValueFrom(this.translateService.get('TOPIC_CONFIG_UPDATE_ERROR'));
 
         return result.then(() => this.toasts.addSuccessToast(successMsg), err => this.toasts.addHttpErrorToast(errorMsg, err));
     }

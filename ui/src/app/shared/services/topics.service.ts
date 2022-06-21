@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { ApplicationInfo, ApplicationsService, BusinessCapabilityInfo, UserApplicationInfo } from './applications.service';
 import { HttpClient } from '@angular/common/http';
-import { concatMap, map, take } from 'rxjs/operators';
+import { concatMap, map } from 'rxjs/operators';
 import { jsonHeader, ReplayContainer } from './services-common';
 import { combineLatest, firstValueFrom, forkJoin, Observable, of } from 'rxjs';
 import { EnvironmentsService, KafkaEnvironment } from './environments.service';
@@ -228,9 +228,9 @@ export class TopicsService {
     }
 
     public getTopicSubscribers(topicName: string, environmentId: string): Observable<TopicSubscription[]> {
-        const appsObs = this.applicationsService.getAvailableApplications(false).pipe(take(1));
-        const userAppsObs = this.applicationsService.getUserApplications().getObservable().pipe(take(1));
-        const envObs = this.environmentsService.getEnvironments().pipe(take(1))
+        const appsObs = this.applicationsService.getAvailableApplications(false);
+        const userAppsObs = this.applicationsService.getUserApplications().getObservable();
+        const envObs = this.environmentsService.getEnvironments()
             .pipe(map(envs => envs.find(env => env.id === environmentId)));
 
         const toTopicSubscription = (d: any, apps: ApplicationInfo[], userApps: UserApplicationInfo[],
@@ -257,7 +257,7 @@ export class TopicsService {
             producerApplicationId: producerAppId
         });
 
-        return firstValueFrom(this.http.post('/api/producers/' + envId + '/' + topicName, body, { headers: jsonHeader() }).pipe(take(1))
+        return firstValueFrom(this.http.post('/api/producers/' + envId + '/' + topicName, body, { headers: jsonHeader() })
         ).then(() => this.topicsList.refresh());
     }
 
@@ -266,12 +266,12 @@ export class TopicsService {
             producerApplicationId: newOwnerId
         });
 
-        return firstValueFrom(this.http.post('/api/change-owner/' + envId + '/' + topicName, body, { headers: jsonHeader() }).pipe(take(1))
+        return firstValueFrom(this.http.post('/api/change-owner/' + envId + '/' + topicName, body, { headers: jsonHeader() })
         ).then(() => this.topicsList.refresh());
     }
 
     public deleteProducerFromTopic(envId: string, topicName: string, producerAppId: string): Promise<any> {
-        return firstValueFrom(this.http.delete(`/api/producers/${envId}/${topicName}/${producerAppId}`).pipe(take(1))
+        return firstValueFrom(this.http.delete(`/api/producers/${envId}/${topicName}/${producerAppId}`)
         ).then(() => this.topicsList.refresh());
     }
 
@@ -301,7 +301,7 @@ export class TopicsService {
 
         return firstValueFrom(this.http.put('/api/applications/' + applicationId + '/subscriptions/' + environmentId, body,
             { headers: jsonHeader() })
-            .pipe(take(1))).then(() => this.topicsList.refresh());
+        ).then(() => this.topicsList.refresh());
     }
 
     public unsubscribeFromTopic(environmentId: string, applicationId: string, subscriptionId: string): Promise<any> {
@@ -379,7 +379,7 @@ export class TopicsService {
         };
 
         return () => combineLatest([this.http.get('/api/topics/' + environmentId + '?includeInternal=true'),
-            this.applicationsService.getAvailableApplications(false)]).pipe(map(values => toTopicArray(values))).pipe(take(1));
+            this.applicationsService.getAvailableApplications(false)]).pipe(map(values => toTopicArray(values)));
     }
 
     private markLatest(schemas: SchemaMetadata[]): SchemaMetadata[] {
