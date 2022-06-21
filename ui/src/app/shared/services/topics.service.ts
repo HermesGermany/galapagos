@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { ApplicationInfo, ApplicationsService, BusinessCapabilityInfo, UserApplicationInfo } from './applications.service';
 import { HttpClient } from '@angular/common/http';
-import { concatMap, map } from 'rxjs/operators';
+import { concatMap, map, take } from 'rxjs/operators';
 import { jsonHeader, ReplayContainer } from './services-common';
 import { combineLatest, firstValueFrom, forkJoin, Observable, of } from 'rxjs';
 import { EnvironmentsService, KafkaEnvironment } from './environments.service';
@@ -228,9 +228,9 @@ export class TopicsService {
     }
 
     public getTopicSubscribers(topicName: string, environmentId: string): Observable<TopicSubscription[]> {
-        const appsObs = this.applicationsService.getAvailableApplications(false);
-        const userAppsObs = this.applicationsService.getUserApplications().getObservable();
-        const envObs = this.environmentsService.getEnvironments()
+        const appsObs = this.applicationsService.getAvailableApplications(false).pipe(take(1));
+        const userAppsObs = this.applicationsService.getUserApplications().getObservable().pipe(take(1));
+        const envObs = this.environmentsService.getEnvironments().pipe(take(1))
             .pipe(map(envs => envs.find(env => env.id === environmentId)));
 
         const toTopicSubscription = (d: any, apps: ApplicationInfo[], userApps: UserApplicationInfo[],
@@ -379,7 +379,7 @@ export class TopicsService {
         };
 
         return () => combineLatest([this.http.get('/api/topics/' + environmentId + '?includeInternal=true'),
-            this.applicationsService.getAvailableApplications(false)]).pipe(map(values => toTopicArray(values)));
+            this.applicationsService.getAvailableApplications(false)]).pipe(map(values => toTopicArray(values))).pipe(take(1));
     }
 
     private markLatest(schemas: SchemaMetadata[]): SchemaMetadata[] {
