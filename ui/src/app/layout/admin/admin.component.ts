@@ -1,9 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { routerTransition } from '../../router.animations';
 import { ApplicationInfo, ApplicationOwnerRequest, ApplicationsService } from '../../shared/services/applications.service';
-import { combineLatest, Observable, of } from 'rxjs';
+import { combineLatest, firstValueFrom, Observable, of } from 'rxjs';
 
-import { map, take } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 import { KeycloakService } from 'keycloak-angular';
 import { SortEvent } from './sortable.directive';
 import { toNiceTimestamp } from 'src/app/shared/util/time-util';
@@ -67,7 +67,7 @@ export class AdminComponent implements OnInit {
     }
 
     async onSort({ column, direction }: SortEvent) {
-        const requests = await this.allRequests.pipe(take(1)).toPromise();
+        const requests = await firstValueFrom(this.allRequests);
         if (direction === 'asc') {
             this.allRequests = of(requests.sort((a, b) => a[column] < b[column] ? 1 : a[column] > b[column] ? -1 : 0));
         }

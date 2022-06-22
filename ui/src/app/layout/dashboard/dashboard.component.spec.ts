@@ -10,7 +10,7 @@ import { ServerInfoService } from '../../shared/services/serverinfo.service';
 import { Location } from '@angular/common';
 import { RouterTestingModule } from '@angular/router/testing';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { of } from 'rxjs';
+import { firstValueFrom, of } from 'rxjs';
 import { LoginComponent } from '../../login/login.component';
 import { PageHeaderModule } from '../../shared/modules';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
@@ -88,7 +88,7 @@ describe('DashboardComponent', () => {
         TestBed.createComponent(DashboardComponent);
         expect(spy).toHaveBeenCalled();
         expect(spy.calls.all().length).toBe(1);
-        component.selectedEnvironment.toPromise().then(data => {
+        firstValueFrom(component.selectedEnvironment).then(data => {
             expect(data.bootstrapServers).toBe('someServer');
             expect(debugElement.query(By.css('#bootstrapServers')).nativeElement.innerText).toEqual('someServer');
         });
