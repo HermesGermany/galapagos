@@ -148,10 +148,18 @@ public class ConfluentCloudAuthenticationModule implements KafkaAuthenticationMo
         return Optional.empty();
     }
 
-    public CompletableFuture<Optional<ServiceAccountInfo>> findServiceAccountForApp(String applicationId) {
+    private CompletableFuture<Optional<ServiceAccountInfo>> findServiceAccountForApp(String applicationId) {
         String desc = appServiceAccountDescription(applicationId);
         return ensureClientLoggedIn().thenCompose(o -> client.listServiceAccounts().toFuture())
                 .thenApply(ls -> ls.stream().filter(acc -> desc.equals(acc.getServiceDescription())).findAny());
+    }
+
+    public CompletableFuture<Integer> getServiceAccountIdForApplication(String applicationId) {
+        return findServiceAccountForApp(applicationId)
+                .thenCompose(account -> account.map(a -> CompletableFuture.completedFuture(a))
+                        .orElseGet(() -> CompletableFuture
+                                .failedFuture(new IllegalStateException("Could not get Service Account ID.")))
+                        .thenApply(info -> info.getId()));
     }
 
     private CompletableFuture<Optional<ServiceAccountInfo>> findServiceAccountForDev(String userName) {

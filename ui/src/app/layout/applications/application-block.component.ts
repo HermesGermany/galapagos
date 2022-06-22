@@ -54,7 +54,7 @@ export class ApplicationBlockComponent implements OnChanges {
 
     expiryDateString: Observable<string>;
 
-    serviceAccountId: string;
+    serviceAccountId: number;
 
     constructor(private apiKeyService: ApiKeyService, public environmentsService: EnvironmentsService,
                 private certificateService: CertificateService, private translateService: TranslateService) {

@@ -24,7 +24,7 @@ export interface ApplicationApiKey {
 }
 
 export interface ServiceAccountId {
-    accountId: string;
+    accountId: number;
 }
 
 export interface AuthenticationDetail {

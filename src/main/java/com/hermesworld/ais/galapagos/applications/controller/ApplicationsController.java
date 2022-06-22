@@ -5,7 +5,9 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.hermesworld.ais.galapagos.applications.*;
 import com.hermesworld.ais.galapagos.ccloud.apiclient.ConfluentApiException;
 import com.hermesworld.ais.galapagos.ccloud.auth.ConfluentCloudAuthUtil;
+import com.hermesworld.ais.galapagos.ccloud.auth.ConfluentCloudAuthenticationModule;
 import com.hermesworld.ais.galapagos.changes.Change;
+import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.kafka.auth.KafkaAuthenticationModule;
 import com.hermesworld.ais.galapagos.kafka.config.KafkaEnvironmentConfig;
@@ -264,12 +266,25 @@ public class ApplicationsController {
         KafkaAuthenticationModule kafkaAuthenticationModule = kafkaClusters.getAuthenticationModule(environmentId)
                 .orElse(null);
         if (kafkaAuthenticationModule == null) {
-            throw new IllegalStateException("Could not get authentication module.");
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
+        KafkaCluster kafkaCluster = kafkaClusters.getEnvironment(environmentId).orElse(null);
+        if (kafkaCluster == null) {
+            throw new NoSuchElementException("Unknown Kafka environment: " + environmentId);
+        }
+
+        KnownApplication knownApplication = applicationsService.getKnownApplication(applicationId).orElse(null);
+        if (knownApplication == null) {
+            throw new NoSuchElementException("Unknown application ID: " + applicationId);
+        }
+        ConfluentCloudAuthenticationModule confluentModule;
+
         try {
-            return new ServiceAccountIdDto(
-                    applicationsService.getServiceAccountIdForApplication(applicationId, environmentId).get());
+            if (kafkaAuthenticationModule instanceof ConfluentCloudAuthenticationModule) {
+                confluentModule = (ConfluentCloudAuthenticationModule) kafkaAuthenticationModule;
+                return new ServiceAccountIdDto(confluentModule.getServiceAccountIdForApplication(applicationId).get());
+            }
         }
         catch (JSONException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
@@ -280,6 +295,7 @@ public class ApplicationsController {
         catch (InterruptedException e) {
             return null;
         }
+        return null;
     }
 
     @GetMapping(value = "/api/environments/{environmentId}/staging/{applicationId}", produces = MediaType.APPLICATION_JSON_VALUE)
