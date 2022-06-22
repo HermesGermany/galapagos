@@ -7,7 +7,7 @@ import {
     EnvironmentsService,
     KafkaEnvironment
 } from '../../shared/services/environments.service';
-import { Observable, switchMap, firstValueFrom } from 'rxjs';
+import { firstValueFrom, Observable, switchMap } from 'rxjs';
 import { flatMap, map, mergeMap, shareReplay, startWith, take, tap } from 'rxjs/operators';
 import { CustomLink, ServerInfo, ServerInfoService } from '../../shared/services/serverinfo.service';
 import * as moment from 'moment';
@@ -48,7 +48,6 @@ export class DashboardComponent implements OnInit {
 
     changelogDefaultPicture: string;
 
-
     constructor(private environments: EnvironmentsService, private applicationsService: ApplicationsService,
                 private serverInfoService: ServerInfoService, private location: Location,
                 private translate: TranslateService) {
@@ -60,9 +59,9 @@ export class DashboardComponent implements OnInit {
                 .pipe(flatMap(env => this.environments.getChangeLog(env.id)))
                 .pipe(map(changes => this.formatChanges(changes, config.changelogEntries, config.changelogMinDays)))
                 .pipe(shareReplay(1))));
-        firstValueFrom(this.serverInfoService.getUiConfig()).then(r => {
-            this.changelogProfilePicture = r.profilePicture;
-            this.changelogDefaultPicture = r.defaultPicture;
+        firstValueFrom(this.serverInfoService.getUiConfig()).then(config => {
+            this.changelogProfilePicture = config.profilePicture;
+            this.changelogDefaultPicture = config.defaultPicture;
         });
     }
 
@@ -93,7 +92,7 @@ export class DashboardComponent implements OnInit {
     }
 
     getInitialsProfilePicture(user: string): string {
-        const name = user.split('@')[0].replace('.','+');
+        const name = user.split('@')[0].replace('.', '+');
         return `https://ui-avatars.com/api/?name=${name}&background=random`;
     }
 
@@ -101,33 +100,29 @@ export class DashboardComponent implements OnInit {
         return `https://outlook.office.com/owa/service.svc/s/GetPersonaPhoto?email=${user}&size=HR64x64`;
     }
 
-    getGravtarProfilePicture(user: string): string {
+    getGravatarProfilePicture(user: string): string {
         const md5 = new Md5();
         md5.appendStr(user.trim().toLowerCase());
         const hash = md5.end();
         return `https://www.gravatar.com/avatar/${hash}?d=identicon`;
     }
 
-    getProfilePicture(user: string, pictureType: string) {
+    getProfilePicture(user: string, pictureType: string): string {
         if (pictureType === 'profile') {
-            //TODO DELETE LOG : 40 times
-            console.log('GET PROFILE PICTURE');
             switch (this.changelogProfilePicture.toLowerCase()) {
                 case 'outlook':
                     return this.getOutlookProfilePicture(user);
-                case 'gravtar':
-                    return this.getGravtarProfilePicture(user);
+                case 'gravatar':
+                    return this.getGravatarProfilePicture(user);
                 case 'initials':
                     return this.getInitialsProfilePicture(user);
                 default:
-                    return '/assets/images/default_avatar.png;';
+                    return '/assets/images/default_avatar.png';
             }
         } else if (pictureType === 'default') {
-            //TODO DELETE LOG : 40 times
-            console.log('GET DEFAULT PICTURE');
             switch (this.changelogDefaultPicture.toLowerCase()) {
-                case 'gravtar':
-                    return this.getGravtarProfilePicture(user);
+                case 'gravatar':
+                    return this.getGravatarProfilePicture(user);
                 case 'initials':
                     return this.getInitialsProfilePicture(user);
                 default:
@@ -154,10 +149,20 @@ export class DashboardComponent implements OnInit {
         });
     }
 
+    checkProfilePictureExists(image: HTMLImageElement, change: ChangelogEntry): void {
+        const h = image.naturalHeight;
+        const w = image.naturalWidth;
+        if (h === 1 && w === 1 && image.src !== change.defaultPictureUrl) {
+            image.src = change.defaultPictureUrl;
+        }
+    }
+
     private formatChanges(changes: ChangelogEntry[], amountOfEntries: number, minDays: number): ChangelogEntry[] {
         changes = changes
             .map(change => {
                 change.change.html = this.changeHtml(change.change);
+                change.profilePictureUrl = this.getProfilePicture(change.principal, 'profile');
+                change.defaultPictureUrl = this.getProfilePicture(change.principal, 'default');
                 return change;
             }).filter(change => change.change.html !== null);
         const index = changes.findIndex(
@@ -318,4 +323,6 @@ export class DashboardComponent implements OnInit {
     private applicationInfo(applicationId: string): Observable<ApplicationInfo> {
         return this.applicationsService.getAvailableApplications(false).pipe(map(apps => apps.find(app => app.id === applicationId)));
     }
+
+
 }

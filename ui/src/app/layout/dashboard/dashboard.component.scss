@@ -41,22 +41,21 @@
     }
 }
 
-
-
-
 .imageContainer {
     position: relative;
     top: 0;
     left: 0;
 }
-.image1 {
+
+.defaultImage {
     position: relative;
     top: 1px;
     left: 1px;
     height: 45px !important;
     border-radius: 50%;
 }
-.image2 {
+
+.profileImage {
     position: absolute;
     top: 0;
     left: 0;
