@@ -312,6 +312,7 @@ public class UpdateApplicationAclsListenerTest {
 
         when(kafkaClusters.getEnvironmentMetadata("_test")).thenReturn(Optional.of(config));
         lenient().when(cluster.updateUserAcls(any())).thenReturn(FutureUtil.noop());
+        lenient().when(cluster.removeUserAcls(any())).thenReturn(FutureUtil.noop());
 
         GalapagosEventContext context = mock(GalapagosEventContext.class);
         when(context.getKafkaCluster()).thenReturn(cluster);
@@ -353,6 +354,7 @@ public class UpdateApplicationAclsListenerTest {
 
         // THEN NONE of these functions may change application ACLs
         verify(cluster, times(0)).updateUserAcls(any());
+        verify(cluster, times(0)).removeUserAcls(any());
         // BUT every handler really checked the config
         verify(kafkaClusters, times(11)).getEnvironmentMetadata("_test");
     }
