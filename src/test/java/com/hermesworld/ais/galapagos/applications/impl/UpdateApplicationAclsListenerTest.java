@@ -330,6 +330,8 @@ public class UpdateApplicationAclsListenerTest {
         subscription.setClientApplicationId("producer1");
         subscription.setTopicName("topic1");
 
+        when(subscriptionService.getSubscriptionsForTopic("_test", "topic1", true)).thenReturn(List.of(subscription));
+
         UpdateApplicationAclsListener listener = new UpdateApplicationAclsListener(kafkaClusters, subscriptionService,
                 applicationsService, aclSupport);
 
@@ -343,11 +345,16 @@ public class UpdateApplicationAclsListenerTest {
         listener.handleSubscriptionCreated(new SubscriptionEvent(context, subscription)).get();
         listener.handleSubscriptionUpdated(new SubscriptionEvent(context, subscription)).get();
         listener.handleSubscriptionDeleted(new SubscriptionEvent(context, subscription)).get();
+        listener.handleApplicationAuthenticationChanged(new ApplicationAuthenticationChangeEvent(context, producer1,
+                new JSONObject(Map.of("dn", "CN=producer1")), new JSONObject(Map.of("dn", "CN=producer1")))).get();
+        listener.handleApplicationAuthenticationChanged(new ApplicationAuthenticationChangeEvent(context, producer1,
+                new JSONObject(Map.of("dn", "CN=producer2")), new JSONObject(Map.of("dn", "CN=producer1")))).get();
+        listener.handleTopicSubscriptionApprovalRequiredFlagChanged(new TopicEvent(context, topic)).get();
 
         // THEN NONE of these functions may change application ACLs
         verify(cluster, times(0)).updateUserAcls(any());
         // BUT every handler really checked the config
-        verify(kafkaClusters, times(8)).getEnvironmentMetadata("_test");
+        verify(kafkaClusters, times(11)).getEnvironmentMetadata("_test");
     }
 
 }
