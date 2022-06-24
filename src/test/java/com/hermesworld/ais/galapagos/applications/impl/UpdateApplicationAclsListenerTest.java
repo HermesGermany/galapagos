@@ -8,6 +8,7 @@ import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.kafka.KafkaUser;
 import com.hermesworld.ais.galapagos.kafka.TopicCreateParams;
 import com.hermesworld.ais.galapagos.kafka.auth.KafkaAuthenticationModule;
+import com.hermesworld.ais.galapagos.kafka.config.KafkaEnvironmentConfig;
 import com.hermesworld.ais.galapagos.kafka.util.AclSupport;
 import com.hermesworld.ais.galapagos.subscriptions.SubscriptionMetadata;
 import com.hermesworld.ais.galapagos.subscriptions.service.SubscriptionService;
@@ -65,7 +66,7 @@ public class UpdateApplicationAclsListenerTest {
     public void feedMocks() {
         when(cluster.getId()).thenReturn("_test");
         lenient().when(kafkaClusters.getEnvironment("_test")).thenReturn(Optional.of(cluster));
-        when(kafkaClusters.getAuthenticationModule("_test")).thenReturn(Optional.of(authenticationModule));
+        lenient().when(kafkaClusters.getAuthenticationModule("_test")).thenReturn(Optional.of(authenticationModule));
 
         dummyBinding = new AclBinding(new ResourcePattern(ResourceType.TOPIC, "testtopic", PatternType.LITERAL),
                 new AccessControlEntry("me", "*", AclOperation.ALL, AclPermissionType.ALLOW));
@@ -301,6 +302,52 @@ public class UpdateApplicationAclsListenerTest {
 
         verify(cluster).updateUserAcls(any());
         verify(cluster, times(0)).removeUserAcls(any());
+    }
+
+    @Test
+    public void testNoApplicationAclUpdates() throws Exception {
+        // GIVEN a configuration where noUpdateApplicationAcls flag is active
+        KafkaEnvironmentConfig config = mock(KafkaEnvironmentConfig.class);
+        when(config.isNoUpdateApplicationAcls()).thenReturn(true);
+
+        when(kafkaClusters.getEnvironmentMetadata("_test")).thenReturn(Optional.of(config));
+        lenient().when(cluster.updateUserAcls(any())).thenReturn(FutureUtil.noop());
+
+        GalapagosEventContext context = mock(GalapagosEventContext.class);
+        when(context.getKafkaCluster()).thenReturn(cluster);
+
+        TopicMetadata topic = new TopicMetadata();
+        topic.setName("topic1");
+        topic.setType(TopicType.EVENTS);
+        topic.setOwnerApplicationId("producer1");
+
+        ApplicationMetadata producer1 = new ApplicationMetadata();
+        producer1.setApplicationId("producer1");
+        producer1.setAuthenticationJson(new JSONObject(Map.of("dn", "CN=producer1")).toString());
+        when(applicationsService.getApplicationMetadata("_test", "producer1")).thenReturn(Optional.of(producer1));
+
+        SubscriptionMetadata subscription = new SubscriptionMetadata();
+        subscription.setClientApplicationId("producer1");
+        subscription.setTopicName("topic1");
+
+        UpdateApplicationAclsListener listener = new UpdateApplicationAclsListener(kafkaClusters, subscriptionService,
+                applicationsService, aclSupport);
+
+        // WHEN any permission-related event happens
+
+        listener.handleApplicationRegistered(new ApplicationEvent(context, producer1)).get();
+        listener.handleTopicCreated(new TopicCreatedEvent(context, topic, new TopicCreateParams(1, 3))).get();
+        listener.handleTopicDeleted(new TopicEvent(context, topic)).get();
+        listener.handleAddTopicProducer(new TopicAddProducerEvent(context, "producer1", topic)).get();
+        listener.handleRemoveTopicProducer(new TopicRemoveProducerEvent(context, "producer1", topic)).get();
+        listener.handleSubscriptionCreated(new SubscriptionEvent(context, subscription)).get();
+        listener.handleSubscriptionUpdated(new SubscriptionEvent(context, subscription)).get();
+        listener.handleSubscriptionDeleted(new SubscriptionEvent(context, subscription)).get();
+
+        // THEN NONE of these functions may change application ACLs
+        verify(cluster, times(0)).updateUserAcls(any());
+        // BUT every handler really checked the config
+        verify(kafkaClusters, times(8)).getEnvironmentMetadata("_test");
     }
 
 }

@@ -18,4 +18,14 @@ public interface KafkaEnvironmentConfig {
 
     String getAuthenticationMode();
 
+    /**
+     * If <code>true</code>, application ACLs will <b>not</b> be updated on this environment. You will have to provide
+     * external means to have correct ACLs in place. This can be useful e.g. in migration scenarios, where ACLs are
+     * synchronized outside Galapagos, and you do not want to override these based on e.g. yet incomplete metadata.
+     * 
+     * @return <code>true</code> if application ACLs shall not be updated on this environment, <code>false</code>
+     *         otherwise.
+     */
+    boolean isNoUpdateApplicationAcls();
+
 }
