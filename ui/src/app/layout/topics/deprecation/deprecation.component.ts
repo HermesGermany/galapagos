@@ -75,12 +75,12 @@ export class DeprecationComponent implements OnInit {
     }
 
     private toPeriodText(period: { years: number; months: number; days: number }): string {
+        // delete zero-valued keys from object to avoid a text like "0 years, 3 months, 0 days"
         Object.keys(period).forEach(key => {
             if (period[key] === 0) {
                 delete period[key];
             }
         });
-
 
         return Duration.fromObject(period, { locale: this.translateService.currentLang }).toHuman();
     }
