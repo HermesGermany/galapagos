@@ -21,7 +21,7 @@
                         </thead>
                         <tbody>
                             <tr *ngFor="let request of allRequests | async">
-                                <td>{{ niceTimestamp(request.createdAt) }}</td>
+                                <td>{{ niceTimestamp(request.createdAt) | async }}</td>
                                 <td><ngb-highlight [result]="request.userName" [term]="searchTerm"></ngb-highlight></td>
                                 <td>
                                     <a *ngIf="request.applicationInfoUrl" [href]="request.applicationInfoUrl" target="_blank"><ngb-highlight [result]="request.applicationName" [term]="searchTerm"></ngb-highlight></a>
