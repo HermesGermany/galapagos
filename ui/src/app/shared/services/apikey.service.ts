@@ -23,10 +23,6 @@ export interface ApplicationApiKey {
 
 }
 
-export interface ServiceAccountId {
-    accountId: number;
-}
-
 export interface AuthenticationDetail {
     authenticationType: string;
 
@@ -59,10 +55,6 @@ export class ApiKeyService {
 
     public getApplicationApiKeysPromise(applicationId: string): Promise<ApplicationApikeyAuthData> {
         return firstValueFrom(this.getApplicationApiKeys(applicationId).getObservable());
-    }
-
-    public getApplicationServiceAccountId(applicationId: string, environmentId: string): Promise<ServiceAccountId> {
-        return this.http.get<ServiceAccountId>('/api/service-account/' + environmentId + '/' + applicationId).toPromise();
     }
 
     public async requestApiKey(applicationId: string, environmentId: string): Promise<ApplicationApiKeyAndSecret> {

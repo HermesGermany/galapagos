@@ -88,6 +88,7 @@ export class ApplicationBlockComponent implements OnChanges {
                         }
 
                         this.apiKey = keys.authentications[env.id].authentication['apiKey'];
+                        this.serviceAccountId = keys.authentications[env.id].authentication['serviceAccountId'];
                         return keys.authentications[env.id].authentication as ApplicationApiKey;
                     };
 
@@ -96,10 +97,6 @@ export class ApplicationBlockComponent implements OnChanges {
                         this.environmentsService.getCurrentEnvironment()]).pipe(map(
                         ([keys, env]) => extractApiKey(keys, env)
                     ));
-
-                    this.apiKeyService.getApplicationServiceAccountId(app.id, this.currentEnv.id).then(serviceAccountId => {
-                        this.serviceAccountId = serviceAccountId.accountId;
-                    });
                 }
             } else {
                 this.internalTopicPrefixes = of([]);
