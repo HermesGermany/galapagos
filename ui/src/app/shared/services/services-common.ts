@@ -1,4 +1,4 @@
-import { BehaviorSubject, Observable, ReplaySubject } from 'rxjs';
+import { BehaviorSubject, firstValueFrom, Observable, ReplaySubject } from 'rxjs';
 import { map, retry } from 'rxjs/operators';
 import { HttpHeaders } from '@angular/common/http';
 
@@ -43,7 +43,7 @@ export class ReplayContainer<T> {
 
     async refresh(): Promise<any> {
         this.loadingStatus.next(true);
-        return this.refresher().pipe(retry(1)).pipe(map(data => data as T)).toPromise()
+        return firstValueFrom(this.refresher().pipe(retry(1)).pipe(map(data => data as T)))
             .then(value => this.next(value), error => this.error(error)).finally(() => this.loadingStatus.next(false));
     }
 

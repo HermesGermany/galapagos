@@ -7,8 +7,8 @@ import {
     EnvironmentsService,
     KafkaEnvironment
 } from '../../shared/services/environments.service';
-import { Observable, switchMap } from 'rxjs';
-import { flatMap, map, mergeMap, shareReplay, startWith, take, tap } from 'rxjs/operators';
+import { firstValueFrom, Observable, switchMap } from 'rxjs';
+import { flatMap, map, mergeMap, shareReplay, startWith, tap } from 'rxjs/operators';
 import { CustomLink, ServerInfo, ServerInfoService } from '../../shared/services/serverinfo.service';
 import { DateTime } from 'luxon';
 import { TranslateService } from '@ngx-translate/core';
@@ -67,7 +67,7 @@ export class DashboardComponent implements OnInit {
     }
 
     selectEnvironment(envId: string) {
-        this.allEnvironments.pipe(take(1)).toPromise().then(
+        firstValueFrom(this.allEnvironments).then(
             envs => this.environments.setCurrentEnvironment(envs.find(env => env.id === envId)));
     }
 

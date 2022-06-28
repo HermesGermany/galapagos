@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable, ReplaySubject } from 'rxjs';
+import { firstValueFrom, Observable, ReplaySubject } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
 import { jsonHeader, ReplayContainer } from './services-common';
@@ -133,7 +133,7 @@ export class ApplicationsService {
     }
 
     public getRegisteredApplications(environmentId: string): Promise<ApplicationInfo[]> {
-        return this.http.get<ApplicationInfo[]>('/api/registered-applications/' + environmentId).toPromise();
+        return firstValueFrom(this.http.get<ApplicationInfo[]>('/api/registered-applications/' + environmentId));
     }
 
     public getApplicationSubscriptions(appId: string, envId: string): Observable<ApplicationTopicSubscription[]> {
@@ -150,7 +150,7 @@ export class ApplicationsService {
             comments: comments || null
         });
 
-        return this.http.put('/api/me/requests', body, { headers: jsonHeader() }).toPromise().then(value => {
+        return firstValueFrom(this.http.put('/api/me/requests', body, { headers: jsonHeader() })).then(value => {
             this.userRequests.refresh();
             this.availableAppsExcl.refresh();
             this.availableAppsIncl.refresh();
@@ -159,7 +159,7 @@ export class ApplicationsService {
     }
 
     public async cancelApplicationOwnerRequest(requestId: string): Promise<any> {
-        return this.http.delete('/api/me/requests/' + requestId).toPromise().then(() => {
+        return firstValueFrom(this.http.delete('/api/me/requests/' + requestId)).then(() => {
             this.userRequests.refresh();
             this.allRequests.refresh();
             this.availableAppsExcl.refresh();
@@ -170,7 +170,7 @@ export class ApplicationsService {
 
     public async updateApplicationOwnerRequest(requestId: string, newState: string): Promise<any> {
         const body = JSON.stringify({ newState: newState });
-        return this.http.post('/api/admin/requests/' + requestId, body, { headers: jsonHeader() }).toPromise().then(() => {
+        return firstValueFrom(this.http.post('/api/admin/requests/' + requestId, body, { headers: jsonHeader() })).then(() => {
             this.userRequests.refresh();
             this.allRequests.refresh();
             this.userApplications.refresh();

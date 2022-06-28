@@ -1,12 +1,12 @@
 import { Component, EventEmitter, Input, OnInit, Output, TemplateRef } from '@angular/core';
-import { Observable } from 'rxjs';
+import { firstValueFrom, Observable } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ToastService } from '../../../shared/modules/toast/toast.service';
 import { Topic, TopicRecord, TopicsService, TopicSubscription } from '../../../shared/services/topics.service';
 import { EnvironmentsService, KafkaEnvironment } from '../../../shared/services/environments.service';
 import { DateTime } from 'luxon';
-import { map, take } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 import { ApplicationInfo, ApplicationsService } from '../../../shared/services/applications.service';
 
 @Component({
@@ -106,7 +106,6 @@ export class TopicMetadataTableComponent implements OnInit {
         return '';
     }
 
-
     formatDataValues() {
         const tryFormatValue = (rec: TopicRecord) => {
             const val = rec.value;
@@ -138,7 +137,7 @@ export class TopicMetadataTableComponent implements OnInit {
     }
 
     async openDataDlg(content: any) {
-        const environment = await this.environmentsService.getCurrentEnvironment().pipe(take(1)).toPromise();
+        const environment = await firstValueFrom(this.environmentsService.getCurrentEnvironment());
 
         this.topicDataLoading = true;
         this.topicData = this.topicService
@@ -154,7 +153,7 @@ export class TopicMetadataTableComponent implements OnInit {
     }
 
     async unsubscribe(subscription: TopicSubscription): Promise<any> {
-        const environment = await this.environmentsService.getCurrentEnvironment().pipe(take(1)).toPromise();
+        const environment = await firstValueFrom(this.environmentsService.getCurrentEnvironment());
 
         return this.topicService.unsubscribeFromTopic(environment.id, subscription.clientApplication.id, subscription.id).then(
             () => {
@@ -185,7 +184,7 @@ export class TopicMetadataTableComponent implements OnInit {
     }
 
     async changeTopicOwner(topicName: string, newOwnerId: string): Promise<any> {
-        const environment = await this.environmentsService.getCurrentEnvironment().pipe(take(1)).toPromise();
+        const environment = await firstValueFrom(this.environmentsService.getCurrentEnvironment());
         return this.topicService.changeTopicOwner(environment.id, topicName, newOwnerId).then(
             () => {
                 this.toasts.addSuccessToast('PRODUCER_PROMOTED_TOPIC_OWNER_SUCCESS');
@@ -194,7 +193,7 @@ export class TopicMetadataTableComponent implements OnInit {
     }
 
     async deleteProducer(topicName: string, producerAppId: string): Promise<any> {
-        const environment = await this.environmentsService.getCurrentEnvironment().pipe(take(1)).toPromise();
+        const environment = await firstValueFrom(this.environmentsService.getCurrentEnvironment());
         return this.topicService.deleteProducerFromTopic(environment.id, topicName, producerAppId).then(
             () => {
                 this.toasts.addSuccessToast('PRODUCER_REMOVED_SUCCESS');
@@ -203,7 +202,7 @@ export class TopicMetadataTableComponent implements OnInit {
     }
 
     private async updateSubscription(sub: TopicSubscription, approve: boolean, successMessage: string, errorMessage: string) {
-        const environment = await this.environmentsService.getCurrentEnvironment().pipe(take(1)).toPromise();
+        const environment = await firstValueFrom(this.environmentsService.getCurrentEnvironment());
 
         return this.topicService.updateTopicSubscription(environment.id, this.topic.name, sub.id, approve).then(
             () => {
