@@ -2,7 +2,7 @@ import { Component, Input, OnInit } from '@angular/core';
 import { Topic, TopicsService } from '../../../shared/services/topics.service';
 import { combineLatest, Observable } from 'rxjs';
 import { EnvironmentsService, KafkaEnvironment } from '../../../shared/services/environments.service';
-import { DateTime } from 'luxon';
+import { DateTime, Duration } from 'luxon';
 import { map, mergeMap, startWith } from 'rxjs/operators';
 import { NgbDateStruct } from '@ng-bootstrap/ng-bootstrap';
 import { ServerInfoService } from '../../../shared/services/serverinfo.service';
@@ -75,17 +75,13 @@ export class DeprecationComponent implements OnInit {
     }
 
     private toPeriodText(period: { years: number; months: number; days: number }): string {
-        const target = DateTime.now().plus({ years: period.years, month: period.months, days: period.days });
-        // const oldThreshold = DateTime.relativeTimeThreshold('d') as number;
+        Object.keys(period).forEach(key => {
+            if (period[key] === 0) {
+                delete period[key];
+            }
+        });
 
-        // special treatment: If days set, avoid moment "rounding" to months
-        // Note: this still produces wrong results for some values of "days"
-        // moment.js should be replaced with a better library.
-        if (period.days) {
-            DateTime.relativeTimeThreshold('d', 99999);
-        }
-        // TODO needs to be cleared what the luxon alternative is for set/get threhold
-        //DateTime.relativeTimeThreshold('d', oldThreshold);
-        return target.toRelativeCalendar({ locale: this.translateService.currentLang });
+
+        return Duration.fromObject(period, { locale: this.translateService.currentLang }).toHuman();
     }
 }
