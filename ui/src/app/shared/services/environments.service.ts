@@ -124,7 +124,7 @@ export class EnvironmentsService {
     public performStaging(applicationId: string, environment: KafkaEnvironment, selectedChanges: Change[]): Promise<StagingResult[]> {
         const body = JSON.stringify(selectedChanges);
         return firstValueFrom(this.http.post('/api/environments/' + environment.id + '/staging/' + applicationId, body
-            ,{ headers: jsonHeader() })
+            , { headers: jsonHeader() })
             .pipe(map(data => data as StagingResult[])));
     }
 

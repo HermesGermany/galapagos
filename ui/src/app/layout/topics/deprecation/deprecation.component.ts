@@ -2,7 +2,7 @@ import { Component, Input, OnInit } from '@angular/core';
 import { Topic, TopicsService } from '../../../shared/services/topics.service';
 import { combineLatest, Observable } from 'rxjs';
 import { EnvironmentsService, KafkaEnvironment } from '../../../shared/services/environments.service';
-import * as moment from 'moment';
+import { DateTime, Duration } from 'luxon';
 import { map, mergeMap, startWith } from 'rxjs/operators';
 import { NgbDateStruct } from '@ng-bootstrap/ng-bootstrap';
 import { ServerInfoService } from '../../../shared/services/serverinfo.service';
@@ -56,20 +56,18 @@ export class DeprecationComponent implements OnInit {
     }
 
     getValidDatesDeprecation(date: { years: number; months: number; days: number }) {
-        const minDeprecationTime = moment().add(date.years, 'y')
-            .add(date.months, 'month')
-            .add(date.days, 'days').locale(this.translateService.currentLang);
-
+        const minDeprecationTime = DateTime.now().plus({ years: date.years, month: date.months, days: date.days })
+            .setLocale(this.translateService.currentLang);
         return {
-            year: +minDeprecationTime.format('YYYY'),
-            month: +minDeprecationTime.format('M'),
-            day: +minDeprecationTime.format('D')
+            year: +minDeprecationTime.toFormat('y'),
+            month: +minDeprecationTime.toFormat('M'),
+            day: +minDeprecationTime.toFormat('d')
         };
     }
 
     async handleDeprecationRequest() {
         const date = this.eolDate;
-        const localDate = moment().year(date.year).month(date.month - 1).date(date.day).utc(true).format('YYYY-MM-DD');
+        const localDate = DateTime.local(date.year, date.month, date.day).toISODate();
         return this.topicService
             .deprecateTopic(this.deprecatedDescription, localDate, this.topic.name)
             .then(() => this.toasts.addSuccessToast('TOPIC_DEPRECATION_MARK_SUCCESS'),
@@ -77,18 +75,13 @@ export class DeprecationComponent implements OnInit {
     }
 
     private toPeriodText(period: { years: number; months: number; days: number }): string {
-        const target = moment().add(period.years, 'y').add(period.months, 'month').add(period.days, 'days');
-        const oldThreshold = moment.relativeTimeThreshold('d') as number;
+        // delete zero-valued keys from object to avoid a text like "0 years, 3 months, 0 days"
+        Object.keys(period).forEach(key => {
+            if (period[key] === 0) {
+                delete period[key];
+            }
+        });
 
-        // special treatment: If days set, avoid moment "rounding" to months
-        // Note: this still produces wrong results for some values of "days"
-        // moment.js should be replaced with a better library.
-        if (period.days) {
-            moment.relativeTimeThreshold('d', 99999);
-        }
-
-        const result = moment().locale(this.translateService.currentLang).to(target, true);
-        moment.relativeTimeThreshold('d', oldThreshold);
-        return result;
+        return Duration.fromObject(period, { locale: this.translateService.currentLang }).toHuman();
     }
 }

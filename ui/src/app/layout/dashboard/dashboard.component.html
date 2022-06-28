@@ -128,7 +128,8 @@
                             <div class="chat-body clearfix">
                                 <div class="header">
                                     <strong>{{ change.principalFullName || change.principal }}</strong>
-                                    <small class="text-muted float-right" [title]="agoTimeStamp(change.timestamp)"><i class="far fa-clock"></i>
+                                    <small class="text-muted float-right"
+                                           [title]="agoTimeStamp(change.timestamp) | async"><i class="far fa-clock"></i>
                                         {{ agoString(change.timestamp) }}</small>
                                 </div>
                                 <p [innerHtml]="change.change.html | async"></p>

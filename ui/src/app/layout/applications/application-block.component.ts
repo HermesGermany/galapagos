@@ -7,7 +7,7 @@ import { ReplayContainer } from '../../shared/services/services-common';
 import { ApiKeyService, ApplicationApiKey, ApplicationApikeyAuthData } from '../../shared/services/apikey.service';
 import { ApplicationCertificate, CertificateService } from '../../shared/services/certificates.service';
 import { TranslateService } from '@ngx-translate/core';
-import * as moment from 'moment';
+import { DateTime } from 'luxon';
 
 export interface OpenApiKeyDialogEvent {
     application: UserApplicationInfoWithTopics;
@@ -73,7 +73,7 @@ export class ApplicationBlockComponent implements OnChanges {
                     const currentLang = this.translateService.onLangChange.pipe(map(evt => evt.lang))
                         .pipe(startWith(this.translateService.currentLang)).pipe(shareReplay(1));
                     this.expiryDateString = combineLatest([currentLang, this.currentEnvApplicationCertificate]).pipe(
-                        map(([lang, cert]) => moment(cert.expiresAt).locale(lang.toString()).format('L')));
+                        map(([lang, cert]) => DateTime.fromISO(cert.expiresAt).setLocale(lang.toString()).toFormat('L')));
                 }
 
                 if (this.authenticationMode === 'ccloud') {
