@@ -63,7 +63,7 @@ describe('CreateTopicComponent', () => {
             },
             changelogMinDays: 0,
             changelogEntries: 10,
-            profilePicture: 'outlook',
+            profilePicture: 'gravatar',
             defaultPicture: 'initials',
             customLinks: [
                 {
@@ -103,7 +103,7 @@ describe('CreateTopicComponent', () => {
             },
             changelogMinDays: 0,
             changelogEntries: 10,
-            profilePicture: 'outlook',
+            profilePicture: 'gravatar',
             defaultPicture: 'initials',
             customLinks: [
                 {

@@ -48,6 +48,8 @@ export class DashboardComponent implements OnInit {
 
     changelogDefaultPicture: string;
 
+    customImageUrl: string;
+
     constructor(private environments: EnvironmentsService, private applicationsService: ApplicationsService,
                 private serverInfoService: ServerInfoService, private location: Location,
                 private translate: TranslateService) {
@@ -62,6 +64,7 @@ export class DashboardComponent implements OnInit {
         firstValueFrom(this.serverInfoService.getUiConfig()).then(config => {
             this.changelogProfilePicture = config.profilePicture;
             this.changelogDefaultPicture = config.defaultPicture;
+            this.customImageUrl = config.customImageUrl;
         });
     }
 
@@ -96,8 +99,8 @@ export class DashboardComponent implements OnInit {
         return `https://ui-avatars.com/api/?name=${name}&background=random`;
     }
 
-    getOutlookProfilePicture(user: string): string {
-        return `https://outlook.office.com/owa/service.svc/s/GetPersonaPhoto?email=${user}&size=HR64x64`;
+    getCustomProfilePicture(user: string): string {
+        return this.customImageUrl.replace('{0}', user);
     }
 
     getGravatarProfilePicture(user: string): string {
@@ -110,8 +113,8 @@ export class DashboardComponent implements OnInit {
     getProfilePicture(user: string, pictureType: string): string {
         if (pictureType === 'profile') {
             switch (this.changelogProfilePicture.toLowerCase()) {
-                case 'outlook':
-                    return this.getOutlookProfilePicture(user);
+                case 'custom':
+                    return this.getCustomProfilePicture(user);
                 case 'gravatar':
                     return this.getGravatarProfilePicture(user);
                 case 'initials':
@@ -147,14 +150,6 @@ export class DashboardComponent implements OnInit {
             this.configTemplatesCopiedValue = true;
             subscription.unsubscribe();
         });
-    }
-
-    checkProfilePictureExists(image: HTMLImageElement, change: ChangelogEntry): void {
-        const h = image.naturalHeight;
-        const w = image.naturalWidth;
-        if (h === 1 && w === 1 && image.src !== change.defaultPictureUrl) {
-            image.src = change.defaultPictureUrl;
-        }
     }
 
     private formatChanges(changes: ChangelogEntry[], amountOfEntries: number, minDays: number): ChangelogEntry[] {

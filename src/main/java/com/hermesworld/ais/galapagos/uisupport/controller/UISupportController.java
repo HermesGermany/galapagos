@@ -105,6 +105,7 @@ public class UISupportController {
         result.setChangelogMinDays(changesConfig.getMinDays());
         result.setDefaultPicture(changesConfig.getDefaultPicture());
         result.setProfilePicture(changesConfig.getProfilePicture());
+        result.setCustomImageUrl(changesConfig.getCustomImageUrl());
         return result;
     }
 

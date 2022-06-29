@@ -40,6 +40,7 @@ export interface UiConfig {
 
     profilePicture: string;
     defaultPicture: string;
+    customImageUrl: string;
 }
 
 @Injectable()

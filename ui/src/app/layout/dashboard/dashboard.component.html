@@ -123,11 +123,9 @@
                         <li class="left clearfix" *ngFor="let change of changelog | async">
                             <span class="chat-img float-left">
                                 <div class="imageContainer">
-                                      <img class="defaultImage"
-                                           src='{{change.profilePictureUrl}}'>
-                                      <img class="profileImage" #profileImage
-                                           (load)="checkProfilePictureExists(profileImage, change)"
-                                           src='{{change.profilePictureUrl}}'>
+                                      <img class="changeLogImage" #profileImage
+                                           (error)="profileImage.src=change.defaultPictureUrl"
+                                           src='{{change.profilePictureUrl }}'>
                                 </div>
                             </span>
                             <div class="chat-body clearfix">

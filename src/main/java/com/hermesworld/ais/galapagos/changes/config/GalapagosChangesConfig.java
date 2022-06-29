@@ -1,6 +1,5 @@
 package com.hermesworld.ais.galapagos.changes.config;
 
-import com.hermesworld.ais.galapagos.uisupport.controller.ProfilePicture;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -15,4 +14,5 @@ public class GalapagosChangesConfig {
     private int minDays;
     private ProfilePicture profilePicture;
     private ProfilePicture defaultPicture;
+    private String customImageUrl;
 }
