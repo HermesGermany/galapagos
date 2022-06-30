@@ -1,6 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { routerTransition } from '../../router.animations';
-import { ApplicationInfo, ApplicationOwnerRequest, ApplicationsService } from '../../shared/services/applications.service';
+import {
+    ApplicationInfo,
+    ApplicationOwnerRequest,
+    ApplicationsService
+} from '../../shared/services/applications.service';
 import { combineLatest, firstValueFrom, Observable, of } from 'rxjs';
 
 import { map } from 'rxjs/operators';

@@ -1,5 +1,10 @@
 import { Injectable } from '@angular/core';
-import { ApplicationInfo, ApplicationsService, BusinessCapabilityInfo, UserApplicationInfo } from './applications.service';
+import {
+    ApplicationInfo,
+    ApplicationsService,
+    BusinessCapabilityInfo,
+    UserApplicationInfo
+} from './applications.service';
 import { HttpClient } from '@angular/common/http';
 import { concatMap, map, take } from 'rxjs/operators';
 import { jsonHeader, ReplayContainer } from './services-common';

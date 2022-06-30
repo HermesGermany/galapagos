@@ -71,6 +71,10 @@ export interface ChangelogEntry {
 
     change: Change;
 
+    profilePictureUrl: string;
+
+    defaultPictureUrl: string;
+
 }
 
 @Injectable()

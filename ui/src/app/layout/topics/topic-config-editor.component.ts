@@ -1,5 +1,10 @@
 import { AfterViewChecked, ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
-import { TopicConfigDescriptor, TopicConfigValues, TopicsService, TopicUpdateConfigValue } from '../../shared/services/topics.service';
+import {
+    TopicConfigDescriptor,
+    TopicConfigValues,
+    TopicsService,
+    TopicUpdateConfigValue
+} from '../../shared/services/topics.service';
 import { EnvironmentsService, KafkaEnvironment } from '../../shared/services/environments.service';
 import { firstValueFrom, Observable } from 'rxjs';
 import { flatMap, map, shareReplay } from 'rxjs/operators';
