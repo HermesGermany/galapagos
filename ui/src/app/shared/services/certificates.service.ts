@@ -1,10 +1,10 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { map, take } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 
 import { saveAs } from 'file-saver';
 import { jsonHeader, ReplayContainer } from './services-common';
-import { Observable } from 'rxjs';
+import { firstValueFrom, Observable } from 'rxjs';
 
 export interface ApplicationCertificate {
     environmentId: string;
@@ -81,11 +81,11 @@ export class CertificateService {
     }
 
     public getApplicationCn(applicationId: string): Promise<string> {
-        return this.http.get('/api/util/common-name/' + applicationId).pipe(map(val => (val as any).cn)).toPromise();
+        return firstValueFrom(this.http.get('/api/util/common-name/' + applicationId).pipe(map(val => (val as any).cn)));
     }
 
     public getApplicationCertificatesPromise(applicationId: string): Promise<ApplicationCertificate[]> {
-        return this.getApplicationCertificates(applicationId).getObservable().pipe(take(1)).toPromise();
+        return firstValueFrom(this.getApplicationCertificates(applicationId).getObservable());
     }
 
     public async requestAndDownloadApplicationCertificate(applicationId: string, environmentId: string, csrData: string,
@@ -101,7 +101,7 @@ export class CertificateService {
                 generateKey: true
             });
         }
-        return this.http.post('/api/certificates/' + applicationId + '/' + environmentId, body, { headers: jsonHeader() }).toPromise()
+        return firstValueFrom(this.http.post('/api/certificates/' + applicationId + '/' + environmentId, body, { headers: jsonHeader() }))
             .then(resp => {
                 const ra = resp as any;
                 saveAs(base64ToBlob(ra.fileContentsBase64), ra.fileName);
@@ -109,7 +109,7 @@ export class CertificateService {
     }
 
     public async downloadDeveloperCertificate(environmentId: string): Promise<any> {
-        return this.http.post('/api/me/certificates/' + environmentId, '').toPromise().then(resp => {
+        return firstValueFrom(this.http.post('/api/me/certificates/' + environmentId, '')).then(resp => {
             const ra = resp as any;
             saveAs(base64ToBlob(ra.fileContentsBase64), ra.fileName);
         });

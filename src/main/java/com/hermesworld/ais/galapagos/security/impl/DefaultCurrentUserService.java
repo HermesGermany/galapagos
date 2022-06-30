@@ -1,9 +1,5 @@
 package com.hermesworld.ais.galapagos.security.impl;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-
 import com.hermesworld.ais.galapagos.events.EventContextSource;
 import com.hermesworld.ais.galapagos.security.AuditPrincipal;
 import com.hermesworld.ais.galapagos.security.CurrentUserService;
@@ -14,6 +10,10 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 @Component
 public class DefaultCurrentUserService implements CurrentUserService, EventContextSource {
@@ -76,7 +76,7 @@ public class DefaultCurrentUserService implements CurrentUserService, EventConte
             return false;
         }
         return context.getAuthentication().getAuthorities().stream()
-                .filter(auth -> auth.getAuthority().equals("ROLE_ADMIN")).findAny().isPresent();
+                .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
     }
 
 }
