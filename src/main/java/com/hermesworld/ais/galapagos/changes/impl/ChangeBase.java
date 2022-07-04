@@ -9,6 +9,7 @@ import com.hermesworld.ais.galapagos.changes.Change;
 import com.hermesworld.ais.galapagos.changes.ChangeType;
 import com.hermesworld.ais.galapagos.kafka.TopicCreateParams;
 import com.hermesworld.ais.galapagos.subscriptions.SubscriptionMetadata;
+import com.hermesworld.ais.galapagos.topics.SchemaCompatCheckMode;
 import com.hermesworld.ais.galapagos.topics.SchemaMetadata;
 import com.hermesworld.ais.galapagos.topics.TopicMetadata;
 
@@ -591,7 +592,8 @@ final class PublishTopicSchemaVersionChange extends ChangeBase {
 
     @Override
     public CompletableFuture<?> applyTo(ApplyChangeContext context) {
-        return context.getTopicService().addTopicSchemaVersion(context.getTargetEnvironmentId(), schemaMetadata);
+        return context.getTopicService().addTopicSchemaVersion(context.getTargetEnvironmentId(), schemaMetadata,
+                SchemaCompatCheckMode.SKIP_SCHEMA_CHECK);
     }
 
 }

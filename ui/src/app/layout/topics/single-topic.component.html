@@ -15,28 +15,28 @@
                                                   [pendingTopicSubscribers]="pendingTopicSubscribers | async"
                                                   (subsChanged)="refreshChildData()">
                         </app-topic-metadata-table>
-
-                        <app-schema-section [topic]="topic | async" [isOwnerOfTopic]="isOwnerOfTopic | async"
-                                            [topicSubscribers]="topicSubscribers | async"
-                        ></app-schema-section>
-
-                        <app-subscription-section [topic]="topic | async" [isOwnerOfTopic]="isOwnerOfTopic | async"
-                                                  [availableApplications]="availableApplications | async"
-                                                  [loadingApplications]="loadingApplications | async"
-                                                  (appChanged)="refreshChildData()">
-                        </app-subscription-section>
-
-                        <app-deprecation-component [topic]="topic | async" [isOwnerOfTopic]="isOwnerOfTopic | async">
-
-                        </app-deprecation-component>
-
-                        <app-delete-topic-component [topic]="topic | async"
-                                                    [isOwnerOfTopic]="isOwnerOfTopic | async"
-                                                    [topicName]="topicName | async"
-                                                    [translateParams]="translateParams"
-                                                    [selectedEnvironment]="selectedEnvironment | async">
-                        </app-delete-topic-component>
                     </div>
+
+                    <app-schema-section [topic]="topic | async" [isOwnerOfTopic]="isOwnerOfTopic | async"
+                                        [topicSubscribers]="topicSubscribers | async"
+                    ></app-schema-section>
+
+                    <app-subscription-section [topic]="topic | async" [isOwnerOfTopic]="isOwnerOfTopic | async"
+                                              [availableApplications]="availableApplications | async"
+                                              [loadingApplications]="loadingApplications | async"
+                                              (appChanged)="refreshChildData()">
+                    </app-subscription-section>
+
+                    <app-deprecation-component [topic]="topic | async" [isOwnerOfTopic]="isOwnerOfTopic | async">
+
+                    </app-deprecation-component>
+
+                    <app-delete-topic-component [topic]="topic | async"
+                                                [isOwnerOfTopic]="isOwnerOfTopic | async"
+                                                [topicName]="topicName | async"
+                                                [translateParams]="translateParams"
+                                                [selectedEnvironment]="selectedEnvironment | async">
+                    </app-delete-topic-component>
                 </div>
             </div>
         </div>

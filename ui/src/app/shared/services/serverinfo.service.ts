@@ -36,8 +36,11 @@ export interface UiConfig {
         months: number;
         days: number;
     };
-
     customLinks: CustomLink[];
+
+    profilePicture: string;
+    defaultPicture: string;
+    customImageUrl?: string;
 }
 
 @Injectable()

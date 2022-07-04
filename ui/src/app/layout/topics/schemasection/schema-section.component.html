@@ -53,6 +53,16 @@
                             <input [(ngModel)]="schemaChangeDescription" type="text" size="50"
                                    class="form-control"/><br>
                         </div>
+                        <ngb-alert *ngIf="skipCompatCheck" type="warning"
+                                   [dismissible]="false">
+                            <p [innerHTML]="'SKIP_COMPAT_CHECK_WARNING' | translate"></p>
+                        </ngb-alert>
+                        <div *ngIf="isAdmin" class="checkbox">
+                            <label>
+                                <input type="checkbox"
+                                       [(ngModel)]="skipCompatCheck"> {{ 'Skip compatibility check' | translate }}
+                            </label>
+                        </div>
 
                         <button class="btn btn-success mt-3"
                                 [disabled]="!newSchemaText || !newSchemaText.length" appSpinnerWhile

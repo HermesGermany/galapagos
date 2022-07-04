@@ -122,13 +122,17 @@
                     <ul class="chat" *ngIf="(changelog | async)?.length">
                         <li class="left clearfix" *ngFor="let change of changelog | async">
                             <span class="chat-img float-left">
-                                <!-- TODO gravatar? MS Office 365? -->
-                                <img src="/assets/images/default_avatar.png" class="img-circle">
+                                <div class="imageContainer">
+                                      <img class="changeLogImage" #profileImage
+                                           (error)="profileImage.src=change.defaultPictureUrl"
+                                           src='{{change.profilePictureUrl }}'>
+                                </div>
                             </span>
                             <div class="chat-body clearfix">
                                 <div class="header">
                                     <strong>{{ change.principalFullName || change.principal }}</strong>
-                                    <small class="text-muted float-right" [title]="agoTimeStamp(change.timestamp)"><i class="far fa-clock"></i>
+                                    <small class="text-muted float-right"
+                                           [title]="agoTimeStamp(change.timestamp) | async"><i class="far fa-clock"></i>
                                         {{ agoString(change.timestamp) }}</small>
                                 </div>
                                 <p [innerHtml]="change.change.html | async"></p>

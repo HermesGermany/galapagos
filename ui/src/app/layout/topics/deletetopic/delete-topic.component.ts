@@ -2,9 +2,9 @@ import { Component, Input } from '@angular/core';
 import { Topic, TopicsService } from '../../../shared/services/topics.service';
 import { EnvironmentsService, KafkaEnvironment } from '../../../shared/services/environments.service';
 import { ToastService } from '../../../shared/modules/toast/toast.service';
-import { take } from 'rxjs/operators';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { Router } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
     selector: 'app-delete-topic-component',
@@ -43,7 +43,7 @@ export class DeleteTopicComponent {
     }
 
     async deleteTopic(): Promise<any> {
-        const environment = await this.environmentsService.getCurrentEnvironment().pipe(take(1)).toPromise();
+        const environment = await firstValueFrom(this.environmentsService.getCurrentEnvironment());
 
         return this.topicService.deleteTopic(environment.id, this.topic.name).then(
             () => {
