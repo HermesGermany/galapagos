@@ -614,13 +614,12 @@ final class DeleteTopicSchemaVersionChange extends ChangeBase {
 
     @Override
     protected boolean isEqualTo(ChangeBase other) {
-        PublishTopicSchemaVersionChange change = (PublishTopicSchemaVersionChange) other;
-        return Objects.equals(topicName, change.getTopicName());
+        return false;
     }
 
     @Override
     public CompletableFuture<?> applyTo(ApplyChangeContext context) {
-        throw new UnsupportedOperationException("Cannot apply changes to deleted Schema");
+        throw new UnsupportedOperationException("Schema deletion cannot be staged");
     }
 
 }
