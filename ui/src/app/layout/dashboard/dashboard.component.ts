@@ -86,7 +86,7 @@ export class DashboardComponent implements OnInit {
 
     updateConfigTemplate(framework: string) {
         this.frameworkConfigTemplate = this.selectedEnvironment
-            .pipe(tap(env => this.configTemplatesCopiedValue = false))
+            .pipe(tap(() => this.configTemplatesCopiedValue = false))
             .pipe(flatMap(env => this.environments.getFrameworkConfigTemplate(env.id, framework)));
     }
 
@@ -165,36 +165,55 @@ export class DashboardComponent implements OnInit {
                 return change;
             }).filter(change => change.change.html !== null);
 
+        // reduce matching JSON Schema Version add / delete until no matching pairs can be found
+        let reducedChanges = [...changes];
+        let hasReduced = false;
+        do {
+            const oldLength = reducedChanges.length;
+            reducedChanges = this.reduceChangelogByJsonSchemaDeletions(reducedChanges);
+            hasReduced = reducedChanges.length !== oldLength;
+        }
+        while (hasReduced);
+
         const index = changes.findIndex(
             change =>
                 new Date(change.timestamp) <
                 new Date(new Date().setDate(new Date().getDate() - minDays)));
 
-        // eslint-disable-next-line @typescript-eslint/prefer-for-of
-        let keeper = [changes[0]];
-        for (let i = 0; i < changes.length; i++) {
-            keeper.push(this.detectMultipleJsonSchemaChangesInARow(changes, i, i+1));
-        }
-        keeper = keeper.filter(keep => keep !== null);
-        return keeper.slice(0, Math.max(amountOfEntries, index));
+        return reducedChanges.slice(0, Math.max(amountOfEntries, index));
     }
 
-    private detectMultipleJsonSchemaChangesInARow(changes: ChangelogEntry[], indexOne: number, indexTwo: number) {
-        if (
-            (changes[indexOne].change.changeType === 'TOPIC_SCHEMA_VERSION_DELETED' ||
-                changes[indexOne].change.changeType === 'TOPIC_SCHEMA_VERSION_PUBLISHED')
-            &&
-            (changes[indexTwo].change.changeType === 'TOPIC_SCHEMA_VERSION_DELETED' ||
-                changes[indexTwo].change.changeType === 'TOPIC_SCHEMA_VERSION_PUBLISHED')
+    private reduceChangelogByJsonSchemaDeletions(changes: ChangelogEntry[]): ChangelogEntry[] {
+        const reducingList: { entry: ChangelogEntry; toDelete: boolean }[] =
+            changes.map(change => ({ entry: change, toDelete: false }));
 
-            &&
-            changes[indexTwo].change.topicName === changes[indexOne].change.topicName
-        ) {
-            return null;
-        }
-        return changes[indexTwo];
+        reducingList.forEach((value, index) => {
+            if (value.entry.change.changeType === 'TOPIC_SCHEMA_VERSION_DELETED') {
+                const matchingIndex = this.findMatchingSchemaAdd(changes, value.entry, index);
+                if (matchingIndex > -1) {
+                    value.toDelete = true;
+                    reducingList[matchingIndex].toDelete = true;
+                }
+            }
+        });
+
+        return changes.filter((change, index) => !reducingList[index].toDelete);
     }
 
+    // noinspection JSMethodCanBeStatic
+    private findMatchingSchemaAdd(changes: ChangelogEntry[], change: ChangelogEntry, fromIndex: number): number {
+        for (let i = fromIndex + 1; i < changes.length; i++) {
+            const otherChange = changes[i].change;
+            if (otherChange.topicName === change.change.topicName) {
+                if (otherChange.changeType === 'TOPIC_SCHEMA_VERSION_PUBLISHED') {
+                    return i;
+                }
+                // anything else regarding this topic "in the way"
+                return -1;
+            }
+        }
+        return -1;
+    }
 
     private changeHtml(change: Change): Observable<string> {
         let topicName: string;
