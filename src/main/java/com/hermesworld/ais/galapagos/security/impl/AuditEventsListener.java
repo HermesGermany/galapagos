@@ -98,6 +98,19 @@ public class AuditEventsListener implements TopicEventsListener, SubscriptionEve
     }
 
     @Override
+    public CompletableFuture<Void> handleTopicSchemaDeleted(TopicSchemaRemovedEvent event) {
+        TopicMetadata topic = event.getMetadata();
+
+        Map<String, Object> auditData = new LinkedHashMap<>();
+        auditData.put(NAME, topic.getName());
+        auditData.put(ENVIRONMENT_ID, event.getContext().getKafkaCluster().getId());
+
+        auditRepository
+                .add(new AuditEvent(getUserName(event), GalapagosAuditEventType.TOPIC_SCHEMA_ADDED.name(), auditData));
+        return FutureUtil.noop();
+    }
+
+    @Override
     public CompletableFuture<Void> handleTopicSubscriptionApprovalRequiredFlagChanged(TopicEvent event) {
         return handleTopicEvent(event, "TOPIC_SUBSCRIPTION_APPROVAL_REQUIRED_FLAG_CHANGED");
     }

@@ -86,7 +86,7 @@ export class DashboardComponent implements OnInit {
 
     updateConfigTemplate(framework: string) {
         this.frameworkConfigTemplate = this.selectedEnvironment
-            .pipe(tap(env => this.configTemplatesCopiedValue = false))
+            .pipe(tap(() => this.configTemplatesCopiedValue = false))
             .pipe(flatMap(env => this.environments.getFrameworkConfigTemplate(env.id, framework)));
     }
 
@@ -164,11 +164,55 @@ export class DashboardComponent implements OnInit {
                 change.defaultPictureUrl = this.getProfilePicture(change.principal, 'default');
                 return change;
             }).filter(change => change.change.html !== null);
+
+        // reduce matching JSON Schema Version add / delete until no matching pairs can be found
+        let reducedChanges = [...changes];
+        let hasReduced = false;
+        do {
+            const oldLength = reducedChanges.length;
+            reducedChanges = this.reduceChangelogByJsonSchemaDeletions(reducedChanges);
+            hasReduced = reducedChanges.length !== oldLength;
+        }
+        while (hasReduced);
+
         const index = changes.findIndex(
             change =>
                 new Date(change.timestamp) <
                 new Date(new Date().setDate(new Date().getDate() - minDays)));
-        return changes.slice(0, Math.max(amountOfEntries, index));
+
+        return reducedChanges.slice(0, Math.max(amountOfEntries, index));
+    }
+
+    private reduceChangelogByJsonSchemaDeletions(changes: ChangelogEntry[]): ChangelogEntry[] {
+        const reducingList: { entry: ChangelogEntry; toDelete: boolean }[] =
+            changes.map(change => ({ entry: change, toDelete: false }));
+
+        reducingList.forEach((value, index) => {
+            if (value.entry.change.changeType === 'TOPIC_SCHEMA_VERSION_DELETED') {
+                const matchingIndex = this.findMatchingSchemaAdd(changes, value.entry, index);
+                if (matchingIndex > -1) {
+                    value.toDelete = true;
+                    reducingList[matchingIndex].toDelete = true;
+                }
+            }
+        });
+
+        return changes.filter((change, index) => !reducingList[index].toDelete);
+    }
+
+    // noinspection JSMethodCanBeStatic
+    private findMatchingSchemaAdd(changes: ChangelogEntry[], change: ChangelogEntry, fromIndex: number): number {
+        for (let i = fromIndex + 1; i < changes.length; i++) {
+            const otherChange = changes[i].change;
+            if (otherChange.topicName === change.change.topicName) {
+                if (otherChange.changeType === 'TOPIC_SCHEMA_VERSION_PUBLISHED') {
+                    return i;
+                }
+                // anything else regarding this topic "in the way"
+                return -1;
+            }
+        }
+        return -1;
     }
 
     private changeHtml(change: Change): Observable<string> {
@@ -219,6 +263,11 @@ export class DashboardComponent implements OnInit {
                 topicName = change.topicName;
                 topicLink = this.urlForRouterLink('/topics/' + topicName);
                 return this.translate.stream('CHANGELOG_TOPIC_SCHEMA_VERSION_REGISTERED_HTML',
+                    { topicName: topicName, topicLink: topicLink });
+            case 'TOPIC_SCHEMA_VERSION_DELETED':
+                topicName = change.topicName;
+                topicLink = this.urlForRouterLink('/topics/' + topicName);
+                return this.translate.stream('CHANGELOG_TOPIC_SCHEMA_VERSION_DELETED_HTML',
                     { topicName: topicName, topicLink: topicLink });
             case 'TOPIC_DESCRIPTION_CHANGED':
                 if (change.internalTopic) {

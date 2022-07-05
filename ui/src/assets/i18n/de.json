@@ -89,6 +89,7 @@
     "CHANGELOG_TOPIC_UNSUBSCRIBED_HTML": "hat das Abonnement der Anwendung <b><a href='{{ appInfo.infoUrl }}'>{{ appInfo.name }}</a></b> von Topic <b><a href='{{ topicLink }}'>{{ topicName }}</a></b> gelöscht.",
     "CHANGELOG_TOPIC_UNSUBSCRIBED_HTML_NO_APP_LINK": "hat das Abonnement der Anwendung <b>{{ appInfo.name }}</b> von Topic <b><a href='{{ topicLink }}'>{{ topicName }}</a></b> gelöscht.",
     "CHANGELOG_TOPIC_SCHEMA_VERSION_REGISTERED_HTML": "hat <b>ein neues JSON-Schema</b> für Topic <b><a href='{{ topicLink }}'>{{ topicName }}</a></b> veröffentlicht.",
+    "CHANGELOG_TOPIC_SCHEMA_VERSION_DELETED_HTML": "hat <b>das neuste JSON Schema</b> für das Topic <b><a href='{{ topicLink }}'>{{ topicName }}</a></b> <b>gelöscht</b>.",
     "No recent changes": "Keine aktuellen Änderungen",
     "Advanced Settings": "Erweiterte Einstellungen",
     "TOPIC_ADVANCED_SETTINGS_HTML": "Hier kannst Du Kafka-spezifische Detaileinstellungen für Dein Topic vornehmen. Diese werden beim Staging automatisch auf die Zielumgebung übernommen. Weitere Kafka-Einstellungen (z.B. Retention Time, Cleanup Policy) kannst Du <b>nach dem Erstellen</b> des Topics pro Umgebung frei einstellen.",

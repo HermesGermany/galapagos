@@ -195,6 +195,11 @@ public class DevUserAclListener implements TopicEventsListener, SubscriptionEven
         return FutureUtil.noop();
     }
 
+    @Override
+    public CompletableFuture<Void> handleTopicSchemaDeleted(TopicSchemaRemovedEvent event) {
+        return FutureUtil.noop();
+    }
+
     @CheckReturnValue
     CompletableFuture<Void> updateAcls(KafkaCluster cluster, Set<DevAuthenticationMetadata> metadatas) {
         CompletableFuture<Void> result = CompletableFuture.completedFuture(null);

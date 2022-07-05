@@ -106,6 +106,10 @@ public abstract class ChangeBase implements ApplicableChange {
         return new PublishTopicSchemaVersionChange(topicName, schemaVersion);
     }
 
+    public static ChangeBase deleteTopicSchemaVersion(String topicName) {
+        return new DeleteTopicSchemaVersionChange(topicName);
+    }
+
     public static ChangeBase addTopicProducer(String topicName, String producerApplicationId) {
         return new TopicProducerAddChange(topicName, producerApplicationId);
     }
@@ -590,6 +594,32 @@ final class PublishTopicSchemaVersionChange extends ChangeBase {
     public CompletableFuture<?> applyTo(ApplyChangeContext context) {
         return context.getTopicService().addTopicSchemaVersion(context.getTargetEnvironmentId(), schemaMetadata,
                 SchemaCompatCheckMode.SKIP_SCHEMA_CHECK);
+    }
+
+}
+
+@JsonSerialize
+final class DeleteTopicSchemaVersionChange extends ChangeBase {
+
+    private final String topicName;
+
+    public DeleteTopicSchemaVersionChange(String topicName) {
+        super(ChangeType.TOPIC_SCHEMA_VERSION_DELETED);
+        this.topicName = topicName;
+    }
+
+    public String getTopicName() {
+        return topicName;
+    }
+
+    @Override
+    protected boolean isEqualTo(ChangeBase other) {
+        return false;
+    }
+
+    @Override
+    public CompletableFuture<?> applyTo(ApplyChangeContext context) {
+        throw new UnsupportedOperationException("Schema deletion cannot be staged");
     }
 
 }

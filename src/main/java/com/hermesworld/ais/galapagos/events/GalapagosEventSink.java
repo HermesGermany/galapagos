@@ -26,6 +26,8 @@ public interface GalapagosEventSink {
 
     CompletableFuture<Void> handleTopicSchemaAdded(TopicMetadata metadata, SchemaMetadata newSchema);
 
+    CompletableFuture<Void> handleTopicSchemaDeleted(TopicMetadata metadata);
+
     CompletableFuture<Void> handleSubscriptionCreated(SubscriptionMetadata subscription);
 
     CompletableFuture<Void> handleSubscriptionUpdated(SubscriptionMetadata subscription);
