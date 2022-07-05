@@ -94,6 +94,12 @@ public class GalapagosEventManagerImpl implements GalapagosEventManager {
         }
 
         @Override
+        public CompletableFuture<Void> handleTopicSchemaDeleted(TopicMetadata metadata) {
+            TopicSchemaRemovedEvent event = new TopicSchemaRemovedEvent(eventContext, metadata);
+            return handleEvent(topicListeners, l -> l.handleTopicSchemaDeleted(event));
+        }
+
+        @Override
         public CompletableFuture<Void> handleSubscriptionCreated(SubscriptionMetadata subscription) {
             SubscriptionEvent event = new SubscriptionEvent(eventContext, subscription);
             return handleEvent(subscriptionListeners, l -> l.handleSubscriptionCreated(event));

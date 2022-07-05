@@ -13,6 +13,7 @@ import com.hermesworld.ais.galapagos.topics.TopicType;
 import com.hermesworld.ais.galapagos.topics.config.GalapagosTopicConfig;
 import com.hermesworld.ais.galapagos.topics.service.ValidatingTopicService;
 import com.hermesworld.ais.galapagos.util.FutureUtil;
+import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
@@ -22,6 +23,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
@@ -85,7 +87,7 @@ public class TopicControllerTest {
                 .thenReturn(FutureUtil.noop());
         when(applicationsService.isUserAuthorizedFor("app-1")).thenReturn(true);
         TopicController controller = new TopicController(topicService, kafkaClusters, applicationsService,
-                namingService);
+                namingService, userService);
 
         controller.updateTopic("test", "topic-1", dto);
         verify(topicService, times(1)).updateTopicDescription("test", "topic-1", "updated description goes here");
@@ -105,7 +107,7 @@ public class TopicControllerTest {
         when(applicationsService.isUserAuthorizedFor("app-1")).thenReturn(true);
 
         TopicController controller = new TopicController(topicService, kafkaClusters, applicationsService,
-                namingService);
+                namingService, userService);
         when(topicService.changeTopicOwner("test", "topic-1", "producer1")).thenReturn(FutureUtil.noop());
 
         ChangeTopicOwnerDto dto = new ChangeTopicOwnerDto();
@@ -127,7 +129,7 @@ public class TopicControllerTest {
         when(topicService.getTopic("test", "topic-1")).thenReturn(Optional.of(topic));
 
         TopicController controller = new TopicController(topicService, kafkaClusters, applicationsService,
-                namingService);
+                namingService, userService);
 
         ChangeTopicOwnerDto dto = new ChangeTopicOwnerDto();
         dto.setProducerApplicationId("producer1");
@@ -147,7 +149,7 @@ public class TopicControllerTest {
         ValidatingTopicService topicService = mock(ValidatingTopicService.class);
 
         TopicController controller = new TopicController(topicService, kafkaClusters, applicationsService,
-                namingService);
+                namingService, userService);
 
         // WHEN I am authorized for the topic owning application, but not the producer application
         when(applicationsService.isUserAuthorizedFor("app-1")).thenReturn(true);
@@ -174,7 +176,7 @@ public class TopicControllerTest {
         ValidatingTopicService topicService = mock(ValidatingTopicService.class);
 
         TopicController controller = new TopicController(topicService, kafkaClusters, applicationsService,
-                namingService);
+                namingService, userService);
 
         // WHEN I am authorized for the producer, but not the topic owning application
         when(applicationsService.isUserAuthorizedFor("app-9")).thenReturn(true);
@@ -206,7 +208,7 @@ public class TopicControllerTest {
         ValidatingTopicService topicService = mock(ValidatingTopicService.class);
 
         TopicController controller = new TopicController(topicService, kafkaClusters, applicationsService,
-                namingService);
+                namingService, userService);
 
         // WHEN I am authorized for the topic owning application, but not the producer application
         when(applicationsService.isUserAuthorizedFor("app-1")).thenReturn(true);
@@ -226,12 +228,39 @@ public class TopicControllerTest {
     }
 
     @Test
+    @DisplayName("user cant skip compability check if not admin")
+    public void testSkipCombatCheckForSchemas_userNotAuthorized() {
+        ValidatingTopicService topicService = mock(ValidatingTopicService.class);
+
+        TopicController controller = new TopicController(topicService, kafkaClusters, applicationsService,
+                namingService, userService);
+
+        AddSchemaVersionDto dto = new AddSchemaVersionDto();
+        dto.setJsonSchema(new JSONObject(Map.of("a", "1", "b", "2")).toString());
+
+        TopicMetadata metadata = new TopicMetadata();
+        metadata.setName("testtopic");
+        metadata.setOwnerApplicationId("app-1");
+        when(topicService.listTopics("test")).thenReturn(List.of(metadata));
+        when(userService.isAdmin()).thenReturn(false);
+        when(applicationsService.isUserAuthorizedFor("app-1")).thenReturn(true);
+
+        try {
+            controller.addTopicSchemaVersion("test", "testtopic", true, dto);
+            fail("HttpStatus.FORBIDDEN expected, but skipping check succeeded");
+        }
+        catch (ResponseStatusException e) {
+            assertEquals(HttpStatus.FORBIDDEN, e.getStatus());
+        }
+    }
+
+    @Test
     @DisplayName("Cannot remove producer if not authorized for topic (but for producer)")
     public void testRemoveTopicProducer_notAuthorizedForTopic_negative() {
         ValidatingTopicService topicService = mock(ValidatingTopicService.class);
 
         TopicController controller = new TopicController(topicService, kafkaClusters, applicationsService,
-                namingService);
+                namingService, userService);
 
         // WHEN I am authorized for the producer, but not the topic owning application
         when(applicationsService.isUserAuthorizedFor("app-9")).thenReturn(true);

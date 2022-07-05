@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { map, take } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 import { jsonHeader, ReplayContainer } from './services-common';
+import { firstValueFrom } from 'rxjs';
 import { ApikeyInfo } from './certificates.service';
 
 export interface ApplicationApiKeyAndSecret {
@@ -52,17 +53,16 @@ export class ApiKeyService {
     }
 
     public getApplicationApiKeysPromise(applicationId: string): Promise<ApplicationApikeyAuthData> {
-        return this.getApplicationApiKeys(applicationId).getObservable().pipe(take(1)).toPromise();
+        return firstValueFrom(this.getApplicationApiKeys(applicationId).getObservable());
     }
 
     public async requestApiKey(applicationId: string, environmentId: string): Promise<ApplicationApiKeyAndSecret> {
-        return this.http.post<ApplicationApiKeyAndSecret>('/api/apikeys/' + applicationId + '/' + environmentId,
-            {}, { headers: jsonHeader() })
-            .toPromise();
+        return firstValueFrom(this.http.post<ApplicationApiKeyAndSecret>('/api/apikeys/' + applicationId + '/' + environmentId,
+            {}, { headers: jsonHeader() }));
     }
 
     public async createDeveloperApiKey(environmentId: string): Promise<any> {
-        return this.http.post('/api/me/apikey/' + environmentId, '').toPromise().then(resp => {
+        return firstValueFrom(this.http.post('/api/me/apikey/' + environmentId, '')).then(resp => {
             const ra = resp as ApikeyInfo;
             return { key: ra.apiKey, secret: ra.secret };
         });

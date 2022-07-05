@@ -19,6 +19,10 @@ export interface ServerInfo {
     app: AppInfo;
 
     toggles?: TogglesInfo;
+
+    galapagos?: {
+        instanceName: string;
+    };
 }
 
 export interface CustomLink {
@@ -36,8 +40,11 @@ export interface UiConfig {
         months: number;
         days: number;
     };
-
     customLinks: CustomLink[];
+
+    profilePicture: string;
+    defaultPicture: string;
+    customImageUrl?: string;
 }
 
 @Injectable()
@@ -59,7 +66,7 @@ export class ServerInfoService {
     }
 
     public getKafkaVersion(environmentId: string): Observable<string> {
-        return this.http.get('/api/environments/' + environmentId + '/kafkaVersion', { responseType: 'text' }).pipe(map(s => s as string));
+        return this.http.get('/api/environments/' + environmentId + '/kafkaversion', { responseType: 'text' }).pipe(map(s => s as string));
     }
 
 }

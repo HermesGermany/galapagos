@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { ServerInfoService } from '../../../shared/services/serverinfo.service';
 import { NavigationEnd, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { KeycloakService } from 'keycloak-angular';
@@ -16,6 +17,8 @@ export class HeaderComponent implements OnInit {
 
     public userName: Promise<string>;
 
+    instanceNameInfo: Observable<string>;
+
     public currentEnvironmentName: Observable<string>;
 
     public currentEnvironmentIcon: Observable<string>;
@@ -27,12 +30,14 @@ export class HeaderComponent implements OnInit {
     darkmodeActive: boolean;
 
     constructor(private translate: TranslateService, public router: Router, private keycloak: KeycloakService,
-                private environments: EnvironmentsService) {
+                private environments: EnvironmentsService,  private serverInfoService: ServerInfoService) {
 
     }
 
     ngOnInit() {
         this.pushRightClass = 'push-right';
+
+        this.instanceNameInfo = this.serverInfoService.getServerInfo().pipe(map(info => info.galapagos.instanceName));
 
         this.userName = Promise.resolve(this.keycloak.getKeycloakInstance().idTokenParsed.given_name
             + ' ' + this.keycloak.getKeycloakInstance().idTokenParsed.family_name);

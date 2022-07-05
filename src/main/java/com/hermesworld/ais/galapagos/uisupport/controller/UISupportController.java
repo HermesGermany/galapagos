@@ -103,6 +103,9 @@ public class UISupportController {
         result.setCustomLinks(customLinksConfig.getLinks());
         result.setChangelogEntries(changesConfig.getEntries());
         result.setChangelogMinDays(changesConfig.getMinDays());
+        result.setDefaultPicture(changesConfig.getDefaultPicture());
+        result.setProfilePicture(changesConfig.getProfilePicture());
+        result.setCustomImageUrl(changesConfig.getCustomImageUrl());
         return result;
     }
 
