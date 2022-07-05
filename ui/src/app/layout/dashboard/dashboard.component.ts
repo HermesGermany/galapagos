@@ -31,8 +31,6 @@ export class DashboardComponent implements OnInit {
 
     appServerInfo: Observable<ServerInfo>;
 
-    instanceNameInfo: Observable<string>;
-
     customLinks: Observable<CustomLink[]>;
 
     kafkaVersion: Observable<string>;
@@ -65,7 +63,6 @@ export class DashboardComponent implements OnInit {
         this.updateConfigTemplate('spring');
         this.customLinks = this.serverInfoService.getUiConfig().pipe(map(config => config.customLinks));
         this.kafkaVersion = this.selectedEnvironment.pipe(flatMap(env => this.serverInfoService.getKafkaVersion(env.id)));
-        this.instanceNameInfo = this.serverInfoService.getServerInfo().pipe(map(info => info.galapagos.instanceName));
     }
 
     selectEnvironment(envId: string) {
