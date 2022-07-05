@@ -20,7 +20,7 @@ export interface ServerInfo {
 
     toggles?: TogglesInfo;
 
-    galapagos: {
+    galapagos?: {
         instanceName: string;
     };
 }
