@@ -33,7 +33,7 @@ public class EnvironmentsController {
         return Collections.emptyList();
     }
 
-    @GetMapping(value = "/api/environments/{environmentId}/kafkaVersion", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/api/environments/{environmentId}/kafkaversion", produces = MediaType.APPLICATION_JSON_VALUE)
     public String getKafkaVersions(@PathVariable String environmentId) throws Exception {
         return kafkaEnvironments.getEnvironment(environmentId).get().getKafkaServerVersion().get();
     }

@@ -62,7 +62,7 @@ export class ServerInfoService {
     }
 
     public getKafkaVersion(environmentId: string): Observable<string> {
-        return this.http.get('/api/environments/' + environmentId + '/kafkaVersion', { responseType: 'text' }).pipe(map(s => s as string));
+        return this.http.get('/api/environments/' + environmentId + '/kafkaversion', { responseType: 'text' }).pipe(map(s => s as string));
     }
 
 }
