@@ -2,13 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { routerTransition } from '../../router.animations';
 import { ApplicationInfo, ApplicationsService, UserApplicationInfo } from '../../shared/services/applications.service';
 import { firstValueFrom, Observable } from 'rxjs';
-import {
-    Change,
-    EnvironmentsService,
-    KafkaEnvironment,
-    Staging,
-    StagingResult
-} from '../../shared/services/environments.service';
+import { Change, EnvironmentsService, KafkaEnvironment, Staging, StagingResult } from '../../shared/services/environments.service';
 import { map } from 'rxjs/operators';
 import { ToastService } from '../../shared/modules/toast/toast.service';
 import { TranslateService } from '@ngx-translate/core';

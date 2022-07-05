@@ -144,8 +144,11 @@ describe('SchemaSectionComponent', () => {
             toggles: {
                 subscriptionApproval: 'false',
                 schemaDeleteWithSub: 'true'
-            }
 
+            },
+            galapagos:{
+                instanceName:'test-instance'
+            }
         }));
 
         component.editSchemaMode = false;
@@ -220,6 +223,9 @@ describe('SchemaSectionComponent', () => {
             toggles: {
                 subscriptionApproval: 'false',
                 schemaDeleteWithSub: 'false'
+            },
+            galapagos:{
+                instanceName:'test-instance'
             }
 
         }));
@@ -280,6 +286,9 @@ describe('SchemaSectionComponent', () => {
             toggles: {
                 subscriptionApproval: 'false',
                 schemaDeleteWithSub: 'false'
+            },
+            galapagos:{
+                instanceName:'test-instance'
             }
 
         }));

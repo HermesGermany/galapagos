@@ -22,7 +22,6 @@
                     <strong>Kafka Version:</strong>&nbsp;&nbsp;
                     <code
                         id="kafkaVersion">{{ (selectedEnvironment|async)?.authenticationMode === 'ccloud' ? 'Confluent Cloud' : (kafkaVersion | async) }}</code>
-
                     <!--
                     <table class="table" style="margin-top: 10px">
                         <tr *ngFor="let server of serverInfos | async">
