@@ -12,4 +12,7 @@ import org.springframework.context.annotation.Configuration;
 public class GalapagosChangesConfig {
     private int entries;
     private int minDays;
+    private ProfilePicture profilePicture;
+    private ProfilePicture defaultPicture;
+    private String customImageUrl;
 }

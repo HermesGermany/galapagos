@@ -103,6 +103,9 @@ public class UISupportController {
         result.setCustomLinks(customLinksConfig.getLinks());
         result.setChangelogEntries(changesConfig.getEntries());
         result.setChangelogMinDays(changesConfig.getMinDays());
+        result.setDefaultPicture(changesConfig.getDefaultPicture());
+        result.setProfilePicture(changesConfig.getProfilePicture());
+        result.setCustomImageUrl(changesConfig.getCustomImageUrl());
         return result;
     }
 
@@ -196,7 +199,7 @@ public class UISupportController {
 
     @GetMapping(value = "/api/util/supported-apikey-environments", produces = MediaType.APPLICATION_JSON_VALUE)
     public List<String> getEnvironmentsWithDeveloperApikeySupport() {
-        return kafkaClusters.getEnvironmentIds().stream().map(id -> supportsEnvironmentDeveloperApikey(id) ? id : null)
+        return kafkaClusters.getEnvironmentIds().stream().map(id -> supportsEnvironmentDeveloperApiKey(id) ? id : null)
                 .filter(Objects::nonNull).collect(Collectors.toList());
     }
 
@@ -216,9 +219,9 @@ public class UISupportController {
         return Optional.empty();
     }
 
-    private boolean supportsEnvironmentDeveloperApikey(String environmentId) {
+    private boolean supportsEnvironmentDeveloperApiKey(String environmentId) {
         return getConfluentAuthenticationModuleForEnv(environmentId)
-                .map(ConfluentCloudAuthenticationModule::supportsDeveloperApikeys).orElse(false);
+                .map(ConfluentCloudAuthenticationModule::supportsDeveloperApiKeys).orElse(false);
     }
 
     private Optional<ConfluentCloudAuthenticationModule> getConfluentAuthenticationModuleForEnv(String environmentId) {

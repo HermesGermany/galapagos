@@ -48,9 +48,7 @@ public class UpdateApplicationAclsListener
     public CompletableFuture<Void> handleSubscriptionCreated(SubscriptionEvent event) {
         return applicationsService
                 .getApplicationMetadata(getCluster(event).getId(), event.getMetadata().getClientApplicationId())
-                .map(metadata -> getCluster(event)
-                        .updateUserAcls(new ApplicationUser(metadata, getCluster(event).getId())))
-                .orElse(FutureUtil.noop());
+                .map(metadata -> updateApplicationAcls(getCluster(event), metadata)).orElse(FutureUtil.noop());
     }
 
     @Override
@@ -67,23 +65,27 @@ public class UpdateApplicationAclsListener
 
     @Override
     public CompletableFuture<Void> handleApplicationRegistered(ApplicationEvent event) {
-        return getCluster(event).updateUserAcls(new ApplicationUser(event));
+        return updateApplicationAcls(getCluster(event), event.getMetadata());
     }
 
     @Override
     public CompletableFuture<Void> handleApplicationAuthenticationChanged(ApplicationAuthenticationChangeEvent event) {
+        // early check here because of the potential removal of ACLs below
+        if (shallSkipUpdateAcls(getCluster(event))) {
+            return FutureUtil.noop();
+        }
         ApplicationMetadata prevMetadata = new ApplicationMetadata(event.getMetadata());
         prevMetadata.setAuthenticationJson(event.getOldAuthentication().toString());
 
         ApplicationUser newUser = new ApplicationUser(event);
-        ApplicationUser prevUser = new ApplicationUser(prevMetadata, event.getContext().getKafkaCluster().getId());
+        ApplicationUser prevUser = new ApplicationUser(prevMetadata, getCluster(event).getId());
         if ((newUser.getKafkaUserName() != null && newUser.getKafkaUserName().equals(prevUser.getKafkaUserName()))
                 || prevUser.getKafkaUserName() == null) {
             // Cluster implementation will deal about ACL delta
-            return getCluster(event).updateUserAcls(newUser);
+            return updateApplicationAcls(getCluster(event), event.getMetadata());
         }
         else {
-            return getCluster(event).updateUserAcls(newUser)
+            return updateApplicationAcls(getCluster(event), event.getMetadata())
                     .thenCompose(o -> getCluster(event).removeUserAcls(prevUser));
         }
     }
@@ -117,9 +119,7 @@ public class UpdateApplicationAclsListener
 
         return applicationsService
                 .getApplicationMetadata(getCluster(event).getId(), event.getMetadata().getOwnerApplicationId())
-                .map(metadata -> getCluster(event)
-                        .updateUserAcls(new ApplicationUser(metadata, getCluster(event).getId())))
-                .orElse(FutureUtil.noop());
+                .map(metadata -> updateApplicationAcls(getCluster(event), metadata)).orElse(FutureUtil.noop());
     }
 
     @Override
@@ -135,7 +135,7 @@ public class UpdateApplicationAclsListener
             ApplicationMetadata appMeta = applicationsService.getApplicationMetadata(cluster.getId(), appId)
                     .orElse(null);
             if (appMeta != null) {
-                result = result.thenCompose(o -> cluster.updateUserAcls(new ApplicationUser(appMeta, cluster.getId())));
+                result = result.thenCompose(o -> updateApplicationAcls(cluster, appMeta));
             }
         }
 
@@ -146,17 +146,14 @@ public class UpdateApplicationAclsListener
     public CompletableFuture<Void> handleAddTopicProducer(TopicAddProducerEvent event) {
         KafkaCluster cluster = getCluster(event);
         return applicationsService.getApplicationMetadata(cluster.getId(), event.getProducerApplicationId())
-                .map(metadata -> cluster.updateUserAcls(new ApplicationUser(metadata, cluster.getId())))
-                .orElse(FutureUtil.noop());
+                .map(metadata -> updateApplicationAcls(getCluster(event), metadata)).orElse(FutureUtil.noop());
 
     }
 
     @Override
     public CompletableFuture<Void> handleRemoveTopicProducer(TopicRemoveProducerEvent event) {
         return applicationsService.getApplicationMetadata(getCluster(event).getId(), event.getProducerApplicationId())
-                .map(metadata -> getCluster(event)
-                        .updateUserAcls(new ApplicationUser(metadata, getCluster(event).getId())))
-                .orElse(FutureUtil.noop());
+                .map(metadata -> updateApplicationAcls(getCluster(event), metadata)).orElse(FutureUtil.noop());
     }
 
     @Override
@@ -186,6 +183,18 @@ public class UpdateApplicationAclsListener
 
     private KafkaCluster getCluster(AbstractGalapagosEvent event) {
         return event.getContext().getKafkaCluster();
+    }
+
+    private boolean shallSkipUpdateAcls(KafkaCluster cluster) {
+        return kafkaClusters.getEnvironmentMetadata(cluster.getId()).map(config -> config.isNoUpdateApplicationAcls())
+                .orElse(false);
+    }
+
+    private CompletableFuture<Void> updateApplicationAcls(KafkaCluster cluster, ApplicationMetadata metadata) {
+        if (shallSkipUpdateAcls(cluster)) {
+            return FutureUtil.noop();
+        }
+        return cluster.updateUserAcls(new ApplicationUser(metadata, cluster.getId()));
     }
 
     private class ApplicationUser implements KafkaUser {

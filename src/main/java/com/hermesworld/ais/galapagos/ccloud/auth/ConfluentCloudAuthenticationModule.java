@@ -14,6 +14,7 @@ import java.text.MessageFormat;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
@@ -43,6 +44,12 @@ public class ConfluentCloudAuthenticationModule implements KafkaAuthenticationMo
     public ConfluentCloudAuthenticationModule(ConfluentCloudAuthConfig config) {
         this.client = new ConfluentApiClient();
         this.config = config;
+        try {
+            this.getDeveloperApiKeyValidity();
+        }
+        catch (DateTimeParseException e) {
+            throw new IllegalArgumentException("Invalid date for developer API key validity", e);
+        }
     }
 
     @Override
@@ -116,11 +123,11 @@ public class ConfluentCloudAuthenticationModule implements KafkaAuthenticationMo
         String apiKeyDesc = MessageFormat.format(API_DEVELOPER_KEY_DESC, userName);
         Duration validity = getDeveloperApiKeyValidity().orElseThrow();
         Instant expiresAt = Instant.now().plus(validity);
+        String finalUserName = userName.split("@")[0];
         return findServiceAccountForDev(userName)
-                .thenCompose(
-                        account -> account.map(a -> CompletableFuture.completedFuture(a))
-                                .orElseGet(() -> client.createServiceAccount("developer-" + userName,
-                                        devServiceAccountDescription(userName)).toFuture()))
+                .thenCompose(account -> account.map(a -> CompletableFuture.completedFuture(a))
+                        .orElseGet(() -> client.createServiceAccount("developer-" + finalUserName,
+                                devServiceAccountDescription(userName)).toFuture()))
                 .thenCompose(account -> client
                         .createApiKey(config.getEnvironmentId(), config.getClusterId(), apiKeyDesc, account.getId())
                         .toFuture())
@@ -138,10 +145,6 @@ public class ConfluentCloudAuthenticationModule implements KafkaAuthenticationMo
             return Optional.of(Instant.from(DateTimeFormatter.ISO_INSTANT.parse(authData.getString(EXPIRES_AT))));
         }
         return Optional.empty();
-    }
-
-    public boolean supportsDeveloperApikeys() {
-        return !config.getDeveloperApiKeyValidity().isEmpty();
     }
 
     private CompletableFuture<Optional<ServiceAccountInfo>> findServiceAccountForApp(String applicationId) {
@@ -185,7 +188,7 @@ public class ConfluentCloudAuthenticationModule implements KafkaAuthenticationMo
         return new CreateAuthenticationResult(info, keyInfo.getSecret().getBytes(StandardCharsets.UTF_8));
     }
 
-    private boolean supportsDeveloperApiKeys() {
+    public boolean supportsDeveloperApiKeys() {
         return getDeveloperApiKeyValidity().isPresent();
     }
 

@@ -1,8 +1,8 @@
 import { Component, Input } from '@angular/core';
 import { TopicType } from '../../../shared/services/topics.service';
 import { KafkaEnvironment } from '../../../shared/services/environments.service';
-import * as moment from 'moment';
 import { ChangeContext, Options } from '@angular-slider/ngx-slider';
+import { Duration } from 'luxon';
 
 type CleanUpStrategy = 'compact' | 'delete';
 
@@ -51,11 +51,11 @@ export class DataSettingsComponent {
 
     compactionTime = 24;
 
-    compactionTimeUnit = 'h';
+    compactionTimeUnit = 'hours';
 
     retentionTime = 7;
 
-    retentionTimeUnit = 'd';
+    retentionTimeUnit = 'days';
 
     criticalityType: Criticality = 'NORMAL';
 
@@ -115,7 +115,7 @@ export class DataSettingsComponent {
     }
 
     prepareDataForParent(): TopicSettingsData {
-        const initialSettings: TopicSettingsData = {
+        return {
             subscriptionApprovalRequired: this.subscriptionApprovalRequired,
             cleanUpStrategy: this.selectedCleanUpStrategy,
             compactionTimeMillis: this.toMilliSeconds(Number(this.compactionTime), this.compactionTimeUnit),
@@ -124,8 +124,6 @@ export class DataSettingsComponent {
             messagesPerDay: this.selectedDataSliderValue,
             messagesSize: this.selectedSizeSliderValue
         };
-
-        return initialSettings;
     }
 
     onUserChangeEndData(changeContext: ChangeContext) {
@@ -137,7 +135,9 @@ export class DataSettingsComponent {
     }
 
     private toMilliSeconds(time, unit) {
-        return moment.duration(time, unit).asMilliseconds();
+        const durationObject: any = {};
+        durationObject[unit] = time;
+        return Duration.fromObject(durationObject).toMillis();
     }
 
     private resolveData(index: number): MessagesPerDay {

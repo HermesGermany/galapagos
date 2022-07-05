@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import { EMPTY, Observable, ReplaySubject } from 'rxjs';
+import { EMPTY, firstValueFrom, Observable, ReplaySubject } from 'rxjs';
 import { jsonHeader, ReplayContainer } from './services-common';
 import { HttpClient } from '@angular/common/http';
-import { map, take } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 import { ToastService } from '../modules/toast/toast.service';
 
 const LOCAL_STORAGE_ENV_KEY = 'galapagos.environment';
@@ -71,6 +71,10 @@ export interface ChangelogEntry {
 
     change: Change;
 
+    profilePictureUrl: string;
+
+    defaultPictureUrl: string;
+
 }
 
 @Injectable()
@@ -84,7 +88,7 @@ export class EnvironmentsService {
 
 
     constructor(private http: HttpClient, toasts: ToastService) {
-        this.getEnvironments().pipe(take(1)).toPromise().then(envs => {
+        firstValueFrom(this.getEnvironments()).then(envs => {
             if (envs.length) {
                 const userEnv = localStorage.getItem(LOCAL_STORAGE_ENV_KEY) || envs[0].id;
                 this.setCurrentEnvironment(envs.find(env => env.id === userEnv) || envs[0]);
@@ -117,14 +121,15 @@ export class EnvironmentsService {
     }
 
     public prepareStaging(applicationId: string, environment: KafkaEnvironment): Promise<Staging> {
-        return this.http.get('/api/environments/' + environment.id + '/staging/' + applicationId)
-            .pipe(map(data => data as Staging)).toPromise();
+        return firstValueFrom(this.http.get('/api/environments/' + environment.id + '/staging/' + applicationId)
+            .pipe(map(data => data as Staging)));
     }
 
     public performStaging(applicationId: string, environment: KafkaEnvironment, selectedChanges: Change[]): Promise<StagingResult[]> {
         const body = JSON.stringify(selectedChanges);
-        return this.http.post('/api/environments/' + environment.id + '/staging/' + applicationId, body, { headers: jsonHeader() })
-            .pipe(map(data => data as StagingResult[])).toPromise();
+        return firstValueFrom(this.http.post('/api/environments/' + environment.id + '/staging/' + applicationId, body
+            , { headers: jsonHeader() })
+            .pipe(map(data => data as StagingResult[])));
     }
 
     public getFrameworkConfigTemplate(environmentId: string, framework: string): Observable<string> {

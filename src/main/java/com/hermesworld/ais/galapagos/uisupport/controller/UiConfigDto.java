@@ -1,10 +1,11 @@
 package com.hermesworld.ais.galapagos.uisupport.controller;
 
-import java.util.List;
-
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.hermesworld.ais.galapagos.changes.config.ProfilePicture;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.List;
 
 @JsonSerialize
 @Getter
@@ -18,5 +19,11 @@ public class UiConfigDto {
     private int changelogEntries;
 
     private int changelogMinDays;
+
+    private ProfilePicture profilePicture;
+
+    private ProfilePicture defaultPicture;
+
+    private String customImageUrl;
 
 }
