@@ -11,7 +11,7 @@
 	</parent>
 	<groupId>com.hermesworld.ais</groupId>
 	<artifactId>galapagos</artifactId>
-	<version>2.5.0</version>
+	<version>2.5.1-SNAPSHOT</version>
 	<name>Galapagos</name>
 	<description>A self-service tool for managing Kafka Topics and associated JSON schemas.</description>
 
