@@ -3,11 +3,10 @@ package com.hermesworld.ais.galapagos.security.impl;
 import com.hermesworld.ais.galapagos.events.EventContextSource;
 import com.hermesworld.ais.galapagos.security.AuditPrincipal;
 import com.hermesworld.ais.galapagos.security.CurrentUserService;
-import org.keycloak.KeycloakSecurityContext;
-import org.keycloak.adapters.springsecurity.token.KeycloakAuthenticationToken;
-import org.keycloak.representations.IDToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -20,39 +19,20 @@ public class DefaultCurrentUserService implements CurrentUserService, EventConte
 
     @Override
     public Optional<String> getCurrentUserName() {
-        SecurityContext context = SecurityContextHolder.getContext();
-        if (context.getAuthentication() == null || context.getAuthentication().getPrincipal() == null) {
-            return Optional.empty();
-        }
-
-        return Optional.of(context.getAuthentication().getName());
+        return getOICDUser().map(oidcUser -> oidcUser.getPreferredUsername())
+                .flatMap(s -> StringUtils.isEmpty(s) ? Optional.empty() : Optional.of(s));
     }
 
     @Override
     public Optional<AuditPrincipal> getCurrentPrincipal() {
-        return getKeycloakIDToken().map(token -> new AuditPrincipal(token.getPreferredUsername(), token.getName()));
+        return getOICDUser().map(
+                user -> new AuditPrincipal(user.getIdToken().getPreferredUsername(), user.getIdToken().getFullName()));
     }
 
     @Override
     public Optional<String> getCurrentUserEmailAddress() {
-        return getKeycloakIDToken().map(token -> token.getEmail())
+        return getOICDUser().map(user -> user.getEmail())
                 .flatMap(s -> StringUtils.isEmpty(s) ? Optional.empty() : Optional.of(s));
-    }
-
-    private Optional<IDToken> getKeycloakIDToken() {
-        SecurityContext context = SecurityContextHolder.getContext();
-        if (context.getAuthentication() == null || context.getAuthentication().getPrincipal() == null
-                || !(context.getAuthentication() instanceof KeycloakAuthenticationToken)) {
-            return Optional.empty();
-        }
-
-        KeycloakAuthenticationToken principal = (KeycloakAuthenticationToken) context.getAuthentication();
-        KeycloakSecurityContext keycloakContext = principal.getAccount().getKeycloakSecurityContext();
-        IDToken token = keycloakContext.getIdToken();
-        if (token == null) {
-            token = keycloakContext.getToken();
-        }
-        return Optional.ofNullable(token);
     }
 
     @Override
@@ -67,7 +47,7 @@ public class DefaultCurrentUserService implements CurrentUserService, EventConte
     @Override
     /**
      * Checks from the Security Context, if the current user has the role of an Administrator
-     * 
+     *
      * @return true if the current user has the role of an Administrator, else false
      */
     public boolean isAdmin() {
@@ -77,6 +57,17 @@ public class DefaultCurrentUserService implements CurrentUserService, EventConte
         }
         return context.getAuthentication().getAuthorities().stream()
                 .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
+    }
+
+    private Optional<OidcUser> getOICDUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() != null
+                && authentication.getPrincipal() instanceof OidcUser) {
+            OidcUser oidcUser = ((OidcUser) authentication.getPrincipal());
+            System.out.println(oidcUser);
+            return Optional.of(oidcUser);
+        }
+        return Optional.empty();
     }
 
 }

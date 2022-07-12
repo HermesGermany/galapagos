@@ -51,23 +51,8 @@ const keycloakService = new KeycloakService();
 export class AppModule implements DoBootstrap {
 
     ngDoBootstrap(app: ApplicationRef) {
-        // use fetch as it does not require any other services or modules to be loaded
-        fetch('/keycloak/config.json', { method: 'GET' })
-            .then(resp => resp.json())
-            .then(config => this.initKeycloak(config))
-            .then(() => app.bootstrap(AppComponent))
-            .catch(err => console.error('Could not initialize Keycloak. Application cannot be initialized'));
+
     }
 
-    private initKeycloak(config: any): Promise<any> {
-        return keycloakService.init({
-            config: config,
-            initOptions: {
-                onLoad: 'login-required',
-                checkLoginIframe: false
-            },
-            enableBearerInterceptor: true,
-            bearerExcludedUrls: ['/assets']
-        });
-    }
+
 }
