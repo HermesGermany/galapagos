@@ -79,9 +79,7 @@ public class ConfluentCloudAuthenticationModule implements KafkaAuthenticationMo
                                 appServiceAccountDescription(applicationId)).toFuture()))
                 .thenCompose(account -> client
                         .createApiKey(config.getEnvironmentId(), config.getClusterId(), apiKeyDesc, account.getId())
-                        .toFuture().thenApply(keyInfo -> {
-                            return toCreateAuthResult(keyInfo, null, account.getId());
-                        }));
+                        .toFuture().thenApply(keyInfo -> toCreateAuthResult(keyInfo, null, account.getId())));
     }
 
     @Override
@@ -150,7 +148,7 @@ public class ConfluentCloudAuthenticationModule implements KafkaAuthenticationMo
         return Optional.empty();
     }
 
-    private CompletableFuture<Optional<ServiceAccountInfo>> findServiceAccountForApp(String applicationId) {
+    public CompletableFuture<Optional<ServiceAccountInfo>> findServiceAccountForApp(String applicationId) {
         String desc = appServiceAccountDescription(applicationId);
         return ensureClientLoggedIn().thenCompose(o -> client.listServiceAccounts().toFuture())
                 .thenApply(ls -> ls.stream().filter(acc -> desc.equals(acc.getServiceDescription())).findAny());
