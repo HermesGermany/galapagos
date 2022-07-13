@@ -20,6 +20,7 @@ import { Location } from '@angular/common';
 import { LoginComponent } from '../../../login/login.component';
 import { FormsModule } from '@angular/forms';
 import { SpinnerWhileModule } from '../../../shared/modules/spinner-while/spinner-while.module';
+import { KeycloakService } from 'keycloak-angular';
 
 describe('SchemaSectionComponent', () => {
     let component: SchemaSectionComponent;
@@ -52,7 +53,8 @@ describe('SchemaSectionComponent', () => {
                 NgbModal,
                 Location,
                 TranslateService,
-                LoginComponent
+                LoginComponent,
+                KeycloakService
             ]
         }).compileComponents();
         fixture = TestBed.createComponent(SchemaSectionComponent);
@@ -91,6 +93,8 @@ describe('SchemaSectionComponent', () => {
 
         };
         component.topic = topic;
+        const keycloak = fixture.debugElement.injector.get(KeycloakService);
+        spyOn(keycloak, 'getUserRoles').and.returnValue(['admin']);
         fixture.detectChanges();
     }));
 
@@ -140,8 +144,11 @@ describe('SchemaSectionComponent', () => {
             toggles: {
                 subscriptionApproval: 'false',
                 schemaDeleteWithSub: 'true'
-            }
 
+            },
+            galapagos:{
+                instanceName:'test-instance'
+            }
         }));
 
         component.editSchemaMode = false;
@@ -216,6 +223,9 @@ describe('SchemaSectionComponent', () => {
             toggles: {
                 subscriptionApproval: 'false',
                 schemaDeleteWithSub: 'false'
+            },
+            galapagos:{
+                instanceName:'test-instance'
             }
 
         }));
@@ -276,6 +286,9 @@ describe('SchemaSectionComponent', () => {
             toggles: {
                 subscriptionApproval: 'false',
                 schemaDeleteWithSub: 'false'
+            },
+            galapagos:{
+                instanceName:'test-instance'
             }
 
         }));

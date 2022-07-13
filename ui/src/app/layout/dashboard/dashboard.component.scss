@@ -40,3 +40,18 @@
         }
     }
 }
+
+.imageContainer {
+    position: relative;
+    top: 0;
+    left: 0;
+}
+
+.changeLogImage {
+    position: relative;
+    top: 1px;
+    left: 1px;
+    height: 45px !important;
+    border-radius: 50%;
+}
+

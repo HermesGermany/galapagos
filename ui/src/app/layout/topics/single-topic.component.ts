@@ -54,7 +54,6 @@ export class SingleTopicComponent implements OnInit {
                     const envId = params.get('environment');
                     firstValueFrom(environmentsService
                         .getEnvironments()
-
                     ).then(envs => {
                         const env = envs.find(e => e.id === envId);
                         if (env) {
@@ -125,7 +124,7 @@ export class SingleTopicComponent implements OnInit {
                         apps.filter(
                             app =>
                                 (!ownerAppId || app.id !== ownerAppId) &&
-                                    !subs.find(sub => sub.clientApplication && sub.clientApplication.id === app.id)
+                                !subs.find(sub => sub.clientApplication && sub.clientApplication.id === app.id)
                         )
                     )
                 );

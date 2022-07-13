@@ -72,6 +72,7 @@ public class KafkaRepositoryContainerImpl implements KafkaRepositoryContainer {
     public void dispose() {
         if (this.consumerThread != null) {
             this.consumer.wakeup();
+            this.consumerThread.interrupt();
             this.consumerThread = null;
         }
     }

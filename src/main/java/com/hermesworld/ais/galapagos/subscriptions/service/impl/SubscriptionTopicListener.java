@@ -72,6 +72,11 @@ public class SubscriptionTopicListener implements TopicEventsListener {
     }
 
     @Override
+    public CompletableFuture<Void> handleTopicSchemaDeleted(TopicSchemaRemovedEvent event) {
+        return FutureUtil.noop();
+    }
+
+    @Override
     public CompletableFuture<Void> handleTopicSubscriptionApprovalRequiredFlagChanged(TopicEvent event) {
         KafkaCluster cluster = event.getContext().getKafkaCluster();
         CompletableFuture<Void> result = FutureUtil.noop();

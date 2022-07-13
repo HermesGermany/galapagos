@@ -9,6 +9,7 @@ import com.hermesworld.ais.galapagos.changes.Change;
 import com.hermesworld.ais.galapagos.changes.ChangeType;
 import com.hermesworld.ais.galapagos.kafka.TopicCreateParams;
 import com.hermesworld.ais.galapagos.subscriptions.SubscriptionMetadata;
+import com.hermesworld.ais.galapagos.topics.SchemaCompatCheckMode;
 import com.hermesworld.ais.galapagos.topics.SchemaMetadata;
 import com.hermesworld.ais.galapagos.topics.TopicMetadata;
 
@@ -103,6 +104,10 @@ public abstract class ChangeBase implements ApplicableChange {
 
     public static ChangeBase publishTopicSchemaVersion(String topicName, SchemaMetadata schemaVersion) {
         return new PublishTopicSchemaVersionChange(topicName, schemaVersion);
+    }
+
+    public static ChangeBase deleteTopicSchemaVersion(String topicName) {
+        return new DeleteTopicSchemaVersionChange(topicName);
     }
 
     public static ChangeBase addTopicProducer(String topicName, String producerApplicationId) {
@@ -587,7 +592,34 @@ final class PublishTopicSchemaVersionChange extends ChangeBase {
 
     @Override
     public CompletableFuture<?> applyTo(ApplyChangeContext context) {
-        return context.getTopicService().addTopicSchemaVersion(context.getTargetEnvironmentId(), schemaMetadata);
+        return context.getTopicService().addTopicSchemaVersion(context.getTargetEnvironmentId(), schemaMetadata,
+                SchemaCompatCheckMode.SKIP_SCHEMA_CHECK);
+    }
+
+}
+
+@JsonSerialize
+final class DeleteTopicSchemaVersionChange extends ChangeBase {
+
+    private final String topicName;
+
+    public DeleteTopicSchemaVersionChange(String topicName) {
+        super(ChangeType.TOPIC_SCHEMA_VERSION_DELETED);
+        this.topicName = topicName;
+    }
+
+    public String getTopicName() {
+        return topicName;
+    }
+
+    @Override
+    protected boolean isEqualTo(ChangeBase other) {
+        return false;
+    }
+
+    @Override
+    public CompletableFuture<?> applyTo(ApplyChangeContext context) {
+        throw new UnsupportedOperationException("Schema deletion cannot be staged");
     }
 
 }

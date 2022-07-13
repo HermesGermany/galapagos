@@ -72,7 +72,7 @@
                         </thead>
                         <tbody>
                             <tr *ngFor="let req of userRequests | async">
-                                <td>{{ niceTimestamp(req.createdAt) }}</td>
+                                <td>{{ niceTimestamp(req.createdAt) | async }}</td>
                                 <td>{{ toAppName(req.applicationId) | async }}</td>
                                 <td>
                                     <span class="badge" [class.badge-secondary]="req.state === 'SUBMITTED'"
@@ -80,7 +80,7 @@
                                         [class.badge-warning]="req.state === 'RESIGNED'"
                                         [class.badge-danger]="req.state === 'REJECTED' || req.state === 'REVOKED'">{{ req.state }}</span>
                                 </td>
-                                <td>{{ niceTimestamp(req.lastStatusChangeAt) }}</td>
+                                <td>{{ niceTimestamp(req.lastStatusChangeAt) | async }}</td>
                                 <td>{{ req.lastStatusChangeBy }}</td>
                                 <td>
                                     <button type="button" class="btn btn-danger" (click)="d.while(cancelRequest(req))"

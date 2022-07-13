@@ -221,6 +221,11 @@ public class TopicServiceImplIntegrationTest {
         }
 
         @Override
+        public CompletableFuture<Void> handleTopicSchemaDeleted(TopicSchemaRemovedEvent event) {
+            throw new UnsupportedOperationException("Unexpected event received during test");
+        }
+
+        @Override
         public CompletableFuture<Void> handleTopicSubscriptionApprovalRequiredFlagChanged(TopicEvent event) {
             throw new UnsupportedOperationException("Unexpected event received during test");
         }

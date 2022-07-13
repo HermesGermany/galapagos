@@ -110,6 +110,8 @@ public class ChangeDeserizalizer extends StdDeserializer<Change> {
             case TOPIC_SCHEMA_VERSION_PUBLISHED:
                 return ChangeBase.publishTopicSchemaVersion(tree.findValue(TOPIC_NAME).asText(),
                         mapper.treeToValue(tree.findValue("schemaMetadata"), SchemaMetadata.class));
+            case TOPIC_SCHEMA_VERSION_DELETED:
+                return ChangeBase.deleteTopicSchemaVersion(tree.findValue(TOPIC_NAME).asText());
             case APPLICATION_REGISTERED:
                 return ChangeBase.registerApplication(tree.findValue("applicationId").asText(),
                         mapper.treeToValue(tree.findValue("applicationMetadata"), ApplicationMetadata.class));
