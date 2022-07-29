@@ -55,7 +55,7 @@ public class UpdateConfluentAuthMetadataJob implements AdminJob {
                         .findServiceAccountForApp(app.getApplicationId()).get();
 
                 if (!authenticationJson.has("serviceAccountId") && serviceAccountInfo.isPresent()) {
-                    authenticationJson.put("serviceAccountId", serviceAccountInfo.get().getId());
+                    authenticationJson.put("serviceAccountId", serviceAccountInfo.get().getResourceId());
                     app.setAuthenticationJson(authenticationJson.toString());
                     KafkaCluster cluster = kafkaClusters.getEnvironment(environmentId).orElseThrow();
                     cluster.getRepository("application-metadata", ApplicationMetadata.class).save(app).get();
