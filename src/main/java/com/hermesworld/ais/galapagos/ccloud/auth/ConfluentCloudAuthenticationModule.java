@@ -79,7 +79,7 @@ public class ConfluentCloudAuthenticationModule implements KafkaAuthenticationMo
                                 appServiceAccountDescription(applicationId)).toFuture())
                         .thenCompose(acc -> client
                                 .createApiKey(config.getEnvironmentId(), config.getClusterId(), apiKeyDesc, acc.getId())
-                                .toFuture().thenApply(keyInfo -> toKeyInfoWithServiceAccountIdForApp(acc, keyInfo)))
+                                .toFuture().thenApply(keyInfo -> toKeyInfoWithServiceAccountId(acc, keyInfo)))
                         .thenApply(keyInfo -> toCreateAuthResult(keyInfo, null)));
     }
 
@@ -132,7 +132,7 @@ public class ConfluentCloudAuthenticationModule implements KafkaAuthenticationMo
                                 devServiceAccountDescription(userName)).toFuture())
                         .thenCompose(acc -> client
                                 .createApiKey(config.getEnvironmentId(), config.getClusterId(), apiKeyDesc, acc.getId())
-                                .toFuture().thenApply(keyInfo -> toKeyInfoWithServiceAccountIdForDev(acc, keyInfo)))
+                                .toFuture().thenApply(keyInfo -> toKeyInfoWithServiceAccountId(acc, keyInfo)))
                         .thenApply(keyInfo -> toCreateAuthResult(keyInfo, expiresAt)));
     }
 
@@ -155,12 +155,7 @@ public class ConfluentCloudAuthenticationModule implements KafkaAuthenticationMo
                 .thenApply(ls -> ls.stream().filter(acc -> desc.equals(acc.getServiceDescription())).findAny());
     }
 
-    private ApiKeyInfo toKeyInfoWithServiceAccountIdForApp(ServiceAccountInfo serviceAccountInfo, ApiKeyInfo keyInfo) {
-        keyInfo.setAccountId(serviceAccountInfo.getResourceId());
-        return keyInfo;
-    }
-
-    private ApiKeyInfo toKeyInfoWithServiceAccountIdForDev(ServiceAccountInfo serviceAccountInfo, ApiKeyInfo keyInfo) {
+    private ApiKeyInfo toKeyInfoWithServiceAccountId(ServiceAccountInfo serviceAccountInfo, ApiKeyInfo keyInfo) {
         keyInfo.setAccountId(serviceAccountInfo.getResourceId());
         return keyInfo;
     }
