@@ -155,9 +155,9 @@ createKafkaCluster () {
   # remove files which would otherwise cause keytool errors
   rm -f "$TMP_FILES_DIR/truststore.jks"
   rm -f "$TMP_FILES_DIR/server.jks"
-  "$JAVA_BASE_DIR/bin/keytool" -import -trustcacerts -noprompt -alias ca -file $CA_FILE -keystore "$TMP_FILES_DIR/truststore.jks" -storepass changeit
+  "$JAVA_BASE_DIR/bin/keytool" -import -trustcacerts -noprompt -alias ca -file $CA_FILE -keystore "$TMP_FILES_DIR/truststore.jks" -storepass changeit -deststoretype JKS
   $OPENSSL_CMD pkcs12 -export -in "$TMP_FILES_DIR/server.cer" -inkey "$TMP_FILES_DIR/server.key" -out "$TMP_FILES_DIR/server.p12" -name server -CAfile $CA_FILE -caname root -password pass:changeit
-  "$JAVA_BASE_DIR/bin/keytool" -importkeystore -deststorepass changeit -destkeypass changeit -destkeystore "$TMP_FILES_DIR/server.jks" -srckeystore "$TMP_FILES_DIR/server.p12" -srcstoretype PKCS12 -srcstorepass changeit -alias server
+  "$JAVA_BASE_DIR/bin/keytool" -importkeystore -deststorepass changeit -destkeypass changeit -destkeystore "$TMP_FILES_DIR/server.jks" -deststoretype JKS -srckeystore "$TMP_FILES_DIR/server.p12" -srcstoretype PKCS12 -srcstorepass changeit -alias server
   
   echo "changeit" > "$TMP_FILES_DIR/keystorepass"
 
