@@ -22,6 +22,8 @@ public class ServiceAccountInfo {
 
     private String serviceName;
 
+    private String resourceId;
+
     private String serviceDescription;
 
 }
