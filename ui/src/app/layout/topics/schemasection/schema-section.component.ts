@@ -7,7 +7,6 @@ import { firstValueFrom, Observable } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ServerInfoService } from '../../../shared/services/serverinfo.service';
-import { KeycloakService } from 'keycloak-angular';
 
 @Component({
     selector: 'app-schema-section',
@@ -50,8 +49,7 @@ export class SchemaSectionComponent implements OnInit, OnChanges {
         private translateService: TranslateService,
         private toasts: ToastService,
         private modalService: NgbModal,
-        private serverInfo: ServerInfoService,
-        private keycloakService: KeycloakService
+        private serverInfo: ServerInfoService
     ) {
         this.currentText = translateService.stream('(current)');
     }
@@ -70,7 +68,7 @@ export class SchemaSectionComponent implements OnInit, OnChanges {
 
         this.selectedEnvironment = this.environmentsService.getCurrentEnvironment();
 
-        this.isAdmin = this.keycloakService.getUserRoles().some(role => role === 'admin');
+        //  this.isAdmin = this.keycloakService.getUserRoles().some(role => role === 'admin');
     }
 
     async ngOnChanges(changes: SimpleChanges) {

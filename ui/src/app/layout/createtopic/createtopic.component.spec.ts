@@ -2,7 +2,6 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { LanguageTranslationModule } from '../../shared/modules/language-translation/language-translation.module';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
-import { KeycloakService } from 'keycloak-angular';
 import { ToastService } from '../../shared/modules/toast/toast.service';
 import { EnvironmentsService } from '../../shared/services/environments.service';
 import { ApplicationsService } from '../../shared/services/applications.service';
@@ -36,7 +35,6 @@ describe('CreateTopicComponent', () => {
             ],
             declarations: [CreateTopicComponent],
             providers: [TranslateService,
-                KeycloakService,
                 ToastService,
                 TopicsService,
                 ApiKeyService,

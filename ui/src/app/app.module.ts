@@ -7,9 +7,6 @@ import { LanguageTranslationModule } from './shared/modules/language-translation
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
-import { AuthGuard } from './shared';
-
-import { KeycloakAngularModule, KeycloakService } from 'keycloak-angular';
 import { ApplicationsService } from './shared/services/applications.service';
 import { EnvironmentsService } from './shared/services/environments.service';
 import { ToastService } from './shared/modules/toast/toast.service';
@@ -20,8 +17,16 @@ import { HIGHLIGHT_OPTIONS } from 'ngx-highlightjs';
 import { getHighlightLanguages } from './layout/topics/topics.module';
 import { ApiKeyService } from './shared/services/apikey.service';
 import { CertificateService } from './shared/services/certificates.service';
+import { AuthConfig, OAuthModule, OAuthService } from 'angular-oauth2-oidc';
 
-const keycloakService = new KeycloakService();
+const authConfig: AuthConfig = {
+    issuer: 'https://keycloak.a0695.npr.hc.de/auth/realms/galapagos',
+    redirectUri: window.location.origin,
+    clientId: 'webapp',
+    responseType: 'code',
+    strictDiscoveryDocumentValidation: false,
+    scope: 'openid'
+};
 
 @NgModule({
     imports: [
@@ -31,14 +36,11 @@ const keycloakService = new KeycloakService();
         HttpClientModule,
         LanguageTranslationModule,
         AppRoutingModule,
-        KeycloakAngularModule
+        OAuthModule.forRoot()
     ],
     declarations: [AppComponent],
-    providers: [AuthGuard, ApplicationsService, EnvironmentsService, TopicsService, ApiKeyService, ToastService, CertificateService,
-        ServerInfoService, {
-            provide: KeycloakService,
-            useValue: keycloakService
-        },
+    providers: [ApplicationsService, EnvironmentsService, TopicsService, ApiKeyService, ToastService, CertificateService,
+        ServerInfoService,
         {
             provide: HIGHLIGHT_OPTIONS,
             useValue: {
@@ -49,10 +51,20 @@ const keycloakService = new KeycloakService();
     ]
 })
 export class AppModule implements DoBootstrap {
-
-    ngDoBootstrap(app: ApplicationRef) {
-
+    constructor(private oauthService: OAuthService) {
     }
 
-
+    ngDoBootstrap(app: ApplicationRef) {
+        this.oauthService.configure(authConfig);
+        this.oauthService.loadDiscoveryDocumentAndTryLogin().then(() => {
+            if (!this.oauthService.hasValidAccessToken()) {
+                this.oauthService.initLoginFlow();
+            } else {
+                this.oauthService.loadUserProfile().then(user => {
+                    app.bootstrap(AppComponent);
+                    console.log(JSON.stringify(user));
+                });
+            }
+        });
+    }
 }

@@ -7,7 +7,6 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { PageHeaderModule } from '../../../shared/modules';
-import { KeycloakService } from 'keycloak-angular';
 import { By } from '@angular/platform-browser';
 import { Routes } from '@angular/router';
 import { AdminComponent } from '../../admin/admin.component';
@@ -40,7 +39,6 @@ describe('SidebarComponent', () => {
             ],
             declarations: [SidebarComponent],
             providers: [TranslateService,
-                KeycloakService,
                 Location,
                 ApplicationsService
             ]
@@ -55,15 +53,15 @@ describe('SidebarComponent', () => {
     });
 
     it('should not display Administration Section when user is no admin', (() => {
-        const keycloak = fixture.debugElement.injector.get(KeycloakService);
-        spyOn(keycloak, 'getUserRoles').and.returnValue(['user']);
+        //     const keycloak = fixture.debugElement.injector.get(KeycloakService);
+        //   spyOn(keycloak, 'getUserRoles').and.returnValue(['user']);
         fixture.detectChanges();
         expect(fixture.debugElement.query(By.css('#adminSection'))).toBeNull();
     }));
 
     it('should display Administration Section when user is admin', (() => {
-        const keycloak = fixture.debugElement.injector.get(KeycloakService);
-        spyOn(keycloak, 'getUserRoles').and.returnValue(['admin']);
+        //    const keycloak = fixture.debugElement.injector.get(KeycloakService);
+        //  spyOn(keycloak, 'getUserRoles').and.returnValue(['admin']);
         fixture.detectChanges();
         expect(fixture.debugElement.query(By.css('#adminSection'))).not.toBeNull();
     }));

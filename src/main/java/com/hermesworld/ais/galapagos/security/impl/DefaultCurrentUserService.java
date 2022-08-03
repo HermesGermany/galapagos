@@ -19,19 +19,19 @@ public class DefaultCurrentUserService implements CurrentUserService, EventConte
 
     @Override
     public Optional<String> getCurrentUserName() {
-        return getOICDUser().map(oidcUser -> oidcUser.getPreferredUsername())
+        return getOIDCUser().map(oidcUser -> oidcUser.getPreferredUsername())
                 .flatMap(s -> StringUtils.isEmpty(s) ? Optional.empty() : Optional.of(s));
     }
 
     @Override
     public Optional<AuditPrincipal> getCurrentPrincipal() {
-        return getOICDUser().map(
-                user -> new AuditPrincipal(user.getIdToken().getPreferredUsername(), user.getIdToken().getFullName()));
+        return getOIDCUser()
+                .map(user -> new AuditPrincipal(user.getIdToken().getGivenName(), user.getIdToken().getFullName()));
     }
 
     @Override
     public Optional<String> getCurrentUserEmailAddress() {
-        return getOICDUser().map(user -> user.getEmail())
+        return getOIDCUser().map(user -> user.getEmail())
                 .flatMap(s -> StringUtils.isEmpty(s) ? Optional.empty() : Optional.of(s));
     }
 
@@ -59,11 +59,13 @@ public class DefaultCurrentUserService implements CurrentUserService, EventConte
                 .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
     }
 
-    private Optional<OidcUser> getOICDUser() {
+    @Override
+    public Optional<OidcUser> getOIDCUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        System.out.println(authentication);
         if (authentication != null && authentication.getPrincipal() != null
                 && authentication.getPrincipal() instanceof OidcUser) {
-            OidcUser oidcUser = ((OidcUser) authentication.getPrincipal());
+            OidcUser oidcUser = (OidcUser) authentication.getPrincipal();
             System.out.println(oidcUser);
             return Optional.of(oidcUser);
         }

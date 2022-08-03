@@ -17,17 +17,15 @@ import { SidebarComponent } from './components/sidebar/sidebar.component';
 import { GalapagosToastComponent } from '../shared/modules/toast/toast.component';
 import { ToastService } from '../shared/modules/toast/toast.service';
 import { EnvironmentsService } from '../shared/services/environments.service';
-import { KeycloakService } from 'keycloak-angular';
 import { ApplicationsService } from '../shared/services/applications.service';
 import { ServerInfoService } from '../shared/services/serverinfo.service';
 import { StagingModule } from './staging/staging.module';
 import { AdminComponent } from './admin/admin.component';
-import { KeycloakInstance } from 'keycloak-js';
 
 describe('LayoutComponent', () => {
     let component: LayoutComponent;
     let fixture: ComponentFixture<LayoutComponent>;
-    let keycloak: KeycloakService;
+    // let keycloak: KeycloakService;
     const routes: Routes = [
         { path: 'admin', component: AdminComponent }
     ];
@@ -47,7 +45,6 @@ describe('LayoutComponent', () => {
             ],
             declarations: [LayoutComponent, HeaderComponent, SidebarComponent, GalapagosToastComponent],
             providers: [TranslateService,
-                KeycloakService,
                 Location,
                 ToastService,
                 EnvironmentsService,
@@ -58,15 +55,15 @@ describe('LayoutComponent', () => {
 
         fixture = TestBed.createComponent(LayoutComponent);
         component = fixture.componentInstance;
-        keycloak = fixture.debugElement.injector.get(KeycloakService);
+        //  keycloak = fixture.debugElement.injector.get(KeycloakService);
         const token = {
             // eslint-disable-next-line @typescript-eslint/naming-convention
             given_name: 'John',
             // eslint-disable-next-line @typescript-eslint/naming-convention
             family_name: 'Doe'
         };
-        const ki: jasmine.SpyObj<KeycloakInstance> = jasmine.createSpyObj([], { idTokenParsed: token });
-        spyOn(keycloak, 'getKeycloakInstance').and.returnValue(ki);
+        //      const ki: jasmine.SpyObj<KeycloakInstance> = jasmine.createSpyObj([], { idTokenParsed: token });
+        //    spyOn(keycloak, 'getKeycloakInstance').and.returnValue(ki);
     });
 
     it('should create Layout Component', () => {
@@ -76,7 +73,7 @@ describe('LayoutComponent', () => {
     it('should not be null when navigation to administration section as admin', (() => {
         const ngZone = TestBed.get(NgZone);
         const router = TestBed.get(Router);
-        spyOn(keycloak, 'getUserRoles').and.returnValue(['admin']);
+        //  spyOn(keycloak, 'getUserRoles').and.returnValue(['admin']);
 
         ngZone.run(() => router.navigate(['admin'])).then();
         fixture.detectChanges();

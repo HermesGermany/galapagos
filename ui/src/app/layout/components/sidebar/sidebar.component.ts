@@ -1,7 +1,6 @@
-import { Component, Output, EventEmitter, OnInit } from '@angular/core';
-import { Router, NavigationEnd } from '@angular/router';
+import { Component, EventEmitter, OnInit, Output } from '@angular/core';
+import { NavigationEnd, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
-import { KeycloakService } from 'keycloak-angular';
 
 @Component({
     selector: 'app-sidebar',
@@ -18,7 +17,7 @@ export class SidebarComponent implements OnInit {
 
     isAdmin: boolean;
 
-    constructor(private translate: TranslateService, public router: Router, private keycloakService: KeycloakService) {
+    constructor(private translate: TranslateService, public router: Router) {
         this.router.events.subscribe(val => {
             if (
                 val instanceof NavigationEnd &&
@@ -35,7 +34,7 @@ export class SidebarComponent implements OnInit {
         this.collapsed = false;
         this.showMenu = '';
         this.pushRightClass = 'push-right';
-        this.isAdmin = this.keycloakService.getUserRoles().indexOf('admin') > -1;
+        //  this.isAdmin = this.keycloakService.getUserRoles().indexOf('admin') > -1;
     }
 
     eventCalled() {

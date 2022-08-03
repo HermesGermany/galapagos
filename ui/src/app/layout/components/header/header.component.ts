@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { ServerInfoService } from '../../../shared/services/serverinfo.service';
 import { NavigationEnd, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
-import { KeycloakService } from 'keycloak-angular';
 import { Observable } from 'rxjs';
 import { EnvironmentsService, KafkaEnvironment } from 'src/app/shared/services/environments.service';
 import { map } from 'rxjs/operators';
@@ -29,8 +28,8 @@ export class HeaderComponent implements OnInit {
 
     darkmodeActive: boolean;
 
-    constructor(private translate: TranslateService, public router: Router, private keycloak: KeycloakService,
-                private environments: EnvironmentsService,  private serverInfoService: ServerInfoService) {
+    constructor(private translate: TranslateService, public router: Router,
+                private environments: EnvironmentsService, private serverInfoService: ServerInfoService) {
 
     }
 
@@ -39,8 +38,8 @@ export class HeaderComponent implements OnInit {
 
         this.instanceNameInfo = this.serverInfoService.getServerInfo().pipe(map(info => info.galapagos.instanceName));
 
-        this.userName = Promise.resolve(this.keycloak.getKeycloakInstance().idTokenParsed.given_name
-            + ' ' + this.keycloak.getKeycloakInstance().idTokenParsed.family_name);
+        //     this.userName = Promise.resolve(this.keycloak.getKeycloakInstance().idTokenParsed.given_name
+        //       + ' ' + this.keycloak.getKeycloakInstance().idTokenParsed.family_name);
 
         this.router.events.subscribe(val => {
             if (
@@ -79,7 +78,7 @@ export class HeaderComponent implements OnInit {
     }
 
     onLoggedout() {
-        this.keycloak.logout();
+        //   this.keycloak.logout();
         return false;
     }
 

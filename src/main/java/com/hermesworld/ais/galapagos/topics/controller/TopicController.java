@@ -25,6 +25,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -345,6 +347,11 @@ public class TopicController {
         }
 
         return topicService.getTopicSchemaVersions(environmentId, topicName);
+    }
+
+    @GetMapping("/oidc-principal")
+    public OidcUser getOidcUserPrincipal(@AuthenticationPrincipal OidcUser principal) {
+        return userService.getOIDCUser().get();
     }
 
     // intentionally no /api - unprotected resource!

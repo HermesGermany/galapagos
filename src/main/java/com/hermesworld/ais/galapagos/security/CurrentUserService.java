@@ -1,15 +1,19 @@
 package com.hermesworld.ais.galapagos.security;
 
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+
 import java.util.Optional;
 
 public interface CurrentUserService {
 
-    public Optional<String> getCurrentUserName();
+    Optional<String> getCurrentUserName();
 
-    public Optional<AuditPrincipal> getCurrentPrincipal();
+     Optional<AuditPrincipal> getCurrentPrincipal();
 
-    public Optional<String> getCurrentUserEmailAddress();
+     Optional<String> getCurrentUserEmailAddress();
 
-    public boolean isAdmin();
+     Optional<OidcUser> getOIDCUser();
+
+     boolean isAdmin();
 
 }

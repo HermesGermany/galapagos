@@ -4,7 +4,6 @@ import { ApplicationInfo, ApplicationOwnerRequest, ApplicationsService } from '.
 import { combineLatest, firstValueFrom, Observable, of } from 'rxjs';
 
 import { map } from 'rxjs/operators';
-import { KeycloakService } from 'keycloak-angular';
 import { SortEvent } from './sortable.directive';
 import { toNiceTimestamp } from 'src/app/shared/util/time-util';
 import { TranslateService } from '@ngx-translate/core';
@@ -46,12 +45,12 @@ export class AdminComponent implements OnInit {
 
     searchTerm: string;
 
-    constructor(private applicationsService: ApplicationsService, private keycloakService: KeycloakService,
+    constructor(private applicationsService: ApplicationsService,
                 private translate: TranslateService) {
     }
 
     ngOnInit() {
-        this.isAdmin = this.keycloakService.getUserRoles().indexOf('admin') > -1;
+        // this.isAdmin = this.keycloakService.getUserRoles().indexOf('admin') > -1;
         // TODO move this to applicationService, for all and for user requests
         this.allRequests = combineLatest([this.applicationsService.getAllApplicationOwnerRequests(),
             this.applicationsService.getAvailableApplications(false)]).pipe(map(values => translateApps(values[0], values[1])))
