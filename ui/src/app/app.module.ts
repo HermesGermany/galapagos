@@ -20,12 +20,13 @@ import { CertificateService } from './shared/services/certificates.service';
 import { AuthConfig, OAuthModule, OAuthService } from 'angular-oauth2-oidc';
 
 const authConfig: AuthConfig = {
-    issuer: 'https://keycloak.a0695.npr.hc.de/auth/realms/galapagos',
-    redirectUri: window.location.origin,
-    clientId: 'webapp',
+    issuer: 'http://localhost:8180/auth/realms/oidc-demo',
+    redirectUri: 'http://localhost:8080/login/oauth2/code/oidc-demo',
+    clientId: 'oidcdemo',
     responseType: 'code',
     strictDiscoveryDocumentValidation: false,
-    scope: 'openid'
+    scope: 'openid',
+    showDebugInformation: true
 };
 
 @NgModule({
@@ -36,7 +37,12 @@ const authConfig: AuthConfig = {
         HttpClientModule,
         LanguageTranslationModule,
         AppRoutingModule,
-        OAuthModule.forRoot()
+        OAuthModule.forRoot({
+            resourceServer: {
+                allowedUrls: ['http:localhost:8080'],
+                sendAccessToken: true
+            }
+        })
     ],
     declarations: [AppComponent],
     providers: [ApplicationsService, EnvironmentsService, TopicsService, ApiKeyService, ToastService, CertificateService,
