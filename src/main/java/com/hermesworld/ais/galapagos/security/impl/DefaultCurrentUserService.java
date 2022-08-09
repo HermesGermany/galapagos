@@ -50,6 +50,7 @@ public class DefaultCurrentUserService implements CurrentUserService, EventConte
      *
      * @return true if the current user has the role of an Administrator, else false
      */
+    // TODO identify admin user in oauth
     public boolean isAdmin() {
         SecurityContext context = SecurityContextHolder.getContext();
         if (context.getAuthentication() == null || context.getAuthentication().getAuthorities() == null) {
@@ -59,14 +60,11 @@ public class DefaultCurrentUserService implements CurrentUserService, EventConte
                 .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
     }
 
-    @Override
-    public Optional<OidcUser> getOIDCUser() {
+    private Optional<OidcUser> getOIDCUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        System.out.println(authentication);
         if (authentication != null && authentication.getPrincipal() != null
                 && authentication.getPrincipal() instanceof OidcUser) {
             OidcUser oidcUser = (OidcUser) authentication.getPrincipal();
-            System.out.println(oidcUser);
             return Optional.of(oidcUser);
         }
         return Optional.empty();

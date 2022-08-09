@@ -21,12 +21,11 @@ import { AuthConfig, OAuthModule, OAuthService } from 'angular-oauth2-oidc';
 
 const authConfig: AuthConfig = {
     issuer: 'http://localhost:8180/auth/realms/oidc-demo',
-    redirectUri: 'http://localhost:8080/login/oauth2/code/oidc-demo',
+    redirectUri: window.location.origin,
     clientId: 'oidcdemo',
     responseType: 'code',
     strictDiscoveryDocumentValidation: false,
-    scope: 'openid',
-    showDebugInformation: true
+    scope: 'openid'
 };
 
 @NgModule({
@@ -39,7 +38,7 @@ const authConfig: AuthConfig = {
         AppRoutingModule,
         OAuthModule.forRoot({
             resourceServer: {
-                allowedUrls: ['http:localhost:8080'],
+                allowedUrls: ['http://localhost:8080'],
                 sendAccessToken: true
             }
         })
