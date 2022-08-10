@@ -5,6 +5,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { Observable } from 'rxjs';
 import { EnvironmentsService, KafkaEnvironment } from 'src/app/shared/services/environments.service';
 import { map } from 'rxjs/operators';
+import { OidcService } from '../../../shared/services/oidc.service';
 
 @Component({
     selector: 'app-header',
@@ -14,7 +15,7 @@ import { map } from 'rxjs/operators';
 export class HeaderComponent implements OnInit {
     public pushRightClass: string;
 
-    public userName: Promise<string>;
+    public userName: string;
 
     instanceNameInfo: Observable<string>;
 
@@ -29,7 +30,7 @@ export class HeaderComponent implements OnInit {
     darkmodeActive: boolean;
 
     constructor(private translate: TranslateService, public router: Router,
-                private environments: EnvironmentsService, private serverInfoService: ServerInfoService) {
+                private environments: EnvironmentsService, private serverInfoService: ServerInfoService, private oidcService: OidcService) {
 
     }
 
@@ -38,8 +39,9 @@ export class HeaderComponent implements OnInit {
 
         this.instanceNameInfo = this.serverInfoService.getServerInfo().pipe(map(info => info.galapagos.instanceName));
 
-        //     this.userName = Promise.resolve(this.keycloak.getKeycloakInstance().idTokenParsed.given_name
-        //       + ' ' + this.keycloak.getKeycloakInstance().idTokenParsed.family_name);
+        this.oidcService.userSubject.subscribe(user => {
+            this.userName = user.name;
+        });
 
         this.router.events.subscribe(val => {
             if (
@@ -78,7 +80,7 @@ export class HeaderComponent implements OnInit {
     }
 
     onLoggedout() {
-        //   this.keycloak.logout();
+        this.oidcService.logOut();
         return false;
     }
 
@@ -91,6 +93,7 @@ export class HeaderComponent implements OnInit {
     }
 
     darkmodeButton(): void {
+        console.log(this.userName);
         this.changeDarkmode(localStorage.getItem('galapagos.darkmode') === 'true');
     }
 

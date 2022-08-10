@@ -1,11 +1,19 @@
 package com.hermesworld.ais.galapagos.security.impl;
 
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.interfaces.DecodedJWT;
 import com.hermesworld.ais.galapagos.events.EventContextSource;
 import com.hermesworld.ais.galapagos.security.AuditPrincipal;
 import com.hermesworld.ais.galapagos.security.CurrentUserService;
+import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -16,6 +24,13 @@ import java.util.Optional;
 
 @Component
 public class DefaultCurrentUserService implements CurrentUserService, EventContextSource {
+    @Autowired
+    private OAuth2AuthorizedClientService clientService;
+
+    @Value("${spring.security.oauth2.client.registration.keycloak.client-id}")
+    private String clientId;
+
+    private static final String ROLES_KEY = "roles";
 
     @Override
     public Optional<String> getCurrentUserName() {
@@ -50,14 +65,23 @@ public class DefaultCurrentUserService implements CurrentUserService, EventConte
      *
      * @return true if the current user has the role of an Administrator, else false
      */
-    // TODO identify admin user in oauth
+
     public boolean isAdmin() {
         SecurityContext context = SecurityContextHolder.getContext();
+
         if (context.getAuthentication() == null || context.getAuthentication().getAuthorities() == null) {
             return false;
         }
-        return context.getAuthentication().getAuthorities().stream()
-                .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
+        SecurityContext securityContext = SecurityContextHolder.getContext();
+        OAuth2AuthenticationToken oauth2Token = (OAuth2AuthenticationToken) securityContext.getAuthentication();
+        OAuth2AuthorizedClient client = clientService
+                .loadAuthorizedClient(oauth2Token.getAuthorizedClientRegistrationId(), oauth2Token.getName());
+
+        String token = client.getAccessToken().getTokenValue();
+        DecodedJWT jwt = JWT.decode(token);
+
+        return new JSONObject(jwt.getClaim("resource_access").toString()).getJSONObject(clientId)
+                .getJSONArray(ROLES_KEY).toList().contains("admin");
     }
 
     private Optional<OidcUser> getOIDCUser() {
@@ -65,6 +89,7 @@ public class DefaultCurrentUserService implements CurrentUserService, EventConte
         if (authentication != null && authentication.getPrincipal() != null
                 && authentication.getPrincipal() instanceof OidcUser) {
             OidcUser oidcUser = (OidcUser) authentication.getPrincipal();
+
             return Optional.of(oidcUser);
         }
         return Optional.empty();

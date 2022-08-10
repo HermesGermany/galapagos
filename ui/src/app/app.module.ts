@@ -17,16 +17,9 @@ import { HIGHLIGHT_OPTIONS } from 'ngx-highlightjs';
 import { getHighlightLanguages } from './layout/topics/topics.module';
 import { ApiKeyService } from './shared/services/apikey.service';
 import { CertificateService } from './shared/services/certificates.service';
-import { AuthConfig, OAuthModule, OAuthService } from 'angular-oauth2-oidc';
+import { OAuthModule } from 'angular-oauth2-oidc';
+import { OidcService } from './shared/services/oidc.service';
 
-const authConfig: AuthConfig = {
-    issuer: 'http://localhost:8180/auth/realms/oidc-demo',
-    redirectUri: window.location.origin,
-    clientId: 'oidcdemo',
-    responseType: 'code',
-    strictDiscoveryDocumentValidation: false,
-    scope: 'openid'
-};
 
 @NgModule({
     imports: [
@@ -38,7 +31,6 @@ const authConfig: AuthConfig = {
         AppRoutingModule,
         OAuthModule.forRoot({
             resourceServer: {
-                allowedUrls: ['http://localhost:8080'],
                 sendAccessToken: true
             }
         })
@@ -56,20 +48,10 @@ const authConfig: AuthConfig = {
     ]
 })
 export class AppModule implements DoBootstrap {
-    constructor(private oauthService: OAuthService) {
+    constructor(private oidcService: OidcService) {
     }
 
     ngDoBootstrap(app: ApplicationRef) {
-        this.oauthService.configure(authConfig);
-        this.oauthService.loadDiscoveryDocumentAndTryLogin().then(() => {
-            if (!this.oauthService.hasValidAccessToken()) {
-                this.oauthService.initLoginFlow();
-            } else {
-                this.oauthService.loadUserProfile().then(user => {
-                    app.bootstrap(AppComponent);
-                    console.log(JSON.stringify(user));
-                });
-            }
-        });
+        this.oidcService.loadUser().then(() => app.bootstrap(AppComponent));
     }
 }

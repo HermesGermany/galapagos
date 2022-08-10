@@ -7,6 +7,7 @@ import { map } from 'rxjs/operators';
 import { SortEvent } from './sortable.directive';
 import { toNiceTimestamp } from 'src/app/shared/util/time-util';
 import { TranslateService } from '@ngx-translate/core';
+import { OidcService } from '../../shared/services/oidc.service';
 
 interface TranslatedApplicationOwnerRequest extends ApplicationOwnerRequest {
     applicationName?: string;
@@ -46,11 +47,14 @@ export class AdminComponent implements OnInit {
     searchTerm: string;
 
     constructor(private applicationsService: ApplicationsService,
-                private translate: TranslateService) {
+                private translate: TranslateService, private oidcService: OidcService) {
     }
 
     ngOnInit() {
-        // this.isAdmin = this.keycloakService.getUserRoles().indexOf('admin') > -1;
+        this.oidcService.rolesSubject.subscribe(roles => {
+            this.isAdmin = roles.some(role => role === 'admin');
+        });
+        console.log(this.isAdmin);
         // TODO move this to applicationService, for all and for user requests
         this.allRequests = combineLatest([this.applicationsService.getAllApplicationOwnerRequests(),
             this.applicationsService.getAvailableApplications(false)]).pipe(map(values => translateApps(values[0], values[1])))

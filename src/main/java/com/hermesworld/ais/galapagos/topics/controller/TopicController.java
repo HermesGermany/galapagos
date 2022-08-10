@@ -86,11 +86,6 @@ public class TopicController {
                 .collect(Collectors.toList());
     }
 
-    @GetMapping(value = "/hello")
-    public String d() {
-        return "hello!";
-    }
-
     @GetMapping(value = "/api/topicconfigs/{environmentId}/{topicName}", produces = MediaType.APPLICATION_JSON_VALUE)
     public List<TopicConfigEntryDto> getTopicConfig(@PathVariable String environmentId,
             @PathVariable String topicName) {
