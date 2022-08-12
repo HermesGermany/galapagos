@@ -4,6 +4,7 @@ import { ReplaySubject } from 'rxjs';
 import { JwtHelperService } from '@auth0/angular-jwt';
 
 const authConfig: AuthConfig = {
+    //TODO load from backend
     issuer: 'https://keycloak.a0695.npr.hc.de/auth/realms/galapagos',
     redirectUri: window.location.origin,
     clientId: 'webapp',
@@ -43,7 +44,7 @@ export class OidcService {
                 this.oauthService.initLoginFlow();
             } else {
                 this.oauthService.loadUserProfile().then(user => {
-                    const info: OIDCUserInfo = this.jwtHelper.decodeToken(this.oauthService.getAccessToken()) as OIDCUserInfo;
+                    const info = this.jwtHelper.decodeToken(this.oauthService.getAccessToken());
                     this.userSubject.next(info);
                     this.rolesSubject.next(info['resource_access'].webapp.roles);
                 });

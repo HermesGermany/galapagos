@@ -34,19 +34,19 @@ public class DefaultCurrentUserService implements CurrentUserService, EventConte
 
     @Override
     public Optional<String> getCurrentUserName() {
-        return getOIDCUser().map(oidcUser -> oidcUser.getPreferredUsername())
+        return getOidcUser().map(oidcUser -> oidcUser.getPreferredUsername())
                 .flatMap(s -> StringUtils.isEmpty(s) ? Optional.empty() : Optional.of(s));
     }
 
     @Override
     public Optional<AuditPrincipal> getCurrentPrincipal() {
-        return getOIDCUser()
+        return getOidcUser()
                 .map(user -> new AuditPrincipal(user.getIdToken().getGivenName(), user.getIdToken().getFullName()));
     }
 
     @Override
     public Optional<String> getCurrentUserEmailAddress() {
-        return getOIDCUser().map(user -> user.getEmail())
+        return getOidcUser().map(user -> user.getEmail())
                 .flatMap(s -> StringUtils.isEmpty(s) ? Optional.empty() : Optional.of(s));
     }
 
@@ -84,7 +84,7 @@ public class DefaultCurrentUserService implements CurrentUserService, EventConte
                 .getJSONArray(ROLES_KEY).toList().contains("admin");
     }
 
-    private Optional<OidcUser> getOIDCUser() {
+    private Optional<OidcUser> getOidcUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.getPrincipal() != null
                 && authentication.getPrincipal() instanceof OidcUser) {
