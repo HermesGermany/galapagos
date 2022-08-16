@@ -27,14 +27,14 @@ public class DefaultCurrentUserService implements CurrentUserService, EventConte
     @Autowired
     private OAuth2AuthorizedClientService clientService;
 
-    @Value("${spring.security.oauth2.client.registration.keycloak.client-id}")
+    @Value("${spring.security.oauth2.client.registration.google.client-id}")
     private String clientId;
 
     private static final String ROLES_KEY = "roles";
 
     @Override
     public Optional<String> getCurrentUserName() {
-        return getOidcUser().map(oidcUser -> oidcUser.getPreferredUsername())
+        return getOidcUser().map(oidcUser -> getUserNameFromOidcUser(oidcUser))
                 .flatMap(s -> StringUtils.isEmpty(s) ? Optional.empty() : Optional.of(s));
     }
 
@@ -82,6 +82,13 @@ public class DefaultCurrentUserService implements CurrentUserService, EventConte
 
         return new JSONObject(jwt.getClaim("resource_access").toString()).getJSONObject(clientId)
                 .getJSONArray(ROLES_KEY).toList().contains("admin");
+    }
+
+    private String getUserNameFromOidcUser(OidcUser user) {
+        if (StringUtils.hasText(user.getPreferredUsername())) {
+            return user.getPreferredUsername();
+        }
+        return user.getIdToken().getEmail();
     }
 
     private Optional<OidcUser> getOidcUser() {
