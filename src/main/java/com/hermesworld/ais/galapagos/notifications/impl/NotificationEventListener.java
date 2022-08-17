@@ -179,12 +179,42 @@ public class NotificationEventListener
 
     @Override
     public CompletableFuture<Void> handleAddTopicProducer(TopicAddProducerEvent event) {
-        return FutureUtil.noop();
+        if (event.getProducerApplicationId() == null) {
+            return FutureUtil.noop();
+        }
+        NotificationParams params = new NotificationParams("new-producer-added");
+        String currentUserEmail = userService.getCurrentUserEmailAddress().orElse(unknownUser);
+        params.addVariable("topicName", event.getMetadata().getName());
+        params.addVariable("environmentId", event.getContext().getKafkaCluster().getId().toUpperCase());
+        Optional<KnownApplication> producerApp = applicationsService
+                .getKnownApplication(event.getProducerApplicationId());
+        Optional<KnownApplication> ownerApp = applicationsService
+                .getKnownApplication(event.getMetadata().getOwnerApplicationId());
+        params.addVariable("producerApplicationId", producerApp.map(KnownApplication::getName).orElse(unknownApp));
+        params.addVariable("topicOwner", ownerApp.map(KnownApplication::getName).orElse(unknownApp));
+        params.addVariable("galapagos_apps_url", buildUIUrl(event, "/applications"));
+
+        return notificationService.notifyProducer(params, currentUserEmail, event.getProducerApplicationId());
     }
 
     @Override
     public CompletableFuture<Void> handleRemoveTopicProducer(TopicRemoveProducerEvent event) {
-        return FutureUtil.noop();
+        if (event.getProducerApplicationId() == null) {
+            return FutureUtil.noop();
+        }
+        NotificationParams params = new NotificationParams("producer-deleted");
+        String currentUserEmail = userService.getCurrentUserEmailAddress().orElse(unknownUser);
+        params.addVariable("topicName", event.getMetadata().getName());
+        params.addVariable("environmentId", event.getContext().getKafkaCluster().getId().toUpperCase());
+        Optional<KnownApplication> producerApp = applicationsService
+                .getKnownApplication(event.getProducerApplicationId());
+        Optional<KnownApplication> ownerApp = applicationsService
+                .getKnownApplication(event.getMetadata().getOwnerApplicationId());
+        params.addVariable("producerApplicationId", producerApp.map(KnownApplication::getName).orElse(unknownApp));
+        params.addVariable("topicOwner", ownerApp.map(KnownApplication::getName).orElse(unknownApp));
+        params.addVariable("galapagos_apps_url", buildUIUrl(event, "/applications"));
+
+        return notificationService.notifyProducer(params, currentUserEmail, event.getProducerApplicationId());
     }
 
     @Override
@@ -282,7 +312,7 @@ public class NotificationEventListener
         try {
             URL requestUrl = new URL(opRequestUrl.get());
             return new URL(requestUrl.getProtocol(), requestUrl.getHost(), requestUrl.getPort(),
-                    "/app/" + (uri.startsWith("/") ? uri.substring(1) : uri)).toString();
+                    "/" + (uri.startsWith("/") ? uri.substring(1) : uri)).toString();
         }
         catch (MalformedURLException e) {
             log.warn("Could not parse request URL from HTTP Request", e);
