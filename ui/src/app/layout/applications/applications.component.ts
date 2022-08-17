@@ -307,7 +307,7 @@ export class ApplicationsComponent implements OnInit {
         document.body.appendChild(selBox);
         selBox.focus();
         selBox.select();
-        document.execCommand('copy');
+        navigator.clipboard.writeText(value);
         document.body.removeChild(selBox);
 
         if (value === this.key) {

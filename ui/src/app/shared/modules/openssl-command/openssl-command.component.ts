@@ -58,7 +58,7 @@ export class OpensslCommandComponent implements OnInit, OnChanges {
         document.body.appendChild(selBox);
         selBox.focus();
         selBox.select();
-        document.execCommand('copy');
+        navigator.clipboard.writeText(this.opensslCommand);
         document.body.removeChild(selBox);
         this.copied = true;
     }
