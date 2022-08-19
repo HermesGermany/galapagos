@@ -149,7 +149,12 @@ export class DashboardComponent implements OnInit {
             document.body.appendChild(selBox);
             selBox.focus();
             selBox.select();
-            navigator.clipboard.writeText(value);
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(value);
+            } else {
+                document.execCommand('copy');
+            }
+
             document.body.removeChild(selBox);
             this.configTemplatesCopiedValue = true;
             subscription.unsubscribe();
