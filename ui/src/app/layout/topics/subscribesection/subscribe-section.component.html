@@ -1,10 +1,10 @@
-<div class="row"
-     *ngIf="!(selectedEnvironment | async)?.stagingOnly && topic?.topicType !== 'INTERNAL'">
+<div class="row" *ngIf="topic?.topicType !== 'INTERNAL'">
     <div class="col-md-12">
         <div class="card mb-3">
             <div class="card-header bg-hermes text-white"><i
                 class="fas fa-rss mr-3"></i>{{ 'Subscribe' | translate }}</div>
-            <div class="card-body">
+            <div *ngIf="!(selectedEnvironment | async)?.stagingOnly; else subLink"
+                 class="card-body">
                 <p>{{ 'SUBSCRIBE_INFO_TEXT' | translate }}</p>
                 <ngb-alert type="info" [dismissible]="false"
                            *ngIf="topic?.subscriptionApprovalRequired">
@@ -20,6 +20,7 @@
                                     [ngValue]="app">{{ app.name }} </option>
                         </select>
                     </div>
+
                     <div class="form-group" *ngIf="availableApplications?.length">
                         <label>{{ 'SUBSCRIPTION_DESCRIPTION_LABEL' | translate }}</label>
                         <textarea class="form-control" rows="2" cols="80" name="subscriptionDescription"
@@ -52,3 +53,9 @@
         </div>
     </div>
 </div>
+<ng-template #subLink>
+    <div class="card-body">
+        <p [innerHTML]=" 'USE_STAGING_FOR_SUB_TEXT' | translate "></p>
+    </div>
+</ng-template>
+
