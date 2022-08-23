@@ -55,7 +55,9 @@
 </div>
 <ng-template #subLink>
     <div class="card-body">
-        <p [innerHTML]=" 'USE_STAGING_FOR_SUB_TEXT' | translate "></p>
+        <p> {{'USE_STAGING_FOR_SUB_TEXT' | translate}}<a class="ml"
+                                                         routerLink="/staging">Staging</a>
+        </p>
     </div>
 </ng-template>
 

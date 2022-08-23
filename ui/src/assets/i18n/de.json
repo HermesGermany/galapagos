@@ -295,5 +295,6 @@
     "SAVE_DEV_KEY_WARNING": "Bitte <b>speichere</b> das Secret, bevor du diese Seite verlässt! Das Secret wird nicht in Galapagos gespeichert. Bitte beachte auch, dass der API Key folgendes <b>Verfallsdatum</b> besitzt: {{ expiresAt }}",
     "Skip compatibility check": "Schema-Kompatibilitätsprüfung überspringen",
     "SKIP_COMPAT_CHECK_WARNING": "<b>Achtung</b>: Dies ermöglicht inkompatible Änderungen in den Topic Daten. Verwende dies nur, wenn du wirklich weißt, was du tust.",
-    "USE_STAGING_FOR_SUB_TEXT": "Bitte benutze das <a href='/staging'>Staging</a>, um dein Abonnement dieses Topics von der vorherigen auf diese Umgebung zu übertragen."
+    "USE_STAGING_FOR_SUB_TEXT": "Um dein Abonnement dieses Topics von der vorherigen auf diese Umgebung zu übertragen, benutze bitte das "
 }
+
