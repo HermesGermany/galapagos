@@ -31,6 +31,8 @@ public class ConfluentCloudAuthenticationModule implements KafkaAuthenticationMo
 
     private final static String JSON_API_KEY = "apiKey";
 
+    private final static String SERVICE_ACCOUNT_ID = "serviceAccountId";
+
     private final static String JSON_ISSUED_AT = "issuedAt";
 
     private final static String JSON_USER_ID = "userId";
@@ -74,11 +76,11 @@ public class ConfluentCloudAuthenticationModule implements KafkaAuthenticationMo
         return findServiceAccountForApp(applicationId)
                 .thenCompose(account -> account.map(a -> CompletableFuture.completedFuture(a))
                         .orElseGet(() -> client.createServiceAccount("application-" + applicationNormalizedName,
-                                appServiceAccountDescription(applicationId)).toFuture()))
-                .thenCompose(account -> client
-                        .createApiKey(config.getEnvironmentId(), config.getClusterId(), apiKeyDesc, account.getId())
-                        .toFuture())
-                .thenApply(keyInfo -> toCreateAuthResult(keyInfo, null));
+                                appServiceAccountDescription(applicationId)).toFuture())
+                        .thenCompose(acc -> client
+                                .createApiKey(config.getEnvironmentId(), config.getClusterId(), apiKeyDesc, acc.getId())
+                                .toFuture().thenApply(keyInfo -> toKeyInfoWithServiceAccountId(acc, keyInfo)))
+                        .thenApply(keyInfo -> toCreateAuthResult(keyInfo, null)));
     }
 
     @Override
@@ -127,11 +129,11 @@ public class ConfluentCloudAuthenticationModule implements KafkaAuthenticationMo
         return findServiceAccountForDev(userName)
                 .thenCompose(account -> account.map(a -> CompletableFuture.completedFuture(a))
                         .orElseGet(() -> client.createServiceAccount("developer-" + finalUserName,
-                                devServiceAccountDescription(userName)).toFuture()))
-                .thenCompose(account -> client
-                        .createApiKey(config.getEnvironmentId(), config.getClusterId(), apiKeyDesc, account.getId())
-                        .toFuture())
-                .thenApply(keyInfo -> toCreateAuthResult(keyInfo, expiresAt));
+                                devServiceAccountDescription(userName)).toFuture())
+                        .thenCompose(acc -> client
+                                .createApiKey(config.getEnvironmentId(), config.getClusterId(), apiKeyDesc, acc.getId())
+                                .toFuture().thenApply(keyInfo -> toKeyInfoWithServiceAccountId(acc, keyInfo)))
+                        .thenApply(keyInfo -> toCreateAuthResult(keyInfo, expiresAt)));
     }
 
     @Override
@@ -147,10 +149,15 @@ public class ConfluentCloudAuthenticationModule implements KafkaAuthenticationMo
         return Optional.empty();
     }
 
-    private CompletableFuture<Optional<ServiceAccountInfo>> findServiceAccountForApp(String applicationId) {
+    public CompletableFuture<Optional<ServiceAccountInfo>> findServiceAccountForApp(String applicationId) {
         String desc = appServiceAccountDescription(applicationId);
         return ensureClientLoggedIn().thenCompose(o -> client.listServiceAccounts().toFuture())
                 .thenApply(ls -> ls.stream().filter(acc -> desc.equals(acc.getServiceDescription())).findAny());
+    }
+
+    private ApiKeyInfo toKeyInfoWithServiceAccountId(ServiceAccountInfo serviceAccountInfo, ApiKeyInfo keyInfo) {
+        keyInfo.setAccountId(serviceAccountInfo.getResourceId());
+        return keyInfo;
     }
 
     private CompletableFuture<Optional<ServiceAccountInfo>> findServiceAccountForDev(String userName) {
@@ -180,6 +187,10 @@ public class ConfluentCloudAuthenticationModule implements KafkaAuthenticationMo
         info.put(JSON_API_KEY, keyInfo.getKey());
         info.put(JSON_USER_ID, String.valueOf(keyInfo.getUserId()));
         info.put(JSON_ISSUED_AT, keyInfo.getCreated().toString());
+
+        if (keyInfo.getAccountId() != null) {
+            info.put(SERVICE_ACCOUNT_ID, keyInfo.getAccountId());
+        }
 
         if (expiresAt != null) {
             info.put(EXPIRES_AT, expiresAt.toString());

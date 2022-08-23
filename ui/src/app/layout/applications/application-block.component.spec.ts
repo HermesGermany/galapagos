@@ -117,7 +117,14 @@ describe('ApplicationBlockComponent', () => {
 
         component.authenticationMode = 'ccloud';
         component.application = app;
-
+        component.currentEnv = {
+            id: 'prod',
+            name: 'prod',
+            bootstrapServers: 'myBootstrapServers',
+            production: true,
+            stagingOnly: true,
+            authenticationMode: 'ccloud'
+        };
         component.ngOnChanges({
             application: new SimpleChange(undefined, app, false)
         });

@@ -54,4 +54,5 @@ public interface KafkaAuthenticationModule {
 
     @CheckReturnValue
     CompletableFuture<Void> deleteDeveloperAuthentication(String userName, JSONObject existingAuthData);
+
 }

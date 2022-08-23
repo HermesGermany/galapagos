@@ -20,6 +20,7 @@ export interface ApplicationApiKey {
     issuedAt: string;
 
     userId: string;
+
 }
 
 export interface AuthenticationDetail {
