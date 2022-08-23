@@ -203,6 +203,6 @@
     "SAVE_DEV_KEY_WARNING": "Please <b>save</b> the secret before leaving this page! The secret will not be stored in Galapagos. Please also note that the API key has the following <b>expiry date</b>: {{ expiresAt }}",
     "NOTICE_TOPIC_DATA_VIEW": "This is only a <b>preview</b> of the data in this topic. Only a very limited amount of data is displayed. For a full view, please use suitable software.",
     "SKIP_COMPAT_CHECK_WARNING": "<b>Caution</b>: This allows for incompatible changes in the topic data. Only use this if you really know what you are doing.",
-    "USE_STAGING_FOR_SUB_TEXT": "Please use <a href='/staging'>Staging</a>, to copy your subscription of this Topic from the preceding stage to this stage."
+    "USE_STAGING_FOR_SUB_TEXT": "To transfer your subscription for this topic from the previous environment to this one, please use "
 }
 
