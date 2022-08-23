@@ -73,6 +73,12 @@ export class StagingComponent implements OnInit {
         }
     }
 
+    resetStagingResult() {
+        this.changes = [];
+        this.staging = null;
+        this.stagingResult = [];
+    }
+
     async prepareStaging(): Promise<any> {
         this.staging = null;
         this.stagingResult = [];
@@ -161,5 +167,4 @@ export class StagingComponent implements OnInit {
         const apps = this.registeredApplicationsSnapshot.filter(app => app.id === applicationId);
         return apps.length === 0 ? null : apps[0];
     };
-
 }

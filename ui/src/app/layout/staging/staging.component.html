@@ -12,8 +12,10 @@
                     {{ 'STAGING_TEXT' | translate }}
                     <div class="form-group form-inline mt-3">
                         <label class="mr-3">{{ 'Application' | translate }}</label>
-                        <select class="form-control mr-3" name="appPicker" #appPicker [(ngModel)]="selectedApplication">
-                            <option *ngFor="let app of d.untilNext(availableApplications) | async" [ngValue]="app">{{ app.name }}
+                        <select class="form-control mr-3" name="appPicker" #appPicker [(ngModel)]="selectedApplication"
+                                (change)="resetStagingResult()">
+                            <option *ngFor="let app of d.untilNext(availableApplications) | async"
+                                    [ngValue]="app">{{ app.name }}
                             </option>
                         </select>
                         <span appSpinnerWhile #d="appSpinnerWhile"></span>
