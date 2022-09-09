@@ -16,7 +16,7 @@ import { ApplicationInfo, ApplicationsService } from '../../shared/services/appl
 import { Location } from '@angular/common';
 import { toNiceTimestamp } from '../../shared/util/time-util';
 import { Md5 } from 'ts-md5';
-import { copyObs } from '../../shared/util/copy-util';
+import { copyObsValue } from '../../shared/util/copy-util';
 
 @Component({
     selector: 'app-dashboard',
@@ -140,7 +140,7 @@ export class DashboardComponent implements OnInit {
     }
 
     copyValueFromObservable(observer: Observable<string>) {
-        copyObs(observer);
+        copyObsValue(observer);
         this.configTemplatesCopiedValue = true;
     }
 

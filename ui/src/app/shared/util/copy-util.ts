@@ -9,24 +9,15 @@ export const copy = (value: string) => {
     if (navigator.clipboard) {
         navigator.clipboard.writeText(value);
     } else {
+        // noinspection JSDeprecatedSymbols
         document.execCommand('copy');
     }
     document.body.removeChild(selBox);
 };
 
-export const copyObs = (observer: Observable<string>) => {
-    const selBox = createTextArea();
+export const copyObsValue = (observer: Observable<string>) => {
     const subscription = observer.subscribe(value => {
-        selBox.value = value;
-        document.body.appendChild(selBox);
-        selBox.focus();
-        selBox.select();
-        if (navigator.clipboard) {
-            navigator.clipboard.writeText(value);
-        } else {
-            document.execCommand('copy');
-        }
-        document.body.removeChild(selBox);
+        copy(value);
         subscription.unsubscribe();
     });
 };
