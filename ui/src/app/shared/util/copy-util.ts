@@ -22,7 +22,6 @@ export const copyObsValue = (observer: Observable<string>) => {
     });
 };
 
-
 const createTextArea = (): HTMLTextAreaElement => {
     const textarea = document.createElement('textarea');
     textarea.style.position = 'fixed';
