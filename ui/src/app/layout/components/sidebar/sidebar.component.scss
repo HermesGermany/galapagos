@@ -9,7 +9,6 @@ $topnav-background-color: #E2E2E3;
     margin-left: -235px;
     margin-bottom: 48px;
     border: none;
-    border-radius: 0;
     overflow-y: auto;
     background-color: $topnav-background-color;
     bottom: 0;
@@ -52,7 +51,7 @@ $topnav-background-color: #E2E2E3;
     }
     .sidebar-dropdown {
         *:focus {
-            border-radius: none;
+            border-radius: 0;
             border: none;
         }
         .panel-title {
@@ -67,8 +66,7 @@ $topnav-background-color: #E2E2E3;
                 span {
                     position: relative;
                     display: block;
-                    padding: 0.75rem 1.5rem;
-                    padding-top: 1rem;
+                    padding: 1rem 1.5rem 0.75rem;
                 }
             }
             a:hover,
@@ -164,7 +162,7 @@ $topnav-background-color: #E2E2E3;
 @media screen and (max-width: 992px) {
     .sidebar {
         top: 54px;
-        left: 0px;
+        left: 0;
     }
 }
 @media print {
@@ -172,12 +170,16 @@ $topnav-background-color: #E2E2E3;
         display: none !important;
     }
 }
+
 @media (min-width: 992px) {
     .header-fields {
         display: none;
     }
 }
 
+::-webkit-scrollbar {
+    width: 8px;
+}
 
 .toggle-button {
     position: fixed;
