@@ -72,7 +72,7 @@ public class KafkaRepositoryContainerImpl implements KafkaRepositoryContainer {
     public void dispose() {
         if (this.consumerThread != null) {
             this.consumer.wakeup();
-            this.consumerThread.interrupt();
+            // consumer thread will terminate by the wakeup
             this.consumerThread = null;
         }
     }
@@ -177,9 +177,13 @@ public class KafkaRepositoryContainerImpl implements KafkaRepositoryContainer {
                     }
                 }
             }
-            catch (WakeupException | InterruptException e) {
+            catch (WakeupException e) {
                 // signal to close consumer!
-                break;
+                consumer.close(Duration.ofSeconds(1));
+                return;
+            }
+            catch (InterruptException e) {
+                return;
             }
             catch (AuthenticationException | AuthorizationException e) {
                 log.error("Unrecoverable exception when polling Kafka consumer, will exit consumer Thread", e);
@@ -197,7 +201,11 @@ public class KafkaRepositoryContainerImpl implements KafkaRepositoryContainer {
             }
         }
 
-        consumer.close();
+        // clear interrupt flag, in an IntelliJ friendly way :-)
+        boolean interrupted = Thread.interrupted();
+        if (!interrupted || !Thread.currentThread().isInterrupted()) {
+            consumer.close(Duration.ofSeconds(1));
+        }
     }
 
 }
