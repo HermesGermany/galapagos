@@ -130,11 +130,11 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public CompletableFuture<Void> notifyProducer(NotificationParams notificationParams, String currentUserEmail,
             String producerApplicationId) {
-        List<String> mailAddresses = applicationsService.getAllApplicationOwnerRequests().stream()
+        Set<String> mailAddresses = applicationsService.getAllApplicationOwnerRequests().stream()
                 .filter(ownerReq -> ownerReq.getState().equals(RequestState.APPROVED)
                         && ownerReq.getApplicationId().equals(producerApplicationId)
                         && !ownerReq.getNotificationEmailAddress().equals(currentUserEmail))
-                .map(req -> req.getNotificationEmailAddress()).collect(Collectors.toList());
+                .map(req -> req.getNotificationEmailAddress()).collect(Collectors.toSet());
 
         return doSendAsync(notificationParams, safeToRecipientsList(mailAddresses, true), false);
     }

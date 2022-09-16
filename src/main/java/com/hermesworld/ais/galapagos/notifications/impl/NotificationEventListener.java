@@ -179,9 +179,6 @@ public class NotificationEventListener
 
     @Override
     public CompletableFuture<Void> handleAddTopicProducer(TopicAddProducerEvent event) {
-        if (event.getProducerApplicationId() == null) {
-            return FutureUtil.noop();
-        }
         NotificationParams params = new NotificationParams("new-producer-added");
         String currentUserEmail = userService.getCurrentUserEmailAddress().orElse(unknownUser);
         params.addVariable("topicName", event.getMetadata().getName());
@@ -199,9 +196,6 @@ public class NotificationEventListener
 
     @Override
     public CompletableFuture<Void> handleRemoveTopicProducer(TopicRemoveProducerEvent event) {
-        if (event.getProducerApplicationId() == null) {
-            return FutureUtil.noop();
-        }
         NotificationParams params = new NotificationParams("producer-deleted");
         String currentUserEmail = userService.getCurrentUserEmailAddress().orElse(unknownUser);
         params.addVariable("topicName", event.getMetadata().getName());
@@ -312,7 +306,7 @@ public class NotificationEventListener
         try {
             URL requestUrl = new URL(opRequestUrl.get());
             return new URL(requestUrl.getProtocol(), requestUrl.getHost(), requestUrl.getPort(),
-                    "/" + (uri.startsWith("/") ? uri.substring(1) : uri)).toString();
+                    "/app/" + (uri.startsWith("/") ? uri.substring(1) : uri)).toString();
         }
         catch (MalformedURLException e) {
             log.warn("Could not parse request URL from HTTP Request", e);
@@ -328,3 +322,4 @@ public class NotificationEventListener
     }
 
 }
+
