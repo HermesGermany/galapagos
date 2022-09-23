@@ -7,4 +7,4 @@ kafka:
   sasl:
     mechanism: PLAIN
     jaas:
-      config: org.apache.kafka.common.security.plain.PlainLoginModule    required username='<YOUR_API_KEY>'   password='<YOUR_SECRET>';
+      config: "org.apache.kafka.common.security.plain.PlainLoginModule    required username='<YOUR_API_KEY>'   password='<YOUR_SECRET>';"
