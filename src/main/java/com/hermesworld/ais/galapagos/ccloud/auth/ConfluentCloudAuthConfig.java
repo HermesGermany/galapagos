@@ -7,10 +7,6 @@ import lombok.Setter;
 @Setter
 public class ConfluentCloudAuthConfig {
 
-    private String cloudUserName;
-
-    private String cloudPassword;
-
     private String environmentId;
 
     private String clusterId;
@@ -20,5 +16,11 @@ public class ConfluentCloudAuthConfig {
     private String clusterApiSecret;
 
     private String developerApiKeyValidity;
+
+    private String organizationApiKey;
+
+    private String organizationApiSecret;
+
+    private boolean serviceAccountIdCompatMode;
 
 }

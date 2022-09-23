@@ -1,0 +1,5 @@
+app-1|{"obj":{"aliases":[],"infoUrl":null,"businessCapabilities":[{"name":"Business Intelligence","id":"bc-1"},{"name":"Sales","id":"bc-2"}],"name":"ALPHA","id":"app-1"}}
+app-2|{"obj":{"aliases":["bb","bee"],"infoUrl":null,"businessCapabilities":[{"name":"Shipment","id":"bc-3"},{"name":"Sales","id":"bc-2"}],"name":"BumbleBee","id":"app-2"}}
+app-3|{"obj":{"aliases":["cz"],"infoUrl":null,"businessCapabilities":[{"name":"IT Services","id":"bc-4"}],"name":"CoraZone","id":"app-3"}}
+app-4|{"obj":{"aliases":["dcut"],"infoUrl":null,"businessCapabilities":[{"name":"Procurement","id":"bc-5"},{"name":"Sales","id":"bc-2"}],"name":"DirectorsCut","id":"app-4"}}
+app-5|{"obj":{"aliases":["easy","es"],"infoUrl":null,"businessCapabilities":[{"name":"Order","id":"bc-6"},{"name":"Sales","id":"bc-2"},{"name":"Shipment","id":"bc-3"}],"name":"Easy Sales","id":"app-5"}}

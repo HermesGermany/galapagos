@@ -1,10 +1,12 @@
 package com.hermesworld.ais.galapagos.ccloud.auth;
 
-import com.hermesworld.ais.galapagos.ccloud.apiclient.ApiKeyInfo;
-import com.hermesworld.ais.galapagos.ccloud.apiclient.ConfluentApiClient;
-import com.hermesworld.ais.galapagos.ccloud.apiclient.ServiceAccountInfo;
+import com.hermesworld.ais.galapagos.ccloud.apiclient.ApiKeySpec;
+import com.hermesworld.ais.galapagos.ccloud.apiclient.ConfluentCloudApiClient;
+import com.hermesworld.ais.galapagos.ccloud.apiclient.ServiceAccountSpec;
 import com.hermesworld.ais.galapagos.kafka.auth.CreateAuthenticationResult;
 import com.hermesworld.ais.galapagos.kafka.auth.KafkaAuthenticationModule;
+import com.hermesworld.ais.galapagos.util.FutureUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.util.StringUtils;
@@ -15,10 +17,14 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
 
+@Slf4j
 public class ConfluentCloudAuthenticationModule implements KafkaAuthenticationModule {
 
     private final static String APP_SERVICE_ACCOUNT_DESC = "APP_{0}";
@@ -29,34 +35,43 @@ public class ConfluentCloudAuthenticationModule implements KafkaAuthenticationMo
 
     private final static String API_DEVELOPER_KEY_DESC = "Developer {0}";
 
-    private final static String JSON_API_KEY = "apiKey";
-
-    private final static String SERVICE_ACCOUNT_ID = "serviceAccountId";
+    final static String JSON_API_KEY = "apiKey";
 
     private final static String JSON_ISSUED_AT = "issuedAt";
 
     private final static String JSON_USER_ID = "userId";
 
-    private final static String EXPIRES_AT = "expiresAt";
+    final static String JSON_EXPIRES_AT = "expiresAt";
 
-    private final ConfluentApiClient client;
+    private final static String JSON_NUMERIC_ID = "numericId";
+
+    private final static String NUMERIC_ID_PATTERN = "\\d{5,7}";
+
+    private final ConfluentCloudApiClient client;
 
     private final ConfluentCloudAuthConfig config;
 
+    private final Map<String, String> serviceAccountNumericIds = new ConcurrentHashMap<>();
+
     public ConfluentCloudAuthenticationModule(ConfluentCloudAuthConfig config) {
-        this.client = new ConfluentApiClient();
+        this.client = new ConfluentCloudApiClient(config.getOrganizationApiKey(), config.getOrganizationApiSecret(),
+                config.isServiceAccountIdCompatMode());
         this.config = config;
         try {
             this.getDeveloperApiKeyValidity();
         }
         catch (DateTimeParseException e) {
-            throw new IllegalArgumentException("Invalid date for developer API key validity", e);
+            throw new IllegalArgumentException(
+                    "Invalid date for developer API key validity: " + config.getDeveloperApiKeyValidity(), e);
         }
     }
 
     @Override
     public CompletableFuture<Void> init() {
-        return client.login(config.getCloudUserName(), config.getCloudPassword()).toFuture().thenApply(o -> null);
+        if (config.isServiceAccountIdCompatMode()) {
+            return getServiceAccountNumericIds().thenApply(o -> null);
+        }
+        return FutureUtil.noop();
     }
 
     @Override
@@ -73,14 +88,16 @@ public class ConfluentCloudAuthenticationModule implements KafkaAuthenticationMo
             String applicationNormalizedName, JSONObject createParams) {
         String apiKeyDesc = MessageFormat.format(API_KEY_DESC, applicationNormalizedName);
 
+        // reset internal ID cache
+        serviceAccountNumericIds.clear();
+
         return findServiceAccountForApp(applicationId)
                 .thenCompose(account -> account.map(a -> CompletableFuture.completedFuture(a))
                         .orElseGet(() -> client.createServiceAccount("application-" + applicationNormalizedName,
-                                appServiceAccountDescription(applicationId)).toFuture())
-                        .thenCompose(acc -> client
-                                .createApiKey(config.getEnvironmentId(), config.getClusterId(), apiKeyDesc, acc.getId())
-                                .toFuture().thenApply(keyInfo -> toKeyInfoWithServiceAccountId(acc, keyInfo)))
-                        .thenApply(keyInfo -> toCreateAuthResult(keyInfo, null)));
+                                appServiceAccountDescription(applicationId)).toFuture()))
+                .thenCompose(account -> client.createApiKey(config.getEnvironmentId(), config.getClusterId(),
+                        apiKeyDesc, account.getResourceId()).toFuture())
+                .thenCompose(keyInfo -> toCreateAuthResult(keyInfo, null));
     }
 
     @Override
@@ -93,23 +110,57 @@ public class ConfluentCloudAuthenticationModule implements KafkaAuthenticationMo
     @Override
     public CompletableFuture<Void> deleteApplicationAuthentication(String applicationId, JSONObject existingAuthData) {
         String apiKey = existingAuthData.optString(JSON_API_KEY);
-        if (!StringUtils.isEmpty(apiKey)) {
-            return ensureClientLoggedIn()
-                    .thenCompose(o -> client.listApiKeys(config.getEnvironmentId(), config.getClusterId()).toFuture())
-                    .thenCompose(ls -> ls.stream().filter(info -> apiKey.equals(info.getKey())).findAny()
-                            .map(info -> client.deleteApiKey(info).toFuture())
-                            .orElse(CompletableFuture.completedFuture(true)))
-                    .thenApply(o -> null);
+        if (StringUtils.hasLength(apiKey)) {
+            return client.listClusterApiKeys(config.getClusterId()).toFuture()
+                    .thenCompose(ls -> ls.stream().filter(info -> apiKey.equals(info.getId())).findAny()
+                            .map(info -> client.deleteApiKey(info).toFuture().thenApply(o -> (Void) null))
+                            .orElse(FutureUtil.noop()));
         }
 
-        return CompletableFuture.completedFuture(null);
+        return FutureUtil.noop();
     }
 
     @Override
     public String extractKafkaUserName(JSONObject existingAuthData) throws JSONException {
         String userId = existingAuthData.optString(JSON_USER_ID);
-        if (StringUtils.isEmpty(userId)) {
+        if (!StringUtils.hasLength(userId)) {
             throw new JSONException("No userId set in application authentication data");
+        }
+
+        // special treatment for Confluent resourceId <-> numericId problem
+        if (config.isServiceAccountIdCompatMode()) {
+            // case 1: already stored (Created by Galapagos 2.6.0 or later, or executed admin job
+            // update-confluent-auth-metadata)
+            String numericId = existingAuthData.optString(JSON_NUMERIC_ID);
+            if (StringUtils.hasLength(numericId)) {
+                return "User:" + numericId;
+            }
+
+            // case 2: stored user ID is numeric
+            if (userId.matches(NUMERIC_ID_PATTERN)) {
+                return "User:" + userId;
+            }
+
+            // worst case: lookup ID synchronous (bah!)
+            try {
+                Map<String, String> numericIdMap = getServiceAccountNumericIds().get();
+                if (numericIdMap.containsKey(userId)) {
+                    return "User:" + numericIdMap.get(userId);
+                }
+                log.warn(
+                        "Could not determine internal ID for service account {}, will return most likely invalid Kafka user name",
+                        userId);
+                return "User:" + userId;
+            }
+            catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            catch (ExecutionException e) {
+                log.error(
+                        "Could not retrieve service account internal ID map, will return most likely invalid Kafka user name",
+                        e);
+                return "User:" + userId;
+            }
         }
 
         return "User:" + userId;
@@ -127,13 +178,13 @@ public class ConfluentCloudAuthenticationModule implements KafkaAuthenticationMo
         Instant expiresAt = Instant.now().plus(validity);
         String finalUserName = userName.split("@")[0];
         return findServiceAccountForDev(userName)
-                .thenCompose(account -> account.map(a -> CompletableFuture.completedFuture(a))
-                        .orElseGet(() -> client.createServiceAccount("developer-" + finalUserName,
-                                devServiceAccountDescription(userName)).toFuture())
-                        .thenCompose(acc -> client
-                                .createApiKey(config.getEnvironmentId(), config.getClusterId(), apiKeyDesc, acc.getId())
-                                .toFuture().thenApply(keyInfo -> toKeyInfoWithServiceAccountId(acc, keyInfo)))
-                        .thenApply(keyInfo -> toCreateAuthResult(keyInfo, expiresAt)));
+                .thenCompose(
+                        account -> account.map(a -> CompletableFuture.completedFuture(a))
+                                .orElseGet(() -> client.createServiceAccount("developer-" + finalUserName,
+                                        devServiceAccountDescription(userName)).toFuture())
+                                .thenCompose(acc -> client.createApiKey(config.getEnvironmentId(),
+                                        config.getClusterId(), apiKeyDesc, acc.getResourceId()).toFuture())
+                                .thenCompose(keyInfo -> toCreateAuthResult(keyInfo, expiresAt)));
     }
 
     @Override
@@ -143,27 +194,71 @@ public class ConfluentCloudAuthenticationModule implements KafkaAuthenticationMo
 
     @Override
     public Optional<Instant> extractExpiryDate(JSONObject authData) {
-        if (authData.has(EXPIRES_AT)) {
-            return Optional.of(Instant.from(DateTimeFormatter.ISO_INSTANT.parse(authData.getString(EXPIRES_AT))));
+        if (authData.has(JSON_EXPIRES_AT)) {
+            return Optional.of(Instant.from(DateTimeFormatter.ISO_INSTANT.parse(authData.getString(JSON_EXPIRES_AT))));
         }
         return Optional.empty();
     }
 
-    public CompletableFuture<Optional<ServiceAccountInfo>> findServiceAccountForApp(String applicationId) {
+    public boolean supportsDeveloperApiKeys() {
+        return getDeveloperApiKeyValidity().isPresent();
+    }
+
+    /**
+     * Upgrades a given "old" authentication metadata object. Is used by admin job "update-confluent-auth-metadata" to
+     * e.g. add numeric IDs and Service Account Resource IDs.
+     * 
+     * @param oldAuthMetadata Potentially "old" authentication metadata (function determines if update is required).
+     * @return The "updated" metadata, or the unchanged metadata if already filled with new fields. As a future as an
+     *         API call may be required to determine required information (e.g. internal numeric ID for a service
+     *         account). The future can fail if the API call fails.
+     */
+    public CompletableFuture<JSONObject> upgradeAuthMetadata(JSONObject oldAuthMetadata) {
+        String userId = oldAuthMetadata.optString(JSON_USER_ID);
+        if (!StringUtils.hasLength(userId)) {
+            return CompletableFuture.completedFuture(oldAuthMetadata);
+        }
+
+        // numeric user ID means we have to retrieve service account ID
+        if (userId.matches(NUMERIC_ID_PATTERN)) {
+            return getServiceAccountNumericIds().thenApply(map -> {
+                String resourceId = map.entrySet().stream().filter(e -> userId.equals(e.getValue())).findAny()
+                        .map(e -> e.getKey()).orElse(null);
+                if (resourceId == null) {
+                    log.warn("Unable to determine Service Account resource ID for numeric ID {}", userId);
+                    return oldAuthMetadata;
+                }
+                JSONObject newMetadata = new JSONObject(oldAuthMetadata.toString());
+                newMetadata.put(JSON_USER_ID, resourceId);
+                newMetadata.put(JSON_NUMERIC_ID, userId);
+                return newMetadata;
+            });
+        }
+
+        // for now, no other scenarios for upgrading are supported
+        return CompletableFuture.completedFuture(oldAuthMetadata);
+    }
+
+    private CompletableFuture<Map<String, String>> getServiceAccountNumericIds() {
+        if (this.serviceAccountNumericIds.isEmpty()) {
+            return client.getServiceAccountInternalIds().map(map -> {
+                this.serviceAccountNumericIds.putAll(map);
+                return map;
+            }).toFuture();
+        }
+        return CompletableFuture.completedFuture(serviceAccountNumericIds);
+    }
+
+    private CompletableFuture<Optional<ServiceAccountSpec>> findServiceAccountForApp(String applicationId) {
         String desc = appServiceAccountDescription(applicationId);
-        return ensureClientLoggedIn().thenCompose(o -> client.listServiceAccounts().toFuture())
-                .thenApply(ls -> ls.stream().filter(acc -> desc.equals(acc.getServiceDescription())).findAny());
+        return client.listServiceAccounts().toFuture()
+                .thenApply(ls -> ls.stream().filter(acc -> desc.equals(acc.getDescription())).findAny());
     }
 
-    private ApiKeyInfo toKeyInfoWithServiceAccountId(ServiceAccountInfo serviceAccountInfo, ApiKeyInfo keyInfo) {
-        keyInfo.setAccountId(serviceAccountInfo.getResourceId());
-        return keyInfo;
-    }
-
-    private CompletableFuture<Optional<ServiceAccountInfo>> findServiceAccountForDev(String userName) {
+    private CompletableFuture<Optional<ServiceAccountSpec>> findServiceAccountForDev(String userName) {
         String desc = devServiceAccountDescription(userName);
-        return ensureClientLoggedIn().thenCompose(o -> client.listServiceAccounts().toFuture())
-                .thenApply(ls -> ls.stream().filter(acc -> desc.equals(acc.getServiceDescription())).findAny());
+        return client.listServiceAccounts().toFuture()
+                .thenApply(ls -> ls.stream().filter(acc -> desc.equals(acc.getDescription())).findAny());
     }
 
     private String appServiceAccountDescription(String applicationId) {
@@ -174,37 +269,28 @@ public class ConfluentCloudAuthenticationModule implements KafkaAuthenticationMo
         return MessageFormat.format(DEVELOPER_SERVICE_ACCOUNT_DESC, userName);
     }
 
-    private CompletableFuture<Void> ensureClientLoggedIn() {
-        if (client.isLoggedIn()) {
-            return CompletableFuture.completedFuture(null);
-        }
-
-        return client.login(config.getCloudUserName(), config.getCloudPassword()).toFuture().thenApply(b -> null);
-    }
-
-    private CreateAuthenticationResult toCreateAuthResult(ApiKeyInfo keyInfo, Instant expiresAt) {
+    private CompletableFuture<CreateAuthenticationResult> toCreateAuthResult(ApiKeySpec keyInfo, Instant expiresAt) {
         JSONObject info = new JSONObject();
-        info.put(JSON_API_KEY, keyInfo.getKey());
-        info.put(JSON_USER_ID, String.valueOf(keyInfo.getUserId()));
-        info.put(JSON_ISSUED_AT, keyInfo.getCreated().toString());
-
-        if (keyInfo.getAccountId() != null) {
-            info.put(SERVICE_ACCOUNT_ID, keyInfo.getAccountId());
-        }
-
+        info.put(JSON_API_KEY, keyInfo.getId());
+        info.put(JSON_USER_ID, String.valueOf(keyInfo.getServiceAccountId()));
+        info.put(JSON_ISSUED_AT, keyInfo.getCreatedAt().toString());
         if (expiresAt != null) {
-            info.put(EXPIRES_AT, expiresAt.toString());
+            info.put(JSON_EXPIRES_AT, expiresAt.toString());
         }
 
-        return new CreateAuthenticationResult(info, keyInfo.getSecret().getBytes(StandardCharsets.UTF_8));
-    }
+        if (config.isServiceAccountIdCompatMode()) {
+            return getServiceAccountNumericIds().thenApply(map -> {
+                info.put(JSON_NUMERIC_ID, map.get(keyInfo.getServiceAccountId()));
+                return new CreateAuthenticationResult(info, keyInfo.getSecret().getBytes(StandardCharsets.UTF_8));
+            });
+        }
 
-    public boolean supportsDeveloperApiKeys() {
-        return getDeveloperApiKeyValidity().isPresent();
+        return CompletableFuture.completedFuture(
+                new CreateAuthenticationResult(info, keyInfo.getSecret().getBytes(StandardCharsets.UTF_8)));
     }
 
     private Optional<Duration> getDeveloperApiKeyValidity() {
-        if (StringUtils.isEmpty(config.getDeveloperApiKeyValidity())) {
+        if (!StringUtils.hasLength(config.getDeveloperApiKeyValidity())) {
             return Optional.empty();
         }
 

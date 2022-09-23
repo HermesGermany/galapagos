@@ -31,7 +31,7 @@
         "file-saver": "^2.0.5",
         "highlight.js": "^11.4.0",
         "keycloak-angular": "~9.1.0",
-        "keycloak-js": "^16.1.1",
+        "keycloak-js": "^19.0.2",
         "luxon": "^2.3.1",
         "ngx-highlightjs": "^6.1.1",
         "rxjs": "7.5.4",
@@ -42,7 +42,7 @@
     },
     "devDependencies": {
         "@angular-devkit/architect": "^0.1302.4",
-        "@angular-devkit/build-angular": "~13.2.4",
+        "@angular-devkit/build-angular": "~13.3.9",
         "@angular-eslint/builder": "^13.1.0",
         "@angular-eslint/eslint-plugin": "^13.1.0",
         "@angular-eslint/eslint-plugin-template": "^13.1.0",
