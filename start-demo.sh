@@ -30,10 +30,9 @@ echo "Starting Keycloak (background task)..."
 KEYCLOAK_PID=$(JAVA="$JAVA_BIN" KEYCLOAK_ADMIN="$KEYCLOAK_ADMIN" KEYCLOAK_ADMIN_PASSWORD="$KEYCLOAK_ADMIN_PASSWORD" ./keycloak/bin/kc.sh start-dev --import-realm > keycloak.log & echo $!)
 echo "Keycloak started with PID $KEYCLOAK_PID"
 
-echo "Waiting for Keycloak to start up (10s)..."
-sleep 10
-
-echo "Starting Galapagos. Stop the application any time with Ctrl+C."
+echo "Starting Galapagos (via Maven). Stop the application any time with Ctrl+C."
+echo ""
+echo "Use user1/user1 or admin1/admin1 for login at http://localhost:8089, once the application runs."
 echo ""
 ./mvnw package spring-boot:run -DskipTests -Dspring-boot.run.profiles=democonf,demo,actuator
 
