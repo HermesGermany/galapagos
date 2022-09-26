@@ -1,5 +1,5 @@
 {
-  "auth-server-url": "http://localhost:8080",
+  "auth-server-url": "http://localhost:8089",
   "realm": "galapagos",
   "resource": "galapagos-webapp-dev",
   "public-client": true,

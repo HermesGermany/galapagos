@@ -652,7 +652,8 @@
         "user"
       ],
       "redirectUris": [
-        "http://localhost:8099/*"
+        "http://localhost:8080/*",
+        "http://localhost:4200/*"
       ],
       "webOrigins": [
         "+"

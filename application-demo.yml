@@ -1,5 +1,5 @@
 server:
-  port: 8099
+  port: 8080
 
 info:
   galapagos.instanceName: "Local DEMO"
