@@ -28,3 +28,9 @@ devsetup/ccloud/
 # IDEA files
 /.idea
 galapagos.iml
+
+# CCloud Demo files
+/keycloak/
+/keycloak.log
+/demo-ccloud/bin/
+/application-democonf.properties

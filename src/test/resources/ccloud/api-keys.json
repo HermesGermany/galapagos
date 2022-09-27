@@ -1,0 +1,37 @@
+{
+  "api_version": "iam/v2",
+  "data": [
+    {
+      "api_version": "iam/v2",
+      "id": "ABCDEFG123456",
+      "kind": "ApiKey",
+      "metadata": {
+        "created_at": "2022-09-16T11:45:01.722675Z",
+        "resource_name": "crn://localhost/api-key=ABCDEFG123456",
+        "self": "http://localhost/iam/v2/api-keys/ABCDEFG123456",
+        "updated_at": "2022-09-16T11:45:28.590482Z"
+      },
+      "spec": {
+        "description": "My API Key",
+        "display_name": "",
+        "owner": {
+          "api_version": "iam/v2",
+          "id": "sa-xy123",
+          "kind": "ServiceAccount",
+          "related": "http://localhost/iam/v2/service-accounts/sa-xy123",
+          "resource_name": "crn://localhost/service-account=sa-xy123"
+        },
+        "resource": {
+          "api_version": "cmk/v2",
+          "id": "lkc-vv5yj",
+          "kind": "Cluster",
+          "related": "http://localhost/cmk/v2/clusters/lkc-vv5yj",
+          "resource_name": "crn://localhost/kafka=lkc-vv5yj"
+        },
+        "secret": ""
+      }
+    }
+  ],
+  "kind": "ApiKeyList",
+  "metadata": {}
+}

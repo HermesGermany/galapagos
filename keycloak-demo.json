@@ -1,7 +1,7 @@
 {
-  "auth-server-url": "https://my-keycloak.mycompany.int/auth/",
+  "auth-server-url": "http://localhost:8089",
   "realm": "galapagos",
-  "resource": "galapagos-webapp",
+  "resource": "galapagos-webapp-dev",
   "public-client": true,
   "use-resource-role-mappings": true,
   "principal-attribute": "preferred_username"
