@@ -89,3 +89,9 @@ this.
 
 Once you are finished with a cool new feature or a bugfix, see [CONTRIBUTING.md](./CONTRIBUTING.md) for details on how
 to create Pull Requests.
+
+## Migrate
+
+Some new versions of Galapagos require extra migration effort:
+
+* [Galapagos 2.5.x to 2.6.0 Migration Guide](./docs/Migration%20Guide%202.6.md)
