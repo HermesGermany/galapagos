@@ -21,6 +21,13 @@ public class ConfluentCloudAuthConfig {
 
     private String organizationApiSecret;
 
-    private boolean serviceAccountIdCompatMode;
+    private Boolean serviceAccountIdCompatMode;
 
+    public boolean isServiceAccountIdCompatMode() {
+        if (serviceAccountIdCompatMode == null) {
+            // currently (Sep 2022), this should be default for Confluent!
+            return true;
+        }
+        return serviceAccountIdCompatMode;
+    }
 }

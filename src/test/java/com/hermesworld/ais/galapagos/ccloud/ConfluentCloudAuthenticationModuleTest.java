@@ -49,6 +49,7 @@ public class ConfluentCloudAuthenticationModuleTest {
         config.setClusterId("testCluster");
         config.setOrganizationApiKey("orgApiKey");
         config.setOrganizationApiSecret("orgApiTopSecret123");
+        config.setServiceAccountIdCompatMode(false);
         return config;
     }
 
