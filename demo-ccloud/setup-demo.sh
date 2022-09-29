@@ -13,6 +13,10 @@ KEYCLOAK_DIR=../keycloak
 CLUSTER_CLOUD=gcp
 CLUSTER_REGION=europe-west1
 
+# The name for the Galapagos Environment within your Confluent Cloud Organization.
+# You can override it with environment variable GALA_ENV_NAME
+GALAPAGOS_ENV_NAME="${GALA_ENV_NAME:-galapagos-demo}"
+
 # Here, the configuration for the Demo will be written to.
 OUTPUT_CONFIG_FILE="../application-democonf.properties"
 
@@ -91,11 +95,11 @@ checkServiceAccount () {
 
 createEnvironment () {
   echo "Checking for existing galapagos environment..."
-  GALA_ENV_ID=$("$CCLOUD_CLI" environment list -o yaml | "$YQ" -M '. | map(select(.name == "galapagos-demo")) | .[0].id') || exit 1
+  GALA_ENV_ID=$("$CCLOUD_CLI" environment list -o yaml | "$YQ" -M '. | map(select(.name == "'"$GALAPAGOS_ENV_NAME"'")) | .[0].id') || exit 1
   if [ "$GALA_ENV_ID" == "null" ]
   then
-    echo "Creating new environment galapagos-demo..."
-    GALA_ENV_ID=$("$CCLOUD_CLI" environment create galapagos-demo -o yaml | "$YQ" -M '.id') || exit 1
+    echo "Creating new environment $GALAPAGOS_ENV_NAME..."
+    GALA_ENV_ID=$("$CCLOUD_CLI" environment create "$GALAPAGOS_ENV_NAME" -o yaml | "$YQ" -M '.id') || exit 1
   fi
 }
 
