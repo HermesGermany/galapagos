@@ -8,6 +8,7 @@ SHLIB_BASE_URL=https://raw.githubusercontent.com/client9/shlib/1f866332017d9d635
 
 YQ_BASE_URL="https://github.com/mikefarah/yq/releases/download/v4.26.1"
 
+mkdir -p bin
 curl -sL "$SHLIB_BASE_URL/uname_os.sh" > bin/uname_os.sh
 curl -sL "$SHLIB_BASE_URL/uname_arch.sh" > bin/uname_arch.sh
 source bin/uname_os.sh
