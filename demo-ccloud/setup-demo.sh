@@ -170,8 +170,9 @@ createCloudApiKey () {
 }
 
 importDemoData () {
-  echo "Waiting for PROD API Key to be provisioned (10s)..."
-  sleep 10
+  echo "Creating known-applications topic (if not already exists)..."
+  "$CCLOUD_CLI" kafka topic create galapagos.internal.known-applications --cluster "$PROD_CLUSTER_ID" --environment "$GALA_ENV_ID" --if-not-exists --partitions 1 || exit 1
+
   echo "Importing Demo data..."
   "$CCLOUD_CLI" kafka topic produce galapagos.internal.known-applications --parse-key --api-secret "$PROD_API_SECRET" \
     --cluster "$PROD_CLUSTER_ID" --environment "$GALA_ENV_ID" --api-key "$PROD_API_KEY" --delimiter '|' < demodata/known-applications.txt 2>import-data.err
