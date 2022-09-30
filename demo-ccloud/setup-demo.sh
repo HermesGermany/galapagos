@@ -187,7 +187,7 @@ importDemoData () {
 
   rm import-data.err
 
-  exit $IMPORT_EXIT_CODE
+  return $IMPORT_EXIT_CODE
 }
 
 writeDemoConfig () {
