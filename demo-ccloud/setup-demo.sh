@@ -170,9 +170,23 @@ createCloudApiKey () {
 }
 
 importDemoData () {
+  echo "Waiting for PROD API Key to be provisioned (10s)..."
+  sleep 10
   echo "Importing Demo data..."
-  "$CCLOUD_CLI" kafka topic produce galapagos.internal.known-applications --parse-key --api-secret "$PROD_API_SECRET" \
-    --cluster "$PROD_CLUSTER_ID" --environment "$GALA_ENV_ID" --api-key "$PROD_API_KEY" --delimiter '|' < demodata/known-applications.txt 2>/dev/null || exit 1
+  "$CCLOUD_CLI" kafka topic produce galapagos.internal.known-applications --parse-key --api-secret "xx$PROD_API_SECRET" \
+    --cluster "$PROD_CLUSTER_ID" --environment "$GALA_ENV_ID" --api-key "$PROD_API_KEY" --delimiter '|' < demodata/known-applications.txt 2>import-data.err
+
+  IMPORT_EXIT_CODE="$?"
+
+  if [ "$IMPORT_EXIT_CODE" -gt 0 ]
+  then
+    echo "ERROR: Importing demo data failed" >&2
+    cat import-data.err >&2
+  fi
+
+  rm import-data.err
+
+  exit $IMPORT_EXIT_CODE
 }
 
 writeDemoConfig () {
@@ -210,16 +224,16 @@ confluentLogin || exit 2
 createEnvironment || exit 1
 checkServiceAccount || exit 1
 createCloudApiKey || exit 1
-createCluster "nonprod" || exit 1
-NONPROD_CLUSTER_ID="$CLUSTER_ID"
-NONPROD_BOOTSTRAP_SERVER="$CLUSTER_BOOTSTRAP_SERVER"
-NONPROD_API_KEY="$CLUSTER_API_KEY"
-NONPROD_API_SECRET="$CLUSTER_API_SECRET"
 createCluster "prod" || exit 1
 PROD_CLUSTER_ID="$CLUSTER_ID"
 PROD_BOOTSTRAP_SERVER="$CLUSTER_BOOTSTRAP_SERVER"
 PROD_API_KEY="$CLUSTER_API_KEY"
 PROD_API_SECRET="$CLUSTER_API_SECRET"
+createCluster "nonprod" || exit 1
+NONPROD_CLUSTER_ID="$CLUSTER_ID"
+NONPROD_BOOTSTRAP_SERVER="$CLUSTER_BOOTSTRAP_SERVER"
+NONPROD_API_KEY="$CLUSTER_API_KEY"
+NONPROD_API_SECRET="$CLUSTER_API_SECRET"
 importDemoData || exit 1
 writeDemoConfig || exit 1
 
