@@ -247,10 +247,20 @@
 						<phase>prepare-package</phase>
 					</execution>
 					<execution>
+						<id>install-npm-packages</id>
+						<goals>
+							<goal>npm</goal>
+						</goals>
+						<phase>prepare-package</phase>
+					</execution>
+					<execution>
 						<id>build-ui</id>
 						<goals>
 							<goal>npm</goal>
 						</goals>
+						<configuration>
+							<arguments>run build-from-maven</arguments>
+						</configuration>
 						<phase>prepare-package</phase>
 					</execution>
 				</executions>
@@ -258,7 +268,6 @@
 					<nodeVersion>${node.version}</nodeVersion>
 					<workingDirectory>${basedir}/ui</workingDirectory>
 					<installDirectory>${project.build.directory}</installDirectory>
-					<arguments>run build-from-maven</arguments>
 				</configuration>
 			</plugin>
 

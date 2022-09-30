@@ -6,7 +6,7 @@
         "ng": "ng",
         "start": "ng serve --proxy-config proxy.conf.json",
         "build": "ng build --configuration production --base-href /app/",
-        "build-from-maven": "npm install && ng build --configuration production --base-href /app/ --output-path ../target/classes/static/app",
+        "build-from-maven": "ng build --configuration production --base-href /app/ --output-path ../target/classes/static/app",
         "test": "ng test",
         "lint": "ng lint galapagos"
     },
