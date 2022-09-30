@@ -28,7 +28,8 @@ Just clone this repository, and run
 ./start-demo.sh
 ```
 
-to setup and start the Galapagos Demo locally.
+to setup and start the Galapagos Demo locally. Afterwards, browse http://localhost:8080/ to access Galapagos.
+Use `user1/user1` for a "normal user" login, or `admin1/admin1` for an Administrator login.
 
 Demo setup includes a local Apache Keycloak which will be downloaded and configured.
 
