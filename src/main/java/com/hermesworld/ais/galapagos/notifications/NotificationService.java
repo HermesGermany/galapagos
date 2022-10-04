@@ -1,8 +1,8 @@
 package com.hermesworld.ais.galapagos.notifications;
 
-import java.util.concurrent.CompletableFuture;
-
 import com.hermesworld.ais.galapagos.applications.ApplicationOwnerRequest;
+
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Interface of a component which is able to send notification for defined user sets. <br>
@@ -29,6 +29,9 @@ public interface NotificationService {
     CompletableFuture<Void> notifyRequestor(ApplicationOwnerRequest request, NotificationParams notificationParams);
 
     CompletableFuture<Void> notifyAdmins(NotificationParams notificationParams);
+
+    CompletableFuture<Void> notifyProducer(NotificationParams notificationParams, String currentUserEmail,
+            String producerApplicationId);
 
     CompletableFuture<Void> notifyTopicOwners(String environmentId, String topicName,
             NotificationParams notificationParams);
