@@ -178,6 +178,9 @@
     border-color: #262626;
 }
 
+// Fixes another incompatibility of ng-bootstrap 13.0.0 and Bootstrap 4.x
+$zindex-modal: 1055;
+
 @import "bootstrap/bootstrap";
 @import "accordion-fixes";
 
