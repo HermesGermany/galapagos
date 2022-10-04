@@ -18,10 +18,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Collections;
-import java.util.NoSuchElementException;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -148,6 +145,18 @@ public class DeveloperAuthenticationServiceImpl implements DeveloperAuthenticati
         }
 
         return result.thenApply(o -> totalClearedDevAuthentications.get());
+    }
+
+    @Override
+    public List<DevAuthenticationMetadata> getAllDeveloperAuthentications(String environmentId) {
+        KafkaCluster cluster = kafkaClusters.getEnvironment(environmentId).orElse(null);
+        if (cluster == null) {
+            return List.of();
+        }
+        KafkaAuthenticationModule authModule = kafkaClusters.getAuthenticationModule(cluster.getId()).orElseThrow();
+
+        return getRepository(cluster).getObjects().stream().filter(metadata -> !isExpired(metadata, authModule))
+                .collect(Collectors.toList());
     }
 
     private boolean isExpired(DevAuthenticationMetadata metadata, KafkaAuthenticationModule authModule) {

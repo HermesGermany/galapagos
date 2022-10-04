@@ -8,12 +8,12 @@
 // Base class takes care of all the key behavioral aspects.
 
 .custom-control {
-  position: relative;
-  z-index: 1;
-  display: block;
-  min-height: $font-size-base * $line-height-base;
-  padding-left: $custom-control-gutter + $custom-control-indicator-size;
-  color-adjust: exact; // Keep themed appearance for print
+    position: relative;
+    z-index: 1;
+    display: block;
+    min-height: $font-size-base * $line-height-base;
+    padding-left: $custom-control-gutter + $custom-control-indicator-size;
+    print-color-adjust: exact; // Keep themed appearance for print
 }
 
 .custom-control-inline {
@@ -330,9 +330,9 @@
   }
 
   @each $lang, $value in $custom-file-text {
-    &:lang(#{$lang}) ~ .custom-file-label::after {
-      content: $value;
-    }
+      &[lang="#{$lang}"] ~ .custom-file-label::after {
+          content: $value;
+      }
   }
 
   ~ .custom-file-label[data-browse]::after {

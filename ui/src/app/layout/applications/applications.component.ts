@@ -21,6 +21,7 @@ import { OpenApiKeyDialogEvent, OpenCertificateDialogEvent } from './application
 import { HttpErrorResponse } from '@angular/common/http';
 import { ApiKeyService } from '../../shared/services/apikey.service';
 import { ApplicationCertificate, CertificateService } from '../../shared/services/certificates.service';
+import { copy } from '../../shared/util/copy-util';
 
 export interface UserApplicationInfoWithTopics extends UserApplicationInfo {
 
@@ -298,18 +299,7 @@ export class ApplicationsComponent implements OnInit {
     }
 
     copyValue(value: string) {
-        const selBox = document.createElement('textarea');
-        selBox.style.position = 'fixed';
-        selBox.style.left = '0';
-        selBox.style.top = '0';
-        selBox.style.opacity = '0';
-        selBox.value = value;
-        document.body.appendChild(selBox);
-        selBox.focus();
-        selBox.select();
-        document.execCommand('copy');
-        document.body.removeChild(selBox);
-
+        copy(value);
         if (value === this.key) {
             this.copiedKey = true;
         } else {

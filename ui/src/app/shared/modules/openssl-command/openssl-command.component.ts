@@ -1,4 +1,5 @@
 import { Component, Input, OnChanges, OnInit } from '@angular/core';
+import { copy } from '../../util/copy-util';
 
 @Component({
     selector: 'app-openssl-command',
@@ -49,17 +50,7 @@ export class OpensslCommandComponent implements OnInit, OnChanges {
     }
 
     copyCommand() {
-        const selBox = document.createElement('textarea');
-        selBox.style.position = 'fixed';
-        selBox.style.left = '0';
-        selBox.style.top = '0';
-        selBox.style.opacity = '0';
-        selBox.value = this.opensslCommand;
-        document.body.appendChild(selBox);
-        selBox.focus();
-        selBox.select();
-        document.execCommand('copy');
-        document.body.removeChild(selBox);
+        copy(this.opensslCommand);
         this.copied = true;
     }
 }

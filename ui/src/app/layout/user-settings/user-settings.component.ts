@@ -9,6 +9,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { DateTime } from 'luxon';
 import { ApiKeyService } from '../../shared/services/apikey.service';
 import { withCurrentLanguage } from '../../shared/util/translate-util';
+import { copy } from '../../shared/util/copy-util';
 
 interface ExistingAuthenticationInfo {
 
@@ -165,18 +166,7 @@ export class UserSettingsComponent implements OnInit {
 
 
     copyValue(value: string) {
-        const selBox = document.createElement('textarea');
-        selBox.style.position = 'fixed';
-        selBox.style.left = '0';
-        selBox.style.top = '0';
-        selBox.style.opacity = '0';
-        selBox.value = value;
-        document.body.appendChild(selBox);
-        selBox.focus();
-        selBox.select();
-        document.execCommand('copy');
-        document.body.removeChild(selBox);
-
+        copy(value);
         if (value === this.newApiKey) {
             this.copiedKey = true;
             this.copiedSecret = false;

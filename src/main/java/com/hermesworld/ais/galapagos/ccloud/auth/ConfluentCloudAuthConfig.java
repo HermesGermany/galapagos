@@ -7,10 +7,6 @@ import lombok.Setter;
 @Setter
 public class ConfluentCloudAuthConfig {
 
-    private String cloudUserName;
-
-    private String cloudPassword;
-
     private String environmentId;
 
     private String clusterId;
@@ -21,4 +17,17 @@ public class ConfluentCloudAuthConfig {
 
     private String developerApiKeyValidity;
 
+    private String organizationApiKey;
+
+    private String organizationApiSecret;
+
+    private Boolean serviceAccountIdCompatMode;
+
+    public boolean isServiceAccountIdCompatMode() {
+        if (serviceAccountIdCompatMode == null) {
+            // currently (Sep 2022), this should be default for Confluent!
+            return true;
+        }
+        return serviceAccountIdCompatMode;
+    }
 }
