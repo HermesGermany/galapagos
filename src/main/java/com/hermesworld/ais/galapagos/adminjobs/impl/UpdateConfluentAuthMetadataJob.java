@@ -1,6 +1,5 @@
 package com.hermesworld.ais.galapagos.adminjobs.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hermesworld.ais.galapagos.adminjobs.AdminJob;
 import com.hermesworld.ais.galapagos.applications.ApplicationMetadata;
 import com.hermesworld.ais.galapagos.applications.ApplicationsService;
@@ -11,7 +10,6 @@ import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.kafka.auth.KafkaAuthenticationModule;
 import com.hermesworld.ais.galapagos.kafka.util.TopicBasedRepository;
-import com.hermesworld.ais.galapagos.util.JsonUtil;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
@@ -27,8 +25,6 @@ public class UpdateConfluentAuthMetadataJob implements AdminJob {
     private final ApplicationsService applicationsService;
 
     private final DeveloperAuthenticationService devAuthService;
-
-    private final ObjectMapper mapper = JsonUtil.newObjectMapper();
 
     @Autowired
     public UpdateConfluentAuthMetadataJob(KafkaClusters kafkaClusters, ApplicationsService applicationsService,
@@ -67,14 +63,11 @@ public class UpdateConfluentAuthMetadataJob implements AdminJob {
                 JSONObject authenticationJson = new JSONObject(app.getAuthenticationJson());
                 JSONObject newAuthJson = confluentCloudAuthenticationModule.upgradeAuthMetadata(authenticationJson)
                         .get();
-                // remove previous serviceAccountId field (only present on AIS)
-                newAuthJson.remove("serviceAccountId");
 
                 if (!newAuthJson.toString().equals(authenticationJson.toString())) {
                     System.out.println("Upgrading authentication for app " + app.getApplicationId());
                     app.setAuthenticationJson(newAuthJson.toString());
-                    System.out.println("WOULD STORE: " + mapper.writeValueAsString(app));
-                    // appMetadataRepo.save(app).get();
+                    appMetadataRepo.save(app).get();
                 }
             }
 
@@ -87,8 +80,7 @@ public class UpdateConfluentAuthMetadataJob implements AdminJob {
                 if (!newAuthJson.toString().equals(authenticationJson.toString())) {
                     System.out.println("Upgrading authentication for developer " + auth.getUserName());
                     auth.setAuthenticationJson(newAuthJson.toString());
-                    System.out.println("WOULD STORE: " + mapper.writeValueAsString(auth));
-                    // devAuthRepo.save(auth).get();
+                    devAuthRepo.save(auth).get();
                 }
             }
         }
