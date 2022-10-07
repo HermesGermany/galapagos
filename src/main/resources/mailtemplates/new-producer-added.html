@@ -8,9 +8,10 @@
 <p>
     Hallo lieber Galapagos-Benutzer,
 </p>
-<p>Deine Anwendung <span th:text="${producerApplicationId}" style="font-weight:bold">AppName</span> wurde soeben auf der
-    <span th:text="${environmentId}">env</span>-Umgebung als Produzent für das Topic
-    <span th:text="${topicName}" style="font-weight:bold">TopicName</span> hinzugefügt.
+<p>Deine Anwendung <span th:text="${producer_application_name}" style="font-weight:bold">AppName</span> wurde soeben auf
+    der
+    <span th:text="${env_name}">env</span>-Umgebung als Produzent für das Topic
+    <span th:text="${topic_name}" style="font-weight:bold">TopicName</span> hinzugefügt.
     Somit wurden deiner Anwendung die nötigen Rechte zugewiesen, um in das Topic schreiben zu können.</p>
 <table style="width:300px; margin-left:auto; margin-right:auto">
     <tr>

@@ -1,6 +1,8 @@
 #!/bin/bash
 
 KEYCLOAK_PORT=8089
+KEYCLOAK_ADMIN="admin"
+KEYCLOAK_ADMIN_PASSWORD="admin123"
 
 # determine "real" Java binary (Windows / Git Bash compatibility)
 JAVA_BIN="$JAVA_HOME/bin/java"
