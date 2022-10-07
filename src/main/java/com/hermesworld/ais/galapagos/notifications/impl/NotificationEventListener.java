@@ -179,36 +179,29 @@ public class NotificationEventListener
 
     @Override
     public CompletableFuture<Void> handleAddTopicProducer(TopicAddProducerEvent event) {
-        NotificationParams params = new NotificationParams("new-producer-added");
-        String currentUserEmail = userService.getCurrentUserEmailAddress().orElse(unknownUser);
-        params.addVariable("topicName", event.getMetadata().getName());
-        params.addVariable("environmentId", event.getContext().getKafkaCluster().getId().toUpperCase());
-        Optional<KnownApplication> producerApp = applicationsService
-                .getKnownApplication(event.getProducerApplicationId());
-        Optional<KnownApplication> ownerApp = applicationsService
-                .getKnownApplication(event.getMetadata().getOwnerApplicationId());
-        params.addVariable("producerApplicationId", producerApp.map(KnownApplication::getName).orElse(unknownApp));
-        params.addVariable("topicOwner", ownerApp.map(KnownApplication::getName).orElse(unknownApp));
-        params.addVariable("galapagos_apps_url", buildUIUrl(event, "/applications"));
-
-        return notificationService.notifyProducer(params, currentUserEmail, event.getProducerApplicationId());
+        return handleTopicProducerEvent("new-producer-added", event.getProducerApplicationId(), event);
     }
 
     @Override
     public CompletableFuture<Void> handleRemoveTopicProducer(TopicRemoveProducerEvent event) {
-        NotificationParams params = new NotificationParams("producer-deleted");
+        return handleTopicProducerEvent("producer-deleted", event.getProducerApplicationId(), event);
+    }
+
+    private CompletableFuture<Void> handleTopicProducerEvent(String templateName, String producerApplicationId,
+            TopicEvent event) {
+        String environmentId = event.getContext().getKafkaCluster().getId();
+        String environmentName = kafkaClusters.getEnvironmentMetadata(environmentId)
+                .map(KafkaEnvironmentConfig::getName).orElse(unknownEnv);
+
+        NotificationParams params = new NotificationParams(templateName);
         String currentUserEmail = userService.getCurrentUserEmailAddress().orElse(unknownUser);
-        params.addVariable("topicName", event.getMetadata().getName());
-        params.addVariable("environmentId", event.getContext().getKafkaCluster().getId().toUpperCase());
-        Optional<KnownApplication> producerApp = applicationsService
-                .getKnownApplication(event.getProducerApplicationId());
-        Optional<KnownApplication> ownerApp = applicationsService
-                .getKnownApplication(event.getMetadata().getOwnerApplicationId());
-        params.addVariable("producerApplicationId", producerApp.map(KnownApplication::getName).orElse(unknownApp));
-        params.addVariable("topicOwner", ownerApp.map(KnownApplication::getName).orElse(unknownApp));
+        params.addVariable("topic_name", event.getMetadata().getName());
+        params.addVariable("env_name", environmentName);
+        Optional<KnownApplication> producerApp = applicationsService.getKnownApplication(producerApplicationId);
+        params.addVariable("producer_application_name", producerApp.map(KnownApplication::getName).orElse(unknownApp));
         params.addVariable("galapagos_apps_url", buildUIUrl(event, "/applications"));
 
-        return notificationService.notifyProducer(params, currentUserEmail, event.getProducerApplicationId());
+        return notificationService.notifyProducer(params, currentUserEmail, producerApplicationId);
     }
 
     @Override
