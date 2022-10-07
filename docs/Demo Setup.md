@@ -8,7 +8,7 @@ setup consists of the following and will be set up for you by the setup script:
 * Galapagos
 * All the required certificate stuff
 
-Please note that we **recommend** to start with the [Confluent Cloud setup](./Confluent%20Cloud%20Setup.md), which
+Please note that we **recommend** to start with the **Confluent Cloud Demo Setup** (just run `setup-demo.sh`), which
 requires less local resources and avoids the SSL certificate stuff associated with the setup described here. You can
 create a Confluent Cloud account for free and will get some free testing budget for some months, so you can easily
 evaluate Galapagos in this timeframe.

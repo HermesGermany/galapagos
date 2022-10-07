@@ -202,6 +202,7 @@
     "DEVELOPER_API_KEY_HTML": "You can get one <i>developer API key</i> per environment, which has the same rights as the applications you manage. However, administrators can disable this feature for individual environments. The API key has a limited scope Runtime; You can replace it with a new one at any time on this page.<br><br>You always get the API key <b>and</b> the corresponding secret generated here.",
     "SAVE_DEV_KEY_WARNING": "Please <b>save</b> the secret before leaving this page! The secret will not be stored in Galapagos. Please also note that the API key has the following <b>expiry date</b>: {{ expiresAt }}",
     "NOTICE_TOPIC_DATA_VIEW": "This is only a <b>preview</b> of the data in this topic. Only a very limited amount of data is displayed. For a full view, please use suitable software.",
-    "SKIP_COMPAT_CHECK_WARNING": "<b>Caution</b>: This allows for incompatible changes in the topic data. Only use this if you really know what you are doing."
+    "SKIP_COMPAT_CHECK_WARNING": "<b>Caution</b>: This allows for incompatible changes in the topic data. Only use this if you really know what you are doing.",
+    "USE_STAGING_FOR_SUB_TEXT": "To transfer your subscription for this topic from the previous environment to this one, please use "
 }
 

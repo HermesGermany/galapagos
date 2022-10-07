@@ -13,7 +13,7 @@ public final class ConfluentCloudAuthUtil {
 
     public static String getApiKey(String authJson) {
         try {
-            return new JSONObject(authJson).getString("apiKey");
+            return new JSONObject(authJson).getString(ConfluentCloudAuthenticationModule.JSON_API_KEY);
         }
         catch (JSONException e) {
             return null;
@@ -22,7 +22,8 @@ public final class ConfluentCloudAuthUtil {
 
     public static Instant getExpiresAt(String authJson) {
         try {
-            return Instant.parse(new JSONObject(authJson).getString("expiresAt"));
+            return Instant
+                    .parse(new JSONObject(authJson).getString(ConfluentCloudAuthenticationModule.JSON_EXPIRES_AT));
         }
         catch (DateTimeParseException | JSONException e) {
             return null;

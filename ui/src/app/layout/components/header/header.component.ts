@@ -78,9 +78,8 @@ export class HeaderComponent implements OnInit {
         dom.classList.toggle(this.pushRightClass);
     }
 
-    onLoggedout() {
-        this.keycloak.logout();
-        return false;
+    async onLoggedout() {
+        return this.keycloak.logout();
     }
 
     changeLang(language: string) {

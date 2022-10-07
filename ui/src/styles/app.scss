@@ -6,22 +6,22 @@
 @import "responsive";
 
 .dark {
-    $white: #121212 !default;
-    $gray-100: #212529 !default;
-    $gray-200: #343a40 !default;
-    $gray-300: #495057 !default;
-    $gray-400: #6c757d !default;
-    $gray-500: #adb5bd !default;
-    $gray-600: #ced4da !default;
-    $gray-700: #dee2e6 !default;
-    $gray-800: #e9ecef !default;
-    $gray-900: #f8f9fa !default;
-    $black: #ffffff !default;
-    $hermes: #adadad !default;
-    $lastChanges: #121212 !default;
-    $green: #155622 !default;
-    $topicSettings: #121212 !default;
-    $defaultInputValue: #E0F8E0 !default;
+    $white: #121212;
+    $gray-100: #212529;
+    $gray-200: #343a40;
+    $gray-300: #495057;
+    $gray-400: #6c757d;
+    $gray-500: #adb5bd;
+    $gray-600: #ced4da;
+    $gray-700: #dee2e6;
+    $gray-800: #e9ecef;
+    $gray-900: #f8f9fa;
+    $black: #ffffff;
+    $hermes: #adadad;
+    $lastChanges: #121212;
+    $green: #155622;
+    $topicSettings: #121212;
+    $defaultInputValue: #E0F8E0;
     @import "bootstrap/bootstrap";
 }
 
@@ -50,7 +50,7 @@
 .dark ::-webkit-scrollbar-thumb {
     background: #343a40;
     -webkit-border-radius: 1ex;
-    -webkit-box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.75);
+    -webkit-box-shadow: 0 1px 2px rgba(0, 0, 0, 0.75);
 }
 
 .dark ::-webkit-scrollbar-corner {
@@ -178,7 +178,11 @@
     border-color: #262626;
 }
 
+// Fixes another incompatibility of ng-bootstrap 13.0.0 and Bootstrap 4.x
+$zindex-modal: 1055;
+
 @import "bootstrap/bootstrap";
+@import "accordion-fixes";
 
 @media print {
     .breadcrumb {

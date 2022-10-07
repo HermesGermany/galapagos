@@ -1,5 +1,5 @@
 {
-  "auth-server-url": "https://my-keycloak.myacme.org/auth/",
+  "auth-server-url": "https://my-keycloak.mycompany.int/auth/",
   "realm": "galapagos",
   "resource": "galapagos-webapp",
   "public-client": true,

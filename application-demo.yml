@@ -1,0 +1,105 @@
+server:
+  port: 8080
+
+info:
+  galapagos.instanceName: "Local DEMO"
+
+spring:
+  mail:
+    host: localhost
+    port: 25
+    properties:
+      "[mail.smtp.auth]": false
+      "[mail.smtp.starttls.enable]": false
+      "[mail.smtp.connectiontimeout]": 1000
+
+# For more potential settings, see src/main/resources/application.properties
+galapagos:
+  mail:
+    sender: "Galapagos DEMO <galapagos@despam.it>"
+
+  kafka:
+    environments:
+      - id: nonprod
+        name: "NONPROD"
+        bootstrap-servers: "${demo.nonprod.bootstrap.servers}"
+        authentication-mode: ccloud
+        ccloud:
+          environment-id: "${demo.environment-id}"
+          cluster-id: "${demo.nonprod.cluster-id}"
+          cluster-api-key: "${demo.nonprod.cluster-api-key}"
+          cluster-api-secret: "${demo.nonprod.cluster-api-secret}"
+          organization-api-key: "${demo.organization-api-key}"
+          organization-api-secret: "${demo.organization-api-secret}"
+          developer-api-key-validity: "P30D"
+        staging-only: false
+      - id: prod
+        name: "PROD"
+        bootstrap-servers: "${demo.prod.bootstrap.servers}"
+        authentication-mode: ccloud
+        ccloud:
+          environment-id: "${demo.environment-id}"
+          cluster-id: "${demo.prod.cluster-id}"
+          cluster-api-key: "${demo.prod.cluster-api-key}"
+          cluster-api-secret: "${demo.prod.cluster-api-secret}"
+          organization-api-key: "${demo.organization-api-key}"
+          organization-api-secret: "${demo.organization-api-secret}"
+          developer-api-key-validity: "P10D"
+        staging-only: true
+
+    # Here, you can configure ACLs which will be assigned to any account created by Galapagos.
+    # Additionally, every account gets a CLUSTER DESCRIBE ACL, so this does not need to be configured here.
+    # The examples here can be useful for using Confluent Cloud Managed Connectors.
+    default-acls:
+      - name: connect-lcc
+        resource-type: GROUP
+        pattern-type: PREFIXED
+        operation: READ
+      - name: dlq-lcc
+        resource-type: TOPIC
+        pattern-type: PREFIXED
+        operation: CREATE
+      - name: dlq-lcc
+        resource-type: TOPIC
+        pattern-type: PREFIXED
+        operation: WRITE
+    production-environment: prod
+    metadata-topics-prefix": "galapagos.internal."
+
+  topics:
+    defaultPartitionCount: 3
+    standardReplicationFactor: 3
+  naming:
+    events:
+      addition-rules:
+        allow-pascal-case: true
+        allow-kebab-case: true
+    data:
+      addition-rules:
+        allow-pascal-case: true
+        allow-kebab-case: true
+    commands:
+      addition-rules:
+        allow-pascal-case: true
+        allow-kebab-case: true
+  changelog:
+    entries: 15
+    min-days: 14
+    profile-picture: INITIALS
+    default-picture: INITIALS
+    # This could e.g. be a CUSTOM profile picture based on a Company SharePoint:
+    # profile-picture: CUSTOM
+    # customImageUrl: "https://mycompany.sharepoint.com/_layouts/15/userphoto.aspx?size=M&username={0}"
+  custom-links:
+    links:
+      - id: github-link
+        label: "Kafka Guidelines"
+        href: "https://github.com/HermesGermany/galapagos/blob/main/kafka_guidelines.md"
+        link-type: EDUCATIONAL
+  initialRepositoryLoadWaitTime: 10s
+  repositoryLoadIdleTtime: 5s
+
+keycloak:
+  configurationFile: "file:./keycloak-demo.json"
+
+"logging.level.org.apache.kafka": "INFO"

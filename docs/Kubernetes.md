@@ -18,10 +18,10 @@ Usually, you would setup the following elements in Kubernetes for running Galapa
 
 The following example expects these objects to exist:
 
-* A _ConfigMap_ named `spring-properties`, containing an `application-prod.properties`, a `keycloak.json`, and
+* A _ConfigMap_ named `spring-properties`, containing an `application-prod.yml`, a `keycloak.json`, and
   a `logback-spring.xml`
 * A _Secret_ named `spring-secret-properties`, containing only the key `SMTP_PASSWORD` with the SMTP password for the
-  SMTP server configured via the `application-prod.properties`
+  SMTP server configured via the `application-prod.yml`
 * Another _Secret_ named `kafka-ca`, containing the public certificates & private keys of the Intermediate CAs, so
   Galapagos can create client certificates for applications. Note that this is not required when using **Confluent
   Cloud** for managing your Kafka Clusters.
@@ -48,7 +48,7 @@ spec:
     spec:
       containers:
         - name: galapagos-container
-          image: hermesgermany/galapagos:2.1.0
+          image: hermesgermany/galapagos:2.6.0
           resources:
             limits:
               cpu: "1"
@@ -105,79 +105,8 @@ spec:
 
 ### Example application properties
 
-An `application-prod.properties` could look like this:
-
-```properties
-keycloak.configurationFile=file:///appconfig/keycloak.json
-
-spring.mail.host=smtp.my.company.tld.domain
-spring.mail.port=25
-spring.mail.username=mailuser
-spring.mail.password=<provided via commandline>
-spring.mail.properties.mail.smtp.auth=true
-spring.mail.properties.mail.smtp.starttls.enable=false
-spring.mail.properties.mail.smtp.connectiontimeout=5000
-
-galapagos.mail.sender=Galapagos <galapagos@my.company.tld.domain>
-galapagos.mail.admin-recipients=galapagos-admins@my.company.tld.domain
-
-# First Kafka Cluster: An on-prem hosted one, client-certificate based authentication.
-galapagos.kafka.environments[0].id=devtest
-galapagos.kafka.environments[0].name=DEV/TEST
-galapagos.kafka.environments[0].bootstrap-servers=first.kafkabroker.test.internal:9092,second.kafkabroker.test.internal:9092
-galapagos.kafka.environments[0].authenticationMode=certificates
-galapagos.kafka.environments[0].certificates.certificatesWorkdir=file:${java.io.tmpdir}/galapagos
-# This refers to the mounted secret!
-galapagos.kafka.environments[0].certificates.caCertificateFile=file:/tmp/ca/kafka_dev_ca.cer
-galapagos.kafka.environments[0].certificates.caKeyFile=file:/tmp/ca/kafka_dev_ca.key
-galapagos.kafka.environments[0].certificates.applicationCertificateValidity=P730D
-galapagos.kafka.environments[0].certificates.developerCertificateValidity=P90D
-# Galapagos will generate a client certificate with this DN on the fly. Your Kafka Cluster should be configured to accept
-# this user name as a cluster admin with unlimited access.
-galapagos.kafka.environments[0].certificates.clientDn=CN\=kafkaadmin
-galapagos.kafka.environments[0].stagingOnly=false
-
-# Second Kafka Cluster: A Confluent Cloud based cluster, API Key + Secret based authentication.
-galapagos.kafka.environments[1].id=prod
-galapagos.kafka.environments[1].name=PROD
-galapagos.kafka.environments[1].bootstrap-servers=pkc-12345.europe-west1.gcp.confluent.cloud:9092
-galapagos.kafka.environments[1].authenticationMode=ccloud
-galapagos.kafka.environments[1].ccloud.cloudUserName=galapagos@my.company.tld.domain
-galapagos.kafka.environments[1].ccloud.cloudPassword=TopSecret123
-galapagos.kafka.environments[1].ccloud.environmentId=env-abc123
-galapagos.kafka.environments[1].ccloud.clusterId=lkc-12345
-galapagos.kafka.environments[1].ccloud.clusterApiKey=ABCDEFGHI123456
-galapagos.kafka.environments[1].ccloud.clusterApiSecret=TopSecret999!@MuchMoreSecrets
-galapagos.kafka.environments[1].stagingOnly=true
-
-# The "prod" environment is used for storing cross-cluster metadata, e.g. application owner requests.
-galapagos.kafka.production-environment=prod
-
-# If set to true, Galapagos will not perform any modification operations in Kafka, e.g. not create or delete ACLs or topics.
-galapagos.kafka.readonly=false
-
-# Naming Customization (see src/main/resources/application.properties for available options)
-galapagos.naming.events.additionRules.allowPascalCase=true
-galapagos.naming.data.additionRules.allowPascalCase=true
-galapagos.naming.commands.additionRules.allowPascalCase=true
-
-# Take your time for initializing repositories
-galapagos.initialRepositoryLoadWaitTime=10s
-galapagos.repositoryLoadIdleTime=3s
-
-# The fields of a list of Custom Links
-galapagos.customLinks.links[0].id=naming-convention
-galapagos.customLinks.links[0].href=https://wiki.my.company.tld.domain/Kafka+Naming+Conventions
-galapagos.customLinks.links[0].label=MyCompany Kafka Naming Conventions
-galapagos.customLinks.links[0].linkType=EDUCATIONAL
-
-# Enable creation of topics with sensitive data, where approval for subscriptions is required
-# (This is an opt-in feature per topic; creators can still choose to leave their topics open for direct subscriptions)
-info.toggles.subscriptionApproval=true
-
-# Enable more greedy deletion of JSON schemas
-info.toggles.schemaDeleteWithSub=true
-```
+See [application-demo.yml](../application-demo.yml) for a first example. Configuration variables used there can be found
+in [application-democonf.properties](../application-democonf.properties) after running the one-time demo setup.
 
 ### Example Keycloak config
 

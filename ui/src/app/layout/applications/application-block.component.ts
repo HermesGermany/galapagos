@@ -54,6 +54,8 @@ export class ApplicationBlockComponent implements OnChanges {
 
     expiryDateString: Observable<string>;
 
+    serviceAccountId: string;
+
     constructor(private apiKeyService: ApiKeyService, public environmentsService: EnvironmentsService,
                 private certificateService: CertificateService, private translateService: TranslateService) {
     }
@@ -86,6 +88,7 @@ export class ApplicationBlockComponent implements OnChanges {
                         }
 
                         this.apiKey = keys.authentications[env.id].authentication['apiKey'];
+                        this.serviceAccountId = keys.authentications[env.id].authentication['userId'];
                         return keys.authentications[env.id].authentication as ApplicationApiKey;
                     };
 

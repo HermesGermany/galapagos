@@ -16,6 +16,7 @@ import { ApplicationInfo, ApplicationsService } from '../../shared/services/appl
 import { Location } from '@angular/common';
 import { toNiceTimestamp } from '../../shared/util/time-util';
 import { Md5 } from 'ts-md5';
+import { copyObsValue } from '../../shared/util/copy-util';
 
 @Component({
     selector: 'app-dashboard',
@@ -139,21 +140,8 @@ export class DashboardComponent implements OnInit {
     }
 
     copyValueFromObservable(observer: Observable<string>) {
-        const selBox = document.createElement('textarea');
-        selBox.style.position = 'fixed';
-        selBox.style.left = '0';
-        selBox.style.top = '0';
-        selBox.style.opacity = '0';
-        const subscription = observer.subscribe(value => {
-            selBox.value = value;
-            document.body.appendChild(selBox);
-            selBox.focus();
-            selBox.select();
-            document.execCommand('copy');
-            document.body.removeChild(selBox);
-            this.configTemplatesCopiedValue = true;
-            subscription.unsubscribe();
-        });
+        copyObsValue(observer);
+        this.configTemplatesCopiedValue = true;
     }
 
     private formatChanges(changes: ChangelogEntry[], amountOfEntries: number, minDays: number): ChangelogEntry[] {

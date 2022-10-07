@@ -1,13 +1,5 @@
 package com.hermesworld.ais.galapagos.notifications.impl;
 
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
-import javax.mail.MessagingException;
-import javax.mail.internet.AddressException;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
-
 import com.hermesworld.ais.galapagos.applications.ApplicationOwnerRequest;
 import com.hermesworld.ais.galapagos.applications.ApplicationsService;
 import com.hermesworld.ais.galapagos.applications.RequestState;
@@ -26,30 +18,38 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.thymeleaf.ITemplateEngine;
 import org.thymeleaf.context.Context;
 
-@Component
+import javax.mail.MessagingException;
+import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
+
+@Service
 @Slf4j
 public class NotificationServiceImpl implements NotificationService {
 
-    private SubscriptionService subscriptionService;
+    private final SubscriptionService subscriptionService;
 
-    private ApplicationsService applicationsService;
+    private final ApplicationsService applicationsService;
 
-    private TopicService topicService;
+    private final TopicService topicService;
 
-    private JavaMailSender mailSender;
+    private final JavaMailSender mailSender;
 
-    private TaskExecutor taskExecutor;
+    private final TaskExecutor taskExecutor;
 
-    private ITemplateEngine templateEngine;
+    private final ITemplateEngine templateEngine;
 
-    private InternetAddress fromAddress;
+    private final InternetAddress fromAddress;
 
-    private List<InternetAddress> adminMailRecipients;
+    private final List<InternetAddress> adminMailRecipients;
 
     @Autowired
     public NotificationServiceImpl(SubscriptionService subscriptionService, ApplicationsService applicationsService,
@@ -128,6 +128,18 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
+    public CompletableFuture<Void> notifyProducer(NotificationParams notificationParams, String currentUserEmail,
+            String producerApplicationId) {
+        Set<String> mailAddresses = applicationsService.getAllApplicationOwnerRequests().stream()
+                .filter(ownerReq -> ownerReq.getState().equals(RequestState.APPROVED)
+                        && ownerReq.getApplicationId().equals(producerApplicationId)
+                        && !ownerReq.getNotificationEmailAddress().equals(currentUserEmail))
+                .map(req -> req.getNotificationEmailAddress()).collect(Collectors.toSet());
+
+        return doSendAsync(notificationParams, safeToRecipientsList(mailAddresses, true), false);
+    }
+
+    @Override
     public CompletableFuture<Void> notifyTopicOwners(String environmentId, String topicName,
             NotificationParams notificationParams) {
         String ownerApplicationId = topicService.getTopic(environmentId, topicName).map(m -> m.getOwnerApplicationId())
@@ -162,7 +174,7 @@ public class NotificationServiceImpl implements NotificationService {
         String htmlBody = data[1];
         String plainBody = data[2];
 
-        CompletableFuture<Void> future = new CompletableFuture<Void>();
+        CompletableFuture<Void> future = new CompletableFuture<>();
 
         Runnable task = () -> {
             try {

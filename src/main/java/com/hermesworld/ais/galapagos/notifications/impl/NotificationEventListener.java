@@ -179,12 +179,29 @@ public class NotificationEventListener
 
     @Override
     public CompletableFuture<Void> handleAddTopicProducer(TopicAddProducerEvent event) {
-        return FutureUtil.noop();
+        return handleTopicProducerEvent("new-producer-added", event.getProducerApplicationId(), event);
     }
 
     @Override
     public CompletableFuture<Void> handleRemoveTopicProducer(TopicRemoveProducerEvent event) {
-        return FutureUtil.noop();
+        return handleTopicProducerEvent("producer-deleted", event.getProducerApplicationId(), event);
+    }
+
+    private CompletableFuture<Void> handleTopicProducerEvent(String templateName, String producerApplicationId,
+            TopicEvent event) {
+        String environmentId = event.getContext().getKafkaCluster().getId();
+        String environmentName = kafkaClusters.getEnvironmentMetadata(environmentId)
+                .map(KafkaEnvironmentConfig::getName).orElse(unknownEnv);
+
+        NotificationParams params = new NotificationParams(templateName);
+        String currentUserEmail = userService.getCurrentUserEmailAddress().orElse(unknownUser);
+        params.addVariable("topic_name", event.getMetadata().getName());
+        params.addVariable("env_name", environmentName);
+        Optional<KnownApplication> producerApp = applicationsService.getKnownApplication(producerApplicationId);
+        params.addVariable("producer_application_name", producerApp.map(KnownApplication::getName).orElse(unknownApp));
+        params.addVariable("galapagos_apps_url", buildUIUrl(event, "/applications"));
+
+        return notificationService.notifyProducer(params, currentUserEmail, producerApplicationId);
     }
 
     @Override
