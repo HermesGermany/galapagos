@@ -27,6 +27,8 @@
     $zindex-modal: 1055;
 
     @import "bootstrap/bootstrap";
+    $accordion-button-active-bg: $gray-100;
+    @import "accordion-fixes";
 }
 
 .dark .spinner > div {
