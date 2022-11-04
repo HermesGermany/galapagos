@@ -34,7 +34,7 @@ $accordion-button-padding-x: $accordion-padding-x;
 $accordion-button-color: $accordion-color;
 $accordion-button-bg: $accordion-bg;
 $accordion-transition: $btn-transition, border-radius .15s ease;
-$accordion-button-active-bg: tint-color($component-active-bg, 90%);
+$accordion-button-active-bg: tint-color($component-active-bg, 90%) !default;
 $accordion-button-active-color: shade-color($primary, 10%);
 
 $accordion-button-focus-border-color: $input-focus-border-color;
