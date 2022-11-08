@@ -2,7 +2,7 @@
     *ngIf="topic?.topicType !== 'INTERNAL' && isOwnerOfTopic  && !(selectedEnvironment | async)?.stagingOnly"
     class="card mb-3">
     <div class="card-header bg-hermes-deprecation"><i
-        class="fas fa-ghost mr-3"></i>{{ 'Deprecation' | translate }}</div>
+        class="fas fa-ghost me-3"></i>{{ 'Deprecation' | translate }}</div>
     <div class="card-body">
         <p id="deprecationHtml" [innerHTML]="deprecateTopicHtml | async"></p>
         <ngb-alert type="danger" [dismissible]="false"><span
@@ -10,13 +10,13 @@
         </ngb-alert>
         <div class="form-group">
             <label>{{ 'Deprecation Description' | translate }}</label>
-            <textarea class="form-control" rows="2"
+            <textarea class="form-select" rows="2"
                       [(ngModel)]="deprecatedDescription"></textarea><br>
             <label>{{ 'PICK_DEPRECATE_DATE' | translate }}</label><br>
             <form class="form-inline">
                 <div class="form-group">
                     <div class="input-group">
-                        <input class="form-control" [(ngModel)]="eolDate" ngbDatepicker
+                        <input class="form-select" [(ngModel)]="eolDate" ngbDatepicker
                                [minDate]="minDeprecationDate | async"
                                name="eolDate" #p="ngbDatepicker">
                         <div class="input-group-append">
@@ -31,6 +31,6 @@
                 #d="appSpinnerWhile"
                 class="btn btn-warning"
                 (click)="d.while(handleDeprecationRequest())"><i
-            class="fas fa-ghost mr-3"></i>{{ 'Deprecate Topic Label' | translate }}</button>
+            class="fas fa-ghost me-3"></i>{{ 'Deprecate Topic Label' | translate }}</button>
     </div>
 </div>

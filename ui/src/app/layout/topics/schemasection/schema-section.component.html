@@ -1,23 +1,23 @@
 <div class="row" *ngIf="topic.topicType !== 'INTERNAL'">
     <div class="col-md-12">
         <div class="card mb-3">
-            <div class="card-header"><i class="fas fa-file-code mr-3"></i>{{ 'Schema' | translate }}</div>
+            <div class="card-header"><i class="fas fa-file-code me-3"></i>{{ 'Schema' | translate }}</div>
             <div class="card-body">
                 <div>
                     <div class="form-group form-inline"
                          *ngIf="(topicSchemas | async)?.length && !editSchemaMode">
                         <label for="schemaVersion">{{ 'Schema Version' | translate }}</label>
-                        <select class="form-control ml-3" id="schemaVersion" name="schemaVersion"
+                        <select class="form-select ms-3" id="schemaVersion" name="schemaVersion"
                                 [(ngModel)]="selectedSchemaVersion">
                             <option *ngFor="let schema of topicSchemas | async"
                                     [ngValue]="schema">{{ schema.schemaVersion }}{{ schema.isLatest ? ' ' + (currentText | async) : ''}}</option>
                         </select>
                         <button id="schemaDeleteButton" appSpinnerWhile
                                 #p="appSpinnerWhile" (click)="(openDeleteConfirmDlg(deleteLatestSchemaDlg))"
-                                class="btn btn-danger ml-3"
+                                class="btn btn-danger ms-3"
                                 *ngIf="selectedSchemaVersion.isLatest && isOwnerOfTopic && (topicSubscribers?.length === 0
                                 || (!(selectedEnvironment | async)?.stagingOnly && (schemaDeleteWithSub | async)))">
-                            <i class="fas fa-trash mr-3"></i>{{ 'Delete Schema' | translate }}
+                            <i class="fas fa-trash me-3"></i>{{ 'Delete Schema' | translate }}
                         </button>
 
                     </div>
@@ -28,7 +28,7 @@
                     <button class="btn btn-success mb-3"
                             *ngIf="!(selectedEnvironment | async)?.stagingOnly && isOwnerOfTopic && !editSchemaMode"
                             (click)="startEditSchemaMode()"><i
-                        class="fas fa-plus mr-3"></i>{{ 'Publish new schema version' | translate }}</button>
+                        class="fas fa-plus me-3"></i>{{ 'Publish new schema version' | translate }}</button>
                     <div class="schema-box scrollbar border mb-3"
                          *ngIf="selectedSchemaVersion && !editSchemaMode">
                                     <pre><code [highlight]="selectedSchemaVersion.jsonSchema" [languages]="['json']"
@@ -67,11 +67,11 @@
                         <button class="btn btn-success mt-3"
                                 [disabled]="!newSchemaText || !newSchemaText.length" appSpinnerWhile
                                 #p="appSpinnerWhile" (click)="p.while(publishNewSchema())"><i
-                            class="fas fa-file-upload mr-3"></i>{{ 'Publish Schema' | translate }}</button>
+                            class="fas fa-file-upload me-3"></i>{{ 'Publish Schema' | translate }}</button>
 
-                        <button class="btn btn-danger mt-3 ml-3"
+                        <button class="btn btn-danger mt-3 ms-3"
                                 appSpinnerWhile #p="appSpinnerWhile" (click)="exitSchemaMode()"><i
-                            class="fas fa-times mr-3"></i>{{ 'Cancel' | translate }}</button>
+                            class="fas fa-times me-3"></i>{{ 'Cancel' | translate }}</button>
                     </div>
                 </div>
                 <div *ngIf="!(topicSchemas | async)?.length && !editSchemaMode">
@@ -97,7 +97,7 @@
     <div class="modal-footer">
         <button class="btn btn-danger" ngbAutofocus appSpinnerWhile #d="appSpinnerWhile"
                 (click)="d.while(deleteLatestSchema()).then(dlg.dismiss)"><i
-            class="fas fa-trash mr-3"></i>{{ 'Delete Schema' | translate }}</button>
+            class="fas fa-trash me-3"></i>{{ 'Delete Schema' | translate }}</button>
         <button type="button" class="btn btn-success" (click)="dlg.dismiss()"><i
             class="fas fa-times"></i>&nbsp;{{ 'Cancel' | translate }}
         </button>

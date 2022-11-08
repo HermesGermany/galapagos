@@ -8,13 +8,13 @@
                     Kafka Cluster
                 </div>
                 <div class="card-body">
-                    <div class="form-group form-inline">
+                    <div class="d-flex justify-content-start align-items-center mb-2">
                         <label>{{ 'Selected Kafka Environment' | translate }}:</label>
-                        <select class="form-control ml-2" (change)="selectEnvironment($event.target.value)">
+                        <select class="form-select ms-2 w-auto" (change)="selectEnvironment($event.target.value)">
                             <option *ngFor="let env of allEnvironments | async" [value]="env.id"
                                     [selected]="env === (selectedEnvironment | async)">{{ env.name }}</option>
                         </select>
-                        <span *ngIf="(selectedEnvironment | async)?.production" class="text-danger ml-3"><em><b>Production Environment</b></em></span>
+                        <span *ngIf="(selectedEnvironment | async)?.production" class="text-danger ms-3"><em><b>Production Environment</b></em></span>
                     </div>
                     <strong>Bootstrap Servers:</strong>&nbsp;&nbsp;
                     <code id="bootstrapServers">{{ (selectedEnvironment | async)?.bootstrapServers }}</code>
@@ -45,29 +45,31 @@
     <div class="row mt-3">
         <div class="col-md-12">
             <div class="card">
-                <div class="card-header bg-success text-white" (click)="configTemplatesCollapsed = !configTemplatesCollapsed">
+                <div class="d-flex align-items-center justify-content-between card-header bg-success text-white" (click)="configTemplatesCollapsed = !configTemplatesCollapsed">
+                    <div>
+                        <i class="fas fa-tools me-2"></i>
+                        {{ 'Framework Config Templates (click to expand)' | translate }}
+                    </div>
                     <div class="float-right">
                         <span><i class="fas fa-angle-double-down"></i></span>
                     </div>
-                    <i class="fas fa-tools mr-2"></i>
-                    {{ 'Framework Config Templates (click to expand)' | translate }}
                 </div>
                 <div class="card-body" [ngbCollapse]="configTemplatesCollapsed">
-                    <div class="form-group form-inline">
+                    <div class="form-group d-flex mb-3 align-items-center form-inline">
                         <label>{{ 'Framework' }}</label>
-                        <select class="form-control ml-2" (change)="updateConfigTemplate($event.target.value)">
+                        <select class="form-select w-auto ms-2" (change)="updateConfigTemplate($event.target.value)">
                             <option value="spring">Spring</option>
                             <option value="micronaut">Micronaut</option>
                         </select>
                         <button (click)="copyValueFromObservable(frameworkConfigTemplate)"
-                                class="btn btn-outline-secondary btn-sm ml-3 mt-1 mb-1"><i
+                                class="btn btn-outline-secondary btn-sm ms-3 mt-1 mb-1"><i
                             class="fas fa-copy"></i>
                             <span class="ml-1" *ngIf="!configTemplatesCopiedValue"> {{ 'Copy Template' | translate}}</span>
                             <span class="ml-1" *ngIf="configTemplatesCopiedValue"> {{ 'Copied!' | translate}}</span>
                         </button>
                     </div>
                     <div class="form-group">
-                        <textarea readonly class="form-control text-monospace" rows="15" cols="90" [value]="frameworkConfigTemplate | async"></textarea>
+                        <textarea disabled class="form-control" rows="15" cols="90" [value]="frameworkConfigTemplate | async"></textarea>
                     </div>
                 </div>
             </div>
@@ -115,7 +117,7 @@
         <div class="col-md-8">
             <div class="card chat-panel">
                 <div class="card-header bg-secondary text-white">
-                    <i class="fa fa-hammer mr-3"></i>{{ 'Latest Changes' | translate }}
+                    <i class="fa fa-hammer me-3"></i>{{ 'Latest Changes' | translate }}
                 </div>
                 <div class="card-body">
                     <ul class="chat" *ngIf="(changelog | async)?.length">
@@ -143,7 +145,7 @@
             </div>
             <div class="card mt-3">
                 <div class="card-header">
-                    <i class="fas fa-info-circle mr-3"></i>{{ 'Application Info' | translate}}
+                    <i class="fas fa-info-circle me-3"></i>{{ 'Application Info' | translate}}
                 </div>
                 <div class="card-body">
                     Galapagos Version: <code>{{ (appServerInfo | async)?.app.version }}</code>

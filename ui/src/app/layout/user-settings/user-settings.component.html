@@ -17,14 +17,14 @@
         <div class="col-md-12">
             <div class="card mb-3">
                 <div class="card-header bg-hermes text-white">
-                    <i class="fas fa-award mr-3"></i>{{ 'Developer API Key' | translate }}
+                    <i class="fas fa-award me-3"></i>{{ 'Developer API Key' | translate }}
                 </div>
                 <div class="card-body">
                     <p [innerHTML]="'DEVELOPER_API_KEY_HTML' | translate"></p>
-                    <div class="form-group form-inline mt-2">
-                        <label class="mr-3">{{ 'Kafka Environment' | translate }}</label>
+                    <div class="d-flex justify-content-start align-items-center mt-2 mb-2">
+                        <label class="me-3">{{ 'Kafka Environment' | translate }}</label>
 
-                        <select class="form-control form-inline mr-3" name="selectedEnv"
+                        <select class="form-select form-inline me-3 w-auto" name="selectedEnv"
                                 [(ngModel)]="selectedEnvironment"
                                 (change)="updateExistingApiKeyMessage(true)">
                             <option *ngFor="let env of devApiKeysEnabledEnvironments | async"
@@ -34,7 +34,10 @@
                         <button appSpinnerWhile #d="appSpinnerWhile" type="button" class="btn btn-warning"
                                 (click)="d.while(generateApikey())"
                                 [disabled]="!selectedEnvironment">
-                            <i class="fas fa-cogs mr-3"></i>{{ 'Generate Developer API Key' | translate }}
+                            <i class="fas fa-cogs me-3"></i>{{ 'Generate Developer API Key' | translate }}
+                        </button>
+                        <button (click)="testToast()">
+                            TEST TOAST
                         </button>
                     </div>
                     <ngb-alert type="info" *ngIf="(existingApiKeyMessage | async) && !showApiKeyTable"
@@ -50,7 +53,7 @@
                                 <th scope="row"><i class="fas fa-key"></i>&nbsp;Key</th>
                                 <td>{{newApiKey}}</td>
                                 <button (click)="copyValue(newApiKey)"
-                                        class="btn btn-outline-secondary btn-sm ml-3 mt-1 mb-1"><i
+                                        class="btn btn-outline-secondary btn-sm ms-3 mt-1 mb-1 ps-2 pe-2 border border-secondary"><i
                                     class="fas fa-copy"></i>
                                     <span class="ml-1" *ngIf="copiedKey"> {{ 'Copied!' | translate}}</span>
                                 </button>
@@ -59,7 +62,7 @@
                                 <th scope="row"><i class="fas fa-user-secret"></i>&nbsp;Secret</th>
                                 <td>{{newApiSecret}}</td>
                                 <button (click)="copyValue(newApiSecret)"
-                                        class="btn btn-outline-secondary btn-sm ml-3 mt-1 mb-1"><i
+                                        class="btn btn-outline-secondary btn-sm ms-3 mt-1 mb-1 ps-2 pe-2 border border-secondary"><i
                                     class="fas fa-copy"></i>
                                     <span class="ml-1" *ngIf="copiedSecret"> {{ 'Copied!' | translate}}</span>
                                 </button>
@@ -77,14 +80,14 @@
         <div class="col-md-12">
             <div class="card mb-3">
                 <div class="card-header bg-hermes text-white">
-                    <i class="fas fa-award mr-3"></i>{{ 'Developer Certificate' | translate }}
+                    <i class="fas fa-award me-3"></i>{{ 'Developer Certificate' | translate }}
                 </div>
                 <div class="card-body">
                     <p [innerHTML]="'DEVELOPER_CERTIFICATE_HTML' | translate"></p>
                     <div class="form-group form-inline mt-2">
-                        <label class="mr-3">{{ 'Kafka Environment' | translate }}</label>
+                        <label class="me-3">{{ 'Kafka Environment' | translate }}</label>
 
-                        <select class="form-control form-inline mr-3" name="selectedEnv"
+                        <select class="form-control form-inline me-3" name="selectedEnv"
                                 [(ngModel)]="selectedEnvironment" (change)="updateExistingCertificateMessage()">
                             <option *ngFor="let env of devCertsEnabledEnvironments | async"
                                     [ngValue]="env">{{ env.name }}
@@ -92,7 +95,7 @@
                         </select>
                         <button type="button" class="btn btn-warning" (click)="generateCertificate()"
                                 [disabled]="!selectedEnvironment">
-                            <i class="fas fa-cogs mr-3"></i>{{ 'Generate Developer Certificate' | translate }}
+                            <i class="fas fa-cogs me-3"></i>{{ 'Generate Developer Certificate' | translate }}
                         </button>
                     </div>
                     <ngb-alert type="info" *ngIf="existingCertificateMessage | async" [dismissible]="false">

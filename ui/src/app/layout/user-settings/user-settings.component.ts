@@ -141,6 +141,11 @@ export class UserSettingsComponent implements OnInit {
         ).then(() => this.updateExistingApiKeyMessage(false));
     }
 
+    //DELETE JUST FOR TESTING
+    testToast() {
+        this.toasts.addSuccessToast("TEST MESSAGE#");
+    }
+
     updateExistingApiKeyMessage(hideTable: boolean) {
         this.existingAuthenticationInfo.next({ expiresAt: null });
 

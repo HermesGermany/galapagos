@@ -25,15 +25,15 @@
                 </div>
                 <div class="card-body">
                     <form #appForm="ngForm">
-                        <div class="form-group form-inline">
+                        <div class="d-flex mb-3 justify-content-start align-items-center">
                             <label style="margin-right: 1em"
                                 for="app_picker">{{ 'Select Application' | translate }}</label>
-                            <select class="form-control" name="appPicker" id="app_picker"
+                            <select class="form-select w-auto" name="appPicker" id="app_picker"
                                 [(ngModel)]="selectedApplicationForRequest">
                                 <option *ngFor="let app of availableApplications | async" [ngValue]="app">{{ app.name }}
                                 </option>
                             </select>
-                            <span class="ml-3 text-muted" [style.display]="appListLoading ? 'inline' : 'none'"><i
+                            <span class="ms-3 text-muted" [style.display]="appListLoading ? 'inline' : 'none'"><i
                                     class="fas fa-cog fa-spin"></i></span>
                         </div>
                         <div class="form-group">
@@ -137,7 +137,7 @@
                                 <th scope="row"><i class="fas fa-key"></i>&nbsp;Key</th>
                                 <td>{{key}}</td>
                                 <button (click)="copyValue(key)"
-                                        class="btn btn-outline-secondary btn-sm ml-3 mt-1 mb-1"><i
+                                        class="btn btn-outline-secondary btn-sm ms-3 mt-1 mb-1"><i
                                     class="fas fa-copy"></i>
                                     <span class="ml-1" *ngIf="copiedKey"> {{ 'Copied!' | translate}}</span>
                                 </button>
@@ -146,7 +146,7 @@
                                 <th scope="row"><i class="fas fa-user-secret"></i>&nbsp;Secret</th>
                                 <td>{{secret}}</td>
                                 <button (click)="copyValue(secret)"
-                                        class="btn btn-outline-secondary btn-sm ml-3 mt-1 mb-1"><i
+                                        class="btn btn-outline-secondary btn-sm ms-3 mt-1 mb-1"><i
                                     class="fas fa-copy"></i>
                                     <span class="ml-1" *ngIf="copiedSecret"> {{ 'Copied!' | translate}}</span>
                                 </button>
@@ -197,7 +197,7 @@
                                         [innerHTML]=" 'CSR_LABEL_HTML' | translate"></span>
                                     </label>
                                 </div>
-                                <p class="help-text small ml-4" *ngIf="hasCsr.checked">
+                                <p class="help-text small ms-4" *ngIf="hasCsr.checked">
                                     <app-openssl-command [commonName]="certificateDlgData.commonName"
                                                          [keyfileName]="certificateDlgData.keyfileName"
                                                          [generateKey]="true"></app-openssl-command>

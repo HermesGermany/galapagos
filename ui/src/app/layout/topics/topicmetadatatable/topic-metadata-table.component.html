@@ -1,5 +1,5 @@
 <div class="card-header bg-hermes text-white"><i
-    class="fas fa-info mr-3"></i>{{ 'General' | translate }}</div>
+    class="fas fa-info me-3"></i>{{ 'General' | translate }}</div>
 <div class="card-body table-responsive">
     <table class="table">
         <tr>
@@ -24,7 +24,7 @@
                     appSpinnerWhile
                     #p="appSpinnerWhile"
                     (click)="openChangeDescDlg(updateTopicDescription)"
-                    class="btn btn-primary btn-sm ml-3"><i class="fas fa-edit"></i>
+                    class="btn btn-primary btn-sm ms-3"><i class="fas fa-edit"></i>
                     {{ 'Edit' | translate }}
                 </button>
             </td>
@@ -32,11 +32,11 @@
         <tr *ngIf="topic.deprecated">
             <th scope="row">{{ 'Usable until' | translate }}</th>
             <td class="text-danger">{{ getEolDateForCurrentLang(topic.eolDate) }}
-                <button *ngIf="isOwnerOfTopic" class="btn btn-sm btn-danger ml-4"
+                <button *ngIf="isOwnerOfTopic" class="btn btn-sm btn-danger ms-4"
                         appSpinnerWhile
                         #del="appSpinnerWhile"
                         (click)="del.while(handleUnDeprecationRequest())"><i
-                    class="fas fa-times mr-2"></i>{{ 'UNMARK_DEPRECATION' | translate }}
+                    class="fas fa-times me-2"></i>{{ 'UNMARK_DEPRECATION' | translate }}
                 </button>
             </td>
         </tr>
@@ -65,11 +65,11 @@
                         <span *ngIf="isOwnerOfTopic && !(selectedEnvironment | async)?.stagingOnly" class="ml-3">
                             <button class="btn btn-sm btn-danger mt-1 mb-1" appSpinnerWhile #del="appSpinnerWhile"
                                     (click)="openDeleteProducerDlg(producer,deleteProducerDlg)">
-                                <i class="fas fa-eraser mr-1"></i>{{ 'Delete Producer' | translate }}
+                                <i class="fas fa-eraser me-1"></i>{{ 'Delete Producer' | translate }}
                             </button>
-                             <button class="btn btn-sm btn-warning ml-3" appSpinnerWhile #del="appSpinnerWhile"
+                             <button class="btn btn-sm btn-warning ms-3" appSpinnerWhile #del="appSpinnerWhile"
                                      (click)="openChangeOwnerDlg(producer,changeOwnerDlg)">
-                                <i class="fas fa-arrow-up mr-1"></i>{{ 'CHANGE_OWNER_TEXT' | translate }}
+                                <i class="fas fa-arrow-up me-1"></i>{{ 'CHANGE_OWNER_TEXT' | translate }}
                             </button>
                         </span>
                     </li>
@@ -97,7 +97,7 @@
                                                         #del="appSpinnerWhile"
                                                         (click)="openRejectConfirmDlg(sub, rejectConfirmDlgNoApprove)"
                                                     >
-                                                        <i class="fas fa-eraser mr-1"></i>{{ 'Unsubscribe' | translate }}
+                                                        <i class="fas fa-eraser me-1"></i>{{ 'Unsubscribe' | translate }}
                                                     </button>
                                                 </span>
                         <span
@@ -107,7 +107,7 @@
                                                         class="btn btn-sm btn-danger"
                                                         (click)="openRejectConfirmDlg(sub, rejectConfirmDlg)"
                                                     >
-                                                        <i class="fas fa-ban mr-1"></i>
+                                                        <i class="fas fa-ban me-1"></i>
                                                         <span
                                                             *ngIf="sub.state === 'APPROVED'">{{ 'Cancel' | translate }}</span>
                                                         <span
@@ -131,7 +131,7 @@
                                                         #approve="appSpinnerWhile"
                                                         (click)="approve.while(approveSubscription(sub))"
                                                     >
-                                                        <i class="fas fa-check mr-1"></i>{{ 'Approve' | translate }}
+                                                        <i class="fas fa-check me-1"></i>{{ 'Approve' | translate }}
                                                     </button>&nbsp;
                                                     <button
                                                         class="btn btn-sm btn-danger"
@@ -139,7 +139,7 @@
                                                         #rej2="appSpinnerWhile"
                                                         (click)="rej2.while(rejectSubscription(sub))"
                                                     >
-                                                        <i class="fas fa-ban mr-1"></i>{{ 'Reject' | translate }}
+                                                        <i class="fas fa-ban me-1"></i>{{ 'Reject' | translate }}
                                                     </button>
                                                 </span>
                         <span
@@ -151,7 +151,7 @@
                                                         #del2="appSpinnerWhile"
                                                         (click)="del2.while(unsubscribe(sub))"
                                                     >
-                                                        <i class="fas fa-eraser mr-1"></i>{{ 'Unsubscribe' | translate }}
+                                                        <i class="fas fa-eraser me-1"></i>{{ 'Unsubscribe' | translate }}
                                                     </button>
                                                 </span>
                     </li>
@@ -161,7 +161,7 @@
                 >
             </td>
             <td *ngIf="loadingSubscribers">
-                <i class="fas fa-sync fa-spin mr-4"></i>
+                <i class="fas fa-sync fa-spin me-4"></i>
             </td>
         </tr>
         <tr *ngIf="topic.topicType !== 'INTERNAL'">
@@ -169,7 +169,7 @@
             <td>
                 <button type="button" class="btn btn-primary btn-sm"
                         (click)="openDataDlg(dataDlg)">
-                    <i class="fas fa-table mr-3"></i>
+                    <i class="fas fa-table me-3"></i>
                     {{ 'Show Topic Data' | translate }}
                 </button>
             </td>
@@ -191,7 +191,7 @@
     <div class="modal-footer">
         <button class="btn btn-warning" ngbAutofocus appSpinnerWhile #d="appSpinnerWhile"
                 (click)="d.while(updateTopicDesc()).then(dlg.dismiss)"><i
-            class="fas fa-save mr-3"></i>{{ 'Save' | translate }}</button>
+            class="fas fa-save me-3"></i>{{ 'Save' | translate }}</button>
         <button type="button" class="btn btn-success" (click)="dlg.dismiss()"><i
             class="fas fa-times"></i>&nbsp;{{ 'Cancel' | translate }}
         </button>
@@ -222,7 +222,7 @@
                 <tbody>
                 <tr *ngIf="topicDataLoading">
                     <td colspan="3">
-                        <i class="fas fa-sync fa-spin mr-3"></i><i>{{ 'Loading Data, please wait...' | translate }}</i>
+                        <i class="fas fa-sync fa-spin me-3"></i><i>{{ 'Loading Data, please wait...' | translate }}</i>
                     </td>
                 </tr>
                 <ng-container *ngIf="!topicDataLoading && (topicData | async)?.length">
@@ -263,7 +263,7 @@
     <div class="modal-footer">
         <button class="btn btn-danger" appSpinnerWhile #d="appSpinnerWhile"
                 (click)="d.while(rejectSubscription(selectedSubscription)).then(dlg.dismiss)"><i
-            class="fas fa-ban mr-3"></i>{{ 'Cancel Subscription' | translate }}</button>
+            class="fas fa-ban me-3"></i>{{ 'Cancel Subscription' | translate }}</button>
         <button type="button" class="btn btn-success" (click)="dlg.dismiss()"><i
             class="fas fa-times"></i>&nbsp;{{ 'Cancel' | translate }}
         </button>

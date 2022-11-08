@@ -2,27 +2,27 @@
     <div class="col-md-12">
         <div class="card mb-3">
             <div class="card-header bg-danger text-white"><i
-                class="fas fa-exclamation-triangle mr-3"></i>{{ 'Danger Zone' | translate }}
+                class="fas fa-exclamation-triangle me-3"></i>{{ 'Danger Zone' | translate }}
             </div>
             <div class="card-body">
                 <p>{{ 'TOPIC_CONFIG_TEXT' | translate }}</p>
                 <button class="btn btn-warning"
                         [routerLink]="'/topics/' + topicName + '/config'">
-                    <i class="fas fa-wrench mr-3"></i>{{ 'Advanced Configuration' | translate }}
+                    <i class="fas fa-wrench me-3"></i>{{ 'Advanced Configuration' | translate }}
                 </button>
                 <hr>
                 <div *ngIf="topic.topicType !== 'COMMANDS' && !selectedEnvironment.stagingOnly">
                     <p>{{ 'ADD_PRODUCER_HTML' | translate }}</p>
                     <button class="btn btn-warning"
                             (click)="openAddProducerDlg(producerAddDlg)">
-                        <i class="fas fa-plus mr-3"></i>{{ 'Add Producer' | translate }}
+                        <i class="fas fa-plus me-3"></i>{{ 'Add Producer' | translate }}
                     </button>
                     <hr>
                 </div>
                 <p>{{ 'DELETE_TOPIC_TEXT' | translate }}</p>
                 <button class="btn btn-danger" (click)="openDeleteConfirmDlg(deleteDlg)"
                         [disabled]="!topic?.deletable"><i
-                    class="fas fa-times mr-3"></i>{{ 'Delete Topic' | translate }}</button>
+                    class="fas fa-times me-3"></i>{{ 'Delete Topic' | translate }}</button>
 
             </div>
         </div>
@@ -42,7 +42,7 @@
             <form role="form">
                 <fieldset class="form-group">
                     <!--suppress TypeScriptUnresolvedVariable -->
-                    <input #topicNameConfirm name="topicNameConfirm" type="text" size="50" class="form-control"
+                    <input #topicNameConfirm name="topicNameConfirm" type="text" size="50" class="form-select"
                            (input)="topicNameConfirmText = $event.target.value"/>
                 </fieldset>
             </form>
@@ -53,14 +53,14 @@
         <button class="btn btn-danger" appSpinnerWhile #d="appSpinnerWhile"
                 (click)="d.while(deleteTopic()).then(dlg.dismiss)"
                 [disabled]="topicNameConfirmText !== topicName"><i
-            class="fas fa-trash mr-3"></i>{{ 'Delete Topic' | translate }}</button>
+            class="fas fa-trash me-3"></i>{{ 'Delete Topic' | translate }}</button>
         <button type="button" ngbAutofocus class="btn btn-success" (click)="dlg.dismiss()"><i class="fas fa-times"></i>&nbsp;{{ 'Cancel' | translate }}
         </button>
     </div>
 </ng-template>
 <ng-template #producerAddDlg let-dlg>
     <div class="modal-header">
-        <h4 class="modal-title"><i class="fa fa-industry mr-2"
+        <h4 class="modal-title"><i class="fa fa-industry me-2"
                                    aria-hidden="true"></i>{{ 'Producer Selection' | translate }}
         </h4>
         <button type="button" class="close" aria-label="Close" (click)="dlg.dismiss()">
@@ -77,7 +77,7 @@
     <div class="modal-footer">
         <button appSpinnerWhile #d="appSpinnerWhile" (click)="d.while(producerComponent.submitSelectedProducer())"
                 type="button"
-                class="btn btn-success"><i class="fas fa-plus mr-2"></i>{{ 'Add Producer' | translate }}
+                class="btn btn-success"><i class="fas fa-plus me-2"></i>{{ 'Add Producer' | translate }}
         </button>
         <button type="button" class="btn btn-danger" (click)="dlg.dismiss()"><i
             class="fas fa-times"></i>&nbsp;{{ 'Cancel' | translate }}
