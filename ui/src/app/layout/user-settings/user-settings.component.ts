@@ -143,7 +143,7 @@ export class UserSettingsComponent implements OnInit {
 
     //DELETE JUST FOR TESTING
     testToast() {
-        this.toasts.addSuccessToast("TEST MESSAGE#");
+        this.toasts.addSuccessToast('TEST MESSAGE#');
     }
 
     updateExistingApiKeyMessage(hideTable: boolean) {
