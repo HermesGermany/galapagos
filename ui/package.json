@@ -8,7 +8,7 @@
         "build": "ng build --configuration production --base-href /app/",
         "build-from-maven": "ng build --configuration production --base-href /app/ --output-path ../target/classes/static/app",
         "test": "ng test",
-        "lint": "ng lint galapagos --fix"
+        "lint": "ng lint galapagos"
     },
     "private": true,
     "dependencies": {
