@@ -3,6 +3,8 @@ package com.hermesworld.ais.galapagos.ccloud.auth;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.Objects;
+
 @Getter
 @Setter
 public class ConfluentCloudAuthConfig {
@@ -24,10 +26,8 @@ public class ConfluentCloudAuthConfig {
     private Boolean serviceAccountIdCompatMode;
 
     public boolean isServiceAccountIdCompatMode() {
-        if (serviceAccountIdCompatMode == null) {
-            // currently (Sep 2022), this should be default for Confluent!
-            return true;
-        }
-        return serviceAccountIdCompatMode;
+        // currently (Sep 2022), true should be default for Confluent!
+        return Objects.requireNonNullElse(serviceAccountIdCompatMode, true);
     }
+
 }

@@ -277,8 +277,11 @@ public class DevUserAclListener implements TopicEventsListener, SubscriptionEven
 
         @Override
         public Collection<AclBinding> getRequiredAclBindings() {
+            boolean writeAccess = kafkaClusters.getEnvironmentMetadata(environmentId)
+                    .map(m -> m.isDeveloperWriteAccess()).orElse(false);
+
             return getApplicationsOfUser(metadata.getUserName(), environmentId).stream()
-                    .map(a -> aclSupport.getRequiredAclBindings(environmentId, a, getKafkaUserName(), true))
+                    .map(a -> aclSupport.getRequiredAclBindings(environmentId, a, getKafkaUserName(), !writeAccess))
                     .flatMap(c -> c.stream()).collect(Collectors.toSet());
         }
 

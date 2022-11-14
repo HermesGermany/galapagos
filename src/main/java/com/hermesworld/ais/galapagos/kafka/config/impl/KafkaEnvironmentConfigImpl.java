@@ -22,6 +22,9 @@ public class KafkaEnvironmentConfigImpl implements KafkaEnvironmentConfig {
     private boolean stagingOnly;
 
     @Getter(onMethod = @__({ @Override }))
+    private boolean developerWriteAccess;
+
+    @Getter(onMethod = @__({ @Override }))
     private boolean noUpdateApplicationAcls;
 
     @Getter(onMethod = @__({ @Override }))
