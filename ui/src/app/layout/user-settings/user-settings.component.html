@@ -36,9 +36,6 @@
                                 [disabled]="!selectedEnvironment">
                             <i class="fas fa-cogs me-3"></i>{{ 'Generate Developer API Key' | translate }}
                         </button>
-                        <button (click)="testToast()">
-                            TEST TOAST
-                        </button>
                     </div>
                     <ngb-alert type="info" *ngIf="(existingApiKeyMessage | async) && !showApiKeyTable"
                                [dismissible]="false">
