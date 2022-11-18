@@ -64,12 +64,12 @@
                         <button (click)="copyValueFromObservable(frameworkConfigTemplate)"
                                 class="btn btn-outline-secondary btn-sm ms-3 mt-1 mb-1"><i
                             class="fas fa-copy"></i>
-                            <span class="ml-1" *ngIf="!configTemplatesCopiedValue"> {{ 'Copy Template' | translate}}</span>
-                            <span class="ml-1" *ngIf="configTemplatesCopiedValue"> {{ 'Copied!' | translate}}</span>
+                            <span class="ms-1" *ngIf="!configTemplatesCopiedValue"> {{ 'Copy Template' | translate}}</span>
+                            <span class="ms-1" *ngIf="configTemplatesCopiedValue"> {{ 'Copied!' | translate}}</span>
                         </button>
                     </div>
                     <div class="form-group">
-                        <textarea disabled class="form-control" rows="15" cols="90" [value]="frameworkConfigTemplate | async"></textarea>
+                        <textarea disabled class="font-monospace form-control" rows="15" cols="90" [value]="frameworkConfigTemplate | async"></textarea>
                     </div>
                 </div>
             </div>
@@ -121,7 +121,7 @@
                 </div>
                 <div class="card-body">
                     <ul class="chat" *ngIf="(changelog | async)?.length">
-                        <li class="left clearfix" *ngFor="let change of changelog | async">
+                        <li class="left clearfix d-flex w-auto" *ngFor="let change of changelog | async">
                             <span class="chat-img float-left">
                                 <div class="imageContainer">
                                       <img class="changeLogImage" #profileImage
@@ -129,8 +129,8 @@
                                            src='{{change.profilePictureUrl }}'>
                                 </div>
                             </span>
-                            <div class="chat-body clearfix">
-                                <div class="header">
+                            <div class="chat-body w-100 clearfix">
+                                <div class="header justify-content-between d-flex">
                                     <strong>{{ change.principalFullName || change.principal }}</strong>
                                     <small class="text-muted float-right"
                                            [title]="agoTimeStamp(change.timestamp) | async"><i class="far fa-clock"></i>

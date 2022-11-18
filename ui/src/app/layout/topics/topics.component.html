@@ -11,7 +11,7 @@
                     <div class="d-flex mb-3 justify-content-start align-items-center">
                         {{ 'Full text search:' | translate }} <input class="form-control ms-2 w-auto" type="text" name="searchTerm" [(ngModel)]="searchData.searchTerm" (input)="searchTopics()" />
                     </div>
-                    <div class="form-group">
+                    <div class="form-group mb-4">
                         <div class="checkbox">
                             <label>
                                 <input type="checkbox" [(ngModel)]="searchData.showInternalTopics" (change)="searchTopics()"> {{ 'Show internal topics of my applications' | translate }}
@@ -22,6 +22,7 @@
             </div>
         </div>
     </div>
+    <hr/>
     <div class="row mt-3">
         <div class="col-md-12">
             <!-- get full working example at https://ng-bootstrap.github.io/#/components/table/examples#complete -->
@@ -36,10 +37,10 @@
                 </thead>
                 <tbody *ngIf="(loadingTopics | async) === false">
                     <tr *ngFor="let topic of topics | async">
-                        <td><a [ngClass]="{deprecated:topic.deprecated}" [routerLink]="'/topics/' + topic.name">
+                        <td class="col-4"><a [ngClass]="{deprecated:topic.deprecated}" [routerLink]="'/topics/' + topic.name">
                             <ngb-highlight [result]="topic.name" [term]="searchData.searchTerm"></ngb-highlight>
                         </a></td>
-                        <td>
+                        <td >
                             <ngb-highlight [result]="topic.description" [term]="searchData.searchTerm"></ngb-highlight>
                             <span *ngIf="topic.deprecated">
                                  <span class="deprecatedNote">Deprecated</span>
@@ -47,7 +48,7 @@
                             </span>
                         </td>
                         <td>{{topic.topicType | translate}}</td>
-                        <td>
+                        <td class="col-2">
                             <a *ngIf="topic.ownerApplication && topic.ownerApplication.infoUrl"
                                [href]="topic.ownerApplication.infoUrl" target="_blank">
                                 <ngb-highlight [result]="topic.ownerApplication.name"

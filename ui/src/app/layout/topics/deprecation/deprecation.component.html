@@ -10,16 +10,16 @@
         </ngb-alert>
         <div class="form-group">
             <label>{{ 'Deprecation Description' | translate }}</label>
-            <textarea class="form-select" rows="2"
+            <textarea class="form-control" rows="2"
                       [(ngModel)]="deprecatedDescription"></textarea><br>
             <label>{{ 'PICK_DEPRECATE_DATE' | translate }}</label><br>
-            <form class="form-inline">
+            <form class="mb-3">
                 <div class="form-group">
-                    <div class="input-group">
-                        <input class="form-select" [(ngModel)]="eolDate" ngbDatepicker
+                    <div class="d-flex">
+                        <input class="form-control w-auto" [(ngModel)]="eolDate" ngbDatepicker
                                [minDate]="minDeprecationDate | async"
                                name="eolDate" #p="ngbDatepicker">
-                        <div class="input-group-append">
+                        <div class="d-inline-flex">
                             <button class="fas fa-calendar-alt" (click)="p.toggle()"
                                     type="button"></button>
                         </div>

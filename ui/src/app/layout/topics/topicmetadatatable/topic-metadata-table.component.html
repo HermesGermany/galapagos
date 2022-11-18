@@ -2,6 +2,7 @@
     class="fas fa-info me-3"></i>{{ 'General' | translate }}</div>
 <div class="card-body table-responsive">
     <table class="table">
+        <tbody>
         <tr>
             <th scope="row">{{ 'Topic Name' | translate }}</th>
             <td>{{ topic.name }}</td>
@@ -62,7 +63,7 @@
                         <ng-template #infoUrlTextSub>
                             <span>{{ producer.name }}</span>
                         </ng-template>
-                        <span *ngIf="isOwnerOfTopic && !(selectedEnvironment | async)?.stagingOnly" class="ml-3">
+                        <span *ngIf="isOwnerOfTopic && !(selectedEnvironment | async)?.stagingOnly" class="ms-3">
                             <button class="btn btn-sm btn-danger mt-1 mb-1" appSpinnerWhile #del="appSpinnerWhile"
                                     (click)="openDeleteProducerDlg(producer,deleteProducerDlg)">
                                 <i class="fas fa-eraser me-1"></i>{{ 'Delete Producer' | translate }}
@@ -90,7 +91,7 @@
 
                         <span
                             *ngIf="sub.canDelete"
-                            class="ml-3">
+                            class="ms-3">
                                                     <button
                                                         class="btn btn-sm btn-danger mt-1 mb-1"
                                                         appSpinnerWhile
@@ -102,7 +103,7 @@
                                                 </span>
                         <span
                             *ngIf="isOwnerOfTopic && topic?.subscriptionApprovalRequired"
-                            class="ml-3">
+                            class="ms-3">
                                                     <button
                                                         class="btn btn-sm btn-danger"
                                                         (click)="openRejectConfirmDlg(sub, rejectConfirmDlg)"
@@ -124,7 +125,7 @@
                             <span><i>{{ sub.clientApplication.name }}</i></span>
                         </ng-template>
                         <i>&nbsp;{{ '(Pending Approval)' | translate }}</i>
-                        <span *ngIf="isOwnerOfTopic" class="ml-3">
+                        <span *ngIf="isOwnerOfTopic" class="ms-3">
                                                     <button
                                                         class="btn btn-sm btn-success"
                                                         appSpinnerWhile
@@ -144,7 +145,7 @@
                                                 </span>
                         <span
                             *ngIf="sub.canDelete"
-                            class="ml-3">
+                            class="ms-3">
                                                     <button
                                                         class="btn btn-sm btn-danger"
                                                         appSpinnerWhile
@@ -174,6 +175,7 @@
                 </button>
             </td>
         </tr>
+        </tbody>
     </table>
 </div>
 
@@ -214,7 +216,7 @@
                 <tr>
                     <th>{{ 'Partition / Offset' | translate }}</th>
                     <th>{{ 'Key' | translate }}</th>
-                    <th>{{ 'Value' | translate }}<a href="#" class="ml-4" (click)="formatDataValues()"
+                    <th>{{ 'Value' | translate }}<a href="#" class="ms-4" (click)="formatDataValues()"
                                                     style="font-weight: bold;"><i class="fas fa-code"></i></a></th>
 
                 </tr>

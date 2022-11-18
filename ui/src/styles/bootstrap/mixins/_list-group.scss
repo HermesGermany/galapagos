@@ -11,6 +11,7 @@
       &:focus {
         color: $color;
         background-color: shade-color($background, 10%);
+
       }
 
       &.active {

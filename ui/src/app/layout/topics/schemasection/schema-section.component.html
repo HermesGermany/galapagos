@@ -4,10 +4,10 @@
             <div class="card-header"><i class="fas fa-file-code me-3"></i>{{ 'Schema' | translate }}</div>
             <div class="card-body">
                 <div>
-                    <div class="form-group form-inline"
+                    <div class="d-flex align-items-center mb-3"
                          *ngIf="(topicSchemas | async)?.length && !editSchemaMode">
                         <label for="schemaVersion">{{ 'Schema Version' | translate }}</label>
-                        <select class="form-select ms-3" id="schemaVersion" name="schemaVersion"
+                        <select class="form-select w-auto ms-3" id="schemaVersion" name="schemaVersion"
                                 [(ngModel)]="selectedSchemaVersion">
                             <option *ngFor="let schema of topicSchemas | async"
                                     [ngValue]="schema">{{ schema.schemaVersion }}{{ schema.isLatest ? ' ' + (currentText | async) : ''}}</option>

@@ -22,13 +22,20 @@
     $green: #155622;
     $topicSettings: #121212;
     $defaultInputValue: #E0F8E0;
-
+    $card-border-color: #3b3b3b;
     // Fixes another incompatibility of ng-bootstrap 13.0.0 and Bootstrap 4.x
     $zindex-modal: 1055;
 
     @import "bootstrap/bootstrap";
     $accordion-button-active-bg: $gray-100;
     @import "accordion-fixes";
+}
+
+a{
+    text-decoration: none !important;
+    &:hover:not(.list-group-item):not(.dropdown-item):not(.dropdown-toggle){
+        text-decoration: underline !important;
+    }
 }
 
 .dark body{

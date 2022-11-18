@@ -1,6 +1,6 @@
 <div [@routerTransition]>
     <h2 class="text-muted d-inline-block">{{ 'Topic' | translate }} {{ topicName | async }}</h2>
-    <span *ngIf="(topic | async)?.deprecated" class="badge badge-danger ml-3 "
+    <span *ngIf="(topic | async)?.deprecated" class="badge badge-danger ms-3 "
           style="vertical-align: text-top">DEPRECATED</span>
     <hr/>
     <div *ngIf="(loading | async) === false" class="mt-3">
