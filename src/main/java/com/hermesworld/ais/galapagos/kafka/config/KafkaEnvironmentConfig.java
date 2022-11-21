@@ -28,4 +28,13 @@ public interface KafkaEnvironmentConfig {
      */
     boolean isNoUpdateApplicationAcls();
 
+    /**
+     * If <code>true</code>, developer authentications on this environment will receive not only all read access of
+     * their assigned applications, but also their write access. This can be useful for manual insertion of test data i
+     * 
+     * @return <code>true</code> if developer authentications shall receive write access on this environment (depending
+     *         on associated applications), <code>false</code> otherwise.
+     */
+    boolean isDeveloperWriteAccess();
+
 }

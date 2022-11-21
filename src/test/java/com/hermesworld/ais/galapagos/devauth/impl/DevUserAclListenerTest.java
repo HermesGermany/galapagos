@@ -12,6 +12,7 @@ import com.hermesworld.ais.galapagos.events.GalapagosEventContext;
 import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.kafka.KafkaUser;
+import com.hermesworld.ais.galapagos.kafka.config.KafkaEnvironmentConfig;
 import com.hermesworld.ais.galapagos.kafka.impl.TopicBasedRepositoryMock;
 import com.hermesworld.ais.galapagos.kafka.util.AclSupport;
 import com.hermesworld.ais.galapagos.subscriptions.service.SubscriptionService;
@@ -30,6 +31,7 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -47,6 +49,10 @@ public class DevUserAclListenerTest {
 
     private DevUserAclListener listener;
 
+    private KafkaClusters clusters;
+
+    private AclSupport aclSupport;
+
     private TopicBasedRepositoryMock<DevAuthenticationMetadata> repository;
 
     private ZonedDateTime timestamp;
@@ -59,8 +65,8 @@ public class DevUserAclListenerTest {
         timestamp = ZonedDateTime.of(LocalDateTime.of(2020, 10, 5, 10, 0, 0), ZoneOffset.UTC);
         TimeService timeService = () -> timestamp;
 
-        AclSupport aclSupport = mock(AclSupport.class);
-        KafkaClusters clusters = mock(KafkaClusters.class);
+        aclSupport = mock(AclSupport.class);
+        clusters = mock(KafkaClusters.class);
         when(clusters.getAuthenticationModule(any())).thenReturn(Optional
                 .of(new CertificatesAuthenticationModule("test", mock(CertificatesAuthenticationConfig.class))));
         listener = new DevUserAclListener(applicationsService, subscriptionService, timeService, aclSupport, clusters);
@@ -133,6 +139,48 @@ public class DevUserAclListenerTest {
 
         KafkaUser user = userCaptor.getValue();
         Assertions.assertEquals("User:CN=testuser", user.getKafkaUserName());
+    }
+
+    @Test
+    public void testWriteAccessFlag() throws Exception {
+        KafkaEnvironmentConfig config = mock(KafkaEnvironmentConfig.class);
+        when(config.isDeveloperWriteAccess()).thenReturn(true);
+        when(cluster.getId()).thenReturn("test");
+        when(clusters.getEnvironmentMetadata("test")).thenReturn(Optional.of(config));
+
+        DevAuthenticationMetadata metadata = new DevAuthenticationMetadata();
+        metadata.setUserName("user123");
+        metadata.setAuthenticationJson("{\"dn\":\"CN=testuser\"}");
+
+        ApplicationOwnerRequest request1 = new ApplicationOwnerRequest();
+        request1.setUserName("user123");
+        request1.setState(RequestState.APPROVED);
+        request1.setApplicationId("app-1");
+        ApplicationOwnerRequest request2 = new ApplicationOwnerRequest();
+        request2.setUserName("user123");
+        request2.setState(RequestState.SUBMITTED);
+        request2.setApplicationId("app-2");
+
+        ApplicationMetadata app1 = new ApplicationMetadata();
+        app1.setApplicationId("app-1");
+        ApplicationMetadata app2 = new ApplicationMetadata();
+        app1.setApplicationId("app-2");
+
+        when(applicationsService.getAllApplicationOwnerRequests()).thenReturn(List.of(request1, request2));
+        when(applicationsService.getApplicationMetadata("test", "app-1")).thenReturn(Optional.of(app1));
+        when(applicationsService.getApplicationMetadata("test", "app-2")).thenReturn(Optional.of(app2));
+
+        when(aclSupport.getRequiredAclBindings("test", app1, "User:CN=testuser", false)).thenReturn(List.of());
+        when(aclSupport.getRequiredAclBindings("test", app2, "User:CN=testuser", false))
+                .thenThrow(new RuntimeException("No ACLs for app2 should be assigned"));
+
+        listener.updateAcls(cluster, Set.of(metadata)).get();
+        ArgumentCaptor<KafkaUser> userCaptor = ArgumentCaptor.forClass(KafkaUser.class);
+        verify(cluster, times(1)).updateUserAcls(userCaptor.capture());
+
+        userCaptor.getValue().getRequiredAclBindings();
+        verify(aclSupport, times(1)).getRequiredAclBindings("test", app1, "User:CN=testuser", false);
+        verify(aclSupport, times(0)).getRequiredAclBindings("test", app1, "User:CN=testuser", true);
     }
 
 }
