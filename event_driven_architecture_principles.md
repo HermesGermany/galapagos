@@ -17,7 +17,7 @@ utility to enforce these principles while freeing DevOps teams from working thro
 ## Business Events instead of Business Objects
 
 Classic inter-application communication channels in companies usually exchange business _Objects_, not _Events_. This
-leads to data duplication and reduncancy, different levels of "truth" about the very same business object, and unclear
+leads to data duplication and redundancy, different levels of "truth" about the very same business object, and unclear
 responsibilities and ownerships of data. 
 
 Application teams tend to get their required data from the first application they can find which provides this data and 
@@ -59,7 +59,7 @@ A published Business Event Type must contain **all** events (event instances) of
 Type in the context of these principles. An Event Type _Order Received_ (from the Business Domain "Sales") is not valid
 if it contains only the Business Events of Orders received via an online channel, but not e.g. the orders received via
 a callcenter. If an application can provide only a subset, the Event Type must be named accordingly, e.g. 
-_Online Order Revceived_, to reflect this limitation.
+_Online Order Received_, to reflect this limitation.
 
 ## Publish-Subscribe instead of Point-to-Point
 
@@ -93,7 +93,7 @@ technical representations of the Business Events (e.g. Topics in Apache Kafka) c
 central listing, with a reference to a new topic, providing the same Business Event, but with a new payload format.
 This way, consumers have a given amount of time to asynchronously adapt to the new topic.
 
-## Put Reponsibility where it belongs
+## Put Responsibility where it belongs
 
 In todays enterprise IT infrastructures, often you can find one central team responsible for the _Enterprise Service
 Bus_, or the central Messaging infrastructure. Teams wanting to publish data there, or wanting to receive data from
