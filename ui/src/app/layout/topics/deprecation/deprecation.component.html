@@ -16,14 +16,15 @@
             <form class="mb-3">
                 <div class="form-group">
                     <div class="d-flex">
-                        <input class="form-control w-auto" [(ngModel)]="eolDate" ngbDatepicker
-                               [minDate]="minDeprecationDate | async"
-                               name="eolDate" #p="ngbDatepicker">
-                        <div class="d-inline-flex">
-                            <button class="fas fa-calendar-alt" (click)="p.toggle()"
-                                    type="button"></button>
+                        <div class="input-group w-auto">
+                            <input class="form-control w-auto" [(ngModel)]="eolDate" ngbDatepicker
+                                   [minDate]="minDeprecationDate | async"
+                                   name="eolDate" #p="ngbDatepicker">
+                            <button class="btn btn-outline-secondary" (click)="p.toggle()"
+                                    type="button"><i class="fa fa-calendar-alt"></i></button>
                         </div>
                     </div>
+
                 </div>
             </form>
         </div>

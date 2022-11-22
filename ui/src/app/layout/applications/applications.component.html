@@ -75,10 +75,10 @@
                                 <td>{{ niceTimestamp(req.createdAt) | async }}</td>
                                 <td>{{ toAppName(req.applicationId) | async }}</td>
                                 <td>
-                                    <span class="badge" [class.badge-secondary]="req.state === 'SUBMITTED'"
-                                        [class.badge-success]="req.state === 'APPROVED'"
-                                        [class.badge-warning]="req.state === 'RESIGNED'"
-                                        [class.badge-danger]="req.state === 'REJECTED' || req.state === 'REVOKED'">{{ req.state }}</span>
+                                    <span class="badge" [class.bg-secondary]="req.state === 'SUBMITTED'"
+                                        [class.bg-success]="req.state === 'APPROVED'"
+                                        [class.bg-warning]="req.state === 'RESIGNED'"
+                                        [class.bg-danger]="req.state === 'REJECTED' || req.state === 'REVOKED'">{{ req.state }}</span>
                                 </td>
                                 <td>{{ niceTimestamp(req.lastStatusChangeAt) | async }}</td>
                                 <td>{{ req.lastStatusChangeBy }}</td>
@@ -167,8 +167,8 @@
 <ng-template #certDlg let-dlg>
     <div class="modal-header">
         <h4 class="modal-title">{{ 'Generate Application Client Certificate' | translate }}</h4>
-        <button type="button" class="close" aria-label="Close" (click)="dlg.dismiss()">
-            <span aria-hidden="true">&times;</span>
+        <button type="button" class="btn-close" aria-label="Close" (click)="dlg.dismiss()">
+
         </button>
     </div>
     <div class="modal-body">

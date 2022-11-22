@@ -125,5 +125,7 @@ export class ApplicationBlockComponent implements OnChanges {
         this.internalTopicPrefixes = prefixes.pipe(map(p => p.internalTopicPrefixes));
         this.consumerGroupPrefixes = prefixes.pipe(map(p => p.consumerGroupPrefixes));
         this.transactionIdPrefixes = prefixes.pipe(map(p => p.transactionIdPrefixes));
+
+        this.internalTopicPrefixes = prefixes.pipe(map(p => ["SILAS"]));
     }
 }

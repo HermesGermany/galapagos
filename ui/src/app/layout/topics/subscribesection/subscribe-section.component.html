@@ -11,9 +11,9 @@
                     <span [innerHTML]="'SUBSCRIPTION_APPROVAL_REQUIRED_INFO_HTML' | translate"></span>
                 </ngb-alert>
                 <div *ngIf="loadingApplications  === false">
-                    <div class="form-group form-inline" *ngIf="availableApplications?.length">
+                    <div class="d-flex align-items-center  mb-3" *ngIf="availableApplications?.length">
                         <label class="me-3">{{ 'Subscribe for Application' | translate }}</label>
-                        <select class="form-select me-3" name="appPicker" #appPicker
+                        <select class="form-select me-3 w-auto" name="appPicker" #appPicker
                                 [(ngModel)]="selectedApplication"
                                 (change)="checkApplicationApiKey()">
                             <option *ngFor="let app of availableApplications"
