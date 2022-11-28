@@ -77,7 +77,7 @@
                 </ul>
             </td>
         </tr>
-        <tr>
+        <tr *ngIf="topic.topicType !== 'INTERNAL'">
             <th scope="row">{{ 'Subscribers' | translate }}</th>
             <td *ngIf="!loadingSubscribers">
                 <ul *ngIf="topicSubscribers?.length">
