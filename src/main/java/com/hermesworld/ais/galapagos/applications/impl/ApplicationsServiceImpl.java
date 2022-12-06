@@ -14,6 +14,7 @@ import com.hermesworld.ais.galapagos.naming.NamingService;
 import com.hermesworld.ais.galapagos.security.CurrentUserService;
 import com.hermesworld.ais.galapagos.util.TimeService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.functors.ExceptionPredicate;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -316,7 +317,31 @@ public class ApplicationsServiceImpl implements ApplicationsService, InitPerClus
             CreateAuthenticationResult authenticationResult) {
         ApplicationMetadata newMetadata = new ApplicationMetadata();
         ApplicationPrefixes prefixes = namingService.getAllowedPrefixes(application);
+        System.out.println("------------------------------------------");
+        System.out.println("UPDATE APPLICATION");
+        System.out.println(application.getId());
+
+        kafkaClusters.getEnvironmentIds().forEach(i -> {
+            try {
+                var metadata = getApplicationMetadata(i, application.getId()).get();
+                if(metadata != null)
+                {
+                    prefixes = prefixes.combineWith(metadata);
+                    System.out.println("PREFIX: ");
+                    System.out.println(metadata.getConsumerGroupPrefixes());
+                    System.out.println(metadata.getInternalTopicPrefixes());
+                    System.out.println(metadata.getTransactionIdPrefixes());
+                }
+            }
+            catch (Exception e) {
+                System.out.println("ERROR " + e);
+            }
+        });
+
+        System.out.println("------------------------------------------");
         if (existingMetadata != null) {
+            // GET PREVIOUS PREFIXES FROM OTHER INSTANCES
+
             prefixes = prefixes.combineWith(existingMetadata);
         }
 
