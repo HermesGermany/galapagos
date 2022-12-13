@@ -141,6 +141,7 @@ export class UserSettingsComponent implements OnInit {
         ).then(() => this.updateExistingApiKeyMessage(false));
     }
 
+
     updateExistingApiKeyMessage(hideTable: boolean) {
         this.existingAuthenticationInfo.next({ expiresAt: null });
 

@@ -7,8 +7,8 @@
                 </ngb-alert>
 
                 <div appSpinnerWhile #d="appSpinnerWhile" class="form-group form-inline mt-3">
-                    <label class="mr-3">{{ 'Select Producer' | translate }}</label>
-                    <select class="form-control mr-3" name="appPicker" [(ngModel)]="selectedProducer">
+                    <label class="me-3">{{ 'Select Producer' | translate }}</label>
+                    <select class="form-select me-3" name="appPicker" [(ngModel)]="selectedProducer">
                         <option *ngFor="let producerApp of selectableProducerApps" [ngValue]="producerApp"
                         >{{ producerApp.name }}
                         </option>

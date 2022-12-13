@@ -1,6 +1,6 @@
 <div class="card" *ngIf="environmentsService.getCurrentEnvironment() | async; let env">
     <div class="card-header bg-warning">
-        <i class="far fa-window-maximize mr-2"></i>{{ application.name }}
+        <i class="far fa-window-maximize me-2"></i>{{ application.name }}
     </div>
     <div class="card-body">
         <div *ngIf="authenticationMode === 'ccloud' && (currentEnvApplicationApiKey | async) === null">
@@ -24,7 +24,7 @@
                            [activeIds]="['_panel_topics']">
                 <ngb-panel [id]="'_panel_topics'">
                     <ng-template ngbPanelTitle>
-                        <span><i class="fa fa-layer-group mr-2"></i>{{ 'Topics' | translate }}</span>
+                        <span><i class="fa fa-layer-group me-2"></i>{{ 'Topics' | translate }}</span>
                     </ng-template>
                     <ng-template ngbPanelContent>
                         <div class="container-fluid">
@@ -77,7 +77,7 @@
                 </ngb-panel>
                 <ngb-panel [id]="'_panel_rights'">
                     <ng-template ngbPanelTitle>
-                        <span><i class="fas fa-key mr-2"></i>{{ 'Kafka Access Rights' | translate }}</span>
+                        <span><i class="fas fa-key me-2"></i>{{ 'Kafka Access Rights' | translate }}</span>
                     </ng-template>
                     <ng-template ngbPanelContent>
                         <table class="table">
@@ -121,9 +121,9 @@
                     <ng-template ngbPanelTitle>
                         <ng-container [ngSwitch]="authenticationMode">
                             <span *ngSwitchCase="'certificates'"><i
-                                class="fas fa-award mr-2"></i>{{ 'Certificate Info' | translate }}</span>
+                                class="fas fa-award me-2"></i>{{ 'Certificate Info' | translate }}</span>
                             <span *ngSwitchCase="'ccloud'"><i
-                                class="fas fa-award mr-2"></i>{{ 'Client Access' | translate }}</span>
+                                class="fas fa-award me-2"></i>{{ 'Client Access' | translate }}</span>
                         </ng-container>
                     </ng-template>
                     <ng-template ngbPanelContent>
@@ -159,7 +159,7 @@
         </tr>
         <tr>
             <td colspan="2">
-                <button type="button" class="btn btn-danger mr-2"
+                <button type="button" class="btn btn-danger me-2"
                         [title]=" 'KEY_BUTTON_TITLE' | translate:{ env: currentEnv.name }"
                         (click)="openApiKeyDialog.emit({ application: application, environment: currentEnv })">
                     <i class="fas fa-award"></i>&nbsp;{{ 'New login details' | translate }}
@@ -187,7 +187,7 @@
         </tr>
         <tr>
             <td colspan="2">
-                <button type="button" class="btn btn-danger mr-2"
+                <button type="button" class="btn btn-danger me-2"
                         [title]=" 'CERT_BUTTON_TITLE' | translate:{ env: currentEnv.name }"
                         (click)="openCertificateDialog.emit({ application: application, environment: currentEnv })">
                     <i class="fas fa-award"></i>&nbsp;{{ 'Create / extend application certificate' | translate }}

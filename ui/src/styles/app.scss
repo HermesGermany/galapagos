@@ -22,13 +22,33 @@
     $green: #155622;
     $topicSettings: #121212;
     $defaultInputValue: #E0F8E0;
-
-    // Fixes another incompatibility of ng-bootstrap 13.0.0 and Bootstrap 4.x
-    $zindex-modal: 1055;
+    $card-border-color: #3b3b3b;
 
     @import "bootstrap/bootstrap";
     $accordion-button-active-bg: $gray-100;
-    @import "accordion-fixes";
+}
+
+a{
+    text-decoration: none !important;
+    &:hover:not(.list-group-item):not(.dropdown-item):not(.dropdown-toggle){
+        text-decoration: underline !important;
+    }
+}
+
+.dark .badge{
+    color: white;
+}
+.dark body{
+    background-color: #121212 !important;
+    color: #f8f9fa !important;
+}
+
+.dark .table{
+    color: #f8f9fa !important;
+}
+
+.dark .table-striped > tbody > tr:nth-of-type(odd) > *{
+    color: #f8f9fa !important;
 }
 
 .dark .spinner > div {
@@ -184,11 +204,8 @@
     border-color: #262626;
 }
 
-// Fixes another incompatibility of ng-bootstrap 13.0.0 and Bootstrap 4.x
-$zindex-modal: 1055;
 
 @import "bootstrap/bootstrap";
-@import "accordion-fixes";
 
 @media print {
     .breadcrumb {
@@ -207,6 +224,7 @@ code {
 .fa-fw {
     text-align: left;
 }
+
 
 @media(min-width: 1100px) {
     .modal-xxl .modal-lg {

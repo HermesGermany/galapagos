@@ -2,7 +2,7 @@
     *ngIf="topic?.topicType !== 'INTERNAL' && isOwnerOfTopic  && !(selectedEnvironment | async)?.stagingOnly"
     class="card mb-3">
     <div class="card-header bg-hermes-deprecation"><i
-        class="fas fa-ghost mr-3"></i>{{ 'Deprecation' | translate }}</div>
+        class="fas fa-ghost me-3"></i>{{ 'Deprecation' | translate }}</div>
     <div class="card-body">
         <p id="deprecationHtml" [innerHTML]="deprecateTopicHtml | async"></p>
         <ngb-alert type="danger" [dismissible]="false"><span
@@ -13,17 +13,18 @@
             <textarea class="form-control" rows="2"
                       [(ngModel)]="deprecatedDescription"></textarea><br>
             <label>{{ 'PICK_DEPRECATE_DATE' | translate }}</label><br>
-            <form class="form-inline">
+            <form class="mb-3">
                 <div class="form-group">
-                    <div class="input-group">
-                        <input class="form-control" [(ngModel)]="eolDate" ngbDatepicker
-                               [minDate]="minDeprecationDate | async"
-                               name="eolDate" #p="ngbDatepicker">
-                        <div class="input-group-append">
-                            <button class="fas fa-calendar-alt" (click)="p.toggle()"
-                                    type="button"></button>
+                    <div class="d-flex">
+                        <div class="input-group w-auto">
+                            <input class="form-control w-auto" [(ngModel)]="eolDate" ngbDatepicker
+                                   [minDate]="minDeprecationDate | async"
+                                   name="eolDate" #p="ngbDatepicker">
+                            <button class="btn btn-outline-secondary" (click)="p.toggle()"
+                                    type="button"><i class="fa fa-calendar-alt"></i></button>
                         </div>
                     </div>
+
                 </div>
             </form>
         </div>
@@ -31,6 +32,6 @@
                 #d="appSpinnerWhile"
                 class="btn btn-warning"
                 (click)="d.while(handleDeprecationRequest())"><i
-            class="fas fa-ghost mr-3"></i>{{ 'Deprecate Topic Label' | translate }}</button>
+            class="fas fa-ghost me-3"></i>{{ 'Deprecate Topic Label' | translate }}</button>
     </div>
 </div>
