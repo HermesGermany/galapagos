@@ -28,7 +28,7 @@
                             <div *ngIf="configuration[env.id] && defaultTopicConfigs[env.id]">
                                 <input #configValue class="form-control" type="text" style="min-width: 200px" [(ngModel)]="configuration[env.id][config.configName]"
                                     [class.default-value]="isDefaultConfig(env.id, config.configName)">
-                                <button class="btn btn-success btn-sm mt-2" (click)="resetConfig(env.id, config.configName)"><i class="fas fa-eraser mr-3"></i>{{ 'Default' | translate }}</button>
+                                <button class="btn btn-success btn-sm mt-2" (click)="resetConfig(env.id, config.configName)"><i class="fas fa-eraser me-3"></i>{{ 'Default' | translate }}</button>
                             </div>
                         </td>
                     </tr>

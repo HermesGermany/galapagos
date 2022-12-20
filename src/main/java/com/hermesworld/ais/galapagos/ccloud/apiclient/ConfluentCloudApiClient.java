@@ -13,6 +13,8 @@ import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -42,6 +44,8 @@ public class ConfluentCloudApiClient {
 
     private static final String BASE_URL = "https://api.confluent.cloud";
 
+    private final String baseUrl;
+
     private final WebClient client;
 
     private final boolean idCompatMode;
@@ -55,6 +59,7 @@ public class ConfluentCloudApiClient {
      *                     ACL related purposes. See description of this class for details.
      */
     public ConfluentCloudApiClient(String baseUrl, String apiKey, String apiSecret, boolean idCompatMode) {
+        this.baseUrl = baseUrl;
         this.client = WebClient.builder().baseUrl(baseUrl)
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .defaultHeader(HttpHeaders.AUTHORIZATION, buildAuth(apiKey, apiSecret)).build();
@@ -183,7 +188,18 @@ public class ConfluentCloudApiClient {
             }
         }
 
-        return client.get().uri(localUri).retrieve()
+        // We perform our own parsing, as otherwise, Spring would expand %3D in the String (returned by "next" page of
+        // Confluent Cloud API) to %253D.
+        URI realUri;
+        try {
+            realUri = new URI(baseUrl).resolve(new URI(localUri));
+        }
+        catch (URISyntaxException e) {
+            log.error("Could not perform REST API request due to invalid URI {}", localUri, e);
+            return Mono.just(List.of());
+        }
+
+        return client.get().uri(realUri).retrieve()
                 .onStatus(status -> status.isError(), errorResponseHandler(uri, errorMessage)).bodyToMono(String.class)
                 .flatMap(body -> {
                     try {

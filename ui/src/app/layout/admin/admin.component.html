@@ -30,13 +30,13 @@
                                 <td style="min-width: 9em">
                                     <span
                                         class="badge"
-                                        [class.badge-secondary]="request.state === 'SUBMITTED'"
-                                        [class.badge-success]="request.state === 'APPROVED'"
-                                        [class.badge-warning]="request.state === 'RESIGNED'"
-                                        [class.badge-danger]="request.state === 'REJECTED' || request.state === 'REVOKED'"
+                                        [class.bg-secondary]="request.state === 'SUBMITTED'"
+                                        [class.bg-success]="request.state === 'APPROVED'"
+                                        [class.bg-warning]="request.state === 'RESIGNED'"
+                                        [class.bg-danger]="request.state === 'REJECTED' || request.state === 'REVOKED'"
                                         [title]="lastChangeTitle(request)"
-                                        >{{ request.state }}</span
-                                    >
+                                        >{{ request.state }}
+                                    </span>
                                 </td>
                                 <td style="min-width: 9em">
                                     <button type="button" class="btn btn-success" appSpinnerWhile #u="appSpinnerWhile" (click)="u.while(approve(request))" [disabled]="request.state === 'APPROVED'"><i class="fa fas fa-thumbs-up"></i></button>&nbsp;

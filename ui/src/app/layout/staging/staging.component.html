@@ -10,9 +10,9 @@
                 </div>
                 <div class="card-body">
                     {{ 'STAGING_TEXT' | translate }}
-                    <div class="form-group form-inline mt-3">
-                        <label class="mr-3">{{ 'Application' | translate }}</label>
-                        <select class="form-control mr-3" name="appPicker" #appPicker [(ngModel)]="selectedApplication"
+                    <div class="d-flex mb-3 justify-content-start align-items-center mt-3">
+                        <label class="me-3">{{ 'Application' | translate }}</label>
+                        <select class="form-select w-auto me-3" name="appPicker" #appPicker [(ngModel)]="selectedApplication"
                                 (change)="resetStagingResult()">
                             <option *ngFor="let app of d.untilNext(availableApplications) | async"
                                     [ngValue]="app">{{ app.name }}
@@ -21,9 +21,9 @@
                         <span appSpinnerWhile #d="appSpinnerWhile"></span>
                     </div>
 
-                    <div class="form-group form-inline mt-3">
-                        <label class="mr-3">{{ 'Kafka Environment' | translate }}</label>
-                        <select class="form-control mr-3" name="appPicker" #appPicker [(ngModel)]="selectedEnvironment"
+                    <div class="d-flex mb-3 justify-content-start align-items-center mt-3">
+                        <label class="me-3">{{ 'Kafka Environment' | translate }}</label>
+                        <select class="form-select w-auto me-3" name="appPicker" #appPicker [(ngModel)]="selectedEnvironment"
                                 (change)="updateTargetEnvironment()">
                             <option *ngFor="let env of availableEnvironments | async" [ngValue]="env">{{ env.name }}
                             </option>
@@ -34,7 +34,7 @@
                     <button class="btn btn-success mt-4"
                             [disabled]="!selectedApplication || !selectedEnvironment || performing"
                             appSpinnerWhile #c="appSpinnerWhile" (click)="c.while(prepareStaging())">
-                        <i class="fas fa-calculator mr-3"></i>{{ 'Analyze Changes' | translate }}</button>
+                        <i class="fas fa-calculator me-3"></i>{{ 'Analyze Changes' | translate }}</button>
                 </div>
             </div>
         </div>
@@ -64,7 +64,7 @@
                         </li>
                     </ul>
                     <button class="btn btn-warning mt-3" (click)="e.while(performStaging())" appSpinnerWhile #e="appSpinnerWhile">
-                        <i class="fas fa-exclamation-triangle mr-2"></i>{{ 'APPLY_CHANGES_TO' | translate: translateParams }}
+                        <i class="fas fa-exclamation-triangle me-2"></i>{{ 'APPLY_CHANGES_TO' | translate: translateParams }}
                     </button>
                 </div>
             </div>
@@ -80,8 +80,8 @@
                     <div class="card-body">
                         <ul class="changes">
                             <li *ngFor="let result of stagingResult" [class.text-danger]="!result.stagingSuccessful" [class.text-success]="result.stagingSuccessful">
-                                <span *ngIf="!result.stagingSuccessful" class="mr-3"><i class="fas fa-times"></i></span>
-                                <span *ngIf="result.stagingSuccessful" class="mr-3"><i class="fas fa-check"></i></span>
+                                <span *ngIf="!result.stagingSuccessful" class="me-3"><i class="fas fa-times"></i></span>
+                                <span *ngIf="result.stagingSuccessful" class="me-3"><i class="fas fa-check"></i></span>
                                 <span [innerHTML]="stagingText(result.change)"></span>
                                 <span *ngIf="!result.stagingSuccessful">
                                     <br>

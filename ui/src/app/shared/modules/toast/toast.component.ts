@@ -44,14 +44,12 @@ export class GalapagosToastHeaderDirective {}
     encapsulation: ViewEncapsulation.None,
     template: `
         <ng-template #headerTpl>
-            <strong class="mr-auto">{{ header }}</strong>
+                <strong class="me-auto">{{ header }}</strong>
+                <button [type]="'button'" [class]="'btn-close'" data-bs-dismiss="toast" aria-label="Close" (click)="hide(true)"></button>
         </ng-template>
         <ng-template [ngIf]="contentHeaderTpl || header">
-            <div [class]="'toast-header ' + headerClass()" style="border-bottom: none">
+            <div [class]="'toast-header show '+ headerClass()">
                 <ng-template [ngTemplateOutlet]="contentHeaderTpl || headerTpl"></ng-template>
-                <button type="button" class="close" aria-label="close" (click)="hide(true)">
-                    <span aria-hidden="true">&times;</span>
-                </button>
             </div>
         </ng-template>
         <div [class]="'toast-body ' + bodyClass()">
