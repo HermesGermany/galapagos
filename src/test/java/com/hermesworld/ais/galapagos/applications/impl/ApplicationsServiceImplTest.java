@@ -62,7 +62,7 @@ public class ApplicationsServiceImplTest {
                 .thenReturn(applicationMetadataRepository);
 
         when(kafkaClusters.getEnvironment("test")).thenReturn(Optional.of(testCluster));
-
+        when(kafkaClusters.getEnvironment("test2")).thenReturn(Optional.of(testCluster));
         authenticationModule = mock(KafkaAuthenticationModule.class);
 
         CreateAuthenticationResult authResult = new CreateAuthenticationResult(
@@ -225,6 +225,89 @@ public class ApplicationsServiceImplTest {
         List<InvocationOnMock> invs = eventManagerMock.getSinkInvocations();
         assertEquals(1, invs.size());
         assertEquals("handleApplicationRegistered", invs.get(0).getMethod().getName());
+    }
+
+    @Test
+    public void testPrefix() throws Exception {
+        KnownApplicationImpl app = new KnownApplicationImpl("quattro-1", "Quattro");
+        app.setAliases(List.of("q2"));
+        knownApplicationRepository.save(app).get();
+        NamingService nm = buildNamingService();
+
+        var b = nm.getAllowedPrefixes(app);
+
+        //Create new application
+        ApplicationMetadata appl = new ApplicationMetadata();
+        appl.setApplicationId("quattro-1");
+        appl.setInternalTopicPrefixes(List.of("quattro.internal.", "q1.internal."));
+        appl.setConsumerGroupPrefixes(List.of("groups.quattro.", "groups.q1."));
+        appl.setTransactionIdPrefixes(List.of("quattro.internal.", "q1.internal."));
+        applicationMetadataRepository.save(appl).get();
+
+        /*
+        applicationServiceImpl
+             .registerApplicationOnEnvironment("test2", "quattro-1", new JSONObject(), new ByteArrayOutputStream());
+
+        applicationServiceImpl
+                .registerApplicationOnEnvironment("test", "quattro-1", new JSONObject(), new ByteArrayOutputStream());
+        */
+    }
+
+    @Test
+    public void testPrefixFromAllEnv() throws Exception {
+        // Application changed e.g. in external Architecture system
+        KnownApplicationImpl app = new KnownApplicationImpl("quattro-1", "Quattro");
+        app.setAliases(List.of("q2"));
+        knownApplicationRepository.save(app).get();
+
+        // But is already registered with Alias Q1 and associated rights
+        ApplicationMetadata appl = new ApplicationMetadata();
+        appl.setApplicationId("quattro-1");
+        appl.setInternalTopicPrefixes(List.of("quattro.internal.", "q1.internal."));
+        appl.setConsumerGroupPrefixes(List.of("groups.quattro.", "groups.q1."));
+        appl.setTransactionIdPrefixes(List.of("quattro.internal.", "q1.internal."));
+        applicationMetadataRepository.save(appl).get();
+
+        // The NamingService would return new rights
+        ApplicationPrefixes newPrefixes = mock(ApplicationPrefixes.class);
+        when(newPrefixes.combineWith(any())).thenCallRealMethod();
+        when(newPrefixes.getInternalTopicPrefixes()).thenReturn(List.of("quattro.internal.", "q2.internal."));
+        when(newPrefixes.getConsumerGroupPrefixes()).thenReturn(List.of("groups.quattro.", "groups.q2."));
+        when(newPrefixes.getTransactionIdPrefixes()).thenReturn(List.of("quattro.internal.", "q2.internal."));
+
+        NamingService namingService = mock(NamingService.class);
+        when(namingService.getAllowedPrefixes(any())).thenReturn(newPrefixes);
+        when(namingService.normalize("Quattro")).thenReturn("quattro");
+
+        GalapagosEventManagerMock eventManagerMock = new GalapagosEventManagerMock();
+
+        ApplicationsServiceImpl applicationServiceImpl = new ApplicationsServiceImpl(kafkaClusters,
+                mock(CurrentUserService.class), mock(TimeService.class), namingService, eventManagerMock);
+
+        applicationServiceImpl
+                .registerApplicationOnEnvironment("test", "quattro-1", new JSONObject(), new ByteArrayOutputStream())
+                .get();
+
+        // noinspection OptionalGetWithoutIsPresent
+        appl = applicationMetadataRepository.getObject("quattro-1").get();
+
+        assertTrue(new JSONObject(appl.getAuthenticationJson()).getBoolean("testentry"));
+
+        // resulting rights must contain BOTH old and new prefixes
+        assertTrue(appl.getInternalTopicPrefixes().contains("quattro.internal."));
+        assertTrue(appl.getInternalTopicPrefixes().contains("q1.internal."));
+        assertTrue(appl.getInternalTopicPrefixes().contains("q2.internal."));
+        assertTrue(appl.getTransactionIdPrefixes().contains("quattro.internal."));
+        assertTrue(appl.getTransactionIdPrefixes().contains("q1.internal."));
+        assertTrue(appl.getTransactionIdPrefixes().contains("q2.internal."));
+        assertTrue(appl.getConsumerGroupPrefixes().contains("groups.quattro."));
+        assertTrue(appl.getConsumerGroupPrefixes().contains("groups.q1."));
+        assertTrue(appl.getConsumerGroupPrefixes().contains("groups.q2."));
+
+        // also check (while we are here) that event has fired for update
+        List<InvocationOnMock> invs = eventManagerMock.getSinkInvocations();
+        assertEquals(1, invs.size());
+        assertEquals("handleApplicationAuthenticationChanged", invs.get(0).getMethod().getName());
     }
 
     @Test
