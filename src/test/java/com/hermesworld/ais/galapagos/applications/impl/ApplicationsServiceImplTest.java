@@ -232,9 +232,9 @@ public class ApplicationsServiceImplTest {
         KnownApplicationImpl app = new KnownApplicationImpl("quattro-1", "Quattro");
         app.setAliases(List.of("q2"));
         knownApplicationRepository.save(app).get();
-        NamingService nm = buildNamingService();
-
-        var b = nm.getAllowedPrefixes(app);
+        NamingService namingService = buildNamingService();
+        GalapagosEventManagerMock eventManagerMock = new GalapagosEventManagerMock();
+        //var b = namingService.getAllowedPrefixes(app);
 
         //Create new application
         ApplicationMetadata appl = new ApplicationMetadata();
@@ -244,13 +244,17 @@ public class ApplicationsServiceImplTest {
         appl.setTransactionIdPrefixes(List.of("quattro.internal.", "q1.internal."));
         applicationMetadataRepository.save(appl).get();
 
-        /*
+        var b = namingService.get
+
+        ApplicationsServiceImpl applicationServiceImpl = new ApplicationsServiceImpl(kafkaClusters,
+                mock(CurrentUserService.class), mock(TimeService.class), namingService, eventManagerMock);
+
         applicationServiceImpl
              .registerApplicationOnEnvironment("test2", "quattro-1", new JSONObject(), new ByteArrayOutputStream());
 
         applicationServiceImpl
                 .registerApplicationOnEnvironment("test", "quattro-1", new JSONObject(), new ByteArrayOutputStream());
-        */
+
     }
 
     @Test
