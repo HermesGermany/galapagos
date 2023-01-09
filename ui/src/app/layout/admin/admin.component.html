@@ -34,7 +34,7 @@
                                         [class.bg-success]="request.state === 'APPROVED'"
                                         [class.bg-warning]="request.state === 'RESIGNED'"
                                         [class.bg-danger]="request.state === 'REJECTED' || request.state === 'REVOKED'"
-                                        [title]="lastChangeTitle(request)"
+                                        [title]="lastChangeTitle(request) | async"
                                         >{{ request.state }}
                                     </span>
                                 </td>

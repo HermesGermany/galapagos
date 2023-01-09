@@ -79,8 +79,8 @@ export class AdminComponent implements OnInit {
         }
     }
 
-    lastChangeTitle(request: TranslatedApplicationOwnerRequest): string {
-        return this.niceTimestamp(request.lastStatusChangeAt) + ' by ' + request.lastStatusChangeBy;
+    lastChangeTitle(request: TranslatedApplicationOwnerRequest): Observable<string> {
+        return this.niceTimestamp(request.lastStatusChangeAt).pipe(map(l => l + ' by ' + request.lastStatusChangeBy));
     }
 
     niceTimestamp(str: string) {
