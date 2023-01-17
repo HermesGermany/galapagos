@@ -25,10 +25,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -71,6 +68,7 @@ public class ApplicationsServiceImplTest {
         when(authenticationModule.createApplicationAuthentication(eq("quattro-1"), eq("quattro"), any()))
                 .thenReturn(CompletableFuture.completedFuture(authResult));
         when(kafkaClusters.getAuthenticationModule("test")).thenReturn(Optional.of(authenticationModule));
+        when(kafkaClusters.getAuthenticationModule("test2")).thenReturn(Optional.of(authenticationModule));
     }
 
     @Test
@@ -234,27 +232,30 @@ public class ApplicationsServiceImplTest {
         knownApplicationRepository.save(app).get();
         NamingService namingService = buildNamingService();
         GalapagosEventManagerMock eventManagerMock = new GalapagosEventManagerMock();
-        //var b = namingService.getAllowedPrefixes(app);
 
         //Create new application
         ApplicationMetadata appl = new ApplicationMetadata();
         appl.setApplicationId("quattro-1");
-        appl.setInternalTopicPrefixes(List.of("quattro.internal.", "q1.internal."));
-        appl.setConsumerGroupPrefixes(List.of("groups.quattro.", "groups.q1."));
-        appl.setTransactionIdPrefixes(List.of("quattro.internal.", "q1.internal."));
+        appl.setInternalTopicPrefixes(List.of("quattro.internal.", "q2.internal."));
         applicationMetadataRepository.save(appl).get();
-
-        var b = namingService.get
 
         ApplicationsServiceImpl applicationServiceImpl = new ApplicationsServiceImpl(kafkaClusters,
                 mock(CurrentUserService.class), mock(TimeService.class), namingService, eventManagerMock);
 
         applicationServiceImpl
-             .registerApplicationOnEnvironment("test2", "quattro-1", new JSONObject(), new ByteArrayOutputStream());
+                .registerApplicationOnEnvironment("test", "quattro-1", new JSONObject(), new ByteArrayOutputStream()).get();
 
+        appl.setInternalTopicPrefixes(List.of("quattro-new.internal.", "q2-new.internal."));
+        applicationMetadataRepository.save(appl).get();
         applicationServiceImpl
-                .registerApplicationOnEnvironment("test", "quattro-1", new JSONObject(), new ByteArrayOutputStream());
+                .registerApplicationOnEnvironment("test2", "quattro-1", new JSONObject(), new ByteArrayOutputStream()).get();
 
+
+        System.out.println(appl.getInternalTopicPrefixes());
+        var l = applicationServiceImpl.getApplicationMetadata("test2", "quattro-1").get();
+        var o = applicationServiceImpl.getApplicationMetadata("test", "quattro-1").get();
+        System.out.println(o.getInternalTopicPrefixes());
+        System.out.println(l.getInternalTopicPrefixes());
     }
 
     @Test
