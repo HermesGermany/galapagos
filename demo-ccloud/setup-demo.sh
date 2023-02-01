@@ -137,16 +137,33 @@ createCluster () {
   fi
 
   echo "Creating / updating service account ACLs on cluster $CLUSTER_NAME..."
-  "$CCLOUD_CLI" kafka acl create --service-account "$GALA_SA_ID" --environment "$GALA_ENV_ID" --cluster "$CLUSTER_ID" --operation "describe" --operation "describe-configs" --cluster-scope --allow > /dev/null || exit 1
-  "$CCLOUD_CLI" kafka acl create --service-account "$GALA_SA_ID" --environment "$GALA_ENV_ID" --cluster "$CLUSTER_ID" --operation "create" --operation "delete" --operation "read" \
-     --operation "write" --operation "alter" --operation "alter-configs" --operation "describe" --operation "describe-configs" --topic '*' --allow > /dev/null || exit 1
-  "$CCLOUD_CLI" kafka acl create --service-account "$GALA_SA_ID" --environment "$GALA_ENV_ID" --cluster "$CLUSTER_ID" --operation "read" --operation "describe" --consumer-group '*' --allow > /dev/null || exit 1
+  "$CCLOUD_CLI" kafka acl create \
+    --service-account "$GALA_SA_ID" \
+    --environment "$GALA_ENV_ID" \
+    --cluster "$CLUSTER_ID" \
+    --operations "describe,describe-configs" \
+    --cluster-scope \
+     --allow > /dev/null || exit 1
+  "$CCLOUD_CLI" kafka acl create \
+     --service-account "$GALA_SA_ID" \
+     --environment "$GALA_ENV_ID" \
+     --cluster "$CLUSTER_ID" \
+     --operations "create,delete,read,alter,alter-configs,describe,describe-configs" \
+     --topic '*' \
+     --allow > /dev/null || exit 1
+  "$CCLOUD_CLI" kafka acl create \
+    --service-account "$GALA_SA_ID" \
+    --environment "$GALA_ENV_ID" \
+    --cluster "$CLUSTER_ID" \
+    --operations "read,describe" \
+    --consumer-group '*' \
+     --allow > /dev/null || exit 1
 
   echo "Creating Cluster API Key for cluster $CLUSTER_NAME..."
   "$CCLOUD_CLI" api-key create --resource "$CLUSTER_ID" --description "$API_KEY_DESC" --service-account "$GALA_SA_ID" -o yaml > api-key.tmp.yaml || exit 1
 
-  CLUSTER_API_KEY=$("$YQ" -M '.key' < api-key.tmp.yaml)
-  CLUSTER_API_SECRET=$("$YQ" -M '.secret' < api-key.tmp.yaml)
+  CLUSTER_API_KEY=$("$YQ" -M '.api_key' < api-key.tmp.yaml)
+  CLUSTER_API_SECRET=$("$YQ" -M '.api_secret' < api-key.tmp.yaml)
 
   rm api-key.tmp.yaml
 }
@@ -164,8 +181,8 @@ createCloudApiKey () {
   echo "Creating Cloud API key for Galapagos..."
   "$CCLOUD_CLI" api-key create --resource cloud --description "$API_KEY_DESC" --service-account "$GALA_SA_ID" -o yaml > api-key.tmp.yaml || exit 1
 
-  CLOUD_API_KEY=$("$YQ" -M '.key' < api-key.tmp.yaml)
-  CLOUD_API_SECRET=$("$YQ" -M '.secret' < api-key.tmp.yaml)
+  CLOUD_API_KEY=$("$YQ" -M '.api_key' < api-key.tmp.yaml)
+  CLOUD_API_SECRET=$("$YQ" -M '.api_secret' < api-key.tmp.yaml)
   rm api-key.tmp.yaml
 }
 
