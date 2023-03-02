@@ -24,7 +24,7 @@ public class HomeController {
      * @return Forward command to the <code>index.html</code> page.
      */
     @GetMapping({ "/app", "/app/applications", "/app/admin", "/app/topics", "/app/topics/**", "/app/dashboard",
-            "/app/createtopic" })
+            "/app/createtopic", "/app/user-settings" })
     public String app() {
         return "forward:/app/index.html";
     }
