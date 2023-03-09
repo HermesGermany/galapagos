@@ -68,7 +68,7 @@ public class ApplicationsServiceImplTest {
 
         when(kafkaClusters.getEnvironment("test")).thenReturn(Optional.of(testCluster));
         when(kafkaClusters.getEnvironment("test2")).thenReturn(Optional.of(testCluster2));
-        when(kafkaClusters.getEnvironmentIds()).thenReturn(List.of("test","test2"));
+        when(kafkaClusters.getEnvironmentIds()).thenReturn(List.of("test", "test2"));
         authenticationModule = mock(KafkaAuthenticationModule.class);
 
         CreateAuthenticationResult authResult = new CreateAuthenticationResult(
@@ -251,15 +251,18 @@ public class ApplicationsServiceImplTest {
                 mock(CurrentUserService.class), mock(TimeService.class), namingService, eventManagerMock);
 
         applicationServiceImpl
-                .registerApplicationOnEnvironment("test", "quattro-1", new JSONObject(), new ByteArrayOutputStream()).get();
+                .registerApplicationOnEnvironment("test", "quattro-1", new JSONObject(), new ByteArrayOutputStream())
+                .get();
 
         app.setAliases(List.of("q3"));
         knownApplicationRepository.save(app).get();
 
         ApplicationMetadata appl2 = applicationServiceImpl
-                .registerApplicationOnEnvironment("test2", "quattro-1", new JSONObject(), new ByteArrayOutputStream()).get();
+                .registerApplicationOnEnvironment("test2", "quattro-1", new JSONObject(), new ByteArrayOutputStream())
+                .get();
 
-        assertEquals(Set.of("quattro.internal.", "q2.internal.", "q3.internal."), new HashSet<>(appl2.getInternalTopicPrefixes()));
+        assertEquals(Set.of("quattro.internal.", "q2.internal.", "q3.internal."),
+                new HashSet<>(appl2.getInternalTopicPrefixes()));
     }
 
     @Test
