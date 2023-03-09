@@ -289,7 +289,7 @@
     "OTHER_CHANGE_STAGING": "Änderung vom Typ <code>{{changeType}}</code> durchführen",
     "NOTICE_TOPIC_DATA_VIEW": "Diese Anzeige dient der <b>Datenvorschau</b> für dieses Topic. Es wird nur ein sehr begrenzter Teil der Daten angezeigt. Für eine detaillierte Betrachtung nutze bitte hierfür geeignete Software.",
     "EVENTS": "Events",
-    "DATA": "Master Data",
+    "DATA": "Data",
     "COMMANDS": "Commands",
     "INTERNAL": "Anwendungsintern",
     "SAVE_DEV_KEY_WARNING": "Bitte <b>speichere</b> das Secret, bevor du diese Seite verlässt! Das Secret wird nicht in Galapagos gespeichert. Bitte beachte auch, dass der API Key folgendes <b>Verfallsdatum</b> besitzt: {{ expiresAt }}",
