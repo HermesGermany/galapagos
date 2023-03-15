@@ -83,7 +83,7 @@ export class AdminComponent implements OnInit {
         return this.niceTimestamp(request.lastStatusChangeAt).pipe(map(l => l + ' by ' + request.lastStatusChangeBy));
     }
 
-    niceTimestamp(str: string) {
+    niceTimestamp(str: string): Observable<string>{
         return toNiceTimestamp(str, this.translate);
     }
 
