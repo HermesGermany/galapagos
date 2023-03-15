@@ -39,23 +39,23 @@ Rules for the data formats on Event Topics apply. See _Data Formats_ for details
 
 ### Data Topics
 
-Data topics are a kind of "convenience special case" of an Event Topic for company-wide Master Data. They reflect the
-Business Event Type "Master Data of Type XY has changed". Usually, they make use of _Log Compaction_, so, for a defined
-amount of time, the _history_ of a single Master Data object is known, but afterwards, only the _latest_ state of the
-object is stored (unlimited). To delete a Master Data object, it is **recommended** to provide some kind of "deletion"
+Data topics are a kind of "convenience special case" of an Event Topic for company-wide Data. They reflect the
+Business Event Type "Data of Type XY has changed". Usually, they make use of _Log Compaction_, so, for a defined
+amount of time, the _history_ of a single Data object is known, but afterwards, only the _latest_ state of the
+object is stored (unlimited). To delete a Data object, it is **recommended** to provide some kind of "deletion"
 marker in the used data format, so a deletion is represented by publishing a record on this topic with the deletion
 marker set to `true`. You can also use Kafka's _tombstone_ markers if you are familiar with the concept, its side
 effects, and required topic settings.
 
 Most rules of Event Topics also apply to Data Topics, but the _Data Format_ requirements are a bit relaxed. Also, 
-instead of a descriptive event name, they shall contain the name of the Master Data object type, e.g. 
+instead of a descriptive event name, they shall contain the name of the Data object type, e.g. 
 `com.myacme.sales.Customers`.
 
-Like on Event Topics, each data topic must contain **all** instances of the named Master Data object. If this is not
+Like on Event Topics, each data topic must contain **all** instances of the named Data object. If this is not
 possible, the name must reflect this accordingly, e.g. `com.myacme.sales.PrivateCustomers`.
 
 Contrary to Event Topics, the application producing onto a Data topic usually also is the _Owner_ of the referenced
-Master Data object type.
+Data object type.
 
 ### Commands
 
