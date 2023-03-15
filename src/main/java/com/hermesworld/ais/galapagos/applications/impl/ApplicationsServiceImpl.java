@@ -14,7 +14,6 @@ import com.hermesworld.ais.galapagos.naming.NamingService;
 import com.hermesworld.ais.galapagos.security.CurrentUserService;
 import com.hermesworld.ais.galapagos.util.TimeService;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections.functors.ExceptionPredicate;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
