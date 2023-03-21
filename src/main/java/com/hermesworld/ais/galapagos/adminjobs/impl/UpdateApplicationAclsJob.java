@@ -103,9 +103,15 @@ public class UpdateApplicationAclsJob extends SingleClusterAdminJob {
                 }
                 else {
                     System.out.println("Following ACLs are required for " + applications.get(id).getName());
-                    System.out.println(new ToolingUser(opMeta.get(), cluster.getId(),
-                            kafkaClusters.getAuthenticationModule(cluster.getId()).orElseThrow(), aclSupport)
-                                    .getRequiredAclBindings());
+                    try {
+                        System.out.println(new ToolingUser(opMeta.get(), cluster.getId(),
+                                kafkaClusters.getAuthenticationModule(cluster.getId()).orElseThrow(), aclSupport)
+                                        .getRequiredAclBindings());
+                    }
+                    catch (Exception e) {
+                        e.printStackTrace();
+                        continue;
+                    }
                 }
                 updateApplicationAcl(cluster, opMeta.get());
             }
@@ -125,7 +131,7 @@ public class UpdateApplicationAclsJob extends SingleClusterAdminJob {
             throws ExecutionException, InterruptedException {
         KafkaUser user = new ToolingUser(metadata, cluster.getId(),
                 kafkaClusters.getAuthenticationModule(cluster.getId()).orElseThrow(), aclSupport);
-        if (!StringUtils.isEmpty(user.getKafkaUserName())) {
+        if (StringUtils.hasLength(user.getKafkaUserName())) {
             cluster.updateUserAcls(user).get();
         }
     }
