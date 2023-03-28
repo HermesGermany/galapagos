@@ -316,6 +316,12 @@ public class ApplicationsServiceImpl implements ApplicationsService, InitPerClus
             CreateAuthenticationResult authenticationResult) {
         ApplicationMetadata newMetadata = new ApplicationMetadata();
         ApplicationPrefixes prefixes = namingService.getAllowedPrefixes(application);
+        for (String environmentId : kafkaClusters.getEnvironmentIds()) {
+            ApplicationMetadata metadata = getApplicationMetadata(environmentId, application.getId()).orElse(null);
+            if (metadata != null) {
+                prefixes = prefixes.combineWith(metadata);
+            }
+        }
         if (existingMetadata != null) {
             prefixes = prefixes.combineWith(existingMetadata);
         }

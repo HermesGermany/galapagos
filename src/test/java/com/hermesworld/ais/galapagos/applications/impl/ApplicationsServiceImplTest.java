@@ -13,6 +13,9 @@ import com.hermesworld.ais.galapagos.kafka.impl.TopicBasedRepositoryMock;
 import com.hermesworld.ais.galapagos.kafka.util.TopicBasedRepository;
 import com.hermesworld.ais.galapagos.naming.ApplicationPrefixes;
 import com.hermesworld.ais.galapagos.naming.NamingService;
+import com.hermesworld.ais.galapagos.naming.config.CaseStrategy;
+import com.hermesworld.ais.galapagos.naming.config.NamingConfig;
+import com.hermesworld.ais.galapagos.naming.impl.NamingServiceImpl;
 import com.hermesworld.ais.galapagos.security.CurrentUserService;
 import com.hermesworld.ais.galapagos.util.TimeService;
 import org.json.JSONObject;
@@ -25,11 +28,9 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -45,6 +46,7 @@ public class ApplicationsServiceImplTest {
     private final TopicBasedRepository<KnownApplicationImpl> knownApplicationRepository = new TopicBasedRepositoryMock<>();
 
     private final TopicBasedRepository<ApplicationMetadata> applicationMetadataRepository = new TopicBasedRepositoryMock<>();
+    private final TopicBasedRepository<ApplicationMetadata> applicationMetadataRepository2 = new TopicBasedRepositoryMock<>();
 
     private KafkaAuthenticationModule authenticationModule;
 
@@ -60,9 +62,13 @@ public class ApplicationsServiceImplTest {
         KafkaCluster testCluster = mock(KafkaCluster.class);
         when(testCluster.getRepository("application-metadata", ApplicationMetadata.class))
                 .thenReturn(applicationMetadataRepository);
+        KafkaCluster testCluster2 = mock(KafkaCluster.class);
+        when(testCluster2.getRepository("application-metadata", ApplicationMetadata.class))
+                .thenReturn(applicationMetadataRepository2);
 
         when(kafkaClusters.getEnvironment("test")).thenReturn(Optional.of(testCluster));
-
+        when(kafkaClusters.getEnvironment("test2")).thenReturn(Optional.of(testCluster2));
+        when(kafkaClusters.getEnvironmentIds()).thenReturn(List.of("test", "test2"));
         authenticationModule = mock(KafkaAuthenticationModule.class);
 
         CreateAuthenticationResult authResult = new CreateAuthenticationResult(
@@ -71,6 +77,7 @@ public class ApplicationsServiceImplTest {
         when(authenticationModule.createApplicationAuthentication(eq("quattro-1"), eq("quattro"), any()))
                 .thenReturn(CompletableFuture.completedFuture(authResult));
         when(kafkaClusters.getAuthenticationModule("test")).thenReturn(Optional.of(authenticationModule));
+        when(kafkaClusters.getAuthenticationModule("test2")).thenReturn(Optional.of(authenticationModule));
     }
 
     @Test
@@ -228,6 +235,37 @@ public class ApplicationsServiceImplTest {
     }
 
     @Test
+    public void testPrefix() throws Exception {
+        KnownApplicationImpl app = new KnownApplicationImpl("quattro-1", "Quattro");
+        app.setAliases(List.of("q2"));
+        knownApplicationRepository.save(app).get();
+        NamingService namingService = buildNamingService_forStagePrefixes();
+        GalapagosEventManagerMock eventManagerMock = new GalapagosEventManagerMock();
+
+        ApplicationMetadata appl = new ApplicationMetadata();
+        appl.setApplicationId("quattro-1");
+        appl.setInternalTopicPrefixes(List.of("quattro.internal.", "q2.internal."));
+        applicationMetadataRepository.save(appl).get();
+
+        ApplicationsServiceImpl applicationServiceImpl = new ApplicationsServiceImpl(kafkaClusters,
+                mock(CurrentUserService.class), mock(TimeService.class), namingService, eventManagerMock);
+
+        applicationServiceImpl
+                .registerApplicationOnEnvironment("test", "quattro-1", new JSONObject(), new ByteArrayOutputStream())
+                .get();
+
+        app.setAliases(List.of("q3"));
+        knownApplicationRepository.save(app).get();
+
+        ApplicationMetadata appl2 = applicationServiceImpl
+                .registerApplicationOnEnvironment("test2", "quattro-1", new JSONObject(), new ByteArrayOutputStream())
+                .get();
+
+        assertEquals(Set.of("quattro.internal.", "q2.internal.", "q3.internal."),
+                new HashSet<>(appl2.getInternalTopicPrefixes()));
+    }
+
+    @Test
     public void testExtendCertificate() throws Exception {
         // TODO move to CertificeAuthenticationModuleTest
 
@@ -344,6 +382,15 @@ public class ApplicationsServiceImplTest {
 
         when(namingService.normalize("Quattro")).thenReturn("quattro");
         return namingService;
+    }
+
+    private static NamingService buildNamingService_forStagePrefixes() {
+        NamingConfig config = new NamingConfig();
+        config.setConsumerGroupPrefixFormat("{app-or-alias}.group.");
+        config.setInternalTopicPrefixFormat("{app-or-alias}.internal.");
+        config.setTransactionalIdPrefixFormat("{app-or-alias}.tx.");
+        config.setNormalizationStrategy(CaseStrategy.KEBAB_CASE);
+        return new NamingServiceImpl(config);
     }
 
 }

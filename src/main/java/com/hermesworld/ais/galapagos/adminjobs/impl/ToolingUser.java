@@ -5,7 +5,9 @@ import com.hermesworld.ais.galapagos.kafka.KafkaUser;
 import com.hermesworld.ais.galapagos.kafka.auth.KafkaAuthenticationModule;
 import com.hermesworld.ais.galapagos.kafka.util.AclSupport;
 import org.apache.kafka.common.acl.AclBinding;
+import org.json.JSONException;
 import org.json.JSONObject;
+import org.springframework.util.StringUtils;
 
 import java.util.Collection;
 
@@ -29,6 +31,9 @@ class ToolingUser implements KafkaUser {
 
     @Override
     public String getKafkaUserName() {
+        if (!StringUtils.hasLength(metadata.getAuthenticationJson())) {
+            throw new JSONException("No authentication JSON stored for application " + metadata.getApplicationId());
+        }
         return authenticationModule.extractKafkaUserName(new JSONObject(metadata.getAuthenticationJson()));
     }
 
