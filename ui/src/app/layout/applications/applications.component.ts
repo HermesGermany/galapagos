@@ -217,7 +217,7 @@ export class ApplicationsComponent implements OnInit {
                         this.toasts.addSuccessToast('API_KEY_CREATION_SUCCESS');
                     },
                     (err: HttpErrorResponse) => {
-                        this.apiKeyRequestError = err.message;
+                        this.apiKeyRequestError = err.error.error;
                         this.toasts.addHttpErrorToast('API_KEY_CREATION_ERROR', err);
                     }
                 )
