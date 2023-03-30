@@ -1,14 +1,14 @@
 <div *ngIf="topicType !== 'INTERNAL' && !selectedEnvironment?.stagingOnly"
      class="card mb-3">
     <div class="card-header bg-warning"><i
-        class="fas fa-wrench mr-3 "></i>{{ 'Topic Settings' | translate }}</div>
+        class="fas fa-wrench me-3 "></i>{{ 'Topic Settings' | translate }}</div>
     <div class="card-body">
         <p [innerHTML]="'TOPIC_SETTINGS_INTRO_HTML' | translate"></p>
         <div class="form-group">
             <ngb-accordion #acc="ngbAccordion" [activeIds]="['_panel_estimates']">
                 <ngb-panel *ngIf="showSubscriptionApprovalRequired">
                     <ng-template ngbPanelTitle>
-                        <span> <i class="fas fa-shield-alt fa-fw mr-1"></i>{{ 'Security Settings' | translate }}</span>
+                        <span> <i class="fas fa-shield-alt fa-fw me-1"></i>{{ 'Security Settings' | translate }}</span>
                     </ng-template>
                     <ng-template ngbPanelContent>
                         <div class="row">
@@ -29,41 +29,41 @@
                 </ngb-panel>
                 <ngb-panel>
                     <ng-template ngbPanelTitle>
-                        <span> <i class="fas fa-snowplow fa-fw mr-1"></i>{{'Cleanup Policy' | translate}}</span>
+                        <span> <i class="fas fa-snowplow fa-fw me-1"></i>{{'Cleanup Policy' | translate}}</span>
                     </ng-template>
                     <ng-template ngbPanelContent>
                         <p [innerHTML]="'CLEANUP_STRATEGY_TEXT_HTML' | translate"></p>
                         <div>
-                            <div class="btn-group btn-group-toggle mb-3">
+                            <div class="btn-group mb-3" role="group">
                                 <label
-                                    class="{{activeButtons.logCompaction ? 'btn btn-success':'btn-secondary'}} btn-lg"
+                                    class="{{activeButtons.logCompaction ? 'btn btn-success':'btn btn-secondary'}} btn-lg"
                                     ngbButtonLabel>
                                     <input
                                         (change)="!selectedCleanUpStrategy.includes('compact') ?
                                             selectedCleanUpStrategy.push('compact'): deleteItem('compact')"
-                                        type="checkbox" ngbButton
+                                        type="checkbox" ngbButton class="btn-check"
                                         [(ngModel)]="activeButtons.logCompaction">
                                     {{'Log Compaction' | translate}}
                                 </label>
                                 <label
                                     class="{{(subscriptionApprovalRequired ||
-                                        selectedCleanUpStrategy.includes('delete')) ? 'btn btn-danger':'btn-secondary'}} btn-lg"
+                                        selectedCleanUpStrategy.includes('delete')) ? 'btn btn-danger':'btn btn-secondary'}} btn-lg"
                                     ngbButtonLabel>
                                     <input [disabled]="subscriptionApprovalRequired"
                                            (change)="!selectedCleanUpStrategy.includes('delete') ?
                                             selectedCleanUpStrategy.push('delete'): deleteItem('delete')"
-                                           type="checkbox" ngbButton
+                                           type="checkbox" ngbButton class="btn-check"
                                            [(ngModel)]="activeButtons.deletion"> {{'Deletion' | translate}}
                                 </label>
                             </div>
                             <br>
                             <span *ngIf="activeButtons.logCompaction">
                                 <label>{{'Compaction time' | translate}}</label>
-                              <div class="form-group form-inline">
-                                <input [(ngModel)]="compactionTime" type="text" class="form-control text-right mr-1"
+                              <div class="d-flex justify-content-start align-items-center form-inline">
+                                <input [(ngModel)]="compactionTime" type="text" class="form-control text-right me-1 w-auto"
                                        aria-label="Text input with dropdown button">
                                 <div class="input-group-append">
-                  <select class="form-control mr-3" [(ngModel)]="compactionTimeUnit">
+                            <select class="form-select me-3 w-auto" [(ngModel)]="compactionTimeUnit">
                                 <option value="milliseconds">ms</option>
                                 <option value="seconds">s</option>
                                 <option value="minutes">m</option>
@@ -76,12 +76,12 @@
                             <span
                                 *ngIf="selectedCleanUpStrategy.includes('delete')">
                                 <label>{{'Retention time' | translate}}</label>
-                              <div class="form-group form-inline">
-                                <input [(ngModel)]="retentionTime" type="text" class="form-control text-right mr-1"
+                              <div class="d-flex justify-content-start align-items-center form-inline">
+                                <input [(ngModel)]="retentionTime" type="text" class="form-control text-right me-1 w-auto"
                                        aria-label="Text input with dropdown button">
                                 <div class="input-group-append">
                                    <div ngbDropdown container="body">
-                 <select class="form-control mr-3" [(ngModel)]="retentionTimeUnit">
+                 <select class="form-select me-3 w-auto" [(ngModel)]="retentionTimeUnit">
                                  <option value="milliseconds">ms</option>
                                 <option value="seconds">s</option>
                                 <option value="minutes">m</option>
@@ -97,7 +97,7 @@
                 </ngb-panel>
                 <ngb-panel>
                     <ng-template ngbPanelTitle>
-                        <span> <i class="fas fa-exclamation fa-fw mr-1"></i>{{'Criticality' | translate}}</span>
+                        <span> <i class="fas fa-exclamation fa-fw me-1"></i>{{'Criticality' | translate}}</span>
                     </ng-template>
                     <ng-template ngbPanelContent>
                         <p [innerHTML]="'CRITICALITY_TEXT_HTML' | translate"></p>
@@ -120,7 +120,7 @@
                 <ngb-panel [id]="'_panel_estimates'">
                     <ng-template ngbPanelTitle>
                         <span> <i
-                            class="fas fa-ruler fa-fw mr-1"></i>{{'Size estimates' | translate}}</span>
+                            class="fas fa-ruler fa-fw me-1"></i>{{'Size estimates' | translate}}</span>
                     </ng-template>
                     <ng-template ngbPanelContent>
                         <p [innerHTML]="'SIZE_ESTIMATION_TEXT_HTML' | translate"></p><br>

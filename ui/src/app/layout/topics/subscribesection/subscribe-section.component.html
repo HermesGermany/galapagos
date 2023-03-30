@@ -2,7 +2,7 @@
     <div class="col-md-12">
         <div class="card mb-3">
             <div class="card-header bg-hermes text-white"><i
-                class="fas fa-rss mr-3"></i>{{ 'Subscribe' | translate }}</div>
+                class="fas fa-rss me-3"></i>{{ 'Subscribe' | translate }}</div>
             <div *ngIf="!(selectedEnvironment | async)?.stagingOnly; else subLink"
                  class="card-body">
                 <p>{{ 'SUBSCRIBE_INFO_TEXT' | translate }}</p>
@@ -11,9 +11,9 @@
                     <span [innerHTML]="'SUBSCRIPTION_APPROVAL_REQUIRED_INFO_HTML' | translate"></span>
                 </ngb-alert>
                 <div *ngIf="loadingApplications  === false">
-                    <div class="form-group form-inline" *ngIf="availableApplications?.length">
-                        <label class="mr-3">{{ 'Subscribe for Application' | translate }}</label>
-                        <select class="form-control mr-3" name="appPicker" #appPicker
+                    <div class="d-flex align-items-center  mb-3" *ngIf="availableApplications?.length">
+                        <label class="me-3">{{ 'Subscribe for Application' | translate }}</label>
+                        <select class="form-select me-3 w-auto" name="appPicker" #appPicker
                                 [(ngModel)]="selectedApplication"
                                 (change)="checkApplicationApiKey()">
                             <option *ngFor="let app of availableApplications"
@@ -32,7 +32,7 @@
                             #s="appSpinnerWhile"
                             (click)="s.while(subscribeToTopic())"
                             [disabled]="!selectedApplication || showRegistrationWarning">
-                            <i class="fas fa-signature mr-3"></i>{{ 'Subscribe' | translate }}
+                            <i class="fas fa-signature me-3"></i>{{ 'Subscribe' | translate }}
                         </button>
                     </div>
                     <ngb-alert
@@ -47,7 +47,7 @@
                     </ngb-alert>
                 </div>
                 <div *ngIf="loadingApplications">
-                    <i class="fas fa-sync fa-spin mr-4"></i>
+                    <i class="fas fa-sync fa-spin me-4"></i>
                 </div>
             </div>
         </div>

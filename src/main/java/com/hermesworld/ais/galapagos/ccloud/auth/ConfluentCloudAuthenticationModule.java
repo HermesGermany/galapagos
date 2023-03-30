@@ -177,6 +177,10 @@ public class ConfluentCloudAuthenticationModule implements KafkaAuthenticationMo
         Duration validity = getDeveloperApiKeyValidity().orElseThrow();
         Instant expiresAt = Instant.now().plus(validity);
         String finalUserName = userName.split("@")[0];
+
+        // reset internal ID cache
+        serviceAccountNumericIds.clear();
+
         return findServiceAccountForDev(userName)
                 .thenCompose(
                         account -> account.map(a -> CompletableFuture.completedFuture(a))
