@@ -27,7 +27,7 @@ public abstract class SingleClusterAdminJob implements AdminJob {
         String kafkaEnvironment = Optional.ofNullable(allArguments.getOptionValues("kafka.environment"))
                 .flatMap(ls -> ls.stream().findFirst()).orElse(null);
 
-        if (StringUtils.isEmpty(kafkaEnvironment)) {
+        if (!StringUtils.hasLength(kafkaEnvironment)) {
             throw new IllegalArgumentException(
                     "Please provide --kafka.environment=<id> to specify Kafka Environment to update application ACLs on.");
         }
