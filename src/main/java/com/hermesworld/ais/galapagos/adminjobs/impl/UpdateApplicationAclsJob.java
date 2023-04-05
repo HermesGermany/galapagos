@@ -138,7 +138,8 @@ public class UpdateApplicationAclsJob extends SingleClusterAdminJob {
             if (StringUtils.hasLength(user.getKafkaUserName())) {
                 cluster.updateUserAcls(user).get();
             }
-        } catch (JSONException e) {
+        }
+        catch (JSONException e) {
             log.error("Could not update ACLs for application {}", metadata.getApplicationId(), e);
         }
     }

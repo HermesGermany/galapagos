@@ -205,7 +205,8 @@ public class DevUserAclListener implements TopicEventsListener, SubscriptionEven
     @CheckReturnValue
     CompletableFuture<Void> updateAcls(KafkaCluster cluster, Set<DevAuthenticationMetadata> metadatas) {
         if (log.isDebugEnabled()) {
-            log.debug("Updating ACLs for {} on cluster {}", metadatas.stream().map(m -> m.getUserName()), cluster.getId());
+            log.debug("Updating ACLs for {} on cluster {}", metadatas.stream().map(m -> m.getUserName()),
+                    cluster.getId());
         }
         CompletableFuture<Void> result = CompletableFuture.completedFuture(null);
         for (DevAuthenticationMetadata metadata : metadatas) {
@@ -218,8 +219,8 @@ public class DevUserAclListener implements TopicEventsListener, SubscriptionEven
     @CheckReturnValue
     CompletableFuture<Void> removeAcls(KafkaCluster cluster, Set<DevAuthenticationMetadata> metadatas) {
         if (log.isDebugEnabled()) {
-            log.debug("Removing ACLs for {} on cluster {}", metadatas.stream().map(
-                    m -> m.getUserName()).collect(Collectors.toList()), cluster.getId());
+            log.debug("Removing ACLs for {} on cluster {}",
+                    metadatas.stream().map(m -> m.getUserName()).collect(Collectors.toList()), cluster.getId());
         }
         CompletableFuture<Void> result = CompletableFuture.completedFuture(null);
         for (DevAuthenticationMetadata metadata : metadatas) {
