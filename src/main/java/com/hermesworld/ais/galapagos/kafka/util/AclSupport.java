@@ -16,7 +16,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Singleton Component helping with recurring tasks regarding Kafka ACLs; mainly, calculating required ACLs for given
@@ -25,11 +24,11 @@ import java.util.stream.Stream;
 @Component
 public class AclSupport {
 
-    private static final List<AclOperation> READ_TOPIC_OPERATIONS = Arrays.asList(AclOperation.DESCRIBE,
-            AclOperation.DESCRIBE_CONFIGS, AclOperation.READ);
+    private static final List<AclOperationAndType> READ_TOPIC_OPERATIONS = Arrays.asList(allow(AclOperation.READ),
+            allow(AclOperation.DESCRIBE_CONFIGS));
 
-    private static final List<AclOperation> WRITE_TOPIC_OPERATIONS = Arrays.asList(AclOperation.DESCRIBE,
-            AclOperation.DESCRIBE_CONFIGS, AclOperation.READ, AclOperation.WRITE);
+    private static final List<AclOperationAndType> WRITE_TOPIC_OPERATIONS = Arrays.asList(allow(AclOperation.ALL),
+            deny(AclOperation.DELETE));
 
     private final KafkaEnvironmentsConfig kafkaConfig;
 
@@ -38,23 +37,17 @@ public class AclSupport {
     private final SubscriptionService subscriptionService;
 
     public AclSupport(KafkaEnvironmentsConfig kafkaConfig, TopicService topicService,
-            SubscriptionService subscriptionService) {
+                      SubscriptionService subscriptionService) {
         this.kafkaConfig = kafkaConfig;
         this.topicService = topicService;
         this.subscriptionService = subscriptionService;
     }
 
     public Collection<AclBinding> getRequiredAclBindings(String environmentId, ApplicationMetadata applicationMetadata,
-            String kafkaUserName, boolean readOnly) {
+                                                         String kafkaUserName, boolean readOnly) {
         Set<AclBinding> result = new HashSet<>();
 
         String applicationId = applicationMetadata.getApplicationId();
-
-        // every application gets the DESCRIBE CLUSTER right (and also DESCRIBE_CONFIGS, for now)
-        result.add(new AclBinding(new ResourcePattern(ResourceType.CLUSTER, "kafka-cluster", PatternType.LITERAL),
-                new AccessControlEntry(kafkaUserName, "*", AclOperation.DESCRIBE, AclPermissionType.ALLOW)));
-        result.add(new AclBinding(new ResourcePattern(ResourceType.CLUSTER, "kafka-cluster", PatternType.LITERAL),
-                new AccessControlEntry(kafkaUserName, "*", AclOperation.DESCRIBE_CONFIGS, AclPermissionType.ALLOW)));
 
         // add configured default ACLs, if any
         if (kafkaConfig.getDefaultAcls() != null) {
@@ -65,23 +58,24 @@ public class AclSupport {
                     .collect(Collectors.toList()));
         }
 
-        List<AclOperation> internalTopicOps = readOnly ? READ_TOPIC_OPERATIONS : List.of(AclOperation.ALL);
+        List<AclOperationAndType> internalTopicOps = readOnly ? READ_TOPIC_OPERATIONS : ALLOW_ALL;
         result.addAll(applicationMetadata.getInternalTopicPrefixes().stream()
                 .flatMap(prefix -> prefixAcls(kafkaUserName, ResourceType.TOPIC, prefix, internalTopicOps).stream())
                 .collect(Collectors.toList()));
 
         if (!readOnly) {
             result.addAll(applicationMetadata.getTransactionIdPrefixes().stream()
-                    .flatMap(prefix -> transactionAcls(kafkaUserName, prefix).stream()).collect(Collectors.toList()));
+                    .flatMap(prefix -> prefixAcls(kafkaUserName, ResourceType.TRANSACTIONAL_ID, prefix, ALLOW_ALL).stream())
+                    .collect(Collectors.toList()));
             result.addAll(applicationMetadata.getConsumerGroupPrefixes().stream().flatMap(
-                    prefix -> prefixAcls(kafkaUserName, ResourceType.GROUP, prefix, List.of(AclOperation.ALL)).stream())
+                            prefix -> prefixAcls(kafkaUserName, ResourceType.GROUP, prefix, ALLOW_ALL).stream())
                     .collect(Collectors.toList()));
         }
 
         // topics OWNED by the application
         topicService.listTopics(environmentId).stream().filter(
-                topic -> topic.getType() != TopicType.INTERNAL && (applicationId.equals(topic.getOwnerApplicationId())
-                        || (topic.getProducers() != null && topic.getProducers().contains(applicationId))))
+                        topic -> topic.getType() != TopicType.INTERNAL && (applicationId.equals(topic.getOwnerApplicationId())
+                                || (topic.getProducers() != null && topic.getProducers().contains(applicationId))))
                 .map(topic -> topicAcls(kafkaUserName, topic.getName(),
                         readOnly ? READ_TOPIC_OPERATIONS : WRITE_TOPIC_OPERATIONS))
                 .forEach(result::addAll);
@@ -98,27 +92,96 @@ public class AclSupport {
         return result;
     }
 
-    private Collection<AclBinding> prefixAcls(String userName, ResourceType resourceType, String prefix,
-            List<AclOperation> ops) {
-        ResourcePattern pattern = new ResourcePattern(resourceType, prefix, PatternType.PREFIXED);
-        return ops.stream()
-                .map(op -> new AclBinding(pattern, new AccessControlEntry(userName, "*", op, AclPermissionType.ALLOW)))
-                .collect(Collectors.toList());
-    }
-
-    private Collection<AclBinding> topicAcls(String userName, String topicName, List<AclOperation> ops) {
-        ResourcePattern pattern = new ResourcePattern(ResourceType.TOPIC, topicName, PatternType.LITERAL);
-        return ops.stream()
-                .map(op -> new AclBinding(pattern, new AccessControlEntry(userName, "*", op, AclPermissionType.ALLOW)))
-                .collect(Collectors.toList());
-    }
-
-    private Collection<AclBinding> transactionAcls(String userName, String prefix) {
-        return Stream.of(AclOperation.DESCRIBE, AclOperation.WRITE)
-                .map(op -> new AclBinding(
-                        new ResourcePattern(ResourceType.TRANSACTIONAL_ID, prefix, PatternType.PREFIXED),
-                        new AccessControlEntry(userName, "*", op, AclPermissionType.ALLOW)))
+    /**
+     * "Simplifies" (reduces) the given set of ACLs. For example, if there are two identical ACLs, one allows ALL
+     * for a resource pattern and principal, and one allows READ for the very same resource pattern and principal,
+     * the READ ACL can safely be removed.
+     *
+     * @param aclBindings Set of ACL Bindings to simplify.
+     * @return Simplified (potentially identical) set of ACL Bindings.
+     */
+    public Collection<AclBinding> simplify(Collection<AclBinding> aclBindings) {
+        Set<ResourcePatternAndPrincipal> allowedAllPatterns = aclBindings.stream().filter(acl -> acl.entry().permissionType() == AclPermissionType.ALLOW
+                        && acl.entry().operation() == AclOperation.ALL).map(acl -> new ResourcePatternAndPrincipal(acl.pattern(), acl.entry().principal()))
                 .collect(Collectors.toSet());
+
+        if (allowedAllPatterns.isEmpty()) {
+            return aclBindings;
+        }
+
+        return aclBindings.stream().filter(acl -> acl.entry().operation() == AclOperation.ALL
+                || acl.entry().permissionType() == AclPermissionType.DENY ||
+                !allowedAllPatterns.contains(new ResourcePatternAndPrincipal(acl.pattern(), acl.entry().principal()))
+        ).collect(Collectors.toSet());
     }
+
+    private Collection<AclBinding> prefixAcls(String userName, ResourceType resourceType, String prefix,
+                                              List<AclOperationAndType> ops) {
+        return ops.stream()
+                .map(op -> op.toBinding(prefix, resourceType, PatternType.PREFIXED, userName))
+                .collect(Collectors.toList());
+    }
+
+    private Collection<AclBinding> topicAcls(String userName, String topicName, List<AclOperationAndType> ops) {
+        return ops.stream()
+                .map(op -> op.toBinding(topicName, ResourceType.TOPIC, PatternType.LITERAL, userName))
+                .collect(Collectors.toList());
+    }
+
+    private static class AclOperationAndType {
+
+        private final AclOperation operation;
+
+        private final AclPermissionType permissionType;
+
+        private AclOperationAndType(AclOperation operation, AclPermissionType permissionType) {
+            this.operation = operation;
+            this.permissionType = permissionType;
+        }
+
+        public AclBinding toBinding(String resourceName, ResourceType resourceType, PatternType patternType, String principal) {
+            return new AclBinding(new ResourcePattern(resourceType, resourceName, patternType),
+                    new AccessControlEntry(principal, "*", operation, permissionType));
+        }
+    }
+
+    private static class ResourcePatternAndPrincipal {
+
+        private final ResourcePattern resourcePattern;
+
+        private final String principal;
+
+        private ResourcePatternAndPrincipal(ResourcePattern resourcePattern, String principal) {
+            this.resourcePattern = resourcePattern;
+            this.principal = principal;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            ResourcePatternAndPrincipal that = (ResourcePatternAndPrincipal) o;
+            return resourcePattern.equals(that.resourcePattern) && principal.equals(that.principal);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(resourcePattern, principal);
+        }
+    }
+
+    private static AclOperationAndType allow(AclOperation op) {
+        return new AclOperationAndType(op, AclPermissionType.ALLOW);
+    }
+
+    private static AclOperationAndType deny(AclOperation op) {
+        return new AclOperationAndType(op, AclPermissionType.DENY);
+    }
+
+    private static final List<AclOperationAndType> ALLOW_ALL = List.of(allow(AclOperation.ALL));
 
 }

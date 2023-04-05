@@ -13,6 +13,7 @@ import com.hermesworld.ais.galapagos.kafka.util.AclSupport;
 import com.hermesworld.ais.galapagos.subscriptions.service.SubscriptionService;
 import com.hermesworld.ais.galapagos.util.FutureUtil;
 import com.hermesworld.ais.galapagos.util.TimeService;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.acl.AclBinding;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -28,6 +29,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Component
+@Slf4j
 public class DevUserAclListener implements TopicEventsListener, SubscriptionEventsListener, ApplicationEventsListener {
 
     private final ApplicationsService applicationsService;
@@ -202,6 +204,9 @@ public class DevUserAclListener implements TopicEventsListener, SubscriptionEven
 
     @CheckReturnValue
     CompletableFuture<Void> updateAcls(KafkaCluster cluster, Set<DevAuthenticationMetadata> metadatas) {
+        if (log.isDebugEnabled()) {
+            log.debug("Updating ACLs for {} on cluster {}", metadatas.stream().map(m -> m.getUserName()), cluster.getId());
+        }
         CompletableFuture<Void> result = CompletableFuture.completedFuture(null);
         for (DevAuthenticationMetadata metadata : metadatas) {
             result = result.thenCompose(
@@ -212,6 +217,10 @@ public class DevUserAclListener implements TopicEventsListener, SubscriptionEven
 
     @CheckReturnValue
     CompletableFuture<Void> removeAcls(KafkaCluster cluster, Set<DevAuthenticationMetadata> metadatas) {
+        if (log.isDebugEnabled()) {
+            log.debug("Removing ACLs for {} on cluster {}", metadatas.stream().map(
+                    m -> m.getUserName()).collect(Collectors.toList()), cluster.getId());
+        }
         CompletableFuture<Void> result = CompletableFuture.completedFuture(null);
         for (DevAuthenticationMetadata metadata : metadatas) {
             result = result.thenCompose(
@@ -280,9 +289,9 @@ public class DevUserAclListener implements TopicEventsListener, SubscriptionEven
             boolean writeAccess = kafkaClusters.getEnvironmentMetadata(environmentId)
                     .map(m -> m.isDeveloperWriteAccess()).orElse(false);
 
-            return getApplicationsOfUser(metadata.getUserName(), environmentId).stream()
+            return aclSupport.simplify(getApplicationsOfUser(metadata.getUserName(), environmentId).stream()
                     .map(a -> aclSupport.getRequiredAclBindings(environmentId, a, getKafkaUserName(), !writeAccess))
-                    .flatMap(c -> c.stream()).collect(Collectors.toSet());
+                    .flatMap(c -> c.stream()).collect(Collectors.toSet()));
         }
 
         private Set<ApplicationMetadata> getApplicationsOfUser(String userName, String environmentId) {
