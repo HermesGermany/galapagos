@@ -28,7 +28,7 @@ public class AclSupport {
             allow(AclOperation.DESCRIBE_CONFIGS));
 
     private static final List<AclOperationAndType> WRITE_TOPIC_OPERATIONS = Arrays.asList(allow(AclOperation.ALL),
-            deny(AclOperation.DELETE));
+            denyDelete());
 
     private final KafkaEnvironmentsConfig kafkaConfig;
 
@@ -160,14 +160,14 @@ public class AclSupport {
         }
 
         @Override
-        public boolean equals(Object o) {
-            if (this == o) {
+        public boolean equals(Object obj) {
+            if (this == obj) {
                 return true;
             }
-            if (o == null || getClass() != o.getClass()) {
+            if (obj == null || getClass() != obj.getClass()) {
                 return false;
             }
-            ResourcePatternAndPrincipal that = (ResourcePatternAndPrincipal) o;
+            ResourcePatternAndPrincipal that = (ResourcePatternAndPrincipal) obj;
             return resourcePattern.equals(that.resourcePattern) && principal.equals(that.principal);
         }
 
@@ -181,8 +181,8 @@ public class AclSupport {
         return new AclOperationAndType(op, AclPermissionType.ALLOW);
     }
 
-    private static AclOperationAndType deny(AclOperation op) {
-        return new AclOperationAndType(op, AclPermissionType.DENY);
+    private static AclOperationAndType denyDelete() {
+        return new AclOperationAndType(AclOperation.DELETE, AclPermissionType.DENY);
     }
 
     private static final List<AclOperationAndType> ALLOW_ALL = List.of(allow(AclOperation.ALL));
