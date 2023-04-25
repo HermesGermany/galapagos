@@ -19,10 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
@@ -58,6 +55,8 @@ public class SubscriptionServiceImpl implements SubscriptionService, InitPerClus
     @Override
     public CompletableFuture<SubscriptionMetadata> addSubscription(String environmentId,
             SubscriptionMetadata subscriptionMetadata) {
+        // TODO check if already exists -> return Error
+
         KafkaCluster kafkaCluster = kafkaEnvironments.getEnvironment(environmentId).orElse(null);
         if (kafkaCluster == null) {
             return noSuchEnvironment(environmentId);
@@ -78,6 +77,15 @@ public class SubscriptionServiceImpl implements SubscriptionService, InitPerClus
         if (topic.getType() == TopicType.INTERNAL) {
             return CompletableFuture
                     .failedFuture(new IllegalArgumentException("Cannot subscribe to application internal topics"));
+        }
+
+        List<SubscriptionMetadata> subscriptionsForTopic = this.getSubscriptionsForTopic(environmentId,
+                subscriptionMetadata.getTopicName(), true);
+        for (var subscription : subscriptionsForTopic) {
+            if (Objects.equals(subscription.getClientApplicationId(), subscriptionMetadata.getClientApplicationId())) {
+                return CompletableFuture
+                        .failedFuture(new IllegalArgumentException("Cannot subscribe to the same topic twice"));
+            }
         }
 
         SubscriptionMetadata subscription = new SubscriptionMetadata();
