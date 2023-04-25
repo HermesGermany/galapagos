@@ -55,8 +55,6 @@ public class SubscriptionServiceImpl implements SubscriptionService, InitPerClus
     @Override
     public CompletableFuture<SubscriptionMetadata> addSubscription(String environmentId,
             SubscriptionMetadata subscriptionMetadata) {
-        // TODO check if already exists -> return Error
-
         KafkaCluster kafkaCluster = kafkaEnvironments.getEnvironment(environmentId).orElse(null);
         if (kafkaCluster == null) {
             return noSuchEnvironment(environmentId);
