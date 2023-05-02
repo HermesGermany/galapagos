@@ -81,8 +81,8 @@ public class SubscriptionServiceImpl implements SubscriptionService, InitPerClus
                 subscriptionMetadata.getTopicName(), true);
         for (var subscription : subscriptionsForTopic) {
             if (Objects.equals(subscription.getClientApplicationId(), subscriptionMetadata.getClientApplicationId())) {
-                return CompletableFuture
-                        .failedFuture(new IllegalArgumentException("A subscription of this topic for this application already exists."));
+                return CompletableFuture.failedFuture(new IllegalArgumentException(
+                        "A subscription of this topic for this application already exists."));
             }
         }
 
