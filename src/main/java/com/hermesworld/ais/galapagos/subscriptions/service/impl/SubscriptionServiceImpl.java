@@ -77,12 +77,12 @@ public class SubscriptionServiceImpl implements SubscriptionService, InitPerClus
                     .failedFuture(new IllegalArgumentException("Cannot subscribe to application internal topics"));
         }
 
-        List<SubscriptionMetadata> subscriptionsForTopic = this.getSubscriptionsForTopic(environmentId,
+        List<SubscriptionMetadata> subscriptionsForTopic = getSubscriptionsForTopic(environmentId,
                 subscriptionMetadata.getTopicName(), true);
         for (var subscription : subscriptionsForTopic) {
             if (Objects.equals(subscription.getClientApplicationId(), subscriptionMetadata.getClientApplicationId())) {
                 return CompletableFuture
-                        .failedFuture(new IllegalArgumentException("Cannot subscribe to the same topic twice"));
+                        .failedFuture(new IllegalArgumentException("A subscription of this topic for this application already exists."));
             }
         }
 
