@@ -352,7 +352,7 @@ public class ApplicationsServiceImpl implements ApplicationsService, InitPerClus
         ZonedDateTime maxAge = timeService.getTimestamp().minusDays(30);
 
         List<ApplicationOwnerRequest> oldRequests = getRequestsRepository().getObjects().stream()
-                .filter(req -> (req.getState() == RequestState.REJECTED || req.getState() == RequestState.REVOKED)
+                .filter(req -> (req.getState() == RequestState.REJECTED || req.getState() == RequestState.REVOKED || req.getState() == RequestState.RESIGNED)
                         && req.getLastStatusChangeAt().isBefore(maxAge))
                 .collect(Collectors.toList());
 
