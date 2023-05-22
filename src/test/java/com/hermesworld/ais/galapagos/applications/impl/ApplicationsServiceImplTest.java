@@ -110,6 +110,14 @@ public class ApplicationsServiceImplTest {
         dao.setLastStatusChangeAt(statusChange3);
         dao.setState(RequestState.SUBMITTED);
         daos.add(dao);
+        dao = createRequestDao("req6", createdAt, "testuser");
+        dao.setLastStatusChangeAt(statusChange1);
+        dao.setState(RequestState.RESIGNED);
+        daos.add(dao);
+        dao = createRequestDao("req7", createdAt, "testuser");
+        dao.setLastStatusChangeAt(statusChange2);
+        dao.setState(RequestState.RESIGNED);
+        daos.add(dao);
 
         daos.forEach(requestRepository::save);
 
@@ -120,9 +128,11 @@ public class ApplicationsServiceImplTest {
 
         assertTrue(requestRepository.getObject("req2").isEmpty());
         assertTrue(requestRepository.getObject("req4").isEmpty());
+        assertTrue(requestRepository.getObject("req6").isEmpty());
         assertFalse(requestRepository.getObject("req1").isEmpty());
         assertFalse(requestRepository.getObject("req3").isEmpty());
         assertFalse(requestRepository.getObject("req5").isEmpty());
+        assertFalse(requestRepository.getObject("req7").isEmpty());
     }
 
     @Test
