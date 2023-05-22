@@ -8,10 +8,12 @@ import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.kafka.KafkaUser;
 import com.hermesworld.ais.galapagos.kafka.impl.ConnectedKafkaCluster;
 import com.hermesworld.ais.galapagos.kafka.util.AclSupport;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.CreateAclsResult;
 import org.apache.kafka.clients.admin.DeleteAclsResult;
 import org.apache.kafka.common.acl.AclBinding;
 import org.apache.kafka.common.acl.AclBindingFilter;
+import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.stereotype.Component;
@@ -38,6 +40,7 @@ import java.util.stream.Collectors;
  * </ul>
  */
 @Component
+@Slf4j
 public class UpdateApplicationAclsJob extends SingleClusterAdminJob {
 
     private final AclSupport aclSupport;
@@ -131,8 +134,13 @@ public class UpdateApplicationAclsJob extends SingleClusterAdminJob {
             throws ExecutionException, InterruptedException {
         KafkaUser user = new ToolingUser(metadata, cluster.getId(),
                 kafkaClusters.getAuthenticationModule(cluster.getId()).orElseThrow(), aclSupport);
-        if (StringUtils.hasLength(user.getKafkaUserName())) {
-            cluster.updateUserAcls(user).get();
+        try {
+            if (StringUtils.hasLength(user.getKafkaUserName())) {
+                cluster.updateUserAcls(user).get();
+            }
+        }
+        catch (JSONException e) {
+            log.error("Could not update ACLs for application {}", metadata.getApplicationId(), e);
         }
     }
 }

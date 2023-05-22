@@ -71,16 +71,19 @@ public class ConfluentCloudApiClient {
     }
 
     public Mono<List<ApiKeySpec>> listClusterApiKeys(String clusterId) {
+        log.debug("List Cluster API Keys");
         return doPaginatedGet("/iam/v2/api-keys?spec.resource=" + clusterId, this::readApiKey,
                 "Could not retrieve cluster API Key list");
     }
 
     public Mono<List<ServiceAccountSpec>> listServiceAccounts() {
+        log.debug("List service accounts");
         return doPaginatedGet("/iam/v2/service-accounts", obj -> toServiceAccountSpec(obj),
                 "Could not retrieve service accounts");
     }
 
     public Mono<ServiceAccountSpec> createServiceAccount(String accountName, String accountDescription) {
+        log.debug("Create Service Account {}", accountName);
         JSONObject req = new JSONObject();
         req.put("display_name", accountName);
         req.put("description", accountDescription);
@@ -91,6 +94,7 @@ public class ConfluentCloudApiClient {
 
     public Mono<ApiKeySpec> createApiKey(String envId, String clusterId, String description,
             String serviceAccountResourceId) {
+        log.debug("Create API Key {}", description);
         JSONObject spec = new JSONObject();
 
         spec.put("display_name", "");
@@ -103,6 +107,7 @@ public class ConfluentCloudApiClient {
     }
 
     public Mono<Boolean> deleteApiKey(ApiKeySpec apiKeySpec) {
+        log.debug("Delete API Key {}", apiKeySpec.getId());
         return doDelete("/iam/v2/api-keys/" + apiKeySpec.getId(), "Could not delete API key").map(o -> true);
     }
 
@@ -113,6 +118,7 @@ public class ConfluentCloudApiClient {
      * @return A map from Confluent resource IDs (e.g. sa-xy123) to numeric service account IDs (e.g. 123456).
      */
     public Mono<Map<String, String>> getServiceAccountInternalIds() {
+        log.debug("Get service account numeric IDs");
         return doDirectGet("/service_accounts", "Could not access or read /service_accounts workaround endpoint")
                 .flatMap(response -> toServiceAccountIdMap(response));
     }
