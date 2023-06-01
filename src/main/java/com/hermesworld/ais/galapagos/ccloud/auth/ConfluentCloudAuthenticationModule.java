@@ -87,6 +87,7 @@ public class ConfluentCloudAuthenticationModule implements KafkaAuthenticationMo
     public CompletableFuture<CreateAuthenticationResult> createApplicationAuthentication(String applicationId,
             String applicationNormalizedName, JSONObject createParams) {
         String apiKeyDesc = MessageFormat.format(API_KEY_DESC, applicationNormalizedName);
+        log.info("Creating API Key for application (normalized name) {}", applicationNormalizedName);
 
         // reset internal ID cache
         serviceAccountNumericIds.clear();
@@ -111,6 +112,7 @@ public class ConfluentCloudAuthenticationModule implements KafkaAuthenticationMo
     public CompletableFuture<Void> deleteApplicationAuthentication(String applicationId, JSONObject existingAuthData) {
         String apiKey = existingAuthData.optString(JSON_API_KEY);
         if (StringUtils.hasLength(apiKey)) {
+            log.info("Deleting API Key {}", apiKey);
             return client.listClusterApiKeys(config.getClusterId()).toFuture()
                     .thenCompose(ls -> ls.stream().filter(info -> apiKey.equals(info.getId())).findAny()
                             .map(info -> client.deleteApiKey(info).toFuture().thenApply(o -> (Void) null))

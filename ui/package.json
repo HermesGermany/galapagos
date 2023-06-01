@@ -32,7 +32,7 @@
         "highlight.js": "^11.4.0",
         "keycloak-angular": "^12.1.0",
         "keycloak-js": "^19.0.2",
-        "luxon": "^2.3.1",
+        "luxon": "^2.5.2",
         "ngx-highlightjs": "^6.1.1",
         "rxjs": "7.5.4",
         "ts-md5": "^1.2.11",

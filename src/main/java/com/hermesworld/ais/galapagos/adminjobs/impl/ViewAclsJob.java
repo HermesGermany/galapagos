@@ -44,7 +44,8 @@ public class ViewAclsJob extends SingleClusterAdminJob {
 
         System.out.println();
         System.out.println();
-        System.out.println(acls.toString());
+        System.out.println(acls.length() + " ACLs found:");
+        System.out.println(acls);
         System.out.println();
         System.out.println();
     }
