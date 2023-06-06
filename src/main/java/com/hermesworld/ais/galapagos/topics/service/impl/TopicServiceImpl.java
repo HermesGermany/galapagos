@@ -12,8 +12,7 @@ import com.hermesworld.ais.galapagos.kafka.util.InitPerCluster;
 import com.hermesworld.ais.galapagos.kafka.util.TopicBasedRepository;
 import com.hermesworld.ais.galapagos.naming.InvalidTopicNameException;
 import com.hermesworld.ais.galapagos.naming.NamingService;
-import com.hermesworld.ais.galapagos.schemas.IncompatibleSchemaException;
-import com.hermesworld.ais.galapagos.schemas.SchemaUtil;
+import com.hermesworld.ais.galapagos.schemas.*;
 import com.hermesworld.ais.galapagos.security.CurrentUserService;
 import com.hermesworld.ais.galapagos.topics.*;
 import com.hermesworld.ais.galapagos.topics.config.GalapagosTopicConfig;
@@ -448,9 +447,15 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
 
                 boolean reverse = metadata.getType() == TopicType.COMMANDS;
 
-                SchemaUtil.verifyCompatibleTo(reverse ? newSchema : previousSchema,
-                        reverse ? previousSchema : newSchema);
+                SchemaCompatibilityErrorHandler errorHandler = reverse
+                        ? new ProducerCompatibilityErrorHandler(
+                                topicSettings.getSchemas().isAllowAddedPropertiesOnCommandTopics())
+                        : new ConsumerCompatibilityErrorHandler();
+                SchemaCompatibilityValidator validator = reverse
+                        ? new SchemaCompatibilityValidator(newSchema, previousSchema, errorHandler)
+                        : new SchemaCompatibilityValidator(previousSchema, newSchema, errorHandler);
 
+                validator.validate();
             }
             catch (JSONException e) {
                 // how, on earth, did it get into the repo then???

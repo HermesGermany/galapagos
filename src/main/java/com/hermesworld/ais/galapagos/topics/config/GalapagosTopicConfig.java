@@ -28,4 +28,6 @@ public class GalapagosTopicConfig {
 
     private int criticalReplicationFactor;
 
+    private TopicSchemaConfig schemas;
+
 }
