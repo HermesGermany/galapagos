@@ -18,6 +18,7 @@ import com.hermesworld.ais.galapagos.subscriptions.SubscriptionMetadata;
 import com.hermesworld.ais.galapagos.subscriptions.service.SubscriptionService;
 import com.hermesworld.ais.galapagos.topics.*;
 import com.hermesworld.ais.galapagos.topics.config.GalapagosTopicConfig;
+import com.hermesworld.ais.galapagos.topics.config.TopicSchemaConfig;
 import com.hermesworld.ais.galapagos.util.FutureUtil;
 import org.json.JSONObject;
 import org.junit.Before;
@@ -92,6 +93,7 @@ public class TopicServiceImplTest {
         when(topicConfig.getDefaultPartitionCount()).thenReturn(6);
         when(topicConfig.getStandardReplicationFactor()).thenReturn(2);
         when(topicConfig.getCriticalReplicationFactor()).thenReturn(4);
+        when(topicConfig.getSchemas()).thenReturn(new TopicSchemaConfig());
     }
 
     @Test
