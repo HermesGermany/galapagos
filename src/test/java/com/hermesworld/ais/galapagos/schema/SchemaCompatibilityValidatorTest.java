@@ -139,6 +139,12 @@ public class SchemaCompatibilityValidatorTest {
         new SchemaCompatibilityValidator(readSchema("test10b"), readSchema("test10a"), errorHandler).validate();
     }
 
+    @Test
+    public void testConsumerCompatible_greedyRemoveProperty() throws Exception {
+        ConsumerCompatibilityErrorHandler errorHandler = new ConsumerCompatibilityErrorHandler(true);
+        new SchemaCompatibilityValidator(readSchema("test10b"), readSchema("test10a"), errorHandler).validate();
+    }
+
     private static Schema readSchema(String id) {
         try (InputStream in = SchemaCompatibilityValidatorTest.class.getClassLoader()
                 .getResourceAsStream("schema-compatibility/" + id + ".schema.json")) {
@@ -153,7 +159,7 @@ public class SchemaCompatibilityValidatorTest {
 
     private static void verifyConsumerCompatibleTo(Schema oldSchema, Schema newSchema)
             throws IncompatibleSchemaException {
-        new SchemaCompatibilityValidator(oldSchema, newSchema, new ConsumerCompatibilityErrorHandler()).validate();
+        new SchemaCompatibilityValidator(oldSchema, newSchema, new ConsumerCompatibilityErrorHandler(false)).validate();
     }
 
 }

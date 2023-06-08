@@ -445,15 +445,17 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
                             "The new schema is identical to the latest schema of this topic."));
                 }
 
-                boolean reverse = metadata.getType() == TopicType.COMMANDS;
-
-                SchemaCompatibilityErrorHandler errorHandler = reverse
-                        ? new ProducerCompatibilityErrorHandler(
-                                topicSettings.getSchemas().isAllowAddedPropertiesOnCommandTopics())
-                        : new ConsumerCompatibilityErrorHandler();
-                SchemaCompatibilityValidator validator = reverse
-                        ? new SchemaCompatibilityValidator(newSchema, previousSchema, errorHandler)
-                        : new SchemaCompatibilityValidator(previousSchema, newSchema, errorHandler);
+                SchemaCompatibilityValidator validator;
+                if (metadata.getType() == TopicType.COMMANDS) {
+                    validator = new SchemaCompatibilityValidator(newSchema, previousSchema,
+                            new ProducerCompatibilityErrorHandler(
+                                    topicSettings.getSchemas().isAllowAddedPropertiesOnCommandTopics()));
+                }
+                else {
+                    validator = new SchemaCompatibilityValidator(previousSchema, newSchema,
+                            new ConsumerCompatibilityErrorHandler(
+                                    topicSettings.getSchemas().isAllowRemovedOptionalProperties()));
+                }
 
                 validator.validate();
             }

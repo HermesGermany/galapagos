@@ -7,6 +7,16 @@ import static com.hermesworld.ais.galapagos.schemas.SchemaUtil.propLocationName;
 
 public class ConsumerCompatibilityErrorHandler implements SchemaCompatibilityErrorHandler {
 
+    private final boolean allowRemovedOptionalProperties;
+
+    public ConsumerCompatibilityErrorHandler() {
+        this(false);
+    }
+
+    public ConsumerCompatibilityErrorHandler(boolean allowRemovedOptionalProperties) {
+        this.allowRemovedOptionalProperties = allowRemovedOptionalProperties;
+    }
+
     @Override
     public void handleCombinedSchemaReplacedByIncompatibleSchema(SchemaCompatibilityValidationContext context)
             throws IncompatibleSchemaException {
@@ -46,9 +56,11 @@ public class ConsumerCompatibilityErrorHandler implements SchemaCompatibilityErr
     @Override
     public void handleDefinedPropertyNoLongerDefined(SchemaCompatibilityValidationContext context, String property)
             throws IncompatibleSchemaException {
-        throw new IncompatibleSchemaException("Property " + fullPropName(context, property)
-                + " is no longer defined in schema, but had a strong definition before. "
-                + "Field format could have changed, and old consumers perhaps rely on previous format");
+        if (!allowRemovedOptionalProperties) {
+            throw new IncompatibleSchemaException("Property " + fullPropName(context, property)
+                    + " is no longer defined in schema, but had a strong definition before. "
+                    + "Field format could have changed, and old consumers perhaps rely on previous format");
+        }
     }
 
     @Override

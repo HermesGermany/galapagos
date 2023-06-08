@@ -9,4 +9,6 @@ public class TopicSchemaConfig {
 
     private boolean allowAddedPropertiesOnCommandTopics;
 
+    private boolean allowRemovedOptionalProperties;
+
 }
