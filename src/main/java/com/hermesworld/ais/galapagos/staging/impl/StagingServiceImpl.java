@@ -38,14 +38,8 @@ public class StagingServiceImpl implements StagingService {
     @Override
     public CompletableFuture<Staging> prepareStaging(String applicationId, String environmentIdFrom,
             List<Change> changesFilter) {
-        List<? extends KafkaEnvironmentConfig> environmentMetadata = kafkaClusters.getEnvironmentsMetadata();
 
-        String targetEnvironmentId = null;
-        for (int i = 0; i < environmentMetadata.size() - 1; i++) {
-            if (environmentIdFrom.equals(environmentMetadata.get(i).getId())) {
-                targetEnvironmentId = environmentMetadata.get(i + 1).getId();
-            }
-        }
+        String targetEnvironmentId = getNextStage(environmentIdFrom);
 
         if (targetEnvironmentId == null) {
             return CompletableFuture.failedFuture(new IllegalArgumentException(
@@ -59,6 +53,19 @@ public class StagingServiceImpl implements StagingService {
 
         return StagingImpl.build(applicationId, environmentIdFrom, targetEnvironmentId, changesFilter, topicService,
                 subscriptionService).thenApply(impl -> impl);
+    }
+
+    @Override
+    public String getNextStage(String environmentIdFrom) {
+        List<? extends KafkaEnvironmentConfig> environmentMetadata = kafkaClusters.getEnvironmentsMetadata();
+
+        String targetEnvironmentId = null;
+        for (int i = 0; i < environmentMetadata.size() - 1; i++) {
+            if (environmentIdFrom.equals(environmentMetadata.get(i).getId())) {
+                targetEnvironmentId = environmentMetadata.get(i + 1).getId();
+            }
+        }
+        return targetEnvironmentId;
     }
 
 }

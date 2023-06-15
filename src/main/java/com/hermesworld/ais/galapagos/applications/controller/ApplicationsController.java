@@ -271,6 +271,11 @@ public class ApplicationsController {
         }
     }
 
+    @GetMapping(value = "/api/environments/{environmentId}/staging/nextStage", produces = MediaType.TEXT_PLAIN_VALUE)
+    public String getNextStage(@PathVariable String environmentId) {
+        return stagingService.getNextStage(environmentId);
+    }
+
     @PostMapping(value = "/api/environments/{environmentId}/staging/{applicationId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public List<StagingResult> performStaging(@PathVariable String environmentId, @PathVariable String applicationId,
             @RequestBody String stagingFilterRaw) {

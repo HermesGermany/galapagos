@@ -100,6 +100,12 @@ export class EnvironmentsService {
         return this.currentEnvironment;
     }
 
+    public getNextStage(environment: KafkaEnvironment): Promise<string> {
+        return firstValueFrom(
+            this.http.get('/api/environments/' + environment.id + '/staging/nextStage', { responseType: 'text' })
+        );
+    }
+
     public setCurrentEnvironment(environment: KafkaEnvironment) {
         this.currentEnvironment.next(environment);
         localStorage.setItem(LOCAL_STORAGE_ENV_KEY, environment.id);

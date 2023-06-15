@@ -1,0 +1,9 @@
+{
+  "auth-server-url":"https://keycloak.a0695.npr.hc.de/auth",
+  "realm":"galapagos",
+  "resource":"webapp",
+  "public-client": true,
+  "use-resource-role-mappings": true,
+  "principal-attribute": "preferred_username",
+  "ssl-required": "none"
+}

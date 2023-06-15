@@ -26,6 +26,8 @@ export class SchemaSectionComponent implements OnInit, OnChanges {
 
     topicSchemas: Promise<SchemaMetadata[]>;
 
+    topicSchemasNextStage: Promise<SchemaMetadata[]>;
+
     selectedSchemaVersion: SchemaMetadata;
 
     loadingSchemas: boolean;
@@ -40,9 +42,15 @@ export class SchemaSectionComponent implements OnInit, OnChanges {
 
     schemaDeleteWithSub: Observable<boolean>;
 
+    nextStage: Promise<string>;
+
     isAdmin = false;
 
     skipCompatCheck = false;
+
+    environments: Observable<KafkaEnvironment[]>;
+
+    existSchemaOnNextVersion = true;
 
     constructor(
         private topicService: TopicsService,
@@ -64,7 +72,6 @@ export class SchemaSectionComponent implements OnInit, OnChanges {
                 }
             }
         });
-
         this.schemaDeleteWithSub = this.serverInfo.getServerInfo()
             .pipe(map(info => info.toggles.schemaDeleteWithSub === 'true')).pipe(shareReplay(1));
 
@@ -90,6 +97,24 @@ export class SchemaSectionComponent implements OnInit, OnChanges {
     startEditSchemaMode() {
         this.editSchemaMode = true;
         this.newSchemaText = '';
+    }
+
+    async getNextStage() {
+        const env = await firstValueFrom(this.environmentsService.getCurrentEnvironment());
+        this.nextStage = this.environmentsService.getNextStage(env);
+        this.nextStage.then(r => this.getSchemas(this.topic, r));
+    }
+
+    getSchemas(topic: Topic, environmentId: string) {
+        let exists = false;
+        this.topicSchemasNextStage =  this.topicService.getTopicSchemas(topic.name, environmentId);
+        this.topicSchemasNextStage.then(r => r.forEach(s => {
+            if (s.schemaVersion === this.selectedSchemaVersion.schemaVersion) {
+                exists = true;
+            }
+        })).then(()=> {
+            this.existSchemaOnNextVersion = exists;
+        });
     }
 
     async publishNewSchema(): Promise<any> {
@@ -127,6 +152,7 @@ export class SchemaSectionComponent implements OnInit, OnChanges {
             .getTopicSchemas(topic.name, environmentId)
             .then(schemas => schemas.reverse())
             .then(schemas => {
+                this.getNextStage();
                 this.selectedSchemaVersion = schemas.length ? schemas[0] : null;
                 return schemas;
             })
