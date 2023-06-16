@@ -3,7 +3,7 @@ import { routerTransition } from '../../router.animations';
 import { ApplicationInfo, ApplicationOwnerRequest, ApplicationsService } from '../../shared/services/applications.service';
 import { combineLatest, Observable, tap } from 'rxjs';
 
-import { map } from 'rxjs/operators';
+import { map, take } from 'rxjs/operators';
 import { KeycloakService } from 'keycloak-angular';
 import { SortEvent } from './sortable.directive';
 import { toNiceTimestamp } from 'src/app/shared/util/time-util';
