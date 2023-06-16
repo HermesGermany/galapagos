@@ -87,6 +87,7 @@ export class AdminComponent implements OnInit {
             this.allFetchedRequests = requests;
             this.state.totalItems = requests.length;
             this.sliceData();
+            this.search();
         })).subscribe();
 
         this.applicationsService.refresh().then();
