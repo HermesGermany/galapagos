@@ -37,21 +37,11 @@ public interface StagingService {
             List<Change> changesFilter);
 
     /**
-     * "Prepares" the staging for a given application and a given source environment. This means,
-     * <ul>
-     * <li>determining the appropriate target environment,</li>
-     * <li>calculating the differences between given source and the target environment, for the given application.</li>
-     * </ul>
-     * If the optional <code>changesFilter</code> is provided and not empty, the result is filtered, and only changes
-     * equal to one of the changes in the given filter list are included. Note that this may lead to an inconsistent
-     * change set, which may not fully be applied to the target environment successfully. <br>
-     * <br>
-     * To perform the staging, call <code>perform()</code> on the (asynchronously) returned <code>Staging</code> object.
+     * Returns the name of the next stage
      *
      * @param environmentIdFrom Source Environment ID
      *
-     * @return A completable future providing the <code>Staging</code> object when done, or failing if the staging
-     *         cannot be calculated for whatever reason.
+     * @return String Name of next stage
      */
     String getNextStage(String environmentIdFrom);
 

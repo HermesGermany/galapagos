@@ -106,6 +106,10 @@ export class SchemaSectionComponent implements OnInit, OnChanges {
     }
 
     getSchemas(topic: Topic, environmentId: string) {
+        if (environmentId === '') {
+            this.existSchemaOnNextVersion = false;
+            return;
+        }
         let exists = false;
         this.topicSchemasNextStage =  this.topicService.getTopicSchemas(topic.name, environmentId);
         this.topicSchemasNextStage.then(r => r.forEach(s => {
