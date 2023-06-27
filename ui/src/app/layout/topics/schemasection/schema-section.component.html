@@ -12,6 +12,7 @@
                             <option *ngFor="let schema of topicSchemas | async"
                                     [ngValue]="schema">{{ schema.schemaVersion }}{{ schema.isLatest ? ' ' + (currentText | async) : ''}}</option>
                         </select>
+                        <!-- Check if topic is not on next stage -->
                         <button id="schemaDeleteButton" appSpinnerWhile
                                 #p="appSpinnerWhile" (click)="(openDeleteConfirmDlg(deleteLatestSchemaDlg))"
                                 class="btn btn-danger ms-3"

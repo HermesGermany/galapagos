@@ -1,0 +1,140 @@
+{
+  "spring": {
+    "mail": {
+      "host": "localhost",
+      "port": 25,
+      "properties": {
+        "mail.smtp.auth": true,
+        "mail.smtp.starttls.enable": true,
+        "mail.smtp.connectiontimeout": 10000
+      }
+    }
+  },
+  "galapagos": {
+    "mail": {
+      "sender": "Galapagos TEST <galapagos@hermesworld.com>",
+      "admin-recipients": "galapagos@hermesworld.com"
+    },
+    "kafka": {
+      "environments": [
+        {
+          "id": "nonprod",
+          "name": "DEV",
+          "bootstrap-servers": "pkc-4r297.europe-west1.gcp.confluent.cloud:9092",
+          "authenticationMode": "ccloud",
+          "ccloud.cloudUserName": "galapagos@hermesworld.com",
+          "ccloud.organizationApiKey": "ZZOUIOJS62ECOIK6",
+          "ccloud.organizationApiSecret": "eijBpUaM7fz9Dz9JvtEh5prQ+LvWOI/NV+ybonkIn2Jvhyf7CtJlKKISnU9hbBhF",
+          "ccloud.environmentId": "env-1vrm5",
+          "ccloud.clusterId": "lkc-o0ozy",
+          "ccloud.clusterApiKey": "UGAYDIYQCRNV4Z2J",
+          "ccloud.clusterApiSecret": "EaZvOWu4VHOD4XEvYpsqwXlSqexHue7K3pZD90HObnJXOZZ7VVyLPzmYXbNjRfAv",
+          "ccloud.developerApiKeyValidity": "P30D",
+          "developerWriteAccess": false,
+          "stagingOnly": false
+        },
+        {
+          "id": "int",
+          "name": "INT",
+          "bootstrap-servers": "pkc-4r297.europe-west1.gcp.confluent.cloud:9092",
+          "authenticationMode": "ccloud",
+          "ccloud.organizationApiKey": "ZZOUIOJS62ECOIK6",
+          "ccloud.organizationApiSecret": "eijBpUaM7fz9Dz9JvtEh5prQ+LvWOI/NV+ybonkIn2Jvhyf7CtJlKKISnU9hbBhF",
+          "ccloud.environmentId": "env-1vrm5",
+          "ccloud.clusterId": "lkc-qmgz6",
+          "ccloud.clusterApiKey": "UVM266BB2GFNC4RR",
+          "ccloud.clusterApiSecret": "EpSsqbRk/Gebmv5caveB425YFUzFa8reoBOXg1HLb8HAv0NhRjhatZ36OhuK5ppS",
+          "ccloud.developerApiKeyValidity": "P30D",
+          "developerWriteAccess": false,
+          "stagingOnly": true
+        },
+        {
+          "id": "dedprod",
+          "name": "PROD",
+          "bootstrap-servers": "pkc-4r297.europe-west1.gcp.confluent.cloud:9092",
+          "authenticationMode": "ccloud",
+          "ccloud.organizationApiKey": "ZZOUIOJS62ECOIK6",
+          "ccloud.organizationApiSecret": "eijBpUaM7fz9Dz9JvtEh5prQ+LvWOI/NV+ybonkIn2Jvhyf7CtJlKKISnU9hbBhF",
+          "ccloud.environmentId": "env-1vrm5",
+          "ccloud.clusterId": "lkc-ggz13",
+          "ccloud.clusterApiKey": "MU4AIAYRPEC4UFQW",
+          "ccloud.clusterApiSecret": "pWAnkeWn0PxboX0514RJsd/IXimLVKjoKAkhihQLIlZnVmi3fClPjMZK/veNeYJu",
+          "ccloud.developerApiKeyValidity": "P10D",
+          "stagingOnly": true
+        }
+      ],
+      "defaultAcls": [
+        {
+          "name": "connect-lcc",
+          "resourceType": "GROUP",
+          "patternType": "PREFIXED",
+          "operation": "READ"
+        },
+        {
+          "name": "dlq-lcc",
+          "resourceType": "TOPIC",
+          "patternType": "PREFIXED",
+          "operation": "CREATE"
+        },
+        {
+          "name": "dlq-lcc",
+          "resourceType": "TOPIC",
+          "patternType": "PREFIXED",
+          "operation": "WRITE"
+        }
+      ],
+      "productionEnvironment": "dedprod",
+      "metadataTopicsPrefix": "galapagos.internal.",
+      "readonly": false
+    },
+    "topics": {
+      "standardReplicationFactor": 3
+    },
+    "naming": {
+      "events": {
+        "additionRules": {
+          "allowPascalCase": "true"
+        }
+      },
+      "data": {
+        "additionRules": {
+          "allowPascalCase": "true"
+        }
+      },
+      "commands": {
+        "additionRules": {
+          "allowPascalCase": "true"
+        }
+      }
+    },
+    "changelog": {
+      "entries": 10,
+      "minDays": 14,
+      "profilePicture": "CUSTOM",
+      "customImageUrl": "https://hermeseuropegmbh.sharepoint.com/_layouts/15/userphoto.aspx?size=M&username={0}"
+    },
+    "custom-links": {
+      "links": [
+        {
+          "id": "naming-convention",
+          "label": "Hermes Kafka Guidelines",
+          "href": "https://hermesgermany.atlassian.net/wiki/spaces/HGAM/pages/12391172/Kafka+Guidelines",
+          "link-type": "EDUCATIONAL"
+        }
+      ]
+    }
+  },
+  "keycloak": {
+    "configurationFile": "file:./keycloak-npr.json"
+  },
+  "logging.level.org.apache.kafka": "INFO",
+  "info": {
+    "galapagos": {
+      "instanceName": "TEST INSTANCE"
+    },
+    "toggles": {
+      "subscriptionApproval": "true",
+      "schemaDeleteWithSub": "true"
+    }
+  }
+}

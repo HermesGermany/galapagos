@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 @Component
@@ -39,7 +40,8 @@ public class StagingServiceImpl implements StagingService {
     public CompletableFuture<Staging> prepareStaging(String applicationId, String environmentIdFrom,
             List<Change> changesFilter) {
 
-        String targetEnvironmentId = getNextStage(environmentIdFrom);
+        Optional<String> nextStage = getNextStage(environmentIdFrom);
+        String targetEnvironmentId = nextStage.map(String::toString).orElse(null);
 
         if (targetEnvironmentId == null) {
             return CompletableFuture.failedFuture(new IllegalArgumentException(
@@ -56,7 +58,7 @@ public class StagingServiceImpl implements StagingService {
     }
 
     @Override
-    public String getNextStage(String environmentIdFrom) {
+    public Optional<String> getNextStage(String environmentIdFrom) {
         List<? extends KafkaEnvironmentConfig> environmentMetadata = kafkaClusters.getEnvironmentsMetadata();
 
         String targetEnvironmentId = null;
@@ -65,7 +67,7 @@ public class StagingServiceImpl implements StagingService {
                 targetEnvironmentId = environmentMetadata.get(i + 1).getId();
             }
         }
-        return targetEnvironmentId;
+        return Optional.ofNullable(targetEnvironmentId);
     }
 
 }

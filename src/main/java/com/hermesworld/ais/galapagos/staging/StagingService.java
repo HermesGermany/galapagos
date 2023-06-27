@@ -1,6 +1,7 @@
 package com.hermesworld.ais.galapagos.staging;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import com.hermesworld.ais.galapagos.changes.Change;
@@ -43,6 +44,6 @@ public interface StagingService {
      *
      * @return String Name of next stage
      */
-    String getNextStage(String environmentIdFrom);
+    Optional<String> getNextStage(String environmentIdFrom);
 
 }

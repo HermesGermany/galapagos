@@ -102,7 +102,7 @@ export class EnvironmentsService {
 
     public getNextStage(environment: KafkaEnvironment): Promise<string> {
         return firstValueFrom(
-            this.http.get('/api/environments/' + environment.id + '/staging/nextStage', { responseType: 'text' })
+            this.http.get('/api/environments/' + environment.id + '/next-stage', { responseType: 'text' })
         );
     }
 

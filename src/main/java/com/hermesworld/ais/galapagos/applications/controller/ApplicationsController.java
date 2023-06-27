@@ -271,9 +271,14 @@ public class ApplicationsController {
         }
     }
 
-    @GetMapping(value = "/api/environments/{environmentId}/staging/nextStage", produces = MediaType.TEXT_PLAIN_VALUE)
-    public String getNextStage(@PathVariable String environmentId) {
-        return stagingService.getNextStage(environmentId);
+    @GetMapping(value = "/api/environments/{environmentId}/next-stage", produces = MediaType.APPLICATION_JSON_VALUE)
+    public JSONObject getNextStage(@PathVariable String environmentId) {
+        Optional<String> nextStage = stagingService.getNextStage(environmentId);
+        String targetEnvironmentId = nextStage.map(String::toString).orElse(null);
+        JSONObject json = new JSONObject();
+        if(targetEnvironmentId == null) targetEnvironmentId = "null";
+        json.put("nextStage", targetEnvironmentId);
+        return json;
     }
 
     @PostMapping(value = "/api/environments/{environmentId}/staging/{applicationId}", produces = MediaType.APPLICATION_JSON_VALUE)

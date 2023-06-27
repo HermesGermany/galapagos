@@ -26,7 +26,7 @@ export class SchemaSectionComponent implements OnInit, OnChanges {
 
     topicSchemas: Promise<SchemaMetadata[]>;
 
-    topicSchemasNextStage: Promise<SchemaMetadata[]>;
+    topicSchemasNextStage: SchemaMetadata[];
 
     selectedSchemaVersion: SchemaMetadata;
 
@@ -42,7 +42,7 @@ export class SchemaSectionComponent implements OnInit, OnChanges {
 
     schemaDeleteWithSub: Observable<boolean>;
 
-    nextStage: Promise<string>;
+    nextStage: string;
 
     isAdmin = false;
 
@@ -99,26 +99,22 @@ export class SchemaSectionComponent implements OnInit, OnChanges {
         this.newSchemaText = '';
     }
 
-    async getNextStage() {
+    async calcNextStage() {
         const env = await firstValueFrom(this.environmentsService.getCurrentEnvironment());
-        this.nextStage = this.environmentsService.getNextStage(env);
-        this.nextStage.then(r => this.getSchemas(this.topic, r));
+        this.nextStage = await this.environmentsService.getNextStage(env);
+        this.checkIfSchemaExistsOnNextStage(this.topic, this.nextStage);
     }
 
-    getSchemas(topic: Topic, environmentId: string) {
+    async checkIfSchemaExistsOnNextStage(topic: Topic, environmentId: string) {
         if (environmentId === '') {
             this.existSchemaOnNextVersion = false;
             return;
         }
-        let exists = false;
-        this.topicSchemasNextStage =  this.topicService.getTopicSchemas(topic.name, environmentId);
-        this.topicSchemasNextStage.then(r => r.forEach(s => {
-            if (s.schemaVersion === this.selectedSchemaVersion.schemaVersion) {
-                exists = true;
-            }
-        })).then(()=> {
-            this.existSchemaOnNextVersion = exists;
-        });
+        this.topicSchemasNextStage = await this.topicService.getTopicSchemas(topic.name, environmentId);
+        this.topicSchemasNextStage.filter(schema => schema.schemaVersion === this.selectedSchemaVersion.schemaVersion);
+        if (this.topicSchemasNextStage.length > 0) {
+            this.existSchemaOnNextVersion = true;
+        }
     }
 
     async publishNewSchema(): Promise<any> {
@@ -156,7 +152,7 @@ export class SchemaSectionComponent implements OnInit, OnChanges {
             .getTopicSchemas(topic.name, environmentId)
             .then(schemas => schemas.reverse())
             .then(schemas => {
-                this.getNextStage();
+                this.calcNextStage();
                 this.selectedSchemaVersion = schemas.length ? schemas[0] : null;
                 return schemas;
             })
