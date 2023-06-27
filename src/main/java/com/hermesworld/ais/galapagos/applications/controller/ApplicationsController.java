@@ -276,7 +276,8 @@ public class ApplicationsController {
         Optional<String> nextStage = stagingService.getNextStage(environmentId);
         String targetEnvironmentId = nextStage.map(String::toString).orElse(null);
         JSONObject json = new JSONObject();
-        if(targetEnvironmentId == null) targetEnvironmentId = "null";
+        if (targetEnvironmentId == null)
+            targetEnvironmentId = "null";
         json.put("nextStage", targetEnvironmentId);
         return json;
     }
