@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { EMPTY, firstValueFrom, Observable, ReplaySubject } from 'rxjs';
+import { EMPTY, firstValueFrom, Observable, ReplaySubject, tap } from 'rxjs';
 import { jsonHeader, ReplayContainer } from './services-common';
 import { HttpClient } from '@angular/common/http';
 import { map } from 'rxjs/operators';
@@ -102,7 +102,8 @@ export class EnvironmentsService {
 
     public getNextStage(environment: KafkaEnvironment): Promise<string> {
         return firstValueFrom(
-            this.http.get('/api/environments/' + environment.id + '/next-stage', { responseType: 'text' })
+            this.http.get<{ nextStage: string }>('/api/environments/' + environment.id + '/next-stage')
+                .pipe(map(r => r.nextStage))
         );
     }
 

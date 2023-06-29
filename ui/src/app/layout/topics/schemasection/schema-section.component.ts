@@ -102,14 +102,14 @@ export class SchemaSectionComponent implements OnInit, OnChanges {
     async calcNextStage() {
         const env = await firstValueFrom(this.environmentsService.getCurrentEnvironment());
         this.nextStage = await this.environmentsService.getNextStage(env);
-        this.checkIfSchemaExistsOnNextStage(this.topic, this.nextStage);
+        if (this.nextStage == null) {
+            this.existSchemaOnNextVersion = false;
+        } else {
+            this.checkIfSchemaExistsOnNextStage(this.topic, this.nextStage);
+        }
     }
 
     async checkIfSchemaExistsOnNextStage(topic: Topic, environmentId: string) {
-        if (environmentId === '') {
-            this.existSchemaOnNextVersion = false;
-            return;
-        }
         this.topicSchemasNextStage = await this.topicService.getTopicSchemas(topic.name, environmentId);
         this.topicSchemasNextStage.filter(schema => schema.schemaVersion === this.selectedSchemaVersion.schemaVersion);
         if (this.topicSchemasNextStage.length > 0) {
