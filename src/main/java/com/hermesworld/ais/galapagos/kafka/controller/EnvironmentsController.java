@@ -2,7 +2,6 @@ package com.hermesworld.ais.galapagos.kafka.controller;
 
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.kafka.config.KafkaEnvironmentConfig;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,7 +16,6 @@ public class EnvironmentsController {
 
     private final KafkaClusters kafkaEnvironments;
 
-    @Autowired
     public EnvironmentsController(KafkaClusters kafkaEnvironments) {
         this.kafkaEnvironments = kafkaEnvironments;
     }

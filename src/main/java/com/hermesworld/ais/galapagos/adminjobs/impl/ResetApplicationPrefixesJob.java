@@ -4,7 +4,6 @@ import com.hermesworld.ais.galapagos.applications.ApplicationsService;
 import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.kafka.util.AclSupport;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.stereotype.Component;
 
@@ -44,7 +43,6 @@ public class ResetApplicationPrefixesJob extends SingleClusterAdminJob {
 
     private final AclSupport aclSupport;
 
-    @Autowired
     public ResetApplicationPrefixesJob(KafkaClusters kafkaClusters, ApplicationsService applicationsService,
             AclSupport aclSupport) {
         super(kafkaClusters);

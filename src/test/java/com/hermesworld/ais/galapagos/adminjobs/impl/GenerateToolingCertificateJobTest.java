@@ -32,7 +32,10 @@ import java.security.NoSuchAlgorithmException;
 import java.security.Security;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.*;
+import java.util.Base64;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -40,7 +43,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class GenerateToolingCertificateJobTest {
+class GenerateToolingCertificateJobTest {
 
     @Mock
     private KafkaClusters kafkaClusters;
@@ -66,7 +69,7 @@ public class GenerateToolingCertificateJobTest {
     private static final String DATA_MARKER = "CERTIFICATE DATA: ";
 
     @BeforeEach
-    public void feedMocks() throws Exception {
+    void feedMocks() throws Exception {
         Security.setProperty("crypto.policy", "unlimited");
         Security.addProvider(new BouncyCastleProvider());
 
@@ -106,20 +109,20 @@ public class GenerateToolingCertificateJobTest {
     }
 
     @AfterEach
-    public void cleanup() {
+    void cleanup() {
         // noinspection ResultOfMethodCallIgnored
         testFile.delete();
         System.setOut(oldOut);
     }
 
     @Test
-    public void testStandard() throws Exception {
+    void testStandard() throws Exception {
         GenerateToolingCertificateJob job = new GenerateToolingCertificateJob(kafkaClusters, aclSupport, namingService,
                 kafkaConfig);
 
         ApplicationArguments args = mock(ApplicationArguments.class);
-        when(args.getOptionValues("output.filename")).thenReturn(Collections.singletonList(testFile.getPath()));
-        when(args.getOptionValues("kafka.environment")).thenReturn(Collections.singletonList("test"));
+        when(args.getOptionValues("output.filename")).thenReturn(List.of(testFile.getPath()));
+        when(args.getOptionValues("kafka.environment")).thenReturn(List.of("test"));
 
         job.run(args);
 
@@ -144,12 +147,12 @@ public class GenerateToolingCertificateJobTest {
     }
 
     @Test
-    public void testDataOnStdout() throws Exception {
+    void testDataOnStdout() throws Exception {
         GenerateToolingCertificateJob job = new GenerateToolingCertificateJob(kafkaClusters, aclSupport, namingService,
                 kafkaConfig);
 
         ApplicationArguments args = mock(ApplicationArguments.class);
-        when(args.getOptionValues("kafka.environment")).thenReturn(Collections.singletonList("test"));
+        when(args.getOptionValues("kafka.environment")).thenReturn(List.of("test"));
 
         job.run(args);
 

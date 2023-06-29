@@ -1,20 +1,17 @@
 package com.hermesworld.ais.galapagos.uisupport.controller;
 
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest
-public class UISupportControllerTest {
+class UISupportControllerTest {
 
     @MockBean
     private KafkaClusters kafkaClusters;
@@ -23,7 +20,7 @@ public class UISupportControllerTest {
     private UISupportController testController;
 
     @Test
-    public void testCustomLinks() {
+    void testCustomLinks() {
         List<CustomLinkConfig> links = testController.getCustomLinks();
         assertNotNull(links);
 
@@ -42,7 +39,7 @@ public class UISupportControllerTest {
     }
 
     @Test
-    public void testKafkaDoc() {
+    void testKafkaDoc() {
         List<KafkaConfigDescriptionDto> result = new UISupportController(null, null, null, null, null, null, null)
                 .getSupportedKafkaConfigs();
         assertNotNull(result);

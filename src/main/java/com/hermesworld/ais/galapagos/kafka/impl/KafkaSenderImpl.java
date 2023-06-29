@@ -17,17 +17,13 @@ public class KafkaSenderImpl implements KafkaSender {
 
     private KafkaTemplate<String, String> kafkaTemplate;
 
-    private KafkaFutureDecoupler futureDecoupler;
-
-    public KafkaSenderImpl(KafkaTemplate<String, String> template, KafkaFutureDecoupler futureDecoupler) {
+    public KafkaSenderImpl(KafkaTemplate<String, String> template) {
         this.kafkaTemplate = template;
-        this.futureDecoupler = futureDecoupler;
     }
 
     @Override
     public CompletableFuture<Void> send(String topic, String key, String message) {
-        return futureDecoupler.toCompletableFuture(kafkaTemplate.send(new ProducerRecord<>(topic, key, message)))
-                .thenApply(o -> null);
+        return kafkaTemplate.send(new ProducerRecord<>(topic, key, message)).thenApply(o -> null);
     }
 
 }

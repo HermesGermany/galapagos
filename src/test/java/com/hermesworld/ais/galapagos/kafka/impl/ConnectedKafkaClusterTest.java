@@ -1,8 +1,6 @@
 package com.hermesworld.ais.galapagos.kafka.impl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 
 import java.util.ArrayList;
@@ -21,15 +19,14 @@ import org.apache.kafka.common.acl.AclPermissionType;
 import org.apache.kafka.common.resource.PatternType;
 import org.apache.kafka.common.resource.ResourcePattern;
 import org.apache.kafka.common.resource.ResourceType;
-import org.junit.Test;
-
+import org.junit.jupiter.api.Test;
 import com.hermesworld.ais.galapagos.kafka.KafkaExecutorFactory;
 import com.hermesworld.ais.galapagos.kafka.KafkaUser;
 
-public class ConnectedKafkaClusterTest {
+class ConnectedKafkaClusterTest {
 
     @Test
-    public void testUpdateAcls() throws Exception {
+    void testUpdateAcls() throws Exception {
         List<AclBindingFilter> deletedAcls = new ArrayList<>();
         List<AclBinding> createdAcls = new ArrayList<>();
 

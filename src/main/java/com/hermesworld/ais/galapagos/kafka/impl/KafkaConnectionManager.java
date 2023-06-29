@@ -115,7 +115,7 @@ class KafkaConnectionManager {
         props.put(ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, "1");
 
         ProducerFactory<String, String> factory = new DefaultKafkaProducerFactory<>(toMap(props));
-        return new KafkaSenderImpl(new KafkaTemplate<>(factory), futureDecoupler);
+        return new KafkaSenderImpl(new KafkaTemplate<>(factory));
     }
 
     private Properties buildKafkaProperties(KafkaEnvironmentConfig environment,

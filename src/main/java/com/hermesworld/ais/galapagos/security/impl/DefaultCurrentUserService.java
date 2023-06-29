@@ -9,7 +9,7 @@ import org.keycloak.representations.IDToken;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
+import org.springframework.util.ObjectUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -36,7 +36,7 @@ public class DefaultCurrentUserService implements CurrentUserService, EventConte
     @Override
     public Optional<String> getCurrentUserEmailAddress() {
         return getKeycloakIDToken().map(token -> token.getEmail())
-                .flatMap(s -> StringUtils.isEmpty(s) ? Optional.empty() : Optional.of(s));
+                .flatMap(s -> ObjectUtils.isEmpty(s) ? Optional.empty() : Optional.of(s));
     }
 
     private Optional<IDToken> getKeycloakIDToken() {

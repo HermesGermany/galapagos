@@ -1,6 +1,7 @@
 package com.hermesworld.ais.galapagos.kafka.impl;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -13,28 +14,16 @@ import org.apache.kafka.clients.producer.Callback;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.TopicPartition;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 
 import com.hermesworld.ais.galapagos.kafka.KafkaExecutorFactory;
 
-public class KafkaSenderImplTest {
-
-    private static ThreadFactory tfDecoupled = new ThreadFactory() {
-        @Override
-        public Thread newThread(Runnable r) {
-            return new Thread(r, "decoupled-" + System.currentTimeMillis());
-        }
-    };
-
-    private static KafkaExecutorFactory executorFactory = () -> {
-        return Executors.newSingleThreadExecutor(tfDecoupled);
-    };
+class KafkaSenderImplTest {
 
     @Test
-    public void testSendDecoupling() throws Exception {
-        KafkaFutureDecoupler decoupler = new KafkaFutureDecoupler(executorFactory);
+    void testSendDecoupling() throws Exception {
 
         @SuppressWarnings("unchecked")
         Producer<String, String> producer = mock(Producer.class);
@@ -56,12 +45,12 @@ public class KafkaSenderImplTest {
 
         KafkaTemplate<String, String> template = new KafkaTemplate<String, String>(factory);
 
-        KafkaSenderImpl sender = new KafkaSenderImpl(template, decoupler);
+        KafkaSenderImpl sender = new KafkaSenderImpl(template);
 
         StringBuilder threadName = new StringBuilder();
 
         sender.send("a", "b", "c").thenApply(o -> threadName.append(Thread.currentThread().getName())).get();
-        assertTrue(threadName.toString().startsWith("decoupled-"));
+        assertFalse(threadName.toString().startsWith("decoupled-"));
     }
 
 }

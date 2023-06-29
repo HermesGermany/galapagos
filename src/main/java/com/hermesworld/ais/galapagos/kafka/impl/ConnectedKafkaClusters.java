@@ -7,7 +7,7 @@ import com.hermesworld.ais.galapagos.kafka.auth.KafkaAuthenticationModule;
 import com.hermesworld.ais.galapagos.kafka.config.KafkaEnvironmentConfig;
 import com.hermesworld.ais.galapagos.kafka.util.TopicBasedRepository;
 import com.hermesworld.ais.galapagos.util.HasKey;
-import org.springframework.util.StringUtils;
+import org.springframework.util.ObjectUtils;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -81,7 +81,7 @@ public class ConnectedKafkaClusters implements KafkaClusters {
 
     @Override
     public Optional<KafkaCluster> getEnvironment(String environmentId) {
-        if (StringUtils.isEmpty(environmentId)) {
+        if (ObjectUtils.isEmpty(environmentId)) {
             return Optional.empty();
         }
         return Optional.ofNullable(clusters.get(environmentId));

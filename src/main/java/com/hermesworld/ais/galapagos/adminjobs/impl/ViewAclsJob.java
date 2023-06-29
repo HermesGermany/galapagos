@@ -5,7 +5,6 @@ import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import org.apache.kafka.common.acl.AclBinding;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.stereotype.Component;
 
@@ -24,7 +23,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class ViewAclsJob extends SingleClusterAdminJob {
 
-    @Autowired
     public ViewAclsJob(KafkaClusters kafkaClusters) {
         super(kafkaClusters);
     }

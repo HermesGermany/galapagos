@@ -24,6 +24,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -111,7 +112,7 @@ public class KafkaRepositoryContainerImpl implements KafkaRepositoryContainer {
             Map<String, TopicDescription> desc;
 
             try {
-                desc = this.adminClient.describeTopics(Collections.singleton(topic)).all().get();
+                desc = this.adminClient.describeTopics(Set.of(topic)).all().get();
             }
             catch (Exception e) {
                 desc = Collections.emptyMap();
@@ -125,7 +126,7 @@ public class KafkaRepositoryContainerImpl implements KafkaRepositoryContainer {
                 NewTopic newTopic = new NewTopic(topic, 1, (short) replicationFactor);
                 newTopic = newTopic
                         .configs(Map.of(TopicConfig.CLEANUP_POLICY_CONFIG, TopicConfig.CLEANUP_POLICY_COMPACT));
-                this.adminClient.createTopics(Collections.singleton(newTopic)).all().get();
+                this.adminClient.createTopics(Set.of(newTopic)).all().get();
             }
         }
         catch (InterruptedException e) {

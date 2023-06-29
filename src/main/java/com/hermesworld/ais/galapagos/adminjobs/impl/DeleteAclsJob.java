@@ -8,10 +8,9 @@ import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.kafka.KafkaUser;
 import org.apache.kafka.common.acl.AclBinding;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
+import org.springframework.util.ObjectUtils;
 
 /**
  * Admin job to explicitly delete ACLs from a Kafka Cluster. This job is useful if something went terribly wrong with
@@ -31,7 +30,6 @@ import org.springframework.util.StringUtils;
 @Component
 public class DeleteAclsJob extends SingleClusterAdminJob {
 
-    @Autowired
     public DeleteAclsJob(KafkaClusters kafkaClusters) {
         super(kafkaClusters);
     }
@@ -46,7 +44,7 @@ public class DeleteAclsJob extends SingleClusterAdminJob {
         String certificateDn = Optional.ofNullable(allArguments.getOptionValues("certificate.dn"))
                 .flatMap(ls -> ls.stream().findFirst()).orElse(null);
 
-        if (StringUtils.isEmpty(certificateDn)) {
+        if (ObjectUtils.isEmpty(certificateDn)) {
             throw new IllegalArgumentException("Please provide --certificate.dn=<dn> for DN of certificate.");
         }
 

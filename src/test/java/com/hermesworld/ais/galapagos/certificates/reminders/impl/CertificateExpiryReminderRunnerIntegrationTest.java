@@ -11,24 +11,22 @@ import com.hermesworld.ais.galapagos.certificates.reminders.CertificateExpiryRem
 import com.hermesworld.ais.galapagos.certificates.reminders.ReminderType;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import org.json.JSONObject;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.autoconfigure.mail.MailHealthContributorAutoConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.test.context.junit4.SpringRunner;
 
-import javax.mail.MessagingException;
-import javax.mail.internet.MimeMessage;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import java.io.ByteArrayInputStream;
 import java.util.*;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
@@ -37,10 +35,9 @@ import static org.mockito.Mockito.when;
  * This test mainly focuses on the "notification integration" part, i.e., that the mail templates do render correctly
  * and the correct e-mail recipients are determined and passed to the mail engine.
  */
-@RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @EnableAutoConfiguration(exclude = { MailHealthContributorAutoConfiguration.class })
-public class CertificateExpiryReminderRunnerIntegrationTest {
+class CertificateExpiryReminderRunnerIntegrationTest {
 
     @MockBean
     private KafkaClusters kafkaClusters;
@@ -59,8 +56,8 @@ public class CertificateExpiryReminderRunnerIntegrationTest {
 
     private final List<MimeMessage> sentMessages = new ArrayList<>();
 
-    @Before
-    public void initMocks() throws MessagingException {
+    @BeforeEach
+    void initMocks() throws MessagingException {
         when(kafkaClusters.getEnvironmentIds()).thenReturn(List.of("test"));
 
         doAnswer(inv -> sentMessages.add(inv.getArgument(0))).when(mailSender).send((MimeMessage) any());
@@ -83,7 +80,7 @@ public class CertificateExpiryReminderRunnerIntegrationTest {
     }
 
     @Test
-    public void testSendNotification_threeMonths_success() throws Exception {
+    void testSendNotification_threeMonths_success() throws Exception {
         CertificateExpiryReminder reminder = new CertificateExpiryReminder("123", "test", ReminderType.THREE_MONTHS);
         when(reminderService.calculateDueCertificateReminders()).thenReturn(List.of(reminder));
 
@@ -95,7 +92,7 @@ public class CertificateExpiryReminderRunnerIntegrationTest {
     }
 
     @Test
-    public void testSendNotification_oneMonth_success() throws Exception {
+    void testSendNotification_oneMonth_success() throws Exception {
         CertificateExpiryReminder reminder = new CertificateExpiryReminder("123", "test", ReminderType.ONE_MONTH);
         when(reminderService.calculateDueCertificateReminders()).thenReturn(List.of(reminder));
 
@@ -107,7 +104,7 @@ public class CertificateExpiryReminderRunnerIntegrationTest {
     }
 
     @Test
-    public void testSendNotification_oneWeek_success() throws Exception {
+    void testSendNotification_oneWeek_success() throws Exception {
         CertificateExpiryReminder reminder = new CertificateExpiryReminder("123", "test", ReminderType.ONE_WEEK);
         when(reminderService.calculateDueCertificateReminders()).thenReturn(List.of(reminder));
 

@@ -28,7 +28,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-public class ApplicationsControllerTest {
+class ApplicationsControllerTest {
 
     private final ApplicationsService applicationsService = mock(ApplicationsService.class);
 
@@ -37,7 +37,7 @@ public class ApplicationsControllerTest {
     private final KafkaClusters kafkaClusters = mock(KafkaClusters.class);
 
     @Test
-    public void testUpdateApplicationCertificateDependentOnStageName() {
+    void testUpdateApplicationCertificateDependentOnStageName() {
         // Arrange
         String applicationId = "testapp-1";
         String environmentId = "devtest";
@@ -70,7 +70,7 @@ public class ApplicationsControllerTest {
     }
 
     @Test
-    public void testStagingWithoutSchema_include_failure() throws Exception {
+    void testStagingWithoutSchema_include_failure() throws Exception {
         TopicService topicService = mock(TopicService.class);
         SubscriptionService subscriptionService = mock(SubscriptionService.class);
 

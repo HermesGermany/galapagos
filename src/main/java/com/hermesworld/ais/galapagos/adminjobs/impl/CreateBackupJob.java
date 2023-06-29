@@ -10,7 +10,6 @@ import com.hermesworld.ais.galapagos.util.HasKey;
 import com.hermesworld.ais.galapagos.util.JsonUtil;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.stereotype.Component;
 
@@ -25,7 +24,6 @@ public class CreateBackupJob implements AdminJob {
 
     private final ObjectMapper objectMapper = JsonUtil.newObjectMapper();
 
-    @Autowired
     public CreateBackupJob(KafkaClusters kafkaClusters) {
         this.kafkaClusters = kafkaClusters;
     }

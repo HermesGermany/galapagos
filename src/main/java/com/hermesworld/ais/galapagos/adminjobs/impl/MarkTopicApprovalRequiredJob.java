@@ -7,7 +7,6 @@ import java.util.Optional;
 import com.hermesworld.ais.galapagos.adminjobs.AdminJob;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.topics.service.TopicService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.stereotype.Component;
@@ -19,7 +18,6 @@ public class MarkTopicApprovalRequiredJob implements AdminJob {
 
     private final TopicService topicService;
 
-    @Autowired
     public MarkTopicApprovalRequiredJob(KafkaClusters kafkaClusters,
             @Qualifier("nonvalidating") TopicService topicService) {
         this.kafkaClusters = kafkaClusters;

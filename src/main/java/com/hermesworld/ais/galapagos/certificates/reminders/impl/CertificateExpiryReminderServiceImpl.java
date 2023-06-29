@@ -14,7 +14,6 @@ import com.hermesworld.ais.galapagos.kafka.util.TopicBasedRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -31,7 +30,6 @@ public class CertificateExpiryReminderServiceImpl implements CertificateExpiryRe
 
     private static final String REPOSITORY_NAME = "reminders";
 
-    @Autowired
     public CertificateExpiryReminderServiceImpl(KafkaClusters kafkaClusters, ApplicationsService applicationsService) {
         this.kafkaClusters = kafkaClusters;
         this.applicationsService = applicationsService;

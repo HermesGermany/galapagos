@@ -14,7 +14,6 @@ import org.apache.kafka.clients.admin.DeleteAclsResult;
 import org.apache.kafka.common.acl.AclBinding;
 import org.apache.kafka.common.acl.AclBindingFilter;
 import org.json.JSONException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -47,7 +46,6 @@ public class UpdateApplicationAclsJob extends SingleClusterAdminJob {
 
     private final ApplicationsService applicationsService;
 
-    @Autowired
     public UpdateApplicationAclsJob(KafkaClusters kafkaClusters, AclSupport aclSupport,
             ApplicationsService applicationsService) {
         super(kafkaClusters);

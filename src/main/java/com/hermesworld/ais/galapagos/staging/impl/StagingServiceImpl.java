@@ -8,7 +8,6 @@ import com.hermesworld.ais.galapagos.staging.Staging;
 import com.hermesworld.ais.galapagos.staging.StagingService;
 import com.hermesworld.ais.galapagos.subscriptions.service.SubscriptionService;
 import com.hermesworld.ais.galapagos.topics.service.TopicService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
@@ -26,7 +25,6 @@ public class StagingServiceImpl implements StagingService {
 
     private final SubscriptionService subscriptionService;
 
-    @Autowired
     public StagingServiceImpl(KafkaClusters kafkaClusters, ApplicationsService applicationsService,
             @Qualifier("nonvalidating") TopicService topicService, SubscriptionService subscriptionService) {
         this.kafkaClusters = kafkaClusters;

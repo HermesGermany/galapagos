@@ -14,9 +14,9 @@ import com.hermesworld.ais.galapagos.topics.config.GalapagosTopicConfig;
 import com.hermesworld.ais.galapagos.topics.service.ValidatingTopicService;
 import com.hermesworld.ais.galapagos.util.FutureUtil;
 import org.json.JSONObject;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
@@ -26,11 +26,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.*;
 
-public class TopicControllerTest {
+class TopicControllerTest {
 
     @MockBean
     private KafkaClusters kafkaClusters;
@@ -51,8 +52,8 @@ public class TopicControllerTest {
 
     private TopicBasedRepositoryMock<TopicMetadata> topicRepository;
 
-    @Before
-    public void feedMocks() {
+    @BeforeEach
+    void feedMocks() {
         kafkaClusters = mock(KafkaClusters.class);
         applicationsService = mock(ApplicationsService.class);
         namingService = mock(NamingService.class);
@@ -71,7 +72,7 @@ public class TopicControllerTest {
 
     @Test
     @DisplayName("it should not change the deprecation if topic description is changed")
-    public void testDontResetDeprecationWhenTopicDescChanges() {
+    void testDontResetDeprecationWhenTopicDescChanges() {
         TopicMetadata topic = new TopicMetadata();
         topic.setOwnerApplicationId("app-1");
         topic.setName("topic-1");
@@ -91,12 +92,12 @@ public class TopicControllerTest {
 
         controller.updateTopic("test", "topic-1", dto);
         verify(topicService, times(1)).updateTopicDescription("test", "topic-1", "updated description goes here");
-        verify(topicService, times(0)).unmarkTopicDeprecated(anyString());
+        verify(topicService, times(0)).unmarkTopicDeprecated(nullable(String.class));
     }
 
     @Test
     @DisplayName("it should change the owner if current user is authorized")
-    public void testChangeTopicOwner_positive() throws Exception {
+    void testChangeTopicOwner_positive() throws Exception {
         TopicMetadata topic = new TopicMetadata();
         topic.setName("topic-1");
         topic.setOwnerApplicationId("app-1");
@@ -119,7 +120,7 @@ public class TopicControllerTest {
 
     @Test
     @DisplayName("it should not change the owner if current user is not authorized")
-    public void testChangeTopicOwner_negative() {
+    void testChangeTopicOwner_negative() {
         TopicMetadata topic = new TopicMetadata();
         topic.setName("topic-1");
         topic.setOwnerApplicationId("app-1");
@@ -139,13 +140,13 @@ public class TopicControllerTest {
             fail("should fail because current user is not authorized");
         }
         catch (ResponseStatusException e) {
-            assertEquals(HttpStatus.FORBIDDEN, e.getStatus());
+            assertEquals(HttpStatus.FORBIDDEN, e.getStatusCode());
         }
     }
 
     @Test
     @DisplayName("Can add producers for which I am not authorized")
-    public void testAddTopicProducer_notAuthorizedForProducer_positive() {
+    void testAddTopicProducer_notAuthorizedForProducer_positive() {
         ValidatingTopicService topicService = mock(ValidatingTopicService.class);
 
         TopicController controller = new TopicController(topicService, kafkaClusters, applicationsService,
@@ -172,7 +173,7 @@ public class TopicControllerTest {
 
     @Test
     @DisplayName("Cannot add producer if not authorized for topic (but for producer)")
-    public void testAddTopicProducer_notAuthorizedForTopic_negative() {
+    void testAddTopicProducer_notAuthorizedForTopic_negative() {
         ValidatingTopicService topicService = mock(ValidatingTopicService.class);
 
         TopicController controller = new TopicController(topicService, kafkaClusters, applicationsService,
@@ -198,13 +199,13 @@ public class TopicControllerTest {
             fail("ResponseStatusException expected, but adding producer succeeded");
         }
         catch (ResponseStatusException e) {
-            assertEquals(HttpStatus.FORBIDDEN, e.getStatus());
+            assertEquals(HttpStatus.FORBIDDEN, e.getStatusCode());
         }
     }
 
     @Test
     @DisplayName("Can remove producers for which I am not authorized")
-    public void testRemoveTopicProducer_notAuthorizedForProducer_positive() {
+    void testRemoveTopicProducer_notAuthorizedForProducer_positive() {
         ValidatingTopicService topicService = mock(ValidatingTopicService.class);
 
         TopicController controller = new TopicController(topicService, kafkaClusters, applicationsService,
@@ -229,7 +230,7 @@ public class TopicControllerTest {
 
     @Test
     @DisplayName("user cant skip compability check if not admin")
-    public void testSkipCombatCheckForSchemas_userNotAuthorized() {
+    void testSkipCombatCheckForSchemas_userNotAuthorized() {
         ValidatingTopicService topicService = mock(ValidatingTopicService.class);
 
         TopicController controller = new TopicController(topicService, kafkaClusters, applicationsService,
@@ -250,13 +251,13 @@ public class TopicControllerTest {
             fail("HttpStatus.FORBIDDEN expected, but skipping check succeeded");
         }
         catch (ResponseStatusException e) {
-            assertEquals(HttpStatus.FORBIDDEN, e.getStatus());
+            assertEquals(HttpStatus.FORBIDDEN, e.getStatusCode());
         }
     }
 
     @Test
     @DisplayName("Cannot remove producer if not authorized for topic (but for producer)")
-    public void testRemoveTopicProducer_notAuthorizedForTopic_negative() {
+    void testRemoveTopicProducer_notAuthorizedForTopic_negative() {
         ValidatingTopicService topicService = mock(ValidatingTopicService.class);
 
         TopicController controller = new TopicController(topicService, kafkaClusters, applicationsService,
@@ -279,7 +280,7 @@ public class TopicControllerTest {
             fail("ResponseStatusException expected, but removing producer succeeded");
         }
         catch (ResponseStatusException e) {
-            assertEquals(HttpStatus.FORBIDDEN, e.getStatus());
+            assertEquals(HttpStatus.FORBIDDEN, e.getStatusCode());
         }
     }
 

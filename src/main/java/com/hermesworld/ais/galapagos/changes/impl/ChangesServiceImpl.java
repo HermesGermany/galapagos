@@ -13,7 +13,6 @@ import com.hermesworld.ais.galapagos.security.AuditPrincipal;
 import com.hermesworld.ais.galapagos.topics.TopicType;
 import com.hermesworld.ais.galapagos.util.JsonUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.time.ZonedDateTime;
@@ -31,7 +30,6 @@ public class ChangesServiceImpl
 
     private final KafkaClusters kafkaClusters;
 
-    @Autowired
     public ChangesServiceImpl(KafkaClusters kafkaClusters) {
         this.kafkaClusters = kafkaClusters;
     }

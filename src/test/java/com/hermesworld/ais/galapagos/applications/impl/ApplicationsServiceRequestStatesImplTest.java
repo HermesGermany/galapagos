@@ -10,8 +10,8 @@ import com.hermesworld.ais.galapagos.kafka.impl.TopicBasedRepositoryMock;
 import com.hermesworld.ais.galapagos.naming.NamingService;
 import com.hermesworld.ais.galapagos.security.CurrentUserService;
 import com.hermesworld.ais.galapagos.util.TimeService;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -23,7 +23,7 @@ import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -41,8 +41,8 @@ public class ApplicationsServiceRequestStatesImplTest {
 
     private final TopicBasedRepositoryMock<ApplicationOwnerRequest> repository = new TopicBasedRepositoryMock<>();
 
-    @Before
-    public void feedCommonMocks() {
+    @BeforeEach
+    void feedCommonMocks() {
         currentUserService = mock(CurrentUserService.class);
         when(currentUserService.getCurrentUserName()).thenReturn(Optional.of(testUserName));
 
@@ -278,52 +278,58 @@ public class ApplicationsServiceRequestStatesImplTest {
         assertEquals(RequestState.SUBMITTED, savedRequests.get(0).getState());
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void testImpossibleTransitionRevoked() throws Throwable {
-        ZonedDateTime now = ZonedDateTime.of(LocalDateTime.of(2020, 3, 25, 10, 0), ZoneOffset.UTC);
-        ApplicationOwnerRequest applicationOwnerRequest = createRequest(RequestState.REVOKED, now);
-        repository.save(applicationOwnerRequest);
+        assertThrows(IllegalStateException.class, () -> {
+            ZonedDateTime now = ZonedDateTime.of(LocalDateTime.of(2020, 3, 25, 10, 0), ZoneOffset.UTC);
+            ApplicationOwnerRequest applicationOwnerRequest = createRequest(RequestState.REVOKED, now);
+            repository.save(applicationOwnerRequest);
 
-        ApplicationsServiceImpl appsServImpl = new ApplicationsServiceImpl(kafkaEnvironments, currentUserService,
-                mock(TimeService.class), mock(NamingService.class), eventManager);
-        try {
-            appsServImpl.cancelUserApplicationOwnerRequest(applicationOwnerRequest.getId()).get();
-        }
-        catch (ExecutionException e) {
-            throw e.getCause();
-        }
+            ApplicationsServiceImpl appsServImpl = new ApplicationsServiceImpl(kafkaEnvironments, currentUserService,
+                    mock(TimeService.class), mock(NamingService.class), eventManager);
+            try {
+                appsServImpl.cancelUserApplicationOwnerRequest(applicationOwnerRequest.getId()).get();
+            }
+            catch (ExecutionException e) {
+                throw e.getCause();
+            }
+        });
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void testImpossibleTransitionRejected() throws Throwable {
-        ZonedDateTime now = ZonedDateTime.of(LocalDateTime.of(2020, 3, 25, 10, 0), ZoneOffset.UTC);
-        ApplicationOwnerRequest applicationOwnerRequest = createRequest(RequestState.REJECTED, now);
-        repository.save(applicationOwnerRequest);
+        assertThrows(IllegalStateException.class, () -> {
+            ZonedDateTime now = ZonedDateTime.of(LocalDateTime.of(2020, 3, 25, 10, 0), ZoneOffset.UTC);
+            ApplicationOwnerRequest applicationOwnerRequest = createRequest(RequestState.REJECTED, now);
+            repository.save(applicationOwnerRequest);
 
-        ApplicationsServiceImpl appsServImpl = new ApplicationsServiceImpl(kafkaEnvironments, currentUserService,
-                mock(TimeService.class), mock(NamingService.class), eventManager);
-        try {
-            appsServImpl.cancelUserApplicationOwnerRequest(applicationOwnerRequest.getId()).get();
-        }
-        catch (ExecutionException e) {
-            throw e.getCause();
-        }
+            ApplicationsServiceImpl appsServImpl = new ApplicationsServiceImpl(kafkaEnvironments, currentUserService,
+                    mock(TimeService.class), mock(NamingService.class), eventManager);
+            try {
+                appsServImpl.cancelUserApplicationOwnerRequest(applicationOwnerRequest.getId()).get();
+            }
+            catch (ExecutionException e) {
+                throw e.getCause();
+            }
+        });
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void testImpossibleTransitionResigned() throws Throwable {
-        ZonedDateTime now = ZonedDateTime.of(LocalDateTime.of(2020, 3, 25, 10, 0), ZoneOffset.UTC);
-        ApplicationOwnerRequest applicationOwnerRequest = createRequest(RequestState.RESIGNED, now);
-        repository.save(applicationOwnerRequest);
+        assertThrows(IllegalStateException.class, () -> {
+            ZonedDateTime now = ZonedDateTime.of(LocalDateTime.of(2020, 3, 25, 10, 0), ZoneOffset.UTC);
+            ApplicationOwnerRequest applicationOwnerRequest = createRequest(RequestState.RESIGNED, now);
+            repository.save(applicationOwnerRequest);
 
-        ApplicationsServiceImpl appsServImpl = new ApplicationsServiceImpl(kafkaEnvironments, currentUserService,
-                mock(TimeService.class), mock(NamingService.class), eventManager);
-        try {
-            appsServImpl.cancelUserApplicationOwnerRequest(applicationOwnerRequest.getId()).get();
-        }
-        catch (ExecutionException e) {
-            throw e.getCause();
-        }
+            ApplicationsServiceImpl appsServImpl = new ApplicationsServiceImpl(kafkaEnvironments, currentUserService,
+                    mock(TimeService.class), mock(NamingService.class), eventManager);
+            try {
+                appsServImpl.cancelUserApplicationOwnerRequest(applicationOwnerRequest.getId()).get();
+            }
+            catch (ExecutionException e) {
+                throw e.getCause();
+            }
+        });
     }
 
     private static ApplicationOwnerRequest createRequest(RequestState reqState, ZonedDateTime createdAt) {

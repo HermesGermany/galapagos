@@ -10,7 +10,6 @@ import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.kafka.util.InitPerCluster;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
@@ -35,7 +34,6 @@ public class StartupRepositoryInitializer {
 
     private final Duration repositoryLoadIdleTime;
 
-    @Autowired
     public StartupRepositoryInitializer(KafkaClusters kafkaClusters,
             @Value("${galapagos.initialRepositoryLoadWaitTime:5s}") Duration initialRepositoryLoadWaitTime,
             @Value("${galapagos.repositoryLoadIdleTime:2s}") Duration repositoryLoadIdleTime) {

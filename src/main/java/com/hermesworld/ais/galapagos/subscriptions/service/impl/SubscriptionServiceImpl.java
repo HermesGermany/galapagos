@@ -15,7 +15,6 @@ import com.hermesworld.ais.galapagos.topics.TopicMetadata;
 import com.hermesworld.ais.galapagos.topics.TopicType;
 import com.hermesworld.ais.galapagos.topics.service.TopicService;
 import com.hermesworld.ais.galapagos.util.FutureUtil;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
@@ -38,7 +37,6 @@ public class SubscriptionServiceImpl implements SubscriptionService, InitPerClus
 
     private static final String TOPIC_NAME = "subscriptions";
 
-    @Autowired
     public SubscriptionServiceImpl(KafkaClusters kafkaEnvironments, ApplicationsService applicationsService,
             @Qualifier(value = "nonvalidating") TopicService topicService, GalapagosEventManager eventManager) {
         this.kafkaEnvironments = kafkaEnvironments;

@@ -27,16 +27,17 @@ import java.util.concurrent.ExecutionException;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.*;
 
-public class ConfluentCloudAuthenticationModuleTest {
+class ConfluentCloudAuthenticationModuleTest {
 
     private KafkaAuthenticationModule authenticationModule;
 
     private ConfluentCloudApiClient client;
 
     @BeforeEach
-    public void init() {
+    void init() {
         authenticationModule = new ConfluentCloudAuthenticationModule(basicConfig());
         client = mock(ConfluentCloudApiClient.class);
 
@@ -81,19 +82,19 @@ public class ConfluentCloudAuthenticationModuleTest {
     }
 
     @Test
-    public void extractKafkaUserNameTest_positive() {
+    void extractKafkaUserNameTest_positive() {
         String kafkaUserName = authenticationModule.extractKafkaUserName(new JSONObject("{userId:1234}"));
 
         assertEquals("User:1234", kafkaUserName);
     }
 
     @Test
-    public void extractKafkaUserNameTest_negative() {
+    void extractKafkaUserNameTest_negative() {
         assertThrows(JSONException.class, () -> authenticationModule.extractKafkaUserName(new JSONObject("{}")));
     }
 
     @Test
-    public void fillCorrectProps_positive() {
+    void fillCorrectProps_positive() {
         ConfluentCloudAuthConfig config = basicConfig();
         config.setClusterApiSecret("secretPassword");
         config.setClusterApiKey("someApiKey");
@@ -108,7 +109,7 @@ public class ConfluentCloudAuthenticationModuleTest {
     }
 
     @Test
-    public void fillCorrectProps_negative() {
+    void fillCorrectProps_negative() {
         Properties props = new Properties();
         authenticationModule.addRequiredKafkaProperties(props);
 
@@ -117,7 +118,7 @@ public class ConfluentCloudAuthenticationModuleTest {
     }
 
     @Test
-    public void testDeleteApplicationAuthentication_positive() throws ExecutionException, InterruptedException {
+    void testDeleteApplicationAuthentication_positive() throws ExecutionException, InterruptedException {
         ApiKeySpec apiKey1 = newApiKey("someKey1", "someSecret1", "sa-xy123");
         ApiKeySpec apiKey2 = newApiKey("someKey2", "someSecret2", "sa-xy124");
 
@@ -131,7 +132,7 @@ public class ConfluentCloudAuthenticationModuleTest {
     }
 
     @Test
-    public void deleteApplicationAuthenticationTest_negativeNoApiKeyObjectInAuthJson()
+    void deleteApplicationAuthenticationTest_negativeNoApiKeyObjectInAuthJson()
             throws ExecutionException, InterruptedException {
         ApiKeySpec apiKey1 = newApiKey("someKey1", "someSecret1", "sa-xy123");
         ApiKeySpec apiKey2 = newApiKey("someKey2", "someSecret2", "sa-xy124");
@@ -144,7 +145,7 @@ public class ConfluentCloudAuthenticationModuleTest {
     }
 
     @Test
-    public void createApplicationAuthenticationTest_createServiceAccForAppThatHasNoAcc()
+    void createApplicationAuthenticationTest_createServiceAccForAppThatHasNoAcc()
             throws ExecutionException, InterruptedException {
         ApiKeySpec apiKey1 = newApiKey("someKey1", "someSecret1", "sa-xy123");
         ApiKeySpec apiKey2 = newApiKey("someKey2", "someSecret2", "sa-xy124");
@@ -174,8 +175,7 @@ public class ConfluentCloudAuthenticationModuleTest {
     }
 
     @Test
-    public void createApplicationAuthenticationTest_reuseServiceAccIfExists()
-            throws ExecutionException, InterruptedException {
+    void createApplicationAuthenticationTest_reuseServiceAccIfExists() throws ExecutionException, InterruptedException {
         ApiKeySpec apiKey1 = newApiKey("someKey1", "someSecret1", "sa-xy123");
         ApiKeySpec apiKey2 = newApiKey("someKey2", "someSecret2", "sa-xy124");
         ApiKeySpec apiKey3 = newApiKey("someKey3", "someSecret3", "sa-xy125");
@@ -193,13 +193,13 @@ public class ConfluentCloudAuthenticationModuleTest {
         authenticationModule.createApplicationAuthentication("quattro-1", "normalizedAppNameTest", new JSONObject())
                 .get();
 
-        verify(client, times(0)).createServiceAccount(anyString(), anyString());
+        verify(client, times(0)).createServiceAccount(nullable(String.class), nullable(String.class));
         verify(client, times(1)).createApiKey("testEnv", "testCluster", "Application normalizedAppNameTest",
                 "sa-xy125");
     }
 
     @Test
-    public void createApplicationAuthenticationTest_queryNumericId() throws ExecutionException, InterruptedException {
+    void createApplicationAuthenticationTest_queryNumericId() throws ExecutionException, InterruptedException {
         useIdCompatMode();
 
         ApiKeySpec apiKey1 = newApiKey("someKey1", "someSecret1", "sa-xy123");
@@ -222,14 +222,14 @@ public class ConfluentCloudAuthenticationModuleTest {
         assertEquals("sa-xy123", result.getPublicAuthenticationData().getString("userId"));
         assertEquals("12345", result.getPublicAuthenticationData().getString("numericId"));
 
-        verify(client, times(0)).createServiceAccount(anyString(), anyString());
+        verify(client, times(0)).createServiceAccount(nullable(String.class), nullable(String.class));
         verify(client, times(1)).createApiKey("testEnv", "testCluster", "Application normalizedAppNameTest",
                 "sa-xy123");
         verify(client, times(1)).getServiceAccountInternalIds();
     }
 
     @Test
-    public void updateApplicationAuthenticationTest() throws ExecutionException, InterruptedException {
+    void updateApplicationAuthenticationTest() throws ExecutionException, InterruptedException {
         ApiKeySpec apiKey1 = newApiKey("someKey1", "someSecret1", "sa-xy123");
         ApiKeySpec apiKey2 = newApiKey("someKey2", "someSecret2", "sa-xy124");
         ApiKeySpec apiKey3 = newApiKey("someKey3", "someSecret3", "sa-xy123");
@@ -255,13 +255,13 @@ public class ConfluentCloudAuthenticationModuleTest {
                 new JSONObject(auth)).get();
 
         verify(client).deleteApiKey(apiKey1);
-        verify(client, times(0)).createServiceAccount(anyString(), anyString());
+        verify(client, times(0)).createServiceAccount(nullable(String.class), nullable(String.class));
         verify(client, times(1)).createApiKey("testEnv", "testCluster", "Application normalizedAppNameTest",
                 "sa-xy123");
     }
 
     @Test
-    public void testLookupNumericId_positive() {
+    void testLookupNumericId_positive() {
         useIdCompatMode();
 
         JSONObject authData = new JSONObject(Map.of("userId", "sa-xy125", "apiKey", "ABC123"));
@@ -273,7 +273,7 @@ public class ConfluentCloudAuthenticationModuleTest {
     }
 
     @Test
-    public void testLookupNumericId_noLookup_noCompatMode() {
+    void testLookupNumericId_noLookup_noCompatMode() {
         // idCompatMode is by default false in config!
         JSONObject authData = new JSONObject(Map.of("userId", "sa-xy125", "apiKey", "ABC123"));
         Map<String, String> internalIdMapping = Map.of("sa-xy123", "12399", "sa-xy125", "12345");
@@ -285,7 +285,7 @@ public class ConfluentCloudAuthenticationModuleTest {
     }
 
     @Test
-    public void testLookupNumericId_noLookup_numericUserId() {
+    void testLookupNumericId_noLookup_numericUserId() {
         useIdCompatMode();
 
         JSONObject authData = new JSONObject(Map.of("userId", "12345", "apiKey", "ABC123"));
@@ -298,7 +298,7 @@ public class ConfluentCloudAuthenticationModuleTest {
     }
 
     @Test
-    public void testLookupNumericId_noLookup_explicitNumericId() {
+    void testLookupNumericId_noLookup_explicitNumericId() {
         useIdCompatMode();
 
         JSONObject authData = new JSONObject(Map.of("userId", "sa-xy123", "apiKey", "ABC123", "numericId", "12345"));
@@ -311,7 +311,7 @@ public class ConfluentCloudAuthenticationModuleTest {
     }
 
     @Test
-    public void testLookupNumericId_noUseOfNumericId() {
+    void testLookupNumericId_noUseOfNumericId() {
         // idCompatMode is by default false in config!
         JSONObject authData = new JSONObject(Map.of("userId", "sa-xy123", "apiKey", "ABC123", "numericId", "12345"));
         Map<String, String> internalIdMapping = Map.of("sa-xy123", "12399", "sa-xy125", "12346");
@@ -323,7 +323,7 @@ public class ConfluentCloudAuthenticationModuleTest {
     }
 
     @Test
-    public void testDevAuth_positive() throws Exception {
+    void testDevAuth_positive() throws Exception {
         Instant now = Instant.now();
         // make sure that there really is slight delay
         Thread.sleep(100);
@@ -361,7 +361,7 @@ public class ConfluentCloudAuthenticationModuleTest {
     }
 
     @Test
-    public void testDevAuth_notEnabled() throws Exception {
+    void testDevAuth_notEnabled() throws Exception {
         ServiceAccountSpec testServiceAccount = new ServiceAccountSpec();
         testServiceAccount.setDisplayName("Test Display Name");
         testServiceAccount.setResourceId("sa-xy123");
