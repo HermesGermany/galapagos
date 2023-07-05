@@ -14,6 +14,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.test.util.ReflectionTestUtils;
 import reactor.core.publisher.Mono;
 
@@ -382,6 +383,27 @@ public class ConfluentCloudAuthenticationModuleTest {
             // OK
             assertTrue(e.getCause() instanceof IllegalStateException);
         }
+    }
+
+    @Test
+    public void testShortenAppNames() throws Exception {
+        ServiceAccountSpec testServiceAccount = new ServiceAccountSpec();
+        testServiceAccount.setDisplayName("Test Display Name");
+        testServiceAccount.setResourceId("sa-xy123");
+        testServiceAccount.setDescription("Test description");
+        ApiKeySpec apiKey = newApiKey("TESTKEY", "testSecret", "sa-xy123");
+
+        when(client.listServiceAccounts()).thenReturn(Mono.just(List.of()));
+        ArgumentCaptor<String> displayNameCaptor = ArgumentCaptor.forClass(String.class);
+        when(client.createServiceAccount(displayNameCaptor.capture(), anyString()))
+                .thenReturn(Mono.just(testServiceAccount));
+        when(client.createApiKey(anyString(), anyString(), anyString(), anyString())).thenReturn(Mono.just(apiKey));
+
+        authenticationModule.createApplicationAuthentication("app-1",
+                "A_very_long_strange_application_name_which_likely_exceeds_50_characters_whoever_names_such_applications",
+                new JSONObject()).get();
+
+        assertTrue(displayNameCaptor.getValue().length() <= 64);
     }
 
 }
