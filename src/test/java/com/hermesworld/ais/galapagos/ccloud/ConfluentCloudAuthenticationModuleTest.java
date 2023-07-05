@@ -378,7 +378,8 @@ public class ConfluentCloudAuthenticationModuleTest {
         try {
             authenticationModule.createDeveloperAuthentication("test-user@test.demo", new JSONObject()).get();
             fail("Expected an exception when developer auth is not enabled");
-        } catch (ExecutionException e) {
+        }
+        catch (ExecutionException e) {
             // OK
             assertTrue(e.getCause() instanceof IllegalStateException);
         }
@@ -394,10 +395,13 @@ public class ConfluentCloudAuthenticationModuleTest {
 
         when(client.listServiceAccounts()).thenReturn(Mono.just(List.of()));
         ArgumentCaptor<String> displayNameCaptor = ArgumentCaptor.forClass(String.class);
-        when(client.createServiceAccount(displayNameCaptor.capture(), anyString())).thenReturn(Mono.just(testServiceAccount));
+        when(client.createServiceAccount(displayNameCaptor.capture(), anyString()))
+                .thenReturn(Mono.just(testServiceAccount));
         when(client.createApiKey(anyString(), anyString(), anyString(), anyString())).thenReturn(Mono.just(apiKey));
 
-        authenticationModule.createApplicationAuthentication("app-1", "A_very_long_strange_application_name_which_likely_exceeds_50_characters_whoever_names_such_applications", new JSONObject()).get();
+        authenticationModule.createApplicationAuthentication("app-1",
+                "A_very_long_strange_application_name_which_likely_exceeds_50_characters_whoever_names_such_applications",
+                new JSONObject()).get();
 
         assertTrue(displayNameCaptor.getValue().length() <= 64);
     }
