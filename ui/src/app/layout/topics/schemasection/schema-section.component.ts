@@ -26,6 +26,8 @@ export class SchemaSectionComponent implements OnInit, OnChanges {
 
     topicSchemas: Promise<SchemaMetadata[]>;
 
+    nextStageSchemasMap: Promise<Map<number, boolean>>;
+
     topicSchemasNextStage: SchemaMetadata[];
 
     selectedSchemaVersion: SchemaMetadata;
@@ -99,22 +101,11 @@ export class SchemaSectionComponent implements OnInit, OnChanges {
         this.newSchemaText = '';
     }
 
-    async calcNextStage() {
-        const env = await firstValueFrom(this.environmentsService.getCurrentEnvironment());
-        this.nextStage = await this.environmentsService.getNextStage(env);
-        if (this.nextStage == null) {
-            this.existSchemaOnNextVersion = false;
-        } else {
-            this.checkIfSchemaExistsOnNextStage(this.topic, this.nextStage);
-        }
-    }
-
-    async checkIfSchemaExistsOnNextStage(topic: Topic, environmentId: string) {
-        this.topicSchemasNextStage = await this.topicService.getTopicSchemas(topic.name, environmentId);
-        this.topicSchemasNextStage.filter(schema => schema.schemaVersion === this.selectedSchemaVersion.schemaVersion);
-        if (this.topicSchemasNextStage.length > 0) {
-            this.existSchemaOnNextVersion = true;
-        }
+    async checkForDelete(): Promise<void> {
+        this.existSchemaOnNextVersion = true;
+        const nextStageSchemas = await this.nextStageSchemasMap;
+        const existOnNextStage = nextStageSchemas[this.selectedSchemaVersion.schemaVersion];
+        this.existSchemaOnNextVersion = existOnNextStage === undefined ? false : existOnNextStage;
     }
 
     async publishNewSchema(): Promise<any> {
@@ -152,8 +143,11 @@ export class SchemaSectionComponent implements OnInit, OnChanges {
             .getTopicSchemas(topic.name, environmentId)
             .then(schemas => schemas.reverse())
             .then(schemas => {
-                this.calcNextStage();
                 this.selectedSchemaVersion = schemas.length ? schemas[0] : null;
+                if (this.selectedSchemaVersion) {
+                    this.nextStageSchemasMap = this.environmentsService.checkIfSchemaCanGetDeleted(environmentId, this.topic);
+                    this.checkForDelete();
+                }
                 return schemas;
             })
             .finally(() => (this.loadingSchemas = false));

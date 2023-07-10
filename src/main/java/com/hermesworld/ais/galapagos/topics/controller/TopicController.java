@@ -12,6 +12,7 @@ import com.hermesworld.ais.galapagos.naming.InvalidTopicNameException;
 import com.hermesworld.ais.galapagos.naming.NamingService;
 import com.hermesworld.ais.galapagos.schemas.IncompatibleSchemaException;
 import com.hermesworld.ais.galapagos.security.CurrentUserService;
+import com.hermesworld.ais.galapagos.staging.StagingService;
 import com.hermesworld.ais.galapagos.topics.SchemaCompatCheckMode;
 import com.hermesworld.ais.galapagos.topics.SchemaMetadata;
 import com.hermesworld.ais.galapagos.topics.TopicMetadata;
@@ -51,6 +52,8 @@ public class TopicController {
 
     private final NamingService namingService;
 
+    private final StagingService stagingService;
+
     private final CurrentUserService userService;
 
     private static final Supplier<ResponseStatusException> badRequest = () -> new ResponseStatusException(
@@ -63,11 +66,12 @@ public class TopicController {
 
     @Autowired
     public TopicController(ValidatingTopicService topicService, KafkaClusters kafkaEnvironments,
-            ApplicationsService applicationsService, NamingService namingService, CurrentUserService userService) {
+                           ApplicationsService applicationsService, NamingService namingService, StagingService stagingService, CurrentUserService userService) {
         this.topicService = topicService;
         this.kafkaEnvironments = kafkaEnvironments;
         this.applicationsService = applicationsService;
         this.namingService = namingService;
+        this.stagingService = stagingService;
         this.userService = userService;
     }
 
@@ -362,6 +366,21 @@ public class TopicController {
         }
 
         throw notFound.get();
+    }
+
+    @GetMapping(value = "/api/schema/checkNextStage/{environmentId}/{topicName}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public Map<Integer, Boolean> checkIfSchemaExistsOnNextStage(@PathVariable String environmentId, @PathVariable String topicName) {
+        List<SchemaMetadata> schemaMetadata = topicService.getTopicSchemaVersions(environmentId, topicName);
+        Optional<String> nextStage = stagingService.getNextStage(environmentId);
+        HashMap<Integer, Boolean> map = new HashMap<>();
+        if(nextStage.isPresent()){
+            List<SchemaMetadata> schemaMetadataNextStage = topicService.getTopicSchemaVersions(nextStage.get(), topicName);
+            List<SchemaMetadata> duplicates = schemaMetadata.stream().filter(k -> schemaMetadataNextStage.stream().anyMatch(p -> k.getSchemaVersion() == p.getSchemaVersion())).collect(Collectors.toList());
+            for(SchemaMetadata duplicate : duplicates){
+                map.put(duplicate.getSchemaVersion(), true);
+            }
+        }
+        return map;
     }
 
     @PutMapping(value = "/api/schemas/{environmentId}/{topicName}", consumes = MediaType.APPLICATION_JSON_VALUE)

@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
-import { EMPTY, firstValueFrom, Observable, ReplaySubject, tap } from 'rxjs';
+import { EMPTY, firstValueFrom, Observable, ReplaySubject } from 'rxjs';
 import { jsonHeader, ReplayContainer } from './services-common';
 import { HttpClient } from '@angular/common/http';
 import { map } from 'rxjs/operators';
 import { ToastService } from '../modules/toast/toast.service';
+import { Topic } from './topics.service';
 
 const LOCAL_STORAGE_ENV_KEY = 'galapagos.environment';
 
@@ -99,6 +100,12 @@ export class EnvironmentsService {
     public getCurrentEnvironment(): Observable<KafkaEnvironment> {
         return this.currentEnvironment;
     }
+
+    public checkIfSchemaCanGetDeleted(environment: string, topic: Topic): Promise<Map<number, boolean>> {
+        return firstValueFrom(
+            this.http.get<Map<number, boolean>>('/api/schema/checkNextStage/'+environment+'/'+topic.name+'/')
+        );
+    };
 
     public getNextStage(environment: KafkaEnvironment): Promise<string> {
         return firstValueFrom(

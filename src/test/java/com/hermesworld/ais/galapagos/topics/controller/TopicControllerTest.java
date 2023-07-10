@@ -7,6 +7,7 @@ import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.kafka.impl.TopicBasedRepositoryMock;
 import com.hermesworld.ais.galapagos.naming.NamingService;
 import com.hermesworld.ais.galapagos.security.CurrentUserService;
+import com.hermesworld.ais.galapagos.staging.StagingService;
 import com.hermesworld.ais.galapagos.subscriptions.service.SubscriptionService;
 import com.hermesworld.ais.galapagos.topics.TopicMetadata;
 import com.hermesworld.ais.galapagos.topics.TopicType;
@@ -43,6 +44,8 @@ public class TopicControllerTest {
 
     private SubscriptionService subscriptionService;
 
+    private StagingService stagingService;
+
     private GalapagosTopicConfig topicConfig;
 
     private GalapagosEventManagerMock eventManager;
@@ -62,6 +65,8 @@ public class TopicControllerTest {
         eventManager = new GalapagosEventManagerMock();
         kafkaTestCluster = mock(KafkaCluster.class);
         topicRepository = new TopicBasedRepositoryMock<>();
+
+        stagingService = mock(StagingService.class);
 
         when(kafkaTestCluster.getId()).thenReturn("test");
         when(kafkaClusters.getEnvironmentIds()).thenReturn(List.of("test"));
@@ -87,7 +92,7 @@ public class TopicControllerTest {
                 .thenReturn(FutureUtil.noop());
         when(applicationsService.isUserAuthorizedFor("app-1")).thenReturn(true);
         TopicController controller = new TopicController(topicService, kafkaClusters, applicationsService,
-                namingService, userService);
+                namingService, stagingService, userService);
 
         controller.updateTopic("test", "topic-1", dto);
         verify(topicService, times(1)).updateTopicDescription("test", "topic-1", "updated description goes here");
@@ -107,7 +112,7 @@ public class TopicControllerTest {
         when(applicationsService.isUserAuthorizedFor("app-1")).thenReturn(true);
 
         TopicController controller = new TopicController(topicService, kafkaClusters, applicationsService,
-                namingService, userService);
+                namingService, stagingService, userService);
         when(topicService.changeTopicOwner("test", "topic-1", "producer1")).thenReturn(FutureUtil.noop());
 
         ChangeTopicOwnerDto dto = new ChangeTopicOwnerDto();
@@ -129,7 +134,7 @@ public class TopicControllerTest {
         when(topicService.getTopic("test", "topic-1")).thenReturn(Optional.of(topic));
 
         TopicController controller = new TopicController(topicService, kafkaClusters, applicationsService,
-                namingService, userService);
+                namingService, stagingService, userService);
 
         ChangeTopicOwnerDto dto = new ChangeTopicOwnerDto();
         dto.setProducerApplicationId("producer1");
@@ -149,7 +154,7 @@ public class TopicControllerTest {
         ValidatingTopicService topicService = mock(ValidatingTopicService.class);
 
         TopicController controller = new TopicController(topicService, kafkaClusters, applicationsService,
-                namingService, userService);
+                namingService, stagingService, userService);
 
         // WHEN I am authorized for the topic owning application, but not the producer application
         when(applicationsService.isUserAuthorizedFor("app-1")).thenReturn(true);
@@ -176,7 +181,7 @@ public class TopicControllerTest {
         ValidatingTopicService topicService = mock(ValidatingTopicService.class);
 
         TopicController controller = new TopicController(topicService, kafkaClusters, applicationsService,
-                namingService, userService);
+                namingService, stagingService, userService);
 
         // WHEN I am authorized for the producer, but not the topic owning application
         when(applicationsService.isUserAuthorizedFor("app-9")).thenReturn(true);
@@ -208,7 +213,7 @@ public class TopicControllerTest {
         ValidatingTopicService topicService = mock(ValidatingTopicService.class);
 
         TopicController controller = new TopicController(topicService, kafkaClusters, applicationsService,
-                namingService, userService);
+                namingService, stagingService, userService);
 
         // WHEN I am authorized for the topic owning application, but not the producer application
         when(applicationsService.isUserAuthorizedFor("app-1")).thenReturn(true);
@@ -233,7 +238,7 @@ public class TopicControllerTest {
         ValidatingTopicService topicService = mock(ValidatingTopicService.class);
 
         TopicController controller = new TopicController(topicService, kafkaClusters, applicationsService,
-                namingService, userService);
+                namingService, stagingService, userService);
 
         AddSchemaVersionDto dto = new AddSchemaVersionDto();
         dto.setJsonSchema(new JSONObject(Map.of("a", "1", "b", "2")).toString());
@@ -260,7 +265,7 @@ public class TopicControllerTest {
         ValidatingTopicService topicService = mock(ValidatingTopicService.class);
 
         TopicController controller = new TopicController(topicService, kafkaClusters, applicationsService,
-                namingService, userService);
+                namingService, stagingService, userService);
 
         // WHEN I am authorized for the producer, but not the topic owning application
         when(applicationsService.isUserAuthorizedFor("app-9")).thenReturn(true);
