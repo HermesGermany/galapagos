@@ -92,9 +92,12 @@ public class ConfluentCloudAuthenticationModule implements KafkaAuthenticationMo
         // reset internal ID cache
         serviceAccountNumericIds.clear();
 
+        String shortenedAppName = applicationNormalizedName.substring(0,
+                Math.min(50, applicationNormalizedName.length()));
+
         return findServiceAccountForApp(applicationId)
                 .thenCompose(account -> account.map(a -> CompletableFuture.completedFuture(a))
-                        .orElseGet(() -> client.createServiceAccount("application-" + applicationNormalizedName,
+                        .orElseGet(() -> client.createServiceAccount("application-" + shortenedAppName,
                                 appServiceAccountDescription(applicationId)).toFuture()))
                 .thenCompose(account -> client.createApiKey(config.getEnvironmentId(), config.getClusterId(),
                         apiKeyDesc, account.getResourceId()).toFuture())
@@ -213,7 +216,7 @@ public class ConfluentCloudAuthenticationModule implements KafkaAuthenticationMo
     /**
      * Upgrades a given "old" authentication metadata object. Is used by admin job "update-confluent-auth-metadata" to
      * e.g. add numeric IDs and Service Account Resource IDs.
-     * 
+     *
      * @param oldAuthMetadata Potentially "old" authentication metadata (function determines if update is required).
      * @return The "updated" metadata, or the unchanged metadata if already filled with new fields. As a future as an
      *         API call may be required to determine required information (e.g. internal numeric ID for a service
