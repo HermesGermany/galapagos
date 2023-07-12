@@ -148,7 +148,7 @@ public class ChangesServiceImpl
         ChangeData data = new ChangeData();
         data.setId(UUID.randomUUID().toString());
         data.setPrincipal(principal.map(p -> p.getName()).orElse("_SYSTEM"));
-        data.setPrincipalFullName(principal.map(p -> p.getFullName() == null ? data.getPrincipal() : p.getFullName())
+        data.setPrincipalFullName(principal.filter(p -> p.getFullName() != null).map(AuditPrincipal::getFullName)
                 .orElse(data.getPrincipal()));
         data.setTimestamp(ZonedDateTime.now());
         data.setChange(change);

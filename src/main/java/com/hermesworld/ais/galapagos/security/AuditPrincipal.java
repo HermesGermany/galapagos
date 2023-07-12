@@ -14,4 +14,7 @@ public final class AuditPrincipal {
         this.fullName = fullName;
     }
 
+    public String getFullName() {
+        return fullName;
+    }
 }

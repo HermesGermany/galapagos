@@ -34,7 +34,7 @@ echo "Starting Galapagos (via Maven). Stop the application any time with Ctrl+C.
 echo ""
 echo "Use user1/user1 or admin1/admin1 for login at http://localhost:8080, once the application runs."
 echo ""
-./mvnw package spring-boot:run -DskipTests -Dspring-boot.run.profiles=democonf,demo,actuator
+KEYCLOAK_URL=http://localhost:8089 KEYCLOAK_CLIENT_ID=galapagos-webapp-dev ./mvnw package spring-boot:run -DskipTests -Dspring-boot.run.profiles=democonf,demo,oauth2,actuator
 
 echo "Shutting down Keycloak..."
 kill "$KEYCLOAK_PID" 2>/dev/null
