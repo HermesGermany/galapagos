@@ -8,7 +8,8 @@
                          *ngIf="(topicSchemas | async)?.length && !editSchemaMode">
                         <label for="schemaVersion">{{ 'Schema Version' | translate }}</label>
                         <select class="form-select w-auto ms-3" id="schemaVersion" name="schemaVersion"
-                                [(ngModel)]="selectedSchemaVersion" (ngModelChange)="checkForDelete()">
+                                [(ngModel)]="selectedSchemaVersion"
+                                (ngModelChange)="checkIfSchemaVersionExistsOnNextVersion()">
                             <option *ngFor="let schema of topicSchemas | async"
                                     [ngValue]="schema">{{ schema.schemaVersion }}{{ schema.isLatest ? ' ' + (currentText | async) : ''}}</option>
                         </select>

@@ -103,16 +103,16 @@ export class EnvironmentsService {
 
     public checkIfSchemaCanGetDeleted(environment: string, topic: Topic): Promise<Map<number, boolean>> {
         return firstValueFrom(
-            this.http.get<Map<number, boolean>>('/api/schema/checkNextStage/'+environment+'/'+topic.name+'/')
+            this.http.get<Map<number, boolean>>('/api/schema/check-next-stage/' + environment + '/' + topic.name + '/')
         );
     };
 
-    public getNextStage(environment: KafkaEnvironment): Promise<string> {
+    /**public getNextStage(environment: KafkaEnvironment): Promise<string> {
         return firstValueFrom(
             this.http.get<{ nextStage: string }>('/api/environments/' + environment.id + '/next-stage')
                 .pipe(map(r => r.nextStage))
         );
-    }
+    }**/
 
     public setCurrentEnvironment(environment: KafkaEnvironment) {
         this.currentEnvironment.next(environment);

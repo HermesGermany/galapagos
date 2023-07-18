@@ -368,15 +368,21 @@ public class TopicController {
         throw notFound.get();
     }
 
-    @GetMapping(value = "/api/schema/checkNextStage/{environmentId}/{topicName}", produces = MediaType.APPLICATION_JSON_VALUE)
+//    @GetMapping(value = "/api/schema/check-for-delete/{environmentId}/{topicName}", produces = MediaType.APPLICATION_JSON_VALUE)
+//    public Map<String, Boolean> checkIfSchemaCanBeDeleted(@PathVariable String environmentId, @PathVariable String topicName) {
+//
+//    }
+
+    @GetMapping(value = "/api/schema/check-next-stage/{environmentId}/{topicName}", produces = MediaType.APPLICATION_JSON_VALUE)
     public Map<Integer, Boolean> checkIfSchemaExistsOnNextStage(@PathVariable String environmentId, @PathVariable String topicName) {
         List<SchemaMetadata> schemaMetadata = topicService.getTopicSchemaVersions(environmentId, topicName);
         Optional<String> nextStage = stagingService.getNextStage(environmentId);
         HashMap<Integer, Boolean> map = new HashMap<>();
-        if(nextStage.isPresent()){
+        if (nextStage.isPresent()) {
             List<SchemaMetadata> schemaMetadataNextStage = topicService.getTopicSchemaVersions(nextStage.get(), topicName);
-            List<SchemaMetadata> duplicates = schemaMetadata.stream().filter(k -> schemaMetadataNextStage.stream().anyMatch(p -> k.getSchemaVersion() == p.getSchemaVersion())).collect(Collectors.toList());
-            for(SchemaMetadata duplicate : duplicates){
+            List<SchemaMetadata> duplicates = schemaMetadata.stream().filter(k -> schemaMetadataNextStage.stream()
+                    .anyMatch(p -> k.getSchemaVersion() == p.getSchemaVersion())).collect(Collectors.toList());
+            for (SchemaMetadata duplicate : duplicates) {
                 map.put(duplicate.getSchemaVersion(), true);
             }
         }

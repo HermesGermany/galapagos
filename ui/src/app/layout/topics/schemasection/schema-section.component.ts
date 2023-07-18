@@ -44,8 +44,6 @@ export class SchemaSectionComponent implements OnInit, OnChanges {
 
     schemaDeleteWithSub: Observable<boolean>;
 
-    nextStage: string;
-
     isAdmin = false;
 
     skipCompatCheck = false;
@@ -101,11 +99,11 @@ export class SchemaSectionComponent implements OnInit, OnChanges {
         this.newSchemaText = '';
     }
 
-    async checkForDelete(): Promise<void> {
+    async checkIfSchemaVersionExistsOnNextVersion(): Promise<void> {
         this.existSchemaOnNextVersion = true;
         const nextStageSchemas = await this.nextStageSchemasMap;
         const existOnNextStage = nextStageSchemas[this.selectedSchemaVersion.schemaVersion];
-        this.existSchemaOnNextVersion = existOnNextStage === undefined ? false : existOnNextStage;
+        this.existSchemaOnNextVersion = !!existOnNextStage;
     }
 
     async publishNewSchema(): Promise<any> {
@@ -137,6 +135,15 @@ export class SchemaSectionComponent implements OnInit, OnChanges {
         this.modalService.open(content, { ariaLabelledBy: 'modal-title', size: 'lg' });
     }
 
+    /**
+     async checkIfDeleteIsAllowed() {
+        const env = await this.environmentsService.getCurrentEnvironment();
+        const n = this.schemaDeleteWithSub = this.serverInfo.getServerInfo()
+            .pipe(map(info => info.toggles.schemaDeleteWithSub === 'true')).pipe(shareReplay(1));
+        return this.selectedSchemaVersion.isLatest && this.isOwnerOfTopic && !this.existSchemaOnNextVersion && (this.topicSubscribers?.length === 0
+            || (!env.stagingOnly && (this.schemaDeleteWithSub | async)));
+    }**/
+
     loadSchemas(topic: Topic, environmentId: string) {
         this.loadingSchemas = true;
         this.topicSchemas = this.topicService
@@ -146,7 +153,7 @@ export class SchemaSectionComponent implements OnInit, OnChanges {
                 this.selectedSchemaVersion = schemas.length ? schemas[0] : null;
                 if (this.selectedSchemaVersion) {
                     this.nextStageSchemasMap = this.environmentsService.checkIfSchemaCanGetDeleted(environmentId, this.topic);
-                    this.checkForDelete();
+                    this.checkIfSchemaVersionExistsOnNextVersion();
                 }
                 return schemas;
             })
