@@ -30,9 +30,9 @@ public class SecurityConfig {
 
     @Bean
     SecurityFilterChain filterChain(HttpSecurity http, GalapagosSecurityProperties config) throws Exception {
-        http.csrf().disable();
-        http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-        http.authorizeHttpRequests().requestMatchers("/api/**").hasRole("USER").anyRequest().permitAll();
+        http.csrf(csrf -> csrf.disable());
+        http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+        http.authorizeHttpRequests(reg -> reg.requestMatchers("/api/**").hasRole("USER").anyRequest().permitAll());
         http.oauth2ResourceServer(conf -> conf.jwt(jwtCustomizer(config)));
         return http.build();
     }
