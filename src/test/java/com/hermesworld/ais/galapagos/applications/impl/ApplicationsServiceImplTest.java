@@ -37,7 +37,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-public class ApplicationsServiceImplTest {
+class ApplicationsServiceImplTest {
 
     private KafkaClusters kafkaClusters;
 
@@ -51,7 +51,7 @@ public class ApplicationsServiceImplTest {
     private KafkaAuthenticationModule authenticationModule;
 
     @BeforeEach
-    public void feedMocks() {
+    void feedMocks() {
         kafkaClusters = mock(KafkaClusters.class);
 
         when(kafkaClusters.getGlobalRepository("application-owner-requests", ApplicationOwnerRequest.class))
@@ -81,7 +81,7 @@ public class ApplicationsServiceImplTest {
     }
 
     @Test
-    public void testRemoveOldRequests() {
+    void testRemoveOldRequests() {
         List<ApplicationOwnerRequest> daos = new ArrayList<>();
 
         ZonedDateTime createdAt = ZonedDateTime.of(LocalDateTime.of(2019, 1, 1, 10, 0), ZoneId.systemDefault());
@@ -136,7 +136,7 @@ public class ApplicationsServiceImplTest {
     }
 
     @Test
-    public void testKnownApplicationAfterSubmitting() {
+    void testKnownApplicationAfterSubmitting() {
         ZonedDateTime now = ZonedDateTime.of(LocalDateTime.of(2020, 3, 25, 10, 0), ZoneOffset.UTC);
         String testUserName = "test";
         String appId = "42";
@@ -166,7 +166,7 @@ public class ApplicationsServiceImplTest {
     }
 
     @Test
-    public void testReplaceCertificate_appChanges() throws Exception {
+    void testReplaceCertificate_appChanges() throws Exception {
         // Application changed e.g. in external Architecture system
         KnownApplicationImpl app = new KnownApplicationImpl("quattro-1", "Quattro");
         app.setAliases(List.of("q2"));
@@ -223,7 +223,7 @@ public class ApplicationsServiceImplTest {
     }
 
     @Test
-    public void testRegisterNewFiresEvent() throws Exception {
+    void testRegisterNewFiresEvent() throws Exception {
         KnownApplicationImpl app = new KnownApplicationImpl("quattro-1", "Quattro");
         app.setAliases(List.of("q2"));
         knownApplicationRepository.save(app).get();
@@ -245,7 +245,7 @@ public class ApplicationsServiceImplTest {
     }
 
     @Test
-    public void testPrefix() throws Exception {
+    void testPrefix() throws Exception {
         KnownApplicationImpl app = new KnownApplicationImpl("quattro-1", "Quattro");
         app.setAliases(List.of("q2"));
         knownApplicationRepository.save(app).get();
@@ -276,7 +276,7 @@ public class ApplicationsServiceImplTest {
     }
 
     @Test
-    public void testExtendCertificate() throws Exception {
+    void testExtendCertificate() throws Exception {
         // TODO move to CertificeAuthenticationModuleTest
 
 //        KnownApplicationImpl app = new KnownApplicationImpl("quattro-1", "Quattro");
@@ -324,7 +324,7 @@ public class ApplicationsServiceImplTest {
     }
 
     @Test
-    public void testUpdateAuthentication() throws Exception {
+    void testUpdateAuthentication() throws Exception {
         // WHEN an already registered application is re-registered on an environment...
         KnownApplicationImpl app = new KnownApplicationImpl("quattro-1", "Quattro");
         knownApplicationRepository.save(app).get();

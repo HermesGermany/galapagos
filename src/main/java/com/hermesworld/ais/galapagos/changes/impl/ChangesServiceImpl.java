@@ -13,7 +13,6 @@ import com.hermesworld.ais.galapagos.security.AuditPrincipal;
 import com.hermesworld.ais.galapagos.topics.TopicType;
 import com.hermesworld.ais.galapagos.util.JsonUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.time.ZonedDateTime;
@@ -31,7 +30,6 @@ public class ChangesServiceImpl
 
     private final KafkaClusters kafkaClusters;
 
-    @Autowired
     public ChangesServiceImpl(KafkaClusters kafkaClusters) {
         this.kafkaClusters = kafkaClusters;
     }
@@ -150,7 +148,7 @@ public class ChangesServiceImpl
         ChangeData data = new ChangeData();
         data.setId(UUID.randomUUID().toString());
         data.setPrincipal(principal.map(p -> p.getName()).orElse("_SYSTEM"));
-        data.setPrincipalFullName(principal.map(p -> p.getFullName() == null ? data.getPrincipal() : p.getFullName())
+        data.setPrincipalFullName(principal.filter(p -> p.getFullName() != null).map(AuditPrincipal::getFullName)
                 .orElse(data.getPrincipal()));
         data.setTimestamp(ZonedDateTime.now());
         data.setChange(change);

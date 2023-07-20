@@ -32,6 +32,7 @@ galapagos:
           organization-api-key: "${demo.organization-api-key}"
           organization-api-secret: "${demo.organization-api-secret}"
           developer-api-key-validity: "P30D"
+          serviceAccountIdCompatMode: false
         staging-only: false
       - id: prod
         name: "PROD"
@@ -45,6 +46,7 @@ galapagos:
           organization-api-key: "${demo.organization-api-key}"
           organization-api-secret: "${demo.organization-api-secret}"
           developer-api-key-validity: "P10D"
+          serviceAccountIdCompatMode: false
         staging-only: true
 
     # Here, you can configure ACLs which will be assigned to any account created by Galapagos.

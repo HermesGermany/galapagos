@@ -29,7 +29,7 @@ import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class ConfluentCloudApiClientTest {
+class ConfluentCloudApiClientTest {
 
     private static MockWebServer mockBackEnd;
 
@@ -47,12 +47,12 @@ public class ConfluentCloudApiClientTest {
     }
 
     @BeforeEach
-    public void init() {
-        baseUrl = String.format("http://localhost:%s", mockBackEnd.getPort());
+    void init() {
+        baseUrl = "http://localhost:%s".formatted(mockBackEnd.getPort());
     }
 
     @AfterEach
-    public void consumeRequests() throws Exception {
+    void consumeRequests() throws Exception {
         RecordedRequest request;
         while ((request = mockBackEnd.takeRequest(10, TimeUnit.MILLISECONDS)) != null) {
             System.err.println(
@@ -71,7 +71,7 @@ public class ConfluentCloudApiClientTest {
     }
 
     @Test
-    public void testListServiceAccounts() throws Exception {
+    void testListServiceAccounts() throws Exception {
         mockBackEnd.enqueue(new MockResponse().setBody(readTestResource("ccloud/service-accounts.json"))
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE));
 
@@ -93,7 +93,7 @@ public class ConfluentCloudApiClientTest {
     }
 
     @Test
-    public void testPagination() throws Exception {
+    void testPagination() throws Exception {
         mockBackEnd.enqueue(new MockResponse()
                 .setBody(readTestResource("ccloud/service-accounts-page1.json").replace("${baseurl}", baseUrl))
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE));
@@ -128,7 +128,7 @@ public class ConfluentCloudApiClientTest {
     }
 
     @Test
-    public void testListApiKeys() throws Exception {
+    void testListApiKeys() throws Exception {
         mockBackEnd.enqueue(new MockResponse().setBody(readTestResource("ccloud/api-keys.json"))
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE));
 
@@ -152,7 +152,7 @@ public class ConfluentCloudApiClientTest {
     }
 
     @Test
-    public void testCreateServiceAccount() throws Exception {
+    void testCreateServiceAccount() throws Exception {
         mockBackEnd.enqueue(new MockResponse().setBody(readTestResource("ccloud/service-account.json"))
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .setResponseCode(HttpStatus.CREATED.value()));
@@ -178,7 +178,7 @@ public class ConfluentCloudApiClientTest {
     }
 
     @Test
-    public void testCreateServiceAccount_withNumericId() throws Exception {
+    void testCreateServiceAccount_withNumericId() throws Exception {
         mockBackEnd.enqueue(new MockResponse().setBody(readTestResource("ccloud/service-account.json"))
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .setResponseCode(HttpStatus.CREATED.value()));
@@ -203,7 +203,7 @@ public class ConfluentCloudApiClientTest {
     }
 
     @Test
-    public void testCreateApiKey() throws Exception {
+    void testCreateApiKey() throws Exception {
         mockBackEnd.enqueue(new MockResponse().setBody(readTestResource("ccloud/api-key.json"))
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .setResponseCode(HttpStatus.ACCEPTED.value()));
@@ -240,7 +240,7 @@ public class ConfluentCloudApiClientTest {
     }
 
     @Test
-    public void testDeleteApiKey() throws Exception {
+    void testDeleteApiKey() throws Exception {
         mockBackEnd.enqueue(new MockResponse().setResponseCode(HttpStatus.NO_CONTENT.value()));
 
         ConfluentCloudApiClient apiClient = new ConfluentCloudApiClient(baseUrl, "myKey", "mySecret", false);
@@ -258,7 +258,7 @@ public class ConfluentCloudApiClientTest {
     }
 
     @Test
-    public void testErrorStatusCode() throws Exception {
+    void testErrorStatusCode() throws Exception {
         mockBackEnd.enqueue(new MockResponse().setResponseCode(HttpStatus.NOT_FOUND.value()));
 
         ConfluentCloudApiClient apiClient = new ConfluentCloudApiClient(baseUrl, "myKey", "mySecret", false);
@@ -272,7 +272,7 @@ public class ConfluentCloudApiClientTest {
     }
 
     @Test
-    public void testErrorMessage_singleError() throws Exception {
+    void testErrorMessage_singleError() throws Exception {
         JSONObject errorObj = new JSONObject(Map.of("error", "something went wrong"));
         mockBackEnd.enqueue(new MockResponse().setResponseCode(HttpStatus.BAD_REQUEST.value())
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE).setBody(errorObj.toString()));
@@ -288,7 +288,7 @@ public class ConfluentCloudApiClientTest {
     }
 
     @Test
-    public void testErrorMessage_errorsArray() throws Exception {
+    void testErrorMessage_errorsArray() throws Exception {
         JSONObject errorObj = new JSONObject(Map.of("detail", "something went wrong"));
         JSONObject errorObj2 = new JSONObject(Map.of("detail", "all is broken"));
         JSONArray errors = new JSONArray();
@@ -310,7 +310,7 @@ public class ConfluentCloudApiClientTest {
     }
 
     @Test
-    public void testError_textOnlyResponse() throws Exception {
+    void testError_textOnlyResponse() throws Exception {
         mockBackEnd.enqueue(new MockResponse().setResponseCode(HttpStatus.BAD_REQUEST.value())
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN_VALUE)
                 .setBody("This is your friendly error message in text only."));

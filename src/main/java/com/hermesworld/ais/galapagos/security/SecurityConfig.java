@@ -1,110 +1,77 @@
 package com.hermesworld.ais.galapagos.security;
 
-import org.keycloak.adapters.springsecurity.KeycloakConfiguration;
-import org.keycloak.adapters.springsecurity.authentication.KeycloakAuthenticationProvider;
-import org.keycloak.adapters.springsecurity.config.KeycloakWebSecurityConfigurerAdapter;
-import org.keycloak.adapters.springsecurity.filter.KeycloakAuthenticatedActionsFilter;
-import org.keycloak.adapters.springsecurity.filter.KeycloakAuthenticationProcessingFilter;
-import org.keycloak.adapters.springsecurity.filter.KeycloakPreAuthActionsFilter;
-import org.keycloak.adapters.springsecurity.filter.KeycloakSecurityContextRequestFilter;
-import org.keycloak.adapters.springsecurity.management.HttpSessionManager;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.web.servlet.FilterRegistrationBean;
+import com.hermesworld.ais.galapagos.security.config.GalapagosSecurityProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.lang.NonNull;
+import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.oauth2.server.resource.OAuth2ResourceServerConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.authority.mapping.SimpleAuthorityMapper;
-import org.springframework.security.web.authentication.session.NullAuthenticatedSessionStrategy;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.session.SessionRegistryImpl;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.session.RegisterSessionAuthenticationStrategy;
 import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
-import org.springframework.web.context.request.RequestContextListener;
 
-@KeycloakConfiguration
-@EnableGlobalMethodSecurity(securedEnabled = true)
-public class SecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
+import java.util.Collection;
+import java.util.Locale;
+import java.util.stream.Collectors;
 
-    /**
-     * Registers the KeycloakAuthenticationProvider with the authentication manager.
-     */
-    @Autowired
-    public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
-        KeycloakAuthenticationProvider provider = keycloakAuthenticationProvider();
-        SimpleAuthorityMapper mapper = new SimpleAuthorityMapper();
-        mapper.setConvertToUpperCase(true);
-        mapper.setConvertToLowerCase(false);
-        provider.setGrantedAuthoritiesMapper(mapper);
-        auth.authenticationProvider(provider);
-    }
-
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        super.configure(http);
-        // TODO is CSRF necessary for a stateless backend without sessions?
-        http.csrf().disable();
-        http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-        http.authorizeRequests().antMatchers("/api/**").hasRole("USER").anyRequest().permitAll();
-    }
-
-    // The following four beans shall avoid a double registration of the Keycloak filters.
-    // See https://www.keycloak.org/docs/latest/securing_apps/index.html#spring-boot-integration for details.
-    // (Google Keywords: keycloak "avoid double bean registration")
+@Configuration
+@EnableMethodSecurity(securedEnabled = true, prePostEnabled = false)
+public class SecurityConfig {
 
     @Bean
-    public FilterRegistrationBean<KeycloakAuthenticationProcessingFilter> keycloakAuthenticationProcessingFilterRegistrationBean(
-            KeycloakAuthenticationProcessingFilter filter) {
-        FilterRegistrationBean<KeycloakAuthenticationProcessingFilter> registrationBean = new FilterRegistrationBean<>(
-                filter);
-        registrationBean.setEnabled(false);
-        return registrationBean;
+    SecurityFilterChain filterChain(HttpSecurity http, GalapagosSecurityProperties config) throws Exception {
+        http.csrf(csrf -> csrf.disable());
+        http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+        http.authorizeHttpRequests(reg -> reg.requestMatchers("/api/**").hasRole("USER").anyRequest().permitAll());
+        http.oauth2ResourceServer(conf -> conf.jwt(jwtCustomizer(config)));
+        return http.build();
     }
 
     @Bean
-    public FilterRegistrationBean<KeycloakPreAuthActionsFilter> keycloakPreAuthActionsFilterRegistrationBean(
-            KeycloakPreAuthActionsFilter filter) {
-        FilterRegistrationBean<KeycloakPreAuthActionsFilter> registrationBean = new FilterRegistrationBean<>(filter);
-        registrationBean.setEnabled(false);
-        return registrationBean;
+    public SessionAuthenticationStrategy sessionAuthenticationStrategy() {
+        return new RegisterSessionAuthenticationStrategy(new SessionRegistryImpl());
     }
 
-    @Bean
-    public FilterRegistrationBean<KeycloakAuthenticatedActionsFilter> keycloakAuthenticatedActionsFilterBean(
-            KeycloakAuthenticatedActionsFilter filter) {
-        FilterRegistrationBean<KeycloakAuthenticatedActionsFilter> registrationBean = new FilterRegistrationBean<>(
-                filter);
-        registrationBean.setEnabled(false);
-        return registrationBean;
+    private Customizer<OAuth2ResourceServerConfigurer<HttpSecurity>.JwtConfigurer> jwtCustomizer(
+            GalapagosSecurityProperties config) {
+        return jwtConfigurer -> jwtConfigurer.jwtAuthenticationConverter(jwtAuthenticationConverter(config));
     }
 
-    @Bean
-    public FilterRegistrationBean<KeycloakSecurityContextRequestFilter> keycloakSecurityContextRequestFilterBean(
-            KeycloakSecurityContextRequestFilter filter) {
-        FilterRegistrationBean<KeycloakSecurityContextRequestFilter> registrationBean = new FilterRegistrationBean<>(
-                filter);
-        registrationBean.setEnabled(false);
-        return registrationBean;
+    private JwtAuthenticationConverter jwtAuthenticationConverter(GalapagosSecurityProperties config) {
+        JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
+
+        converter.setPrincipalClaimName(config.getJwtUserNameClaim());
+
+        JwtGrantedAuthoritiesConverter authoritiesConverter = new JwtGrantedAuthoritiesConverter();
+        authoritiesConverter.setAuthoritiesClaimName(config.getJwtRoleClaim());
+        authoritiesConverter.setAuthorityPrefix("ROLE_");
+        converter.setJwtGrantedAuthoritiesConverter(new UpperCaseJwtGrantedAuthoritiesConverter(authoritiesConverter));
+
+        return converter;
     }
 
-    @Override
-    @Bean
-    @ConditionalOnMissingBean(HttpSessionManager.class)
-    protected HttpSessionManager httpSessionManager() {
-        // this method only exists for the @ConditionalOnMissingBean annotation, which is missing from the base class.
-        return super.httpSessionManager();
-    }
+    private record UpperCaseJwtGrantedAuthoritiesConverter(JwtGrantedAuthoritiesConverter delegate)
+            implements Converter<Jwt, Collection<GrantedAuthority>> {
 
-    @Bean
-    public RequestContextListener requestContextListener() {
-        return new RequestContextListener();
-    }
+        @Override
+        public Collection<GrantedAuthority> convert(@NonNull Jwt source) {
+            return mapToUpperCase(delegate.convert(source));
+        }
 
-    @Override
-    protected SessionAuthenticationStrategy sessionAuthenticationStrategy() {
-        // this makes sure that no JSESSIONID cookie is sent. Keycloak authentication of the token is done with each
-        // request, as
-        // it should be.
-        return new NullAuthenticatedSessionStrategy();
+        private Collection<GrantedAuthority> mapToUpperCase(Collection<GrantedAuthority> authorities) {
+            return authorities.stream().map(a -> new SimpleGrantedAuthority(a.getAuthority().toUpperCase(Locale.US)))
+                    .collect(Collectors.toSet());
+        }
     }
 
 }

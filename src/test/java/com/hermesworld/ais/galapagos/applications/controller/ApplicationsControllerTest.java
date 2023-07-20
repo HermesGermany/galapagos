@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class ApplicationsControllerTest {
+class ApplicationsControllerTest {
 
     private ApplicationsService applicationsService;
 
@@ -24,14 +24,14 @@ public class ApplicationsControllerTest {
     private KafkaClusters kafkaClusters;
 
     @BeforeEach
-    public void feedMocks() {
+    void feedMocks() {
         applicationsService = mock(ApplicationsService.class);
         stagingService = mock(StagingService.class);
         kafkaClusters = mock(KafkaClusters.class);
     }
 
     @Test
-    public void getRegisteredApplications_knownAppMissing() {
+    void getRegisteredApplications_knownAppMissing() {
         ApplicationsController controller = new ApplicationsController(applicationsService, stagingService,
                 kafkaClusters);
 
@@ -51,7 +51,7 @@ public class ApplicationsControllerTest {
         when(applicationsService.getKnownApplication("nex1")).thenReturn(Optional.empty());
 
         List<KnownApplicationDto> regApps = controller.getRegisteredApplications("test");
-        assertEquals(regApps.size(), 1);
+        assertEquals(1, regApps.size());
         assertEquals("ex1", regApps.get(0).getId());
     }
 }

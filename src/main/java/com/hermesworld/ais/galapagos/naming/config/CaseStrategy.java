@@ -1,5 +1,6 @@
 package com.hermesworld.ais.galapagos.naming.config;
 
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import java.util.List;
@@ -45,7 +46,7 @@ public enum CaseStrategy {
     }
 
     public boolean matches(String input) {
-        if (StringUtils.isEmpty(input)) {
+        if (ObjectUtils.isEmpty(input)) {
             return false;
         }
         return input.matches(validatorRegex);

@@ -13,7 +13,6 @@ import com.hermesworld.ais.galapagos.kafka.util.AclSupport;
 import com.hermesworld.ais.galapagos.naming.ApplicationPrefixes;
 import com.hermesworld.ais.galapagos.naming.NamingService;
 import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.stereotype.Component;
 
@@ -42,7 +41,6 @@ public class GenerateToolingApiKeyJob extends SingleClusterAdminJob {
 
     private final AclSupport aclSupport;
 
-    @Autowired
     public GenerateToolingApiKeyJob(KafkaClusters kafkaClusters, AclSupport aclSupport, NamingService namingService,
             KafkaEnvironmentsConfig kafkaConfig) {
         super(kafkaClusters);

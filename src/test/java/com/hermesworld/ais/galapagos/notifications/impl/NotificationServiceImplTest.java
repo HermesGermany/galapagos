@@ -9,10 +9,10 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
-import javax.mail.Address;
-import javax.mail.MessagingException;
-import javax.mail.internet.MimeMessage;
-import javax.mail.internet.MimeMessage.RecipientType;
+import jakarta.mail.Address;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
+import jakarta.mail.internet.MimeMessage.RecipientType;
 
 import com.hermesworld.ais.galapagos.applications.ApplicationOwnerRequest;
 import com.hermesworld.ais.galapagos.applications.ApplicationsService;
@@ -21,11 +21,12 @@ import com.hermesworld.ais.galapagos.notifications.NotificationParams;
 import com.hermesworld.ais.galapagos.subscriptions.SubscriptionMetadata;
 import com.hermesworld.ais.galapagos.subscriptions.service.SubscriptionService;
 import com.hermesworld.ais.galapagos.topics.service.TopicService;
-import org.junit.After;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import static org.mockito.Mockito.*;
 import org.springframework.mail.MailSendException;
@@ -33,7 +34,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
 import org.thymeleaf.ITemplateEngine;
 
-public class NotificationServiceImplTest {
+class NotificationServiceImplTest {
 
     private static final String TEST_ENV = "test-Environment";
 
@@ -55,8 +56,8 @@ public class NotificationServiceImplTest {
 
     private MimeMessageHolder messageHolder;
 
-    @Before
-    public void feedMocks() throws MessagingException {
+    @BeforeEach
+    void feedMocks() throws MessagingException {
         subscriptionService = mock(SubscriptionService.class);
         applicationService = mock(ApplicationsService.class);
         topicService = mock(TopicService.class);
@@ -70,13 +71,13 @@ public class NotificationServiceImplTest {
         executor = Executors.newSingleThreadExecutor();
     }
 
-    @After
-    public void destroyMocks() {
+    @AfterEach
+    void destroyMocks() {
         executor.shutdown();
     }
 
     @Test
-    public void testDoSendAsync_NoFailOnMailException() throws Exception {
+    void testDoSendAsync_NoFailOnMailException() throws Exception {
         String testFromAddress = "test@abc.de";
         String testAdminMailsRecipients = "Test@abc.de";
         NotificationParams testNotificationParams = generateNotificationParams(TEST_USER, TEST_TOPIC);
@@ -94,7 +95,7 @@ public class NotificationServiceImplTest {
     }
 
     @Test
-    public void testNotifySubscribersWithExclusionUser() throws Exception {
+    void testNotifySubscribersWithExclusionUser() throws Exception {
         String testFromAddress = "test@abc.de";
         String testAdminMailsRecipients = "Test@abc.de";
         String testApplicationId = "42";
@@ -123,7 +124,7 @@ public class NotificationServiceImplTest {
     }
 
     @Test
-    public void testNotifyApplicationTopicOwners_noSubmittedIncluded() throws Exception {
+    void testNotifyApplicationTopicOwners_noSubmittedIncluded() throws Exception {
         String testFromAddress = "test@abc.de";
         String testAdminMailsRecipients = "Test@abc.de";
         String applicationId = "1";
@@ -171,7 +172,7 @@ public class NotificationServiceImplTest {
     }
 
     @Test
-    public void testNotifySubscribers_noSubmittedIncluded() throws Exception {
+    void testNotifySubscribers_noSubmittedIncluded() throws Exception {
         String testFromAddress = "test@abc.de";
         String testAdminMailsRecipients = "Test@abc.de";
         NotificationParams testNotificationParams = generateNotificationParams(TEST_USER, TEST_TOPIC);

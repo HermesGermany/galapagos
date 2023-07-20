@@ -1,8 +1,9 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { trigger, style, state, transition, animate } from '@angular/animations';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { animate, state, style, transition, trigger } from '@angular/animations';
 import { Toast, ToastService } from '../shared/modules/toast/toast.service';
 import { Subscription } from 'rxjs';
 import { ToastHideEvent } from '../shared/modules/toast/toast.component';
+import { AuthService } from '../shared/services/auth.service';
 
 interface DisplayToast {
     toast: Toast;
@@ -34,7 +35,8 @@ export class LayoutComponent implements OnInit, OnDestroy {
 
     private toastSubscription: Subscription;
 
-    constructor(private toastService: ToastService) {}
+    constructor(private toastService: ToastService, public authService: AuthService) {
+    }
 
     ngOnInit() {
         this.toastSubscription = this.toastService.getToasts().subscribe(toast => this.addToast(toast));

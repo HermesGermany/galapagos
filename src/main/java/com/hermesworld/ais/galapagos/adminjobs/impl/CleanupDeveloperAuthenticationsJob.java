@@ -2,7 +2,6 @@ package com.hermesworld.ais.galapagos.adminjobs.impl;
 
 import com.hermesworld.ais.galapagos.adminjobs.AdminJob;
 import com.hermesworld.ais.galapagos.devauth.DeveloperAuthenticationService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.stereotype.Component;
 
@@ -11,7 +10,6 @@ public class CleanupDeveloperAuthenticationsJob implements AdminJob {
 
     private final DeveloperAuthenticationService developerAuthenticationService;
 
-    @Autowired
     public CleanupDeveloperAuthenticationsJob(DeveloperAuthenticationService developerAuthenticationService) {
         this.developerAuthenticationService = developerAuthenticationService;
     }

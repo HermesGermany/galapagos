@@ -15,13 +15,15 @@ import com.hermesworld.ais.galapagos.subscriptions.SubscriptionState;
 import com.hermesworld.ais.galapagos.topics.TopicMetadata;
 import com.hermesworld.ais.galapagos.topics.TopicType;
 import com.hermesworld.ais.galapagos.topics.service.TopicService;
-import static org.junit.Assert.*;
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class SubscriptionServiceImplTest {
+class SubscriptionServiceImplTest {
 
     private KafkaClusters kafkaClusters;
 
@@ -33,8 +35,8 @@ public class SubscriptionServiceImplTest {
 
     private TopicBasedRepositoryMock<SubscriptionMetadata> repository;
 
-    @Before
-    public void setupMocks() {
+    @BeforeEach
+    void setupMocks() {
         kafkaClusters = mock(KafkaClusters.class);
 
         KafkaCluster testCluster = mock(KafkaCluster.class);
@@ -75,7 +77,7 @@ public class SubscriptionServiceImplTest {
     }
 
     @Test
-    public void testAddSubscription_positive() throws Exception {
+    void testAddSubscription_positive() throws Exception {
         SubscriptionServiceImpl service = new SubscriptionServiceImpl(kafkaClusters, applicationsService, topicService,
                 eventManager);
 
@@ -93,7 +95,7 @@ public class SubscriptionServiceImplTest {
     }
 
     @Test
-    public void testAddSubscription_pending() throws Exception {
+    void testAddSubscription_pending() throws Exception {
         SubscriptionServiceImpl service = new SubscriptionServiceImpl(kafkaClusters, applicationsService, topicService,
                 eventManager);
 
@@ -111,7 +113,7 @@ public class SubscriptionServiceImplTest {
     }
 
     @Test
-    public void testAddSubscription_fail_internalTopic() throws Exception {
+    void testAddSubscription_fail_internalTopic() throws Exception {
         SubscriptionServiceImpl service = new SubscriptionServiceImpl(kafkaClusters, applicationsService, topicService,
                 eventManager);
 
@@ -127,7 +129,7 @@ public class SubscriptionServiceImplTest {
     }
 
     @Test
-    public void testAddSubscription_directMetadata() throws Exception {
+    void testAddSubscription_directMetadata() throws Exception {
         SubscriptionMetadata sub = new SubscriptionMetadata();
         sub.setId("123");
         sub.setState(SubscriptionState.APPROVED);
@@ -145,7 +147,7 @@ public class SubscriptionServiceImplTest {
     }
 
     @Test
-    public void testUpdateSubscriptionState_positive() throws Exception {
+    void testUpdateSubscriptionState_positive() throws Exception {
         SubscriptionMetadata sub = new SubscriptionMetadata();
         sub.setId("123");
         sub.setState(SubscriptionState.PENDING);
@@ -168,7 +170,7 @@ public class SubscriptionServiceImplTest {
     }
 
     @Test
-    public void testUpdateSubscriptionState_rejected_deletes() throws Exception {
+    void testUpdateSubscriptionState_rejected_deletes() throws Exception {
         SubscriptionMetadata sub = new SubscriptionMetadata();
         sub.setId("123");
         sub.setState(SubscriptionState.PENDING);
@@ -190,7 +192,7 @@ public class SubscriptionServiceImplTest {
     }
 
     @Test
-    public void testUpdateSubscriptionState_canceled_deletes() throws Exception {
+    void testUpdateSubscriptionState_canceled_deletes() throws Exception {
         SubscriptionMetadata sub = new SubscriptionMetadata();
         sub.setId("123");
         sub.setState(SubscriptionState.APPROVED);
@@ -212,7 +214,7 @@ public class SubscriptionServiceImplTest {
     }
 
     @Test
-    public void testUpdateSubscriptionState_rejected_mapsToCanceled() throws Exception {
+    void testUpdateSubscriptionState_rejected_mapsToCanceled() throws Exception {
         SubscriptionMetadata sub = new SubscriptionMetadata();
         sub.setId("123");
         sub.setState(SubscriptionState.APPROVED);
@@ -236,7 +238,7 @@ public class SubscriptionServiceImplTest {
     }
 
     @Test
-    public void testUpdateSubscriptionState_noop() throws Exception {
+    void testUpdateSubscriptionState_noop() throws Exception {
         SubscriptionMetadata sub = new SubscriptionMetadata();
         sub.setId("123");
         sub.setState(SubscriptionState.APPROVED);
@@ -255,7 +257,7 @@ public class SubscriptionServiceImplTest {
     }
 
     @Test
-    public void testDeleteSubscription() throws Exception {
+    void testDeleteSubscription() throws Exception {
         SubscriptionMetadata sub = new SubscriptionMetadata();
         sub.setId("123");
         sub.setState(SubscriptionState.APPROVED);
@@ -275,7 +277,7 @@ public class SubscriptionServiceImplTest {
     }
 
     @Test
-    public void testGetSubscriptionsForTopic() throws Exception {
+    void testGetSubscriptionsForTopic() throws Exception {
         SubscriptionMetadata sub1 = new SubscriptionMetadata();
         sub1.setId("123");
         sub1.setState(SubscriptionState.APPROVED);
@@ -303,7 +305,7 @@ public class SubscriptionServiceImplTest {
     }
 
     @Test
-    public void testGetSubscriptionsOfApplication() throws Exception {
+    void testGetSubscriptionsOfApplication() throws Exception {
         SubscriptionMetadata sub1 = new SubscriptionMetadata();
         sub1.setId("123");
         sub1.setState(SubscriptionState.APPROVED);

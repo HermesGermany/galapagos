@@ -1,9 +1,6 @@
 package com.hermesworld.ais.galapagos.kafka.impl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -25,9 +22,9 @@ import org.apache.kafka.common.acl.AclPermissionType;
 import org.apache.kafka.common.resource.PatternType;
 import org.apache.kafka.common.resource.ResourcePattern;
 import org.apache.kafka.common.resource.ResourceType;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.kafka.KafkaException;
 import org.springframework.util.concurrent.FailureCallback;
 import org.springframework.util.concurrent.ListenableFuture;
@@ -36,7 +33,7 @@ import org.springframework.util.concurrent.SuccessCallback;
 
 import com.hermesworld.ais.galapagos.kafka.KafkaExecutorFactory;
 
-public class KafkaFutureDecouplerTest {
+class KafkaFutureDecouplerTest {
 
     private static ThreadFactory tfAdminClient = new ThreadFactory() {
         @Override
@@ -58,19 +55,19 @@ public class KafkaFutureDecouplerTest {
 
     private AdminClientStub adminClient;
 
-    @Before
-    public void initAdminClient() {
+    @BeforeEach
+    void initAdminClient() {
         adminClient = new AdminClientStub();
         adminClient.setKafkaThreadFactory(tfAdminClient);
     }
 
-    @After
-    public void closeAdminClient() {
+    @AfterEach
+    void closeAdminClient() {
         adminClient.close();
     }
 
     @Test
-    public void testDecoupling_kafkaFuture() throws Exception {
+    void testDecoupling_kafkaFuture() throws Exception {
         // first, test that the futures usually would complete on our Threads
         AtomicBoolean onAdminClientThread = new AtomicBoolean();
         adminClient.describeCluster().nodes().thenApply(c -> {
@@ -93,7 +90,7 @@ public class KafkaFutureDecouplerTest {
     }
 
     @Test
-    public void testDecoupling_concatenation() throws Exception {
+    void testDecoupling_concatenation() throws Exception {
         List<String> threadNames = new ArrayList<String>();
 
         KafkaFutureDecoupler decoupler = new KafkaFutureDecoupler(executorFactory);
@@ -115,11 +112,11 @@ public class KafkaFutureDecouplerTest {
         }
 
         // must be two different Threads!
-        assertTrue(new HashSet<>(threadNames).size() == 2);
+        assertEquals(2, new HashSet<>(threadNames).size());
     }
 
     @Test
-    public void testDecoupling_listenableFuture() throws Exception {
+    void testDecoupling_listenableFuture() throws Exception {
         AtomicBoolean onAdminClientThread = new AtomicBoolean();
 
         // after decoupling, future should complete on another Thread
@@ -136,7 +133,7 @@ public class KafkaFutureDecouplerTest {
     }
 
     @Test
-    public void testDecoupling_doneFuture() throws Exception {
+    void testDecoupling_doneFuture() throws Exception {
         AtomicInteger factoryInvocations = new AtomicInteger();
 
         KafkaExecutorFactory countingExecutorFactory = () -> {
@@ -157,7 +154,7 @@ public class KafkaFutureDecouplerTest {
     }
 
     @Test
-    public void testDecoupling_failingFuture() throws Exception {
+    void testDecoupling_failingFuture() throws Exception {
         AtomicInteger factoryInvocations = new AtomicInteger();
 
         KafkaExecutorFactory countingExecutorFactory = () -> {
@@ -184,7 +181,7 @@ public class KafkaFutureDecouplerTest {
     }
 
     @Test
-    public void testDecoupling_failedFuture_direct() throws Exception {
+    void testDecoupling_failedFuture_direct() throws Exception {
         AtomicInteger factoryInvocations = new AtomicInteger();
 
         KafkaExecutorFactory countingExecutorFactory = () -> {

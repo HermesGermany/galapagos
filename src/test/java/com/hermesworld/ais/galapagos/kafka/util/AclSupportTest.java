@@ -29,7 +29,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class AclSupportTest {
+class AclSupportTest {
 
     private static final List<AclOperationAndType> WRITE_TOPIC_OPERATIONS = Arrays.asList(
             new AclOperationAndType(AclOperation.ALL, AclPermissionType.ALLOW),
@@ -49,12 +49,12 @@ public class AclSupportTest {
     private SubscriptionService subscriptionService;
 
     @BeforeEach
-    public void initMocks() {
+    void initMocks() {
 
     }
 
     @Test
-    public void testGetRequiredAclBindings_simple() {
+    void testGetRequiredAclBindings_simple() {
         ApplicationMetadata metadata = new ApplicationMetadata();
         metadata.setApplicationId("app01");
         metadata.setConsumerGroupPrefixes(List.of("group.myapp.", "group2.myapp."));
@@ -81,8 +81,7 @@ public class AclSupportTest {
 
         when(topicService.listTopics("_test")).thenReturn(List.of(topic1, topic2));
         when(topicService.getTopic("_test", "topic2")).thenReturn(Optional.of(topic2));
-        when(subscriptionService.getSubscriptionsOfApplication("_test", "app01", false))
-                .thenReturn(Collections.singletonList(sub));
+        when(subscriptionService.getSubscriptionsOfApplication("_test", "app01", false)).thenReturn(List.of(sub));
 
         AclSupport aclSupport = new AclSupport(kafkaConfig, topicService, subscriptionService);
 
@@ -138,7 +137,7 @@ public class AclSupportTest {
     }
 
     @Test
-    public void testNoWriteAclsForInternalTopics() {
+    void testNoWriteAclsForInternalTopics() {
         ApplicationMetadata app1 = new ApplicationMetadata();
         app1.setApplicationId("app-1");
         app1.setConsumerGroupPrefixes(List.of("groups."));
@@ -158,7 +157,7 @@ public class AclSupportTest {
     }
 
     @Test
-    public void testAdditionalProducerWriteAccess() {
+    void testAdditionalProducerWriteAccess() {
         ApplicationMetadata app1 = new ApplicationMetadata();
         app1.setApplicationId("app-1");
 
@@ -187,7 +186,7 @@ public class AclSupportTest {
     }
 
     @Test
-    public void testDefaultAcls() {
+    void testDefaultAcls() {
         ApplicationMetadata app1 = new ApplicationMetadata();
         app1.setApplicationId("app-1");
         app1.setAuthenticationJson(new JSONObject(Map.of("dn", "CN=testapp")).toString());
@@ -215,7 +214,7 @@ public class AclSupportTest {
     }
 
     @Test
-    public void testReadOnlyAcls() {
+    void testReadOnlyAcls() {
         ApplicationMetadata metadata = new ApplicationMetadata();
         metadata.setApplicationId("app01");
         metadata.setConsumerGroupPrefixes(List.of("group.myapp.", "group2.myapp."));
@@ -242,8 +241,7 @@ public class AclSupportTest {
 
         when(topicService.listTopics("_test")).thenReturn(List.of(topic1, topic2));
         when(topicService.getTopic("_test", "topic2")).thenReturn(Optional.of(topic2));
-        when(subscriptionService.getSubscriptionsOfApplication("_test", "app01", false))
-                .thenReturn(Collections.singletonList(sub));
+        when(subscriptionService.getSubscriptionsOfApplication("_test", "app01", false)).thenReturn(List.of(sub));
 
         AclSupport aclSupport = new AclSupport(kafkaConfig, topicService, subscriptionService);
 
@@ -288,7 +286,7 @@ public class AclSupportTest {
     }
 
     @Test
-    public void testSimplify() {
+    void testSimplify() {
         AclSupport support = new AclSupport(kafkaConfig, topicService, subscriptionService);
 
         AclBinding superfluousBinding = new AclBinding(

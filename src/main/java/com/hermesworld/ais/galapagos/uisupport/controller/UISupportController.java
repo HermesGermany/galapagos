@@ -17,7 +17,6 @@ import com.hermesworld.ais.galapagos.topics.service.TopicService;
 import com.hermesworld.ais.galapagos.util.CertificateUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.config.TopicConfig;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.util.StreamUtils;
@@ -77,7 +76,6 @@ public class UISupportController {
 
     private static final long ONE_WEEK = TimeUnit.DAYS.toMillis(7);
 
-    @Autowired
     public UISupportController(ApplicationsService applicationsService, TopicService topicService,
             KafkaClusters kafkaClusters, NamingService namingService, GalapagosTopicConfig topicConfig,
             CustomLinksConfig customLinksConfig, GalapagosChangesConfig changesConfig) {

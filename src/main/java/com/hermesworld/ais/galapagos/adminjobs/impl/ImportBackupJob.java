@@ -8,7 +8,6 @@ import com.hermesworld.ais.galapagos.kafka.util.TopicBasedRepository;
 import com.hermesworld.ais.galapagos.util.HasKey;
 import com.hermesworld.ais.galapagos.util.JsonUtil;
 import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StreamUtils;
@@ -44,7 +43,6 @@ public class ImportBackupJob implements AdminJob {
 
     private final ObjectMapper objectMapper;
 
-    @Autowired
     public ImportBackupJob(KafkaClusters kafkaClusters) {
         this.kafkaClusters = kafkaClusters;
         this.objectMapper = JsonUtil.newObjectMapper();

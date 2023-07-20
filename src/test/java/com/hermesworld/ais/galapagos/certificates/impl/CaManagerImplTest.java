@@ -16,7 +16,7 @@ import java.util.concurrent.ExecutionException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class CaManagerImplTest {
+class CaManagerImplTest {
 
     private final static String testAppId = "four";
 
@@ -27,13 +27,13 @@ public class CaManagerImplTest {
     private CertificatesAuthenticationConfig authConfig;
 
     @BeforeEach
-    public void init() {
+    void init() {
         Security.addProvider(new BouncyCastleProvider());
         authConfig = mockAuthConfig();
     }
 
     @Test
-    public void testCreateApplicationFromCsrWithValidCn() throws Exception {
+    void testCreateApplicationFromCsrWithValidCn() throws Exception {
         String testCsrData = StreamUtils.copyToString(
                 new ClassPathResource("/certificates/test_quattroValidCn.csr").getInputStream(),
                 StandardCharsets.UTF_8);
@@ -48,7 +48,7 @@ public class CaManagerImplTest {
     }
 
     @Test
-    public void testCreateApplicationFromCsrWithInvalidCn() throws Exception {
+    void testCreateApplicationFromCsrWithInvalidCn() throws Exception {
         String testCsrData = StreamUtils.copyToString(
                 new ClassPathResource("/certificates/test_quattroInvalidCn.csr").getInputStream(),
                 StandardCharsets.UTF_8);
@@ -64,7 +64,7 @@ public class CaManagerImplTest {
     }
 
     @Test
-    public void testCreateApplicationFromCsrWithInvalidAppId() throws Exception {
+    void testCreateApplicationFromCsrWithInvalidAppId() throws Exception {
         String testCsrData = StreamUtils.copyToString(
                 new ClassPathResource("/certificates/test_quattroInvalidAppId.csr").getInputStream(),
                 StandardCharsets.UTF_8);
@@ -80,7 +80,7 @@ public class CaManagerImplTest {
     }
 
     @Test
-    public void testCreateApplicationFromInvalidCsr() throws Exception {
+    void testCreateApplicationFromInvalidCsr() throws Exception {
         CaManagerImpl testCaManagerImpl = new CaManagerImpl("test", authConfig);
         try {
             testCaManagerImpl.createApplicationCertificateFromCsr(testAppId, "testCsrData", testAppName).get();
@@ -92,7 +92,7 @@ public class CaManagerImplTest {
     }
 
     @Test
-    public void testExtendCertificate() throws Exception {
+    void testExtendCertificate() throws Exception {
         CaManagerImpl testCaManagerImpl = new CaManagerImpl("test", authConfig);
 
         String testCsrData = StreamUtils.copyToString(
@@ -108,7 +108,7 @@ public class CaManagerImplTest {
     }
 
     @Test
-    public void testExtendCertificate_wrongDn() throws Exception {
+    void testExtendCertificate_wrongDn() throws Exception {
         CaManagerImpl testCaManagerImpl = new CaManagerImpl("test", authConfig);
 
         String testCsrData = StreamUtils.copyToString(

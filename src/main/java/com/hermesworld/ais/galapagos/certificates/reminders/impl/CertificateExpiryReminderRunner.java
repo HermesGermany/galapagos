@@ -11,7 +11,6 @@ import com.hermesworld.ais.galapagos.notifications.NotificationService;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -45,7 +44,6 @@ public class CertificateExpiryReminderRunner {
 
     private final String timezone;
 
-    @Autowired
     public CertificateExpiryReminderRunner(CertificateExpiryReminderService reminderService,
             NotificationService notificationService, ApplicationsService applicationsService,
             KafkaClusters kafkaClusters, @Value("${galapagos.timezone:GMT}") String timezone) {

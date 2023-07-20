@@ -3,13 +3,11 @@ package com.hermesworld.ais.galapagos.security.impl;
 import com.hermesworld.ais.galapagos.events.EventContextSource;
 import com.hermesworld.ais.galapagos.security.AuditPrincipal;
 import com.hermesworld.ais.galapagos.security.CurrentUserService;
-import org.keycloak.KeycloakSecurityContext;
-import org.keycloak.adapters.springsecurity.token.KeycloakAuthenticationToken;
-import org.keycloak.representations.IDToken;
+import com.hermesworld.ais.galapagos.security.config.GalapagosSecurityProperties;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -17,6 +15,12 @@ import java.util.Optional;
 
 @Component
 public class DefaultCurrentUserService implements CurrentUserService, EventContextSource {
+
+    private final GalapagosSecurityProperties securityConfig;
+
+    public DefaultCurrentUserService(GalapagosSecurityProperties securityConfig) {
+        this.securityConfig = securityConfig;
+    }
 
     @Override
     public Optional<String> getCurrentUserName() {
@@ -30,29 +34,24 @@ public class DefaultCurrentUserService implements CurrentUserService, EventConte
 
     @Override
     public Optional<AuditPrincipal> getCurrentPrincipal() {
-        return getKeycloakIDToken().map(token -> new AuditPrincipal(token.getPreferredUsername(), token.getName()));
+        return getAuthenticationToken()
+                .map(t -> new AuditPrincipal(t.getToken().getClaimAsString(securityConfig.getJwtUserNameClaim()),
+                        t.getToken().getClaimAsString(securityConfig.getJwtDisplayNameClaim())));
     }
 
     @Override
     public Optional<String> getCurrentUserEmailAddress() {
-        return getKeycloakIDToken().map(token -> token.getEmail())
-                .flatMap(s -> StringUtils.isEmpty(s) ? Optional.empty() : Optional.of(s));
+        return getAuthenticationToken()
+                .map(token -> token.getToken().getClaimAsString(securityConfig.getJwtEmailClaim()));
     }
 
-    private Optional<IDToken> getKeycloakIDToken() {
+    private Optional<JwtAuthenticationToken> getAuthenticationToken() {
         SecurityContext context = SecurityContextHolder.getContext();
-        if (context.getAuthentication() == null || context.getAuthentication().getPrincipal() == null
-                || !(context.getAuthentication() instanceof KeycloakAuthenticationToken)) {
-            return Optional.empty();
+        if (context.getAuthentication() instanceof JwtAuthenticationToken token) {
+            return Optional.of(token);
         }
 
-        KeycloakAuthenticationToken principal = (KeycloakAuthenticationToken) context.getAuthentication();
-        KeycloakSecurityContext keycloakContext = principal.getAccount().getKeycloakSecurityContext();
-        IDToken token = keycloakContext.getIdToken();
-        if (token == null) {
-            token = keycloakContext.getToken();
-        }
-        return Optional.ofNullable(token);
+        return Optional.empty();
     }
 
     @Override
@@ -65,11 +64,6 @@ public class DefaultCurrentUserService implements CurrentUserService, EventConte
     }
 
     @Override
-    /**
-     * Checks from the Security Context, if the current user has the role of an Administrator
-     * 
-     * @return true if the current user has the role of an Administrator, else false
-     */
     public boolean isAdmin() {
         SecurityContext context = SecurityContextHolder.getContext();
         if (context.getAuthentication() == null || context.getAuthentication().getAuthorities() == null) {

@@ -22,7 +22,6 @@ import org.apache.kafka.common.resource.ResourceType;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thymeleaf.util.StringUtils;
 
@@ -44,7 +43,6 @@ public class UpdateApplicationAclsListener
 
     private final AclSupport aclSupport;
 
-    @Autowired
     public UpdateApplicationAclsListener(KafkaClusters kafkaClusters, SubscriptionService subscriptionService,
             ApplicationsService applicationsService, AclSupport aclSupport) {
         this.kafkaClusters = kafkaClusters;

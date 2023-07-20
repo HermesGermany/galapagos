@@ -5,8 +5,8 @@ import com.hermesworld.ais.galapagos.kafka.KafkaSender;
 import com.hermesworld.ais.galapagos.util.FutureUtil;
 import com.hermesworld.ais.galapagos.util.JsonUtil;
 import org.json.JSONObject;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 import java.util.Map;
@@ -16,25 +16,25 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class TopicBasedRepositoryImplTest {
+class TopicBasedRepositoryImplTest {
 
     private final KafkaSender sender = mock(KafkaSender.class);
 
     private final ScheduledExecutorService executorService = new ScheduledThreadPoolExecutor(1);
 
-    @After
-    public void shutdownExecutor() throws Exception {
+    @AfterEach
+    void shutdownExecutor() throws Exception {
         executorService.shutdown();
         executorService.awaitTermination(1, TimeUnit.SECONDS);
     }
 
     @Test
-    public void testMessageReceived() throws Exception {
+    void testMessageReceived() throws Exception {
         TopicBasedRepositoryImpl<ApplicationMetadata> repository = new TopicBasedRepositoryImpl<>("galapagos.testtopic",
                 "testtopic", ApplicationMetadata.class, sender);
         assertEquals(ApplicationMetadata.class, repository.getValueClass());
@@ -54,7 +54,7 @@ public class TopicBasedRepositoryImplTest {
     }
 
     @Test
-    public void testMessageReceived_wrongTopic() throws Exception {
+    void testMessageReceived_wrongTopic() throws Exception {
         TopicBasedRepositoryImpl<ApplicationMetadata> repository = new TopicBasedRepositoryImpl<>("galapagos.testtopic",
                 "testtopic", ApplicationMetadata.class, sender);
 
@@ -70,7 +70,7 @@ public class TopicBasedRepositoryImplTest {
     }
 
     @Test
-    public void testWaitForInitialization_emptyRepository() throws Exception {
+    void testWaitForInitialization_emptyRepository() throws Exception {
         TopicBasedRepositoryImpl<ApplicationMetadata> repository = new TopicBasedRepositoryImpl<>("galapagos.testtopic",
                 "testtopic", ApplicationMetadata.class, sender);
 
@@ -79,13 +79,13 @@ public class TopicBasedRepositoryImplTest {
                 Duration.ofMillis(100), executorService);
         future.get();
 
-        assertTrue("Implementation only waited " + (System.currentTimeMillis() - startTime) + " ms instead of 300 ms",
-                System.currentTimeMillis() >= startTime + 300);
+        assertTrue(System.currentTimeMillis() >= startTime + 300,
+                "Implementation only waited " + (System.currentTimeMillis() - startTime) + " ms instead of 300 ms");
         assertFalse(System.currentTimeMillis() >= startTime + 1000);
     }
 
     @Test
-    public void testWaitForInitialization_positive() throws Exception {
+    void testWaitForInitialization_positive() throws Exception {
         TopicBasedRepositoryImpl<ApplicationMetadata> repository = new TopicBasedRepositoryImpl<>("galapagos.testtopic",
                 "testtopic", ApplicationMetadata.class, sender);
 
@@ -99,13 +99,13 @@ public class TopicBasedRepositoryImplTest {
 
         future.get();
 
-        assertTrue("Implementation only waited " + (System.currentTimeMillis() - startTime) + " ms instead of 350 ms",
-                System.currentTimeMillis() >= startTime + 350);
+        assertTrue(System.currentTimeMillis() >= startTime + 350,
+                "Implementation only waited " + (System.currentTimeMillis() - startTime) + " ms instead of 350 ms");
         assertFalse(System.currentTimeMillis() >= startTime + 1000);
     }
 
     @Test
-    public void testWaitForInitialization_tooLateDataStart() throws Exception {
+    void testWaitForInitialization_tooLateDataStart() throws Exception {
         TopicBasedRepositoryImpl<ApplicationMetadata> repository = new TopicBasedRepositoryImpl<>("galapagos.testtopic",
                 "testtopic", ApplicationMetadata.class, sender);
 
@@ -119,11 +119,11 @@ public class TopicBasedRepositoryImplTest {
 
         future.get();
 
-        assertFalse("Repository waited too long", System.currentTimeMillis() >= startTime + 349);
+        assertFalse(System.currentTimeMillis() >= startTime + 349, "Repository waited too long");
     }
 
     @Test
-    public void testWaitForInitialization_tooLateData() throws Exception {
+    void testWaitForInitialization_tooLateData() throws Exception {
         TopicBasedRepositoryImpl<ApplicationMetadata> repository = new TopicBasedRepositoryImpl<>("galapagos.testtopic",
                 "testtopic", ApplicationMetadata.class, sender);
 
@@ -139,20 +139,20 @@ public class TopicBasedRepositoryImplTest {
 
         future.get();
 
-        assertTrue("Implementation only waited " + (System.currentTimeMillis() - startTime) + " ms instead of 350 ms",
-                System.currentTimeMillis() >= startTime + 350);
-        assertFalse("Repository waited too long", System.currentTimeMillis() >= startTime + 399);
+        assertTrue(System.currentTimeMillis() >= startTime + 350,
+                "Implementation only waited " + (System.currentTimeMillis() - startTime) + " ms instead of 350 ms");
+        assertFalse(System.currentTimeMillis() >= startTime + 399, "Repository waited too long");
     }
 
     @Test
-    public void testGetTopicName() {
+    void testGetTopicName() {
         TopicBasedRepositoryImpl<ApplicationMetadata> repository = new TopicBasedRepositoryImpl<>("galapagos.testtopic",
                 "testtopic", ApplicationMetadata.class, sender);
         assertEquals("testtopic", repository.getTopicName());
     }
 
     @Test
-    public void testSave() throws Exception {
+    void testSave() throws Exception {
         TopicBasedRepositoryImpl<ApplicationMetadata> repository = new TopicBasedRepositoryImpl<>("galapagos.testtopic",
                 "testtopic", ApplicationMetadata.class, sender);
 
@@ -182,7 +182,7 @@ public class TopicBasedRepositoryImplTest {
     }
 
     @Test
-    public void testDelete() throws Exception {
+    void testDelete() throws Exception {
         TopicBasedRepositoryImpl<ApplicationMetadata> repository = new TopicBasedRepositoryImpl<>("galapagos.testtopic",
                 "testtopic", ApplicationMetadata.class, sender);
 

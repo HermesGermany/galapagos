@@ -13,14 +13,14 @@ import { LanguageTranslationModule } from '../../../shared/modules/language-tran
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { PageHeaderModule } from '../../../shared/modules';
+import { PageHeaderModule } from '../../../shared';
 import { of } from 'rxjs';
 import { By } from '@angular/platform-browser';
 import { Location } from '@angular/common';
-import { LoginComponent } from '../../../login/login.component';
 import { FormsModule } from '@angular/forms';
 import { SpinnerWhileModule } from '../../../shared/modules/spinner-while/spinner-while.module';
-import { KeycloakService } from 'keycloak-angular';
+import { AuthService } from '../../../shared/services/auth.service';
+import { MockAuthService } from '../../../shared/util/test-util';
 
 describe('SchemaSectionComponent', () => {
     let component: SchemaSectionComponent;
@@ -53,8 +53,7 @@ describe('SchemaSectionComponent', () => {
                 NgbModal,
                 Location,
                 TranslateService,
-                LoginComponent,
-                KeycloakService
+                { provide: AuthService, useClass: MockAuthService }
             ]
         }).compileComponents();
         fixture = TestBed.createComponent(SchemaSectionComponent);
@@ -93,8 +92,7 @@ describe('SchemaSectionComponent', () => {
 
         };
         component.topic = topic;
-        const keycloak = fixture.debugElement.injector.get(KeycloakService);
-        spyOn(keycloak, 'getUserRoles').and.returnValue(['admin']);
+        const auth = fixture.debugElement.injector.get(AuthService);
         fixture.detectChanges();
     }));
 

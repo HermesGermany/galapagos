@@ -1,19 +1,18 @@
 package com.hermesworld.ais.galapagos.request;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hermesworld.ais.galapagos.applications.ApplicationOwnerRequest;
 import com.hermesworld.ais.galapagos.applications.RequestState;
 import com.hermesworld.ais.galapagos.util.JsonUtil;
+import org.junit.jupiter.api.Test;
 
-public class ApplicationOwnerRequestTest {
+class ApplicationOwnerRequestTest {
 
     @Test
-    public void testApplicationOwnerRequestSerializable() throws Exception {
+    void testApplicationOwnerRequestSerializable() throws Exception {
         ObjectMapper mapper = JsonUtil.newObjectMapper();
 
         ApplicationOwnerRequest request = new ApplicationOwnerRequest();
