@@ -32,6 +32,7 @@ class KafkaSenderImplTest {
     private static KafkaExecutorFactory executorFactory = () -> {
         return Executors.newSingleThreadExecutor(tfDecoupled);
     };
+
     @Test
     void testSendDecoupling() throws Exception {
         KafkaFutureDecoupler decoupler = new KafkaFutureDecoupler(executorFactory);

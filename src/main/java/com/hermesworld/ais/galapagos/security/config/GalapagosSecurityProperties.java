@@ -44,9 +44,12 @@ public class GalapagosSecurityProperties implements Validator {
     public void validate(@NonNull Object target, @NonNull Errors errors) {
         // TODO remove, and replace by the NotEmpty annotations, once we do no longer want to provide this message.
         if (target instanceof GalapagosSecurityProperties properties) {
-            if (ObjectUtils.isEmpty(properties.getJwtRoleClaim()) || ObjectUtils.isEmpty(properties.getJwtUserNameClaim())
-                    || ObjectUtils.isEmpty(properties.getJwtDisplayNameClaim()) || ObjectUtils.isEmpty(properties.getJwtEmailClaim())) {
-                errors.reject("MISSING_OAUTH2_PROPERTIES", "Missing Galapagos OAuth2 properties. Maybe you did not perform required migration steps for Galapagos 2.8.0?\nPlease refer to https://github.com/HermesGermany/galapagos/blob/main/docs/Migration%20Guide%202.8.md");
+            if (ObjectUtils.isEmpty(properties.getJwtRoleClaim())
+                    || ObjectUtils.isEmpty(properties.getJwtUserNameClaim())
+                    || ObjectUtils.isEmpty(properties.getJwtDisplayNameClaim())
+                    || ObjectUtils.isEmpty(properties.getJwtEmailClaim())) {
+                errors.reject("MISSING_OAUTH2_PROPERTIES",
+                        "Missing Galapagos OAuth2 properties. Maybe you did not perform required migration steps for Galapagos 2.8.0?\nPlease refer to https://github.com/HermesGermany/galapagos/blob/main/docs/Migration%20Guide%202.8.md");
             }
         }
     }

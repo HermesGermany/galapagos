@@ -56,7 +56,7 @@ public class KafkaFutureDecoupler {
      * completes on a Thread provided by a fresh <code>ExecutorService</code> of the <code>KafkaExecutorFactory</code>
      * provided for this helper class.
      *
-     * @param <T>    Type of the value provided by the Future.
+     * @param <T>               Type of the value provided by the Future.
      * @param completableFuture Future which may be complete, or which may complete on the Kafka Thread.
      *
      * @return A completable Future which may be already complete if the original Future already was complete, or which
@@ -72,7 +72,6 @@ public class KafkaFutureDecoupler {
             }
         }));
     }
-
 
     /**
      * Returns a {@link CompletableFuture} which completes when the given {@link ListenableFuture} completes. If the
