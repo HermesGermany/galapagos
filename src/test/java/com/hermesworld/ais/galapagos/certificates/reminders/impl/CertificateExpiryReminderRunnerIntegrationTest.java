@@ -1,5 +1,6 @@
 package com.hermesworld.ais.galapagos.certificates.reminders.impl;
 
+import com.hermesworld.ais.galapagos.GalapagosTestConfig;
 import com.hermesworld.ais.galapagos.applications.ApplicationMetadata;
 import com.hermesworld.ais.galapagos.applications.ApplicationOwnerRequest;
 import com.hermesworld.ais.galapagos.applications.ApplicationsService;
@@ -10,6 +11,8 @@ import com.hermesworld.ais.galapagos.certificates.reminders.CertificateExpiryRem
 import com.hermesworld.ais.galapagos.certificates.reminders.CertificateExpiryReminderService;
 import com.hermesworld.ais.galapagos.certificates.reminders.ReminderType;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,10 +21,9 @@ import org.springframework.boot.actuate.autoconfigure.mail.MailHealthContributor
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.mail.javamail.JavaMailSender;
 
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
 import java.io.ByteArrayInputStream;
 import java.util.*;
 
@@ -37,6 +39,7 @@ import static org.mockito.Mockito.when;
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @EnableAutoConfiguration(exclude = { MailHealthContributorAutoConfiguration.class })
+@Import(GalapagosTestConfig.class)
 class CertificateExpiryReminderRunnerIntegrationTest {
 
     @MockBean
@@ -51,6 +54,7 @@ class CertificateExpiryReminderRunnerIntegrationTest {
     @MockBean
     private JavaMailSender mailSender;
 
+    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     private CertificateExpiryReminderRunner runner;
 

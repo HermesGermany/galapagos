@@ -1,5 +1,6 @@
 package com.hermesworld.ais.galapagos.topics.service.impl;
 
+import com.hermesworld.ais.galapagos.GalapagosTestConfig;
 import com.hermesworld.ais.galapagos.applications.ApplicationsService;
 import com.hermesworld.ais.galapagos.changes.ChangeData;
 import com.hermesworld.ais.galapagos.events.*;
@@ -37,6 +38,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -46,7 +48,7 @@ import static org.mockito.Mockito.when;
  * chained <code>markTopicDeprecated</code> and <code>unmarkTopicDeprecated</code> operations.
  */
 @SpringBootTest
-@Import(TopicServiceImplIntegrationTest.TestEventListener.class)
+@Import({ GalapagosTestConfig.class, TopicServiceImplIntegrationTest.TestEventListener.class })
 class TopicServiceImplIntegrationTest {
 
     @Autowired
@@ -103,7 +105,7 @@ class TopicServiceImplIntegrationTest {
     @AfterEach
     void shutdown() throws Exception {
         executorService.shutdown();
-        executorService.awaitTermination(1, TimeUnit.MINUTES);
+        assertTrue(executorService.awaitTermination(1, TimeUnit.MINUTES));
     }
 
     @Test
