@@ -22,8 +22,19 @@ import com.hermesworld.ais.galapagos.kafka.KafkaExecutorFactory;
 
 class KafkaSenderImplTest {
 
+    private static ThreadFactory tfDecoupled = new ThreadFactory() {
+        @Override
+        public Thread newThread(Runnable r) {
+            return new Thread(r, "decoupled-" + System.currentTimeMillis());
+        }
+    };
+
+    private static KafkaExecutorFactory executorFactory = () -> {
+        return Executors.newSingleThreadExecutor(tfDecoupled);
+    };
     @Test
     void testSendDecoupling() throws Exception {
+        KafkaFutureDecoupler decoupler = new KafkaFutureDecoupler(executorFactory);
 
         @SuppressWarnings("unchecked")
         Producer<String, String> producer = mock(Producer.class);
@@ -45,12 +56,12 @@ class KafkaSenderImplTest {
 
         KafkaTemplate<String, String> template = new KafkaTemplate<String, String>(factory);
 
-        KafkaSenderImpl sender = new KafkaSenderImpl(template);
+        KafkaSenderImpl sender = new KafkaSenderImpl(template, decoupler);
 
         StringBuilder threadName = new StringBuilder();
 
         sender.send("a", "b", "c").thenApply(o -> threadName.append(Thread.currentThread().getName())).get();
-        assertFalse(threadName.toString().startsWith("decoupled-"));
+        assertTrue(threadName.toString().startsWith("decoupled-"));
     }
 
 }
