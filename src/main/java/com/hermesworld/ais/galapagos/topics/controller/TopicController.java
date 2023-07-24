@@ -31,7 +31,6 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-import javax.validation.Valid;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
@@ -165,7 +164,7 @@ public class TopicController {
 
     @PostMapping(value = "/api/change-owner/{envId}/{topicName}")
     public void changeTopicOwner(@PathVariable String envId, @PathVariable String topicName,
-            @RequestBody @Valid ChangeTopicOwnerDto request) {
+                                 @RequestBody ChangeTopicOwnerDto request) {
         if (envId.isEmpty() || topicName.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
@@ -377,9 +376,9 @@ public class TopicController {
     @GetMapping(value = "/api/schema/check-for-delete/{environmentId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public Boolean checkIfSchemaCanBeDeleted(@PathVariable String environmentId) {
         //Is owner of topic
-        if (!applicationsService.isUserAuthorizedFor(topic.getOwnerApplicationId())) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
-        }
+//        if (!applicationsService.isUserAuthorizedFor(topic.getOwnerApplicationId())) {
+//            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+//        }
         boolean stagingOnly = kafkaEnvironments.getEnvironmentMetadata(environmentId).get().isStagingOnly();
         return !stagingOnly && schemaDeleteWithSub;
     }

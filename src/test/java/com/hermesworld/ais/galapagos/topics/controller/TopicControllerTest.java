@@ -55,6 +55,8 @@ class TopicControllerTest {
 
     private TopicBasedRepositoryMock<TopicMetadata> topicRepository;
 
+    private Boolean schemaDeleteWithSub;
+
     @BeforeEach
     void feedMocks() {
         kafkaClusters = mock(KafkaClusters.class);
