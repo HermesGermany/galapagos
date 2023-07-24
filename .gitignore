@@ -25,6 +25,9 @@ devsetup/ccloud/
 /demo/kube-ip.conf
 /demo/.demofiles
 
+/application-npr.yml
+/keycloak-npr.json
+
 # IDEA files
 /.idea
 galapagos.iml

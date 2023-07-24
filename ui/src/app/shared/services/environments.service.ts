@@ -107,6 +107,13 @@ export class EnvironmentsService {
         );
     };
 
+    public checkDeletion(isLatest: boolean, isOwnerOfTopic: boolean, topicSubscribersLength: number,environmentId: string){
+        selectedSchemaVersion.isLatest && isOwnerOfTopic && !existSchemaOnNextVersion && (topicSubscribers?.length === 0
+        return firstValueFrom(
+            this.http.get<boolean>('/api/schema/check-for-delete/' + environmentId+'/')
+        )
+    }
+
     /**public getNextStage(environment: KafkaEnvironment): Promise<string> {
         return firstValueFrom(
             this.http.get<{ nextStage: string }>('/api/environments/' + environment.id + '/next-stage')

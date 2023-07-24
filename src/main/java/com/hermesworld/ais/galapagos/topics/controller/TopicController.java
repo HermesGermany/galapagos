@@ -23,6 +23,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.KafkaException;
 import org.apache.kafka.common.header.Header;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -64,15 +65,19 @@ public class TopicController {
 
     private static final int PEEK_LIMIT = 100;
 
+    private final Boolean schemaDeleteWithSub;
+
+    //TODO testcases
     @Autowired
     public TopicController(ValidatingTopicService topicService, KafkaClusters kafkaEnvironments,
-                           ApplicationsService applicationsService, NamingService namingService, StagingService stagingService, CurrentUserService userService) {
+                           ApplicationsService applicationsService, NamingService namingService, StagingService stagingService, CurrentUserService userService, @Value("${info.toggles.schemaDeleteWithSub}") Boolean schemaDeleteWithSub) {
         this.topicService = topicService;
         this.kafkaEnvironments = kafkaEnvironments;
         this.applicationsService = applicationsService;
         this.namingService = namingService;
         this.stagingService = stagingService;
         this.userService = userService;
+        this.schemaDeleteWithSub = schemaDeleteWithSub;
     }
 
     @GetMapping(value = "/api/topics/{environmentId}", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -368,11 +373,18 @@ public class TopicController {
         throw notFound.get();
     }
 
-//    @GetMapping(value = "/api/schema/check-for-delete/{environmentId}/{topicName}", produces = MediaType.APPLICATION_JSON_VALUE)
-//    public Map<String, Boolean> checkIfSchemaCanBeDeleted(@PathVariable String environmentId, @PathVariable String topicName) {
-//
-//    }
+    //Check if latest Schema can be deleted -> latest kann im frontend gecheckt werden
+    @GetMapping(value = "/api/schema/check-for-delete/{environmentId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public Boolean checkIfSchemaCanBeDeleted(@PathVariable String environmentId) {
+        //Is owner of topic
+        if (!applicationsService.isUserAuthorizedFor(topic.getOwnerApplicationId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
+        boolean stagingOnly = kafkaEnvironments.getEnvironmentMetadata(environmentId).get().isStagingOnly();
+        return !stagingOnly && schemaDeleteWithSub;
+    }
 
+    //TODO vermutlich löschen
     @GetMapping(value = "/api/schema/check-next-stage/{environmentId}/{topicName}", produces = MediaType.APPLICATION_JSON_VALUE)
     public Map<Integer, Boolean> checkIfSchemaExistsOnNextStage(@PathVariable String environmentId, @PathVariable String topicName) {
         List<SchemaMetadata> schemaMetadata = topicService.getTopicSchemaVersions(environmentId, topicName);

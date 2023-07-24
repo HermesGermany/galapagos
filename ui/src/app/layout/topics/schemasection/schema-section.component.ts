@@ -150,6 +150,7 @@ export class SchemaSectionComponent implements OnInit, OnChanges {
             .getTopicSchemas(topic.name, environmentId)
             .then(schemas => schemas.reverse())
             .then(schemas => {
+                this.environmentsService.getEnvironments();
                 this.selectedSchemaVersion = schemas.length ? schemas[0] : null;
                 if (this.selectedSchemaVersion) {
                     this.nextStageSchemasMap = this.environmentsService.checkIfSchemaCanGetDeleted(environmentId, this.topic);
