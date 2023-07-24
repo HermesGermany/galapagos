@@ -14,20 +14,20 @@ import com.hermesworld.ais.galapagos.topics.TopicMetadata;
 import com.hermesworld.ais.galapagos.topics.TopicType;
 import com.hermesworld.ais.galapagos.topics.service.TopicService;
 import com.hermesworld.ais.galapagos.util.FutureUtil;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-public class NotificationEventListenerTest {
+class NotificationEventListenerTest {
 
     private NotificationEventListener listener;
 
@@ -35,8 +35,8 @@ public class NotificationEventListenerTest {
 
     private GalapagosEventContext context;
 
-    @Before
-    public void feedMocks() {
+    @BeforeEach
+    void feedMocks() {
 
         notificationService = spy(mock(NotificationService.class));
         KafkaClusters kafkaClusters = mock(KafkaClusters.class);
@@ -58,7 +58,7 @@ public class NotificationEventListenerTest {
     }
 
     @Test
-    public void testHandleTopicDeprecated() {
+    void testHandleTopicDeprecated() {
         AtomicInteger sendCalled = new AtomicInteger();
         when(notificationService.notifySubscribers(any(), any(), any(), any())).then(inv -> {
             sendCalled.incrementAndGet();
@@ -69,11 +69,11 @@ public class NotificationEventListenerTest {
         listener.handleTopicDeprecated(buildTestEvent("test2"));
         listener.handleTopicDeprecated(buildTestEvent("prod"));
 
-        assertEquals("Deprecation mail should only be sent for production environment", 1, sendCalled.get());
+        assertEquals(1, sendCalled.get(), "Deprecation mail should only be sent for production environment");
     }
 
     @Test
-    public void testHandleTopicUndeprecated() {
+    void testHandleTopicUndeprecated() {
         AtomicInteger sendCalled = new AtomicInteger();
         when(notificationService.notifySubscribers(any(), any(), any(), any())).then(inv -> {
             sendCalled.incrementAndGet();
@@ -84,11 +84,11 @@ public class NotificationEventListenerTest {
         listener.handleTopicUndeprecated(buildTestEvent("test2"));
         listener.handleTopicUndeprecated(buildTestEvent("prod"));
 
-        assertEquals("Undeprecation mail should only be sent for production environment", 1, sendCalled.get());
+        assertEquals(1, sendCalled.get(), "Undeprecation mail should only be sent for production environment");
     }
 
     @Test
-    public void testHandleSchemaChangeDesc() throws ExecutionException, InterruptedException {
+    void testHandleSchemaChangeDesc() throws ExecutionException, InterruptedException {
 
         TopicMetadata metadata = new TopicMetadata();
         metadata.setName("testtopic");

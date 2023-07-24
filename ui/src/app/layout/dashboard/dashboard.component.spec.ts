@@ -11,8 +11,7 @@ import { Location } from '@angular/common';
 import { RouterTestingModule } from '@angular/router/testing';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { firstValueFrom, of } from 'rxjs';
-import { LoginComponent } from '../../login/login.component';
-import { PageHeaderModule } from '../../shared/modules';
+import { PageHeaderModule } from '../../shared';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { By } from '@angular/platform-browser';
 import { LanguageTranslationModule } from '../../shared/modules/language-translation/language-translation.module';
@@ -39,8 +38,7 @@ describe('DashboardComponent', () => {
                 ApplicationsService,
                 ServerInfoService,
                 Location,
-                TranslateService,
-                LoginComponent
+                TranslateService
             ]
         }).compileComponents();
 

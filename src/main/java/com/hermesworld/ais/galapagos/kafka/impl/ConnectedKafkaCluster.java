@@ -24,7 +24,7 @@ import org.apache.kafka.common.errors.WakeupException;
 import org.apache.kafka.common.resource.PatternType;
 import org.apache.kafka.common.resource.ResourcePatternFilter;
 import org.apache.kafka.common.resource.ResourceType;
-import org.springframework.util.StringUtils;
+import org.springframework.util.ObjectUtils;
 
 import java.time.Duration;
 import java.util.*;
@@ -101,8 +101,8 @@ public class ConnectedKafkaCluster implements KafkaCluster {
         if (user.getKafkaUserName() == null) {
             return FutureUtil.noop();
         }
-        return toCompletableFuture(adminClient
-                .deleteAcls(Collections.singletonList(userAclFilter(user.getKafkaUserName(), ResourceType.ANY))).all())
+        return toCompletableFuture(
+                adminClient.deleteAcls(List.of(userAclFilter(user.getKafkaUserName(), ResourceType.ANY))).all())
                         .thenApply(o -> null);
     }
 
@@ -134,7 +134,7 @@ public class ConnectedKafkaCluster implements KafkaCluster {
         NewTopic newTopic = new NewTopic(topicName, topicCreateParams.getNumberOfPartitions(),
                 (short) topicCreateParams.getReplicationFactor()).configs(topicCreateParams.getTopicConfigs());
 
-        return toCompletableFuture(this.adminClient.createTopics(Collections.singleton(newTopic)).all());
+        return toCompletableFuture(this.adminClient.createTopics(Set.of(newTopic)).all());
     }
 
     @Override
@@ -143,10 +143,10 @@ public class ConnectedKafkaCluster implements KafkaCluster {
                 new ResourcePatternFilter(ResourceType.TOPIC, topicName, PatternType.LITERAL),
                 new AccessControlEntryFilter(null, null, AclOperation.ANY, AclPermissionType.ANY));
 
-        KafkaFuture<Void> deleteTopicFuture = this.adminClient.deleteTopics(Collections.singleton(topicName)).all();
+        KafkaFuture<Void> deleteTopicFuture = this.adminClient.deleteTopics(Set.of(topicName)).all();
 
         return toCompletableFuture(deleteTopicFuture)
-                .thenCompose(o -> toCompletableFuture(adminClient.deleteAcls(Collections.singleton(aclFilter)).all()))
+                .thenCompose(o -> toCompletableFuture(adminClient.deleteAcls(Set.of(aclFilter)).all()))
                 .thenApply(o -> null);
     }
 
@@ -154,7 +154,7 @@ public class ConnectedKafkaCluster implements KafkaCluster {
     public CompletableFuture<Set<TopicConfigEntry>> getTopicConfig(String topicName) {
         ConfigResource cres = new ConfigResource(ConfigResource.Type.TOPIC, topicName);
 
-        return toCompletableFuture(adminClient.describeConfigs(Collections.singleton(cres)).all())
+        return toCompletableFuture(adminClient.describeConfigs(Set.of(cres)).all())
                 .thenApply(map -> map.getOrDefault(cres, new Config(Collections.emptyList())).entries().stream()
                         .map(entry -> new TopicConfigEntryImpl(entry)).collect(Collectors.toSet()));
     }
@@ -165,11 +165,10 @@ public class ConnectedKafkaCluster implements KafkaCluster {
             if (nodes.isEmpty()) {
                 return CompletableFuture.failedFuture(new KafkaException("No nodes in cluster"));
             }
-            return toCompletableFuture(
-                    adminClient
-                            .describeConfigs(Collections.singleton(
-                                    new ConfigResource(ConfigResource.Type.BROKER, "" + nodes.iterator().next().id())))
-                            .all());
+            return toCompletableFuture(adminClient
+                    .describeConfigs(
+                            Set.of(new ConfigResource(ConfigResource.Type.BROKER, "" + nodes.iterator().next().id())))
+                    .all());
         }).thenApply(map -> KafkaTopicConfigHelper.getTopicDefaultValues(map.values().iterator().next()));
     }
 
@@ -179,9 +178,7 @@ public class ConnectedKafkaCluster implements KafkaCluster {
                 .collect(Collectors.toSet()));
 
         return toCompletableFuture(adminClient
-                .alterConfigs(
-                        Collections.singletonMap(new ConfigResource(ConfigResource.Type.TOPIC, topicName), config))
-                .all());
+                .alterConfigs(Map.of(new ConfigResource(ConfigResource.Type.TOPIC, topicName), config)).all());
     }
 
     @Override
@@ -191,7 +188,7 @@ public class ConnectedKafkaCluster implements KafkaCluster {
 
     @Override
     public CompletableFuture<TopicCreateParams> buildTopicCreateParams(String topicName) {
-        return toCompletableFuture(adminClient.describeTopics(Collections.singleton(topicName)).all())
+        return toCompletableFuture(adminClient.describeTopics(Set.of(topicName)).all())
                 .thenCompose(map -> buildCreateTopicParams(map.get(topicName)));
     }
 
@@ -203,7 +200,7 @@ public class ConnectedKafkaCluster implements KafkaCluster {
 
         Runnable r = () -> {
             KafkaConsumer<String, String> consumer = kafkaConsumerFactory.newConsumer();
-            consumer.subscribe(Collections.singleton(topicName), new ConsumerRebalanceListener() {
+            consumer.subscribe(Set.of(topicName), new ConsumerRebalanceListener() {
                 @Override
                 public void onPartitionsRevoked(Collection<TopicPartition> partitions) {
                 }
@@ -267,7 +264,7 @@ public class ConnectedKafkaCluster implements KafkaCluster {
     }
 
     private CompletableFuture<Collection<AclBinding>> getUserAcls(String username) {
-        if (StringUtils.isEmpty(username)) {
+        if (ObjectUtils.isEmpty(username)) {
             return CompletableFuture.completedFuture(List.of());
         }
         return toCompletableFuture(adminClient.describeAcls(userAclFilter(username, ResourceType.ANY)).values());
@@ -291,7 +288,7 @@ public class ConnectedKafkaCluster implements KafkaCluster {
             String nodeName = coll.iterator().next().idString();
 
             return toCompletableFuture(adminClient.describeConfigs(
-                    Collections.singleton(new ConfigResource(Type.BROKER, nodeName))).all()).thenApply(map -> map
+                    Set.of(new ConfigResource(Type.BROKER, nodeName))).all()).thenApply(map -> map
                             .values().stream()
                             .map(config -> config.get("inter.broker.protocol.version") == null ? "UNKNOWN_VERSION"
                                     : config.get("inter.broker.protocol.version").value())

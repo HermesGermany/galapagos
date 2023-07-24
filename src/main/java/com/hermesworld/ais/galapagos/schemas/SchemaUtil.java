@@ -89,8 +89,10 @@ public final class SchemaUtil {
     private static void verifyCompatibleTo(ObjectSchema oldSchema, ObjectSchema newSchema, String prefix)
             throws IncompatibleSchemaException {
         if (!oldSchema.permitsAdditionalProperties() && newSchema.permitsAdditionalProperties()) {
-            throw new IncompatibleSchemaException("additionalProperties must not be introduced "
-                    + "in a newer schema version (old consumers could rely on no additional properties being present)");
+            throw new IncompatibleSchemaException("""
+                    additionalProperties must not be introduced \
+                    in a newer schema version (old consumers could rely on no additional properties being present)\
+                    """);
         }
 
         // required properties must still be required

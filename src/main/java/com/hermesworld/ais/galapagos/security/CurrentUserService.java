@@ -4,12 +4,17 @@ import java.util.Optional;
 
 public interface CurrentUserService {
 
-    public Optional<String> getCurrentUserName();
+    Optional<String> getCurrentUserName();
 
-    public Optional<AuditPrincipal> getCurrentPrincipal();
+    Optional<AuditPrincipal> getCurrentPrincipal();
 
-    public Optional<String> getCurrentUserEmailAddress();
+    Optional<String> getCurrentUserEmailAddress();
 
-    public boolean isAdmin();
+    /**
+     * Checks from the Security Context, if the current user has the role of an Administrator
+     *
+     * @return <code>true</code> if the current user has the role of an Administrator, <code>false</code> otherwise
+     */
+    boolean isAdmin();
 
 }

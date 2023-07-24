@@ -11,7 +11,6 @@ import com.hermesworld.ais.galapagos.topics.config.GalapagosTopicConfig;
 import com.hermesworld.ais.galapagos.topics.service.TopicService;
 import com.hermesworld.ais.galapagos.topics.service.ValidatingTopicService;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
@@ -45,7 +44,6 @@ public class ValidatingTopicServiceImpl implements ValidatingTopicService {
 
     private final boolean schemaDeleteWithSub;
 
-    @Autowired
     public ValidatingTopicServiceImpl(@Qualifier(value = "nonvalidating") TopicService topicService,
             SubscriptionService subscriptionService, ApplicationsService applicationsService,
             KafkaClusters kafkaClusters, GalapagosTopicConfig topicConfig,

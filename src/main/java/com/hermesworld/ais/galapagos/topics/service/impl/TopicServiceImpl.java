@@ -26,7 +26,6 @@ import org.everit.json.schema.SchemaException;
 import org.everit.json.schema.loader.SchemaLoader;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
@@ -62,7 +61,6 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
 
     static final String SCHEMA_TOPIC_NAME = "schemas";
 
-    @Autowired
     public TopicServiceImpl(KafkaClusters kafkaClusters, ApplicationsService applicationsService,
             NamingService namingService, CurrentUserService userService, GalapagosTopicConfig topicSettings,
             GalapagosEventManager eventManager) {
@@ -360,9 +358,10 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
         }
 
         if (schemaOnNextStage != null) {
-            return CompletableFuture.failedFuture(
-                    new IllegalStateException("The selected schema already exists on the next stage! To delete "
-                            + "this schema you have to delete it there first!"));
+            return CompletableFuture.failedFuture(new IllegalStateException("""
+                    The selected schema already exists on the next stage! To delete \
+                    this schema you have to delete it there first!\
+                    """));
         }
 
         GalapagosEventSink eventSink = eventManager.newEventSink(kafkaCluster);
@@ -418,9 +417,11 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
 
         if (newSchema.definesProperty("data")
                 && (metadata.getType() == TopicType.EVENTS || metadata.getType() == TopicType.COMMANDS)) {
-            return CompletableFuture.failedFuture(
-                    new IllegalArgumentException("The JSON Schema must not declare a \"data\" object on first level."
-                            + " The JSON Schema must not contain the CloudEvents fields, but only the contents of the \"data\" field."));
+            return CompletableFuture.failedFuture(new IllegalArgumentException(
+                    """
+                            The JSON Schema must not declare a "data" object on first level.\
+                             The JSON Schema must not contain the CloudEvents fields, but only the contents of the "data" field.\
+                            """));
         }
 
         if (existingVersions.isEmpty() && schemaMetadata.getSchemaVersion() != 1) {

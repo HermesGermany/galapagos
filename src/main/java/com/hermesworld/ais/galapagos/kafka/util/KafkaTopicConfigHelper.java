@@ -1,7 +1,6 @@
 package com.hermesworld.ais.galapagos.kafka.util;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -87,9 +86,9 @@ public class KafkaTopicConfigHelper {
                                                 .valueOf(TimeUnit.MINUTES.toMillis(Long.valueOf(minutes, 10)))),
                                 new SecondaryServerProp("log.retention.hours", hoursToMillis)));
         SECONDARY_SERVER_PROPS.put(TopicConfig.SEGMENT_MS_CONFIG,
-                Collections.singletonList(new SecondaryServerProp("log.roll.hours", hoursToMillis)));
+                List.of(new SecondaryServerProp("log.roll.hours", hoursToMillis)));
         SECONDARY_SERVER_PROPS.put(TopicConfig.SEGMENT_JITTER_MS_CONFIG,
-                Collections.singletonList(new SecondaryServerProp("log.roll.jitter.hours", hoursToMillis)));
+                List.of(new SecondaryServerProp("log.roll.jitter.hours", hoursToMillis)));
     }
 
     private KafkaTopicConfigHelper() {

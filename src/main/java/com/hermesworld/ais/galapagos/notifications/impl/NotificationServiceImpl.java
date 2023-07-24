@@ -11,7 +11,6 @@ import com.hermesworld.ais.galapagos.topics.service.TopicService;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.task.TaskExecutor;
@@ -19,14 +18,15 @@ import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.thymeleaf.ITemplateEngine;
 import org.thymeleaf.context.Context;
 
-import javax.mail.MessagingException;
-import javax.mail.internet.AddressException;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.AddressException;
+import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeMessage;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -51,7 +51,6 @@ public class NotificationServiceImpl implements NotificationService {
 
     private final List<InternetAddress> adminMailRecipients;
 
-    @Autowired
     public NotificationServiceImpl(SubscriptionService subscriptionService, ApplicationsService applicationsService,
             TopicService topicService, JavaMailSender mailSender, TaskExecutor taskExecutor,
             @Qualifier("emailTemplateEngine") ITemplateEngine templateEngine,
@@ -236,7 +235,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     private static List<InternetAddress> toRecipientsList(String recipients) throws AddressException {
-        if (StringUtils.isEmpty(recipients)) {
+        if (ObjectUtils.isEmpty(recipients)) {
             return Collections.emptyList();
         }
 

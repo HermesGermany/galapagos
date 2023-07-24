@@ -7,7 +7,7 @@ import { firstValueFrom, Observable } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ServerInfoService } from '../../../shared/services/serverinfo.service';
-import { KeycloakService } from 'keycloak-angular';
+import { AuthService } from '../../../shared/services/auth.service';
 
 @Component({
     selector: 'app-schema-section',
@@ -44,7 +44,7 @@ export class SchemaSectionComponent implements OnInit, OnChanges {
 
     schemaDeleteWithSub: Observable<boolean>;
 
-    isAdmin = false;
+    isAdmin: Observable<boolean>;
 
     skipCompatCheck = false;
 
@@ -59,9 +59,10 @@ export class SchemaSectionComponent implements OnInit, OnChanges {
         private toasts: ToastService,
         private modalService: NgbModal,
         private serverInfo: ServerInfoService,
-        private keycloakService: KeycloakService
+        authService: AuthService
     ) {
         this.currentText = translateService.stream('(current)');
+        this.isAdmin = authService.admin;
     }
 
     ngOnInit(): void {
@@ -76,8 +77,6 @@ export class SchemaSectionComponent implements OnInit, OnChanges {
             .pipe(map(info => info.toggles.schemaDeleteWithSub === 'true')).pipe(shareReplay(1));
 
         this.selectedEnvironment = this.environmentsService.getCurrentEnvironment();
-
-        this.isAdmin = this.keycloakService.getUserRoles().some(role => role === 'admin');
     }
 
     async ngOnChanges(changes: SimpleChanges) {

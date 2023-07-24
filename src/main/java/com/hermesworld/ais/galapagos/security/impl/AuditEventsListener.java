@@ -7,7 +7,6 @@ import com.hermesworld.ais.galapagos.security.GalapagosAuditEventType;
 import com.hermesworld.ais.galapagos.subscriptions.SubscriptionMetadata;
 import com.hermesworld.ais.galapagos.topics.TopicMetadata;
 import com.hermesworld.ais.galapagos.util.FutureUtil;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.audit.AuditEvent;
 import org.springframework.boot.actuate.audit.AuditEventRepository;
 import org.springframework.stereotype.Component;
@@ -27,7 +26,6 @@ public class AuditEventsListener implements TopicEventsListener, SubscriptionEve
 
     private static final String NAME = "name";
 
-    @Autowired
     public AuditEventsListener(AuditEventRepository auditRepository) {
         this.auditRepository = auditRepository;
     }

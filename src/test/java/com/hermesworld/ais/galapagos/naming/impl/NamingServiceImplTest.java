@@ -9,17 +9,17 @@ import com.hermesworld.ais.galapagos.naming.config.CaseStrategy;
 import com.hermesworld.ais.galapagos.naming.config.NamingConfig;
 import com.hermesworld.ais.galapagos.naming.config.TopicNamingConfig;
 import com.hermesworld.ais.galapagos.topics.TopicType;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.Set;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class NamingServiceImplTest {
+class NamingServiceImplTest {
 
     private AdditionNamingRules rules;
 
@@ -31,8 +31,8 @@ public class NamingServiceImplTest {
 
     private BusinessCapability cap2;
 
-    @Before
-    public void feedMocks() {
+    @BeforeEach
+    void feedMocks() {
         rules = new AdditionNamingRules();
         rules.setAllowedSeparators(".");
         rules.setAllowPascalCase(true);
@@ -63,7 +63,7 @@ public class NamingServiceImplTest {
     }
 
     @Test
-    public void testAllowInternalTopicNamesForConsumerGroups() {
+    void testAllowInternalTopicNamesForConsumerGroups() {
         config.setAllowInternalTopicNamesAsConsumerGroups(true);
         NamingServiceImpl service = new NamingServiceImpl(config);
         ApplicationPrefixes prefixes = service.getAllowedPrefixes(app);
@@ -85,7 +85,7 @@ public class NamingServiceImplTest {
     }
 
     @Test
-    public void testGetTopicNameSuggestion() {
+    void testGetTopicNameSuggestion() {
         NamingServiceImpl service = new NamingServiceImpl(config);
 
         assertEquals("de.hlg.events.orders.my-topic", service.getTopicNameSuggestion(TopicType.EVENTS, app, cap1));
@@ -100,7 +100,7 @@ public class NamingServiceImplTest {
     }
 
     @Test
-    public void testGetAllowedPrefixes() {
+    void testGetAllowedPrefixes() {
         when(app.getAliases()).thenReturn(Set.of("tt"));
 
         NamingServiceImpl service = new NamingServiceImpl(config);
@@ -131,7 +131,7 @@ public class NamingServiceImplTest {
     }
 
     @Test
-    public void testValidateTopicName() throws InvalidTopicNameException {
+    void testValidateTopicName() throws InvalidTopicNameException {
         NamingServiceImpl service = new NamingServiceImpl(config);
 
         service.validateTopicName("de.hlg.events.orders.my-custom-order", TopicType.EVENTS, app);
@@ -173,7 +173,7 @@ public class NamingServiceImplTest {
     }
 
     @Test
-    public void testNormalize_simpleCases() {
+    void testNormalize_simpleCases() {
         NamingConfig config = mock(NamingConfig.class);
         when(config.getNormalizationStrategy()).thenReturn(CaseStrategy.PASCAL_CASE);
 
@@ -194,7 +194,7 @@ public class NamingServiceImplTest {
     }
 
     @Test
-    public void testNormalize_lead_trail() {
+    void testNormalize_lead_trail() {
         NamingConfig config = mock(NamingConfig.class);
         when(config.getNormalizationStrategy()).thenReturn(CaseStrategy.KEBAB_CASE);
         NamingServiceImpl service = new NamingServiceImpl(config);
@@ -206,7 +206,7 @@ public class NamingServiceImplTest {
     }
 
     @Test
-    public void testNormalize_localization() {
+    void testNormalize_localization() {
         NamingConfig config = mock(NamingConfig.class);
         when(config.getNormalizationStrategy()).thenReturn(CaseStrategy.KEBAB_CASE);
         NamingServiceImpl service = new NamingServiceImpl(config);

@@ -13,12 +13,11 @@ import com.hermesworld.ais.galapagos.subscriptions.SubscriptionState;
 import com.hermesworld.ais.galapagos.topics.service.TopicService;
 import com.hermesworld.ais.galapagos.util.FutureUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
@@ -60,7 +59,6 @@ public class NotificationEventListener
 
     private static final String IS_ADMIN_KEY = NotificationEventListener.class.getName() + "_isAdmin";
 
-    @Autowired
     public NotificationEventListener(NotificationService notificationService, ApplicationsService applicationsService,
             TopicService topicService, CurrentUserService userService, KafkaClusters kafkaClusters) {
         this.notificationService = notificationService;

@@ -21,7 +21,8 @@
             <i class="fa fa-fw fas fa-external-link-alt"></i>
             <span>{{ 'Staging' | translate }}</span>
         </a>
-        <a id="adminSection" *ngIf="isAdmin" [routerLink]="['/admin']" [routerLinkActive]="['router-link-active']"
+        <a id="adminSection" *ngIf="isAdmin | async" [routerLink]="['/admin']"
+           [routerLinkActive]="['router-link-active']"
            class="list-group-item">
             <i class="fa fa-fw fas fa-crown"></i>
             <span>{{ 'Administration' | translate }}</span>

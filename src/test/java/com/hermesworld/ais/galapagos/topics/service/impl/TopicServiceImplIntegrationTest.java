@@ -1,5 +1,6 @@
 package com.hermesworld.ais.galapagos.topics.service.impl;
 
+import com.hermesworld.ais.galapagos.GalapagosTestConfig;
 import com.hermesworld.ais.galapagos.applications.ApplicationsService;
 import com.hermesworld.ais.galapagos.changes.ChangeData;
 import com.hermesworld.ais.galapagos.events.*;
@@ -14,10 +15,9 @@ import com.hermesworld.ais.galapagos.topics.TopicType;
 import com.hermesworld.ais.galapagos.topics.config.GalapagosTopicConfig;
 import com.hermesworld.ais.galapagos.util.FutureUtil;
 import com.hermesworld.ais.galapagos.util.HasKey;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -26,7 +26,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -38,7 +37,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -47,10 +47,9 @@ import static org.mockito.Mockito.when;
  * Tests that Security Context data is passed correctly to event context, even when performing the quite complex,
  * chained <code>markTopicDeprecated</code> and <code>unmarkTopicDeprecated</code> operations.
  */
-@RunWith(SpringRunner.class)
 @SpringBootTest
-@Import(TopicServiceImplIntegrationTest.TestEventListener.class)
-public class TopicServiceImplIntegrationTest {
+@Import({ GalapagosTestConfig.class, TopicServiceImplIntegrationTest.TestEventListener.class })
+class TopicServiceImplIntegrationTest {
 
     @Autowired
     private CurrentUserService currentUserService;
@@ -78,8 +77,8 @@ public class TopicServiceImplIntegrationTest {
     private final TopicBasedRepositoryMock<TopicMetadata> topicRepository2 = new DecoupledTopicBasedRepositoryMock<>(
             executorService);
 
-    @Before
-    public void feedMocks() {
+    @BeforeEach
+    void feedMocks() {
         KafkaCluster cluster1 = mock(KafkaCluster.class);
         KafkaCluster cluster2 = mock(KafkaCluster.class);
 
@@ -103,14 +102,14 @@ public class TopicServiceImplIntegrationTest {
         when(notificationService.notifySubscribers(any(), any(), any(), any())).thenReturn(FutureUtil.noop());
     }
 
-    @After
-    public void shutdown() throws Exception {
+    @AfterEach
+    void shutdown() throws Exception {
         executorService.shutdown();
-        executorService.awaitTermination(1, TimeUnit.MINUTES);
+        assertTrue(executorService.awaitTermination(1, TimeUnit.MINUTES));
     }
 
     @Test
-    public void testTopicDeprecated_passesCurrentUser() throws Exception {
+    void testTopicDeprecated_passesCurrentUser() throws Exception {
         ApplicationsService applicationsService = mock(ApplicationsService.class);
         NamingService namingService = mock(NamingService.class);
         GalapagosTopicConfig topicSettings = mock(GalapagosTopicConfig.class);
@@ -145,7 +144,7 @@ public class TopicServiceImplIntegrationTest {
     }
 
     @Test
-    public void testTopicUndeprecated_passesCurrentUser() throws Exception {
+    void testTopicUndeprecated_passesCurrentUser() throws Exception {
         ApplicationsService applicationsService = mock(ApplicationsService.class);
         NamingService namingService = mock(NamingService.class);
         GalapagosTopicConfig topicSettings = mock(GalapagosTopicConfig.class);

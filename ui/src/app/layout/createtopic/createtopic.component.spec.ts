@@ -2,7 +2,6 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { LanguageTranslationModule } from '../../shared/modules/language-translation/language-translation.module';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
-import { KeycloakService } from 'keycloak-angular';
 import { ToastService } from '../../shared/modules/toast/toast.service';
 import { EnvironmentsService } from '../../shared/services/environments.service';
 import { ApplicationsService } from '../../shared/services/applications.service';
@@ -17,6 +16,8 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterTestingModule } from '@angular/router/testing';
 import { ApiKeyService } from '../../shared/services/apikey.service';
 import { CertificateService } from '../../shared/services/certificates.service';
+import { AuthService } from '../../shared/services/auth.service';
+import { MockAuthService } from '../../shared/util/test-util';
 
 describe('CreateTopicComponent', () => {
     let component: CreateTopicComponent;
@@ -36,7 +37,7 @@ describe('CreateTopicComponent', () => {
             ],
             declarations: [CreateTopicComponent],
             providers: [TranslateService,
-                KeycloakService,
+                { provide: AuthService, useClass: MockAuthService },
                 ToastService,
                 TopicsService,
                 ApiKeyService,

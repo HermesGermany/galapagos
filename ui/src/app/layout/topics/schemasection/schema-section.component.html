@@ -57,7 +57,7 @@
                                    [dismissible]="false">
                             <p [innerHTML]="'SKIP_COMPAT_CHECK_WARNING' | translate"></p>
                         </ngb-alert>
-                        <div *ngIf="isAdmin && (topicSchemas | async)?.length" class="checkbox">
+                        <div *ngIf="(isAdmin | async) && (topicSchemas | async)?.length" class="checkbox">
                             <label>
                                 <input type="checkbox"
                                        [(ngModel)]="skipCompatCheck"> {{ 'Skip compatibility check' | translate }}

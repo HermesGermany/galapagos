@@ -15,9 +15,9 @@ import com.hermesworld.ais.galapagos.security.CurrentUserService;
 import com.hermesworld.ais.galapagos.util.TimeService;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import java.io.IOException;
@@ -55,7 +55,6 @@ public class ApplicationsServiceImpl implements ApplicationsService, InitPerClus
     private static final Comparator<ApplicationOwnerRequest> requestComparator = (r1, r2) -> r2.getLastStatusChangeAt()
             .compareTo(r1.getLastStatusChangeAt());
 
-    @Autowired
     public ApplicationsServiceImpl(KafkaClusters kafkaClusters, CurrentUserService currentUserService,
             TimeService timeService, NamingService namingService, GalapagosEventManager eventManager) {
         this.kafkaClusters = kafkaClusters;
@@ -257,7 +256,7 @@ public class ApplicationsServiceImpl implements ApplicationsService, InitPerClus
 
         if (existing != null) {
             String json = existing.getAuthenticationJson();
-            if (!StringUtils.isEmpty(json)) {
+            if (!ObjectUtils.isEmpty(json)) {
                 updateOrCreateFuture = authModule.updateApplicationAuthentication(applicationId, applicationName,
                         registerParams, new JSONObject(json));
             }
