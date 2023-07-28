@@ -8,19 +8,18 @@
                          *ngIf="(topicSchemas | async)?.length && !editSchemaMode">
                         <label for="schemaVersion">{{ 'Schema Version' | translate }}</label>
                         <select class="form-select w-auto ms-3" id="schemaVersion" name="schemaVersion"
-                                [(ngModel)]="selectedSchemaVersion"
-                                (ngModelChange)="checkIfSchemaVersionExistsOnNextVersion()">
+                                [(ngModel)]="selectedSchemaVersion">
                             <option *ngFor="let schema of topicSchemas | async"
                                     [ngValue]="schema">{{ schema.schemaVersion }}{{ schema.isLatest ? ' ' + (currentText | async) : ''}}</option>
                         </select>
                         <button id="schemaDeleteButton" appSpinnerWhile
                                 #p="appSpinnerWhile" (click)="(openDeleteConfirmDlg(deleteLatestSchemaDlg))"
                                 class="btn btn-danger ms-3"
-                                *ngIf="selectedSchemaVersion.isLatest && isOwnerOfTopic && !existSchemaOnNextVersion && (topicSubscribers?.length === 0
-                                || (!(selectedEnvironment | async)?.stagingOnly && (schemaDeleteWithSub | async) ))">
+                                *ngIf="canDeleteSchemaMap.get(selectedSchemaVersion.schemaVersion)">
                             <i class="fas fa-trash me-3"></i>{{ 'Delete Schema' | translate }}
                         </button>
                     </div>
+
                     <p
                         *ngIf=" (topicSchemas | async)?.length > 1 && !editSchemaMode
                         && selectedSchemaVersion.schemaVersion > 1 && selectedSchemaVersion.changeDescription">

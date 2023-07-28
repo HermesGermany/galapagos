@@ -13,6 +13,7 @@ import com.hermesworld.ais.galapagos.naming.NamingService;
 import com.hermesworld.ais.galapagos.schemas.IncompatibleSchemaException;
 import com.hermesworld.ais.galapagos.security.CurrentUserService;
 import com.hermesworld.ais.galapagos.staging.StagingService;
+import com.hermesworld.ais.galapagos.subscriptions.service.SubscriptionService;
 import com.hermesworld.ais.galapagos.topics.SchemaCompatCheckMode;
 import com.hermesworld.ais.galapagos.topics.SchemaMetadata;
 import com.hermesworld.ais.galapagos.topics.TopicMetadata;
@@ -54,6 +55,8 @@ public class TopicController {
 
     private final StagingService stagingService;
 
+    private final SubscriptionService subscriptionService;
+
     private final CurrentUserService userService;
 
     private static final Supplier<ResponseStatusException> badRequest = () -> new ResponseStatusException(
@@ -66,10 +69,9 @@ public class TopicController {
 
     private final Boolean schemaDeleteWithSub;
 
-    //TODO testcases
     @Autowired
     public TopicController(ValidatingTopicService topicService, KafkaClusters kafkaEnvironments,
-                           ApplicationsService applicationsService, NamingService namingService, StagingService stagingService, CurrentUserService userService, @Value("${info.toggles.schemaDeleteWithSub}") Boolean schemaDeleteWithSub) {
+                           ApplicationsService applicationsService, NamingService namingService, StagingService stagingService, CurrentUserService userService, @Value("${info.toggles.schemaDeleteWithSub}") Boolean schemaDeleteWithSub, SubscriptionService subscriptionService) {
         this.topicService = topicService;
         this.kafkaEnvironments = kafkaEnvironments;
         this.applicationsService = applicationsService;
@@ -77,6 +79,7 @@ public class TopicController {
         this.stagingService = stagingService;
         this.userService = userService;
         this.schemaDeleteWithSub = schemaDeleteWithSub;
+        this.subscriptionService = subscriptionService;
     }
 
     @GetMapping(value = "/api/topics/{environmentId}", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -373,28 +376,42 @@ public class TopicController {
     }
 
     //Check if latest Schema can be deleted -> latest kann im frontend gecheckt werden
-    @GetMapping(value = "/api/schema/check-for-delete/{environmentId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Boolean checkIfSchemaCanBeDeleted(@PathVariable String environmentId) {
-        //Is owner of topic
-//        if (!applicationsService.isUserAuthorizedFor(topic.getOwnerApplicationId())) {
-//            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
-//        }
-        boolean stagingOnly = kafkaEnvironments.getEnvironmentMetadata(environmentId).get().isStagingOnly();
-        return !stagingOnly && schemaDeleteWithSub;
-    }
+    @GetMapping(value = "/api/schema/check-for-delete/{environmentId}/{topicName}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public Map<Integer, Boolean> checkIfSchemaCanBeDeleted(@PathVariable String environmentId, @PathVariable String topicName) {
+        Optional<TopicMetadata> topic = topicService.getTopic(environmentId, topicName);
+        if (topic.isEmpty()) {
+            throw notFound.get();
+        }
+        if (!applicationsService.isUserAuthorizedFor(topic.get().getOwnerApplicationId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
 
-    //TODO vermutlich löschen
-    @GetMapping(value = "/api/schema/check-next-stage/{environmentId}/{topicName}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Map<Integer, Boolean> checkIfSchemaExistsOnNextStage(@PathVariable String environmentId, @PathVariable String topicName) {
+        boolean noSubscriber = subscriptionService.getSubscriptionsForTopic(environmentId, topicName, false).size() == 0;
+        kafkaEnvironments.getEnvironmentMetadata(environmentId).orElseThrow(notFound);
+        boolean stagingOnly = kafkaEnvironments.getEnvironmentMetadata(environmentId).get().isStagingOnly();
+
         List<SchemaMetadata> schemaMetadata = topicService.getTopicSchemaVersions(environmentId, topicName);
         Optional<String> nextStage = stagingService.getNextStage(environmentId);
         HashMap<Integer, Boolean> map = new HashMap<>();
+        SchemaMetadata latestSchema = schemaMetadata.get(schemaMetadata.size() - 1);
         if (nextStage.isPresent()) {
             List<SchemaMetadata> schemaMetadataNextStage = topicService.getTopicSchemaVersions(nextStage.get(), topicName);
             List<SchemaMetadata> duplicates = schemaMetadata.stream().filter(k -> schemaMetadataNextStage.stream()
-                    .anyMatch(p -> k.getSchemaVersion() == p.getSchemaVersion())).collect(Collectors.toList());
-            for (SchemaMetadata duplicate : duplicates) {
-                map.put(duplicate.getSchemaVersion(), true);
+                    .anyMatch(p -> k.getSchemaVersion() == p.getSchemaVersion())).toList();
+            for (SchemaMetadata schema : schemaMetadata) {
+                if (duplicates.contains(schema) || schema != latestSchema) {
+                    map.put(schema.getSchemaVersion(), false);
+                } else {
+                    map.put(schema.getSchemaVersion(), (noSubscriber || (!stagingOnly && schemaDeleteWithSub)));
+                }
+            }
+        } else {
+            for (SchemaMetadata schema : schemaMetadata) {
+                if (schema != latestSchema) {
+                    map.put(schema.getSchemaVersion(), false);
+                } else {
+                    map.put(schema.getSchemaVersion(), noSubscriber || (!stagingOnly && schemaDeleteWithSub));
+                }
             }
         }
         return map;
