@@ -72,7 +72,7 @@ public class SchemaCompatibilityValidatorTest {
     }
 
     @Test
-    public void testNotMoreGreedy_success() throws Exception {
+    public void testNotMoreLiberal_success() throws Exception {
         verifyConsumerCompatibleTo(readSchema("test06a"), readSchema("test06b"));
     }
 
@@ -134,13 +134,13 @@ public class SchemaCompatibilityValidatorTest {
     }
 
     @Test
-    public void testProducerCompatible_greedyAdditionalProperty() throws Exception {
+    public void testProducerCompatible_liberalAdditionalProperty() throws Exception {
         ProducerCompatibilityErrorHandler errorHandler = new ProducerCompatibilityErrorHandler(true);
         new SchemaCompatibilityValidator(readSchema("test10b"), readSchema("test10a"), errorHandler).validate();
     }
 
     @Test
-    public void testConsumerCompatible_greedyRemoveProperty() throws Exception {
+    public void testConsumerCompatible_liberalRemoveProperty() throws Exception {
         ConsumerCompatibilityErrorHandler errorHandler = new ConsumerCompatibilityErrorHandler(true);
         new SchemaCompatibilityValidator(readSchema("test10b"), readSchema("test10a"), errorHandler).validate();
     }

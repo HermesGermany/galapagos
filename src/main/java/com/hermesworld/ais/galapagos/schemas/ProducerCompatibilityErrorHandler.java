@@ -8,7 +8,7 @@ import static com.hermesworld.ais.galapagos.schemas.SchemaUtil.propLocationName;
 /**
  * As the compatibility validation is always "consumer-view", checks for producer compatibility are performed with
  * swapped schemas. This is why this error handler "swaps" the error messages again to make them more helpful. <br>
- * Also, it allows for some "greedy" settings which are useful in most cases.
+ * Also, it allows for some "liberal" settings which are useful in most cases.
  */
 public class ProducerCompatibilityErrorHandler extends ConsumerCompatibilityErrorHandler {
 

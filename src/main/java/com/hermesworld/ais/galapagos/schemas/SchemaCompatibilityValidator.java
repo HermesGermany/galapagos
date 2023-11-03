@@ -401,7 +401,7 @@ public class SchemaCompatibilityValidator {
     private void verifySchemasCompatible(NotSchema oldSchema, NotSchema newSchema) throws IncompatibleSchemaException {
         setCurrentNodes(oldSchema, newSchema);
 
-        // intentionally swapped parameters, because negated schema must get more greedy
+        // intentionally swapped parameters, because negated schema must get more liberal
         // to have the effect of "stricter" for the not-schema.
         pushPrefix("(not)");
         verifySchemasCompatible(newSchema.getMustNotMatch(), oldSchema.getMustNotMatch());
