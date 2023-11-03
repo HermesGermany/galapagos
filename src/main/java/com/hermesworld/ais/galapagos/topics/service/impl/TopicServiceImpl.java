@@ -12,8 +12,7 @@ import com.hermesworld.ais.galapagos.kafka.util.InitPerCluster;
 import com.hermesworld.ais.galapagos.kafka.util.TopicBasedRepository;
 import com.hermesworld.ais.galapagos.naming.InvalidTopicNameException;
 import com.hermesworld.ais.galapagos.naming.NamingService;
-import com.hermesworld.ais.galapagos.schemas.IncompatibleSchemaException;
-import com.hermesworld.ais.galapagos.schemas.SchemaUtil;
+import com.hermesworld.ais.galapagos.schemas.*;
 import com.hermesworld.ais.galapagos.security.CurrentUserService;
 import com.hermesworld.ais.galapagos.topics.*;
 import com.hermesworld.ais.galapagos.topics.config.GalapagosTopicConfig;
@@ -447,11 +446,19 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
                             "The new schema is identical to the latest schema of this topic."));
                 }
 
-                boolean reverse = metadata.getType() == TopicType.COMMANDS;
+                SchemaCompatibilityValidator validator;
+                if (metadata.getType() == TopicType.COMMANDS) {
+                    validator = new SchemaCompatibilityValidator(newSchema, previousSchema,
+                            new ProducerCompatibilityErrorHandler(
+                                    topicSettings.getSchemas().isAllowAddedPropertiesOnCommandTopics()));
+                }
+                else {
+                    validator = new SchemaCompatibilityValidator(previousSchema, newSchema,
+                            new ConsumerCompatibilityErrorHandler(
+                                    topicSettings.getSchemas().isAllowRemovedOptionalProperties()));
+                }
 
-                SchemaUtil.verifyCompatibleTo(reverse ? newSchema : previousSchema,
-                        reverse ? previousSchema : newSchema);
-
+                validator.validate();
             }
             catch (JSONException e) {
                 // how, on earth, did it get into the repo then???
