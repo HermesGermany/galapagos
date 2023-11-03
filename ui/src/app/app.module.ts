@@ -9,7 +9,6 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { AuthGuard } from './shared';
 
-import { KeycloakAngularModule, KeycloakService } from 'keycloak-angular';
 import { ApplicationsService } from './shared/services/applications.service';
 import { EnvironmentsService } from './shared/services/environments.service';
 import { ToastService } from './shared/modules/toast/toast.service';
@@ -21,7 +20,9 @@ import { getHighlightLanguages } from './layout/topics/topics.module';
 import { ApiKeyService } from './shared/services/apikey.service';
 import { CertificateService } from './shared/services/certificates.service';
 
-const keycloakService = new KeycloakService();
+import { OAuthModule, OAuthService } from 'angular-oauth2-oidc';
+
+const isApiUrl = (url: string) => !url.startsWith('http') && url.indexOf('/api/') > -1;
 
 @NgModule({
     imports: [
@@ -31,14 +32,16 @@ const keycloakService = new KeycloakService();
         HttpClientModule,
         LanguageTranslationModule,
         AppRoutingModule,
-        KeycloakAngularModule
+        OAuthModule.forRoot({
+            resourceServer: {
+                sendAccessToken: true,
+                customUrlValidation: isApiUrl
+            }
+        })
     ],
     declarations: [AppComponent],
     providers: [AuthGuard, ApplicationsService, EnvironmentsService, TopicsService, ApiKeyService, ToastService, CertificateService,
-        ServerInfoService, {
-            provide: KeycloakService,
-            useValue: keycloakService
-        },
+        ServerInfoService, OAuthService,
         {
             provide: HIGHLIGHT_OPTIONS,
             useValue: {
@@ -51,23 +54,6 @@ const keycloakService = new KeycloakService();
 export class AppModule implements DoBootstrap {
 
     ngDoBootstrap(app: ApplicationRef) {
-        // use fetch as it does not require any other services or modules to be loaded
-        fetch('/keycloak/config.json', { method: 'GET' })
-            .then(resp => resp.json())
-            .then(config => this.initKeycloak(config))
-            .then(() => app.bootstrap(AppComponent))
-            .catch(err => console.error('Could not initialize Keycloak. Application cannot be initialized'));
-    }
-
-    private initKeycloak(config: any): Promise<any> {
-        return keycloakService.init({
-            config: config,
-            initOptions: {
-                onLoad: 'login-required',
-                checkLoginIframe: false
-            },
-            enableBearerInterceptor: true,
-            bearerExcludedUrls: ['/assets']
-        });
+        app.bootstrap(AppComponent);
     }
 }

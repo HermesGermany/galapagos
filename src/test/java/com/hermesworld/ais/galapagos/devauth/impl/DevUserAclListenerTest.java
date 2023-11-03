@@ -18,7 +18,6 @@ import com.hermesworld.ais.galapagos.kafka.util.AclSupport;
 import com.hermesworld.ais.galapagos.subscriptions.service.SubscriptionService;
 import com.hermesworld.ais.galapagos.util.FutureUtil;
 import com.hermesworld.ais.galapagos.util.TimeService;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -33,10 +32,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-public class DevUserAclListenerTest {
+class DevUserAclListenerTest {
 
     @Mock
     private ApplicationsService applicationsService;
@@ -58,7 +58,7 @@ public class DevUserAclListenerTest {
     private ZonedDateTime timestamp;
 
     @BeforeEach
-    public void initMocks() {
+    void initMocks() {
         MockitoAnnotations.openMocks(this);
         SubscriptionService subscriptionService = mock(SubscriptionService.class);
 
@@ -80,7 +80,7 @@ public class DevUserAclListenerTest {
     }
 
     @Test
-    public void testApplicationRegistered_invalidCertificate() throws Exception {
+    void testApplicationRegistered_invalidCertificate() throws Exception {
         DevAuthenticationMetadata devAuth = new DevAuthenticationMetadata();
         devAuth.setUserName("testuser");
         devAuth.setAuthenticationJson("{\"expiresAt\":\"2017-02-03T10:37:30Z\"}");
@@ -106,7 +106,7 @@ public class DevUserAclListenerTest {
     }
 
     @Test
-    public void testApplicationRegistered() throws Exception {
+    void testApplicationRegistered() throws Exception {
         DevAuthenticationMetadata devAuth = new DevAuthenticationMetadata();
         devAuth.setUserName("testuser");
         devAuth.setAuthenticationJson(
@@ -138,11 +138,11 @@ public class DevUserAclListenerTest {
         verify(cluster, times(1)).updateUserAcls(userCaptor.capture());
 
         KafkaUser user = userCaptor.getValue();
-        Assertions.assertEquals("User:CN=testuser", user.getKafkaUserName());
+        assertEquals("User:CN=testuser", user.getKafkaUserName());
     }
 
     @Test
-    public void testWriteAccessFlag() throws Exception {
+    void testWriteAccessFlag() throws Exception {
         KafkaEnvironmentConfig config = mock(KafkaEnvironmentConfig.class);
         when(config.isDeveloperWriteAccess()).thenReturn(true);
         when(cluster.getId()).thenReturn("test");

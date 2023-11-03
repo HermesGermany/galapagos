@@ -1,6 +1,7 @@
 package com.hermesworld.ais.galapagos.kafka.impl;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -13,13 +14,13 @@ import org.apache.kafka.clients.producer.Callback;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.TopicPartition;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 
 import com.hermesworld.ais.galapagos.kafka.KafkaExecutorFactory;
 
-public class KafkaSenderImplTest {
+class KafkaSenderImplTest {
 
     private static ThreadFactory tfDecoupled = new ThreadFactory() {
         @Override
@@ -33,7 +34,7 @@ public class KafkaSenderImplTest {
     };
 
     @Test
-    public void testSendDecoupling() throws Exception {
+    void testSendDecoupling() throws Exception {
         KafkaFutureDecoupler decoupler = new KafkaFutureDecoupler(executorFactory);
 
         @SuppressWarnings("unchecked")

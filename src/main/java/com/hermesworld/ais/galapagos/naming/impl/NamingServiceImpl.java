@@ -11,7 +11,6 @@ import com.hermesworld.ais.galapagos.naming.config.NamingConfig;
 import com.hermesworld.ais.galapagos.naming.config.TopicNamingConfig;
 import com.hermesworld.ais.galapagos.topics.TopicType;
 import com.ibm.icu.text.Transliterator;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -28,7 +27,6 @@ public class NamingServiceImpl implements NamingService {
 
     private final NamingConfig config;
 
-    @Autowired
     public NamingServiceImpl(NamingConfig config) {
         this.config = config;
     }

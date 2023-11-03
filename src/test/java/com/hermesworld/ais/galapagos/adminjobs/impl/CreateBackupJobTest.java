@@ -12,9 +12,9 @@ import com.hermesworld.ais.galapagos.subscriptions.SubscriptionState;
 import com.hermesworld.ais.galapagos.topics.TopicMetadata;
 import com.hermesworld.ais.galapagos.topics.TopicType;
 import com.hermesworld.ais.galapagos.util.JsonUtil;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.springframework.boot.ApplicationArguments;
 
 import java.nio.file.Files;
@@ -24,7 +24,7 @@ import java.util.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
-public class CreateBackupJobTest {
+class CreateBackupJobTest {
 
     private KafkaClusters kafkaClusters;
 
@@ -34,8 +34,8 @@ public class CreateBackupJobTest {
 
     private ObjectMapper mapper;
 
-    @Before
-    public void setUp() {
+    @BeforeEach
+    void setUp() {
         testRepo.put("topics", new TopicBasedRepositoryMock<TopicMetadata>() {
             @Override
             public Class<TopicMetadata> getValueClass() {
@@ -187,10 +187,10 @@ public class CreateBackupJobTest {
 
     @Test
     @DisplayName("it should create a backup from all the metadata currently saved within Galapagos")
-    public void createBackUp_success() throws Exception {
+    void createBackUp_success() throws Exception {
         CreateBackupJob job = new CreateBackupJob(kafkaClusters);
         ApplicationArguments args = mock(ApplicationArguments.class);
-        when(args.getOptionValues("create.backup.file")).thenReturn(Collections.singletonList("true"));
+        when(args.getOptionValues("create.backup.file")).thenReturn(List.of("true"));
 
         try {
             job.run(args);
@@ -222,21 +222,21 @@ public class CreateBackupJobTest {
                 .toString();
 
         // test data
-        assertEquals(topicName, "\"topic-1\"");
-        assertEquals(topicType, "\"EVENTS\"");
-        assertEquals(clientApplicationIdSub, "\"app-1\"");
-        assertEquals(subId, "\"123\"");
-        assertEquals(aorId, "\"1\"");
-        assertEquals(aorState, "\"APPROVED\"");
-        assertEquals(username, "\"myUser\"");
+        assertEquals("\"topic-1\"", topicName);
+        assertEquals("\"EVENTS\"", topicType);
+        assertEquals("\"app-1\"", clientApplicationIdSub);
+        assertEquals("\"123\"", subId);
+        assertEquals("\"1\"", aorId);
+        assertEquals("\"APPROVED\"", aorState);
+        assertEquals("\"myUser\"", username);
         // prod data
-        assertEquals(topicNameProd, "\"topic-2\"");
-        assertEquals(topicTypeProd, "\"EVENTS\"");
-        assertEquals(clientApplicationIdSubProd, "\"app-12\"");
-        assertEquals(subIdProd, "\"12323\"");
-        assertEquals(aorIdProd, "\"2\"");
-        assertEquals(aorStateProd, "\"APPROVED\"");
-        assertEquals(usernameProd, "\"myUser2\"");
+        assertEquals("\"topic-2\"", topicNameProd);
+        assertEquals("\"EVENTS\"", topicTypeProd);
+        assertEquals("\"app-12\"", clientApplicationIdSubProd);
+        assertEquals("\"12323\"", subIdProd);
+        assertEquals("\"2\"", aorIdProd);
+        assertEquals("\"APPROVED\"", aorStateProd);
+        assertEquals("\"myUser2\"", usernameProd);
 
     }
 

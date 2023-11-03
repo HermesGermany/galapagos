@@ -1,13 +1,14 @@
 package com.hermesworld.ais.galapagos.naming.config;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class CaseStrategyConverterBindingTest {
+class CaseStrategyConverterBindingTest {
 
     @Test
-    public void testValidValues() {
+    void testValidValues() {
         CaseStrategyConverterBinding converter = new CaseStrategyConverterBinding();
         assertEquals(CaseStrategy.PASCAL_CASE, converter.convert("PascalCase"));
         assertEquals(CaseStrategy.CAMEL_CASE, converter.convert("camelCase"));
@@ -16,22 +17,28 @@ public class CaseStrategyConverterBindingTest {
         assertEquals(CaseStrategy.LOWERCASE, converter.convert("lowercase"));
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void testNoCaseConversion() {
-        CaseStrategyConverterBinding converter = new CaseStrategyConverterBinding();
-        converter.convert("pascalCase");
+    @Test
+    void testNoCaseConversion() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            CaseStrategyConverterBinding converter = new CaseStrategyConverterBinding();
+            converter.convert("pascalCase");
+        });
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void testNoEnumNameUse() {
-        CaseStrategyConverterBinding converter = new CaseStrategyConverterBinding();
-        converter.convert("PASCAL_CASE");
+    @Test
+    void testNoEnumNameUse() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            CaseStrategyConverterBinding converter = new CaseStrategyConverterBinding();
+            converter.convert("PASCAL_CASE");
+        });
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void testInvalidValue() {
-        CaseStrategyConverterBinding converter = new CaseStrategyConverterBinding();
-        converter.convert("someValue");
+    @Test
+    void testInvalidValue() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            CaseStrategyConverterBinding converter = new CaseStrategyConverterBinding();
+            converter.convert("someValue");
+        });
     }
 
 }

@@ -40,7 +40,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class UpdateApplicationAclsListenerTest {
+class UpdateApplicationAclsListenerTest {
 
     @Mock
     private KafkaClusters kafkaClusters;
@@ -63,7 +63,7 @@ public class UpdateApplicationAclsListenerTest {
     private AclBinding dummyBinding;
 
     @BeforeEach
-    public void feedMocks() {
+    void feedMocks() {
         when(cluster.getId()).thenReturn("_test");
         lenient().when(kafkaClusters.getEnvironment("_test")).thenReturn(Optional.of(cluster));
         lenient().when(kafkaClusters.getAuthenticationModule("_test")).thenReturn(Optional.of(authenticationModule));
@@ -80,7 +80,7 @@ public class UpdateApplicationAclsListenerTest {
     }
 
     @Test
-    public void testUpdateApplicationAcls() throws InterruptedException, ExecutionException {
+    void testUpdateApplicationAcls() throws InterruptedException, ExecutionException {
         when(authenticationModule
                 .extractKafkaUserName(ArgumentMatchers.argThat(obj -> obj.getString("dn").equals("CN=testapp"))))
                         .thenReturn("User:CN=testapp");
@@ -115,7 +115,7 @@ public class UpdateApplicationAclsListenerTest {
     }
 
     @Test
-    public void testHandleTopicCreated() throws ExecutionException, InterruptedException {
+    void testHandleTopicCreated() throws ExecutionException, InterruptedException {
         GalapagosEventContext context = mock(GalapagosEventContext.class);
         when(context.getKafkaCluster()).thenReturn(cluster);
         when(cluster.getId()).thenReturn("_test");
@@ -149,7 +149,7 @@ public class UpdateApplicationAclsListenerTest {
     }
 
     @Test
-    public void testHandleAddProducer() throws ExecutionException, InterruptedException {
+    void testHandleAddProducer() throws ExecutionException, InterruptedException {
         GalapagosEventContext context = mock(GalapagosEventContext.class);
         when(context.getKafkaCluster()).thenReturn(cluster);
         when(cluster.getId()).thenReturn("_test");
@@ -182,7 +182,7 @@ public class UpdateApplicationAclsListenerTest {
     }
 
     @Test
-    public void testHandleRemoveProducer() throws ExecutionException, InterruptedException {
+    void testHandleRemoveProducer() throws ExecutionException, InterruptedException {
         // more or less, this is same as add() - updateUserAcls for the removed producer must be called.
         GalapagosEventContext context = mock(GalapagosEventContext.class);
         when(context.getKafkaCluster()).thenReturn(cluster);
@@ -211,7 +211,7 @@ public class UpdateApplicationAclsListenerTest {
     }
 
     @Test
-    public void testSubscriptionCreated() throws ExecutionException, InterruptedException {
+    void testSubscriptionCreated() throws ExecutionException, InterruptedException {
         GalapagosEventContext context = mock(GalapagosEventContext.class);
         when(context.getKafkaCluster()).thenReturn(cluster);
         when(cluster.getId()).thenReturn("_test");
@@ -245,7 +245,7 @@ public class UpdateApplicationAclsListenerTest {
     }
 
     @Test
-    public void testNoDeleteAclsWhenUserNameIsSame() throws Exception {
+    void testNoDeleteAclsWhenUserNameIsSame() throws Exception {
         // tests that, when an AuthenticationChanged event occurs but the resulting Kafka User Name is the same, the
         // listener does not delete the ACLs of the user after updating them (because that would result in zero ACLs).
         GalapagosEventContext context = mock(GalapagosEventContext.class);
@@ -276,7 +276,7 @@ public class UpdateApplicationAclsListenerTest {
     }
 
     @Test
-    public void testNoDeleteAclsWhenNoPreviousUser() throws Exception {
+    void testNoDeleteAclsWhenNoPreviousUser() throws Exception {
         GalapagosEventContext context = mock(GalapagosEventContext.class);
         when(context.getKafkaCluster()).thenReturn(cluster);
 
@@ -305,7 +305,7 @@ public class UpdateApplicationAclsListenerTest {
     }
 
     @Test
-    public void testNoApplicationAclUpdates() throws Exception {
+    void testNoApplicationAclUpdates() throws Exception {
         // GIVEN a configuration where noUpdateApplicationAcls flag is active
         KafkaEnvironmentConfig config = mock(KafkaEnvironmentConfig.class);
         when(config.isNoUpdateApplicationAcls()).thenReturn(true);

@@ -1,16 +1,20 @@
 import { Component, OnInit } from '@angular/core';
 import { routerTransition } from '../../router.animations';
-import { ApplicationInfo, ApplicationOwnerRequest, ApplicationsService } from '../../shared/services/applications.service';
+import {
+    ApplicationInfo,
+    ApplicationOwnerRequest,
+    ApplicationsService
+} from '../../shared/services/applications.service';
 import { combineLatest, Observable, tap } from 'rxjs';
 
-import { map, take } from 'rxjs/operators';
-import { KeycloakService } from 'keycloak-angular';
+import { map } from 'rxjs/operators';
 import { SortEvent } from './sortable.directive';
 import { toNiceTimestamp } from 'src/app/shared/util/time-util';
 import { TranslateService } from '@ngx-translate/core';
 
 import { NgbPaginationConfig } from '@ng-bootstrap/ng-bootstrap';
 import { SortDirection } from '../topics/sort';
+import { AuthService } from '../../shared/services/auth.service';
 
 interface TranslatedApplicationOwnerRequest extends ApplicationOwnerRequest {
     applicationName?: string;
@@ -54,7 +58,7 @@ const entityMap = {
 })
 export class AdminComponent implements OnInit {
 
-    isAdmin = false;
+    isAdmin: Observable<boolean>;
 
     currentRequests: TranslatedApplicationOwnerRequest[];
 
@@ -70,14 +74,14 @@ export class AdminComponent implements OnInit {
         sortDirection: ''
     };
 
-    constructor(private applicationsService: ApplicationsService, private keycloakService: KeycloakService,
+    constructor(private applicationsService: ApplicationsService, authService: AuthService,
                 private translate: TranslateService, private config: NgbPaginationConfig) {
         config.size = 'sm';
         config.boundaryLinks = true;
+        this.isAdmin = authService.admin;
     }
 
-    ngOnInit() {
-        this.isAdmin = this.keycloakService.getUserRoles().indexOf('admin') > -1;
+    async ngOnInit() {
         // TODO move this to applicationService, for all and for user requests
         const allRequests = combineLatest([this.applicationsService.getAllApplicationOwnerRequests(),
             this.applicationsService.getAvailableApplications(false)]).pipe(map(values => translateApps(values[0], values[1])))

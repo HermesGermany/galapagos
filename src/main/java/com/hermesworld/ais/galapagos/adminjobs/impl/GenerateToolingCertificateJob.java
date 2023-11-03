@@ -16,10 +16,9 @@ import com.hermesworld.ais.galapagos.util.CertificateUtil;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
+import org.springframework.util.ObjectUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileOutputStream;
@@ -57,7 +56,6 @@ public class GenerateToolingCertificateJob extends SingleClusterAdminJob {
 
     private final KafkaEnvironmentsConfig kafkaConfig;
 
-    @Autowired
     public GenerateToolingCertificateJob(KafkaClusters kafkaClusters, AclSupport aclSupport,
             NamingService namingService, KafkaEnvironmentsConfig kafkaConfig) {
         super(kafkaClusters);
@@ -82,7 +80,7 @@ public class GenerateToolingCertificateJob extends SingleClusterAdminJob {
                     + " does not use certificates for authentication. Cannot generate tooling certificate.");
         }
 
-        if (!StringUtils.isEmpty(outputFilename)) {
+        if (!ObjectUtils.isEmpty(outputFilename)) {
             try {
                 new FileOutputStream(outputFilename).close();
             }
@@ -122,7 +120,7 @@ public class GenerateToolingCertificateJob extends SingleClusterAdminJob {
 
         cluster.updateUserAcls(new ToolingUser(toolMetadata, cluster.getId(), authModule, aclSupport)).get();
 
-        if (!StringUtils.isEmpty(outputFilename)) {
+        if (!ObjectUtils.isEmpty(outputFilename)) {
             try (FileOutputStream fos = new FileOutputStream(outputFilename)) {
                 fos.write(p12Data);
             }
@@ -135,7 +133,7 @@ public class GenerateToolingCertificateJob extends SingleClusterAdminJob {
         System.out.println();
         System.out.println("==================== Galapagos Tooling Certificate CREATED ====================");
         System.out.println();
-        if (!StringUtils.isEmpty(outputFilename)) {
+        if (!ObjectUtils.isEmpty(outputFilename)) {
             System.out.println("You can now use the certificate in " + outputFilename
                     + " for Galapagos external tooling on " + metadata.getName());
         }

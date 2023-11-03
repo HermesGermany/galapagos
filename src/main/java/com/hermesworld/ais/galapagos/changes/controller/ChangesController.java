@@ -3,7 +3,6 @@ package com.hermesworld.ais.galapagos.changes.controller;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -17,7 +16,6 @@ public class ChangesController {
 
     private ChangesService changesService;
 
-    @Autowired
     public ChangesController(ChangesService changesService) {
         this.changesService = changesService;
     }

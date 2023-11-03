@@ -1,6 +1,6 @@
-<div [@routerTransition] *ngIf="isAdmin">
+<div [@routerTransition] *ngIf="isAdmin | async">
     <h2 id="adminHeader" class="text-muted">{{ 'Administration' | translate }}</h2>
-    <hr />
+    <hr/>
     <div class="row mb-4">
         <div class="col-md-12">
             <div class="card">

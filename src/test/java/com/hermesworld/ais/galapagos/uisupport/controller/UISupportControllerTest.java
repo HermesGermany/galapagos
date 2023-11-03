@@ -1,21 +1,22 @@
 package com.hermesworld.ais.galapagos.uisupport.controller;
 
+import com.hermesworld.ais.galapagos.GalapagosTestConfig;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.context.annotation.Import;
 
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest
-public class UISupportControllerTest {
+@Import(GalapagosTestConfig.class)
+class UISupportControllerTest {
 
+    @SuppressWarnings("unused")
     @MockBean
     private KafkaClusters kafkaClusters;
 
@@ -23,26 +24,25 @@ public class UISupportControllerTest {
     private UISupportController testController;
 
     @Test
-    public void testCustomLinks() {
+    void testCustomLinks() {
         List<CustomLinkConfig> links = testController.getCustomLinks();
         assertNotNull(links);
 
-        for (int i = 0; i < links.size(); i++) {
-            assertNotNull(links.get(i).getId());
+        for (CustomLinkConfig link : links) {
+            assertNotNull(link.getId());
 
-            assertNotNull(links.get(i).getHref());
-            assertFalse(links.get(i).getHref().isBlank());
+            assertNotNull(link.getHref());
+            assertFalse(link.getHref().isBlank());
 
-            assertNotNull(links.get(i).getLabel());
-            assertFalse(links.get(i).getLabel().isBlank());
+            assertNotNull(link.getLabel());
+            assertFalse(link.getLabel().isBlank());
 
-            assertNotNull(links.get(i).getLinkType());
-
+            assertNotNull(link.getLinkType());
         }
     }
 
     @Test
-    public void testKafkaDoc() {
+    void testKafkaDoc() {
         List<KafkaConfigDescriptionDto> result = new UISupportController(null, null, null, null, null, null, null)
                 .getSupportedKafkaConfigs();
         assertNotNull(result);

@@ -11,14 +11,16 @@ import com.hermesworld.ais.galapagos.changes.ApplyChangeContext;
 import com.hermesworld.ais.galapagos.subscriptions.SubscriptionMetadata;
 import com.hermesworld.ais.galapagos.subscriptions.SubscriptionState;
 import com.hermesworld.ais.galapagos.subscriptions.service.SubscriptionService;
-import static org.junit.Assert.*;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import org.springframework.beans.BeanUtils;
 
-public class ChangeBaseTest {
+class ChangeBaseTest {
 
     /**
      * Tests that each private field in all of the subclasses of ChangeBase have a Getter for all of their private
@@ -26,7 +28,7 @@ public class ChangeBaseTest {
      * use of Reflection!
      */
     @Test
-    public void testGettersForFields() {
+    void testGettersForFields() {
         String packageName = ChangeBase.class.getPackageName();
         ClassLoader cl = ChangeBaseTest.class.getClassLoader();
 
@@ -67,7 +69,7 @@ public class ChangeBaseTest {
     }
 
     @Test
-    public void testStageSubscription() throws Exception {
+    void testStageSubscription() throws Exception {
         SubscriptionMetadata sub1 = new SubscriptionMetadata();
         sub1.setId("123");
         sub1.setClientApplicationId("app-1");

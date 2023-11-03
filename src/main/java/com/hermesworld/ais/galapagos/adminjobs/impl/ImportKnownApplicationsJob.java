@@ -19,11 +19,10 @@ import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.kafka.util.TopicBasedRepository;
 import com.hermesworld.ais.galapagos.util.JsonUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StreamUtils;
-import org.springframework.util.StringUtils;
 
 /**
  * Admin job to import known applications from a JSON file (or STDIN) to the global Galapagos topic
@@ -46,7 +45,6 @@ public class ImportKnownApplicationsJob implements AdminJob {
 
     private KafkaClusters kafkaClusters;
 
-    @Autowired
     public ImportKnownApplicationsJob(KafkaClusters kafkaClusters) {
         this.kafkaClusters = kafkaClusters;
     }
@@ -65,7 +63,7 @@ public class ImportKnownApplicationsJob implements AdminJob {
                 .map(ls -> ls.stream().findFirst().orElse(null)).map(s -> s == null ? false : Boolean.parseBoolean(s))
                 .orElse(false);
 
-        if (StringUtils.isEmpty(jsonFile)) {
+        if (ObjectUtils.isEmpty(jsonFile)) {
             throw new IllegalArgumentException("Please provide --applications.import.file=<file> for JSON to import");
         }
 

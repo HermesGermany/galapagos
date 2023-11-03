@@ -6,7 +6,6 @@ import com.hermesworld.ais.galapagos.subscriptions.SubscriptionMetadata;
 import com.hermesworld.ais.galapagos.subscriptions.SubscriptionState;
 import com.hermesworld.ais.galapagos.subscriptions.service.SubscriptionService;
 import com.hermesworld.ais.galapagos.util.FutureUtil;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.concurrent.CompletableFuture;
@@ -29,7 +28,6 @@ public class SubscriptionTopicListener implements TopicEventsListener {
 
     private final SubscriptionService subscriptionService;
 
-    @Autowired
     public SubscriptionTopicListener(SubscriptionService subscriptionService) {
         this.subscriptionService = subscriptionService;
     }
