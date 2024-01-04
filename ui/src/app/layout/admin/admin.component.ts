@@ -1,17 +1,35 @@
 import { Component, OnInit } from '@angular/core';
 import { routerTransition } from '../../router.animations';
-import { ApplicationInfo, ApplicationOwnerRequest, ApplicationsService } from '../../shared/services/applications.service';
-import { combineLatest, firstValueFrom, Observable, of } from 'rxjs';
+import {
+    ApplicationInfo,
+    ApplicationOwnerRequest,
+    ApplicationsService
+} from '../../shared/services/applications.service';
+import { combineLatest, Observable, tap } from 'rxjs';
 
 import { map } from 'rxjs/operators';
-import { KeycloakService } from 'keycloak-angular';
 import { SortEvent } from './sortable.directive';
 import { toNiceTimestamp } from 'src/app/shared/util/time-util';
 import { TranslateService } from '@ngx-translate/core';
 
+import { NgbPaginationConfig } from '@ng-bootstrap/ng-bootstrap';
+import { SortDirection } from '../topics/sort';
+import { AuthService } from '../../shared/services/auth.service';
+
 interface TranslatedApplicationOwnerRequest extends ApplicationOwnerRequest {
     applicationName?: string;
     applicationInfoUrl?: string;
+}
+
+
+interface State {
+    currentPage: number;
+    totalItems: number;
+    pageSize: number;
+    maxSize: number;
+    searchTerm: string;
+    sortColumn: string;
+    sortDirection: SortDirection;
 }
 
 // TODO I think this could be moved to applicationService
@@ -40,22 +58,41 @@ const entityMap = {
 })
 export class AdminComponent implements OnInit {
 
-    isAdmin = false;
+    isAdmin: Observable<boolean>;
 
-    allRequests: Observable<TranslatedApplicationOwnerRequest[]>;
+    currentRequests: TranslatedApplicationOwnerRequest[];
 
-    searchTerm: string;
+    allFetchedRequests: TranslatedApplicationOwnerRequest[];
 
-    constructor(private applicationsService: ApplicationsService, private keycloakService: KeycloakService,
-                private translate: TranslateService) {
+    state: State = {
+        currentPage: 1, // Current page number
+        pageSize: 15, // Number of items per page
+        maxSize: 5, // Maximum number of page links to display
+        totalItems: 0, // Total number of items
+        searchTerm: '',
+        sortColumn: '',
+        sortDirection: ''
+    };
+
+    constructor(private applicationsService: ApplicationsService, authService: AuthService,
+                private translate: TranslateService, private config: NgbPaginationConfig) {
+        config.size = 'sm';
+        config.boundaryLinks = true;
+        this.isAdmin = authService.admin;
     }
 
-    ngOnInit() {
-        this.isAdmin = this.keycloakService.getUserRoles().indexOf('admin') > -1;
+    async ngOnInit() {
         // TODO move this to applicationService, for all and for user requests
-        this.allRequests = combineLatest([this.applicationsService.getAllApplicationOwnerRequests(),
+        const allRequests = combineLatest([this.applicationsService.getAllApplicationOwnerRequests(),
             this.applicationsService.getAvailableApplications(false)]).pipe(map(values => translateApps(values[0], values[1])))
             .pipe(map(values => values.map(req => this.escapeComments(req))));
+
+        allRequests.pipe(tap(requests => {
+            this.allFetchedRequests = requests;
+            this.state.totalItems = requests.length;
+            this.sliceData();
+            this.search();
+        })).subscribe();
 
         this.applicationsService.refresh().then();
     }
@@ -70,13 +107,19 @@ export class AdminComponent implements OnInit {
     }
 
     async onSort({ column, direction }: SortEvent) {
-        const requests = await firstValueFrom(this.allRequests);
+        const requests = this.allFetchedRequests;
         if (direction === 'asc') {
-            this.allRequests = of(requests.sort((a, b) => a[column] < b[column] ? 1 : a[column] > b[column] ? -1 : 0));
+            this.allFetchedRequests = requests.sort((a, b) => a[column] < b[column] ? 1 : a[column] > b[column] ? -1 : 0);
         }
         if (direction === 'desc') {
-            this.allRequests = of(requests.sort((a, b) => a[column] > b[column] ? 1 : a[column] < b[column] ? -1 : 0));
+            this.allFetchedRequests = requests.sort((a, b) => a[column] > b[column] ? 1 : a[column] < b[column] ? -1 : 0);
         }
+        this.sliceData();
+    }
+
+    sliceData() {
+        this.currentRequests = this.allFetchedRequests.slice(
+            (this.state.currentPage-1)*this.state.pageSize, this.state.currentPage*this.state.pageSize);
     }
 
     lastChangeTitle(request: TranslatedApplicationOwnerRequest): Observable<string> {
@@ -101,6 +144,22 @@ export class AdminComponent implements OnInit {
 
     escapeHtml(source: string) {
         return String(source).replace(/[&<>"'\/]/g, s => entityMap[s]);
+    }
+
+    matches(request: TranslatedApplicationOwnerRequest, searchTerm: string) {
+        return (
+            (request.applicationName && request.applicationName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (request.applicationId && request.applicationId.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (request.userName && request.userName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (request.comments && request.comments.toLowerCase().includes(searchTerm.toLowerCase()))
+        );
+    }
+
+    search() {
+        const { pageSize, searchTerm } = this.state;
+        const filterData = this.allFetchedRequests.filter(request => this.matches(request, searchTerm));
+        this.state.totalItems = filterData.length;
+        this.currentRequests = filterData.slice(0, pageSize);
     }
 
 }

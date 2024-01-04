@@ -1,13 +1,13 @@
 package com.hermesworld.ais.galapagos.util;
 
-import static org.junit.Assert.assertEquals;
+import org.junit.jupiter.api.Test;
 
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class CnUtilTest {
+class CnUtilTest {
 
     @Test
-    public void testToAppCn() {
+    void testToAppCn() {
         assertEquals("alpha", CertificateUtil.toAppCn("ALPHA"));
         assertEquals("track_trace", CertificateUtil.toAppCn("Track & Trace"));
         assertEquals("elisa", CertificateUtil.toAppCn("  Elisa "));

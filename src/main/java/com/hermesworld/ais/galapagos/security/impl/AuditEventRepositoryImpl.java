@@ -1,15 +1,12 @@
 package com.hermesworld.ais.galapagos.security.impl;
 
-import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.hermesworld.ais.galapagos.util.JsonUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
-import org.keycloak.KeycloakSecurityContext;
 import org.springframework.boot.actuate.audit.AuditEvent;
 import org.springframework.boot.actuate.audit.AuditEventRepository;
 import org.springframework.boot.actuate.audit.InMemoryAuditEventRepository;
@@ -17,9 +14,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -44,7 +38,6 @@ public class AuditEventRepositoryImpl extends InMemoryAuditEventRepository {
                 this.objectMapper.getSerializationConfig().without(SerializationFeature.FAIL_ON_EMPTY_BEANS));
 
         SimpleModule mapperModule = new SimpleModule();
-        mapperModule.addSerializer(new KeycloakSecurityContextSerializer());
         this.objectMapper.registerModule(mapperModule);
     }
 
@@ -60,7 +53,7 @@ public class AuditEventRepositoryImpl extends InMemoryAuditEventRepository {
         }
         catch (IllegalStateException e) {
             // OK, no request
-            request = null;
+            log.trace("No current request found for Audit log, not including request information");
         }
 
         Map<String, Object> logEntry = new HashMap<>();
@@ -85,21 +78,6 @@ public class AuditEventRepositoryImpl extends InMemoryAuditEventRepository {
         result.put("path", request.getPathInfo());
         result.put("clientIp", request.getRemoteAddr());
         return result;
-    }
-
-    private static class KeycloakSecurityContextSerializer extends JsonSerializer<KeycloakSecurityContext> {
-
-        @Override
-        public void serialize(KeycloakSecurityContext value, JsonGenerator gen, SerializerProvider serializers)
-                throws IOException {
-            gen.writeObject(Collections.emptyMap());
-        }
-
-        @Override
-        public Class<KeycloakSecurityContext> handledType() {
-            return KeycloakSecurityContext.class;
-        }
-
     }
 
 }

@@ -6,8 +6,7 @@ import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { PageHeaderModule } from '../../../shared/modules';
-import { KeycloakService } from 'keycloak-angular';
+import { PageHeaderModule } from '../../../shared';
 import { By } from '@angular/platform-browser';
 import { Routes } from '@angular/router';
 import { AdminComponent } from '../../admin/admin.component';
@@ -16,10 +15,14 @@ import { DashboardModule } from '../../dashboard/dashboard.module';
 import { Location } from '@angular/common';
 import { ApplicationsService } from '../../../shared/services/applications.service';
 import { DashboardComponent } from '../../dashboard/dashboard.component';
+import { AuthService } from '../../../shared/services/auth.service';
+import { BehaviorSubject } from 'rxjs';
+import { MockAuthService } from '../../../shared/util/test-util';
 
 describe('SidebarComponent', () => {
     let component: SidebarComponent;
     let fixture: ComponentFixture<SidebarComponent>;
+    const admin = new BehaviorSubject(true);
     const routes: Routes = [
         { path: 'admin', component: AdminComponent },
         { path: 'dashboard', component: DashboardComponent }
@@ -40,7 +43,7 @@ describe('SidebarComponent', () => {
             ],
             declarations: [SidebarComponent],
             providers: [TranslateService,
-                KeycloakService,
+                { provide: AuthService, useClass: MockAuthService },
                 Location,
                 ApplicationsService
             ]
@@ -48,6 +51,8 @@ describe('SidebarComponent', () => {
 
         fixture = TestBed.createComponent(SidebarComponent);
         component = fixture.componentInstance;
+        const auth = fixture.debugElement.injector.get(AuthService);
+        auth.admin = admin;
     });
 
     it('should create Sidebar Component', () => {
@@ -55,15 +60,13 @@ describe('SidebarComponent', () => {
     });
 
     it('should not display Administration Section when user is no admin', (() => {
-        const keycloak = fixture.debugElement.injector.get(KeycloakService);
-        spyOn(keycloak, 'getUserRoles').and.returnValue(['user']);
+        admin.next(false);
         fixture.detectChanges();
         expect(fixture.debugElement.query(By.css('#adminSection'))).toBeNull();
     }));
 
     it('should display Administration Section when user is admin', (() => {
-        const keycloak = fixture.debugElement.injector.get(KeycloakService);
-        spyOn(keycloak, 'getUserRoles').and.returnValue(['admin']);
+        admin.next(true);
         fixture.detectChanges();
         expect(fixture.debugElement.query(By.css('#adminSection'))).not.toBeNull();
     }));

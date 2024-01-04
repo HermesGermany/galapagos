@@ -32,7 +32,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class DeveloperAuthenticationServiceImplTest {
+class DeveloperAuthenticationServiceImplTest {
 
     @Mock
     private KafkaClusters kafkaClusters;
@@ -61,7 +61,7 @@ public class DeveloperAuthenticationServiceImplTest {
     private final TopicBasedRepositoryMock<DevAuthenticationMetadata> metaRepo = new TopicBasedRepositoryMock<>();
 
     @Test
-    public void testCreateDeveloperAuthentication_positive() throws Exception {
+    void testCreateDeveloperAuthentication_positive() throws Exception {
         // given
         when(kafkaClusters.getEnvironment("test")).thenReturn(Optional.of(testCluster));
         when(testCluster.getRepository("devauth", DevAuthenticationMetadata.class)).thenReturn(metaRepo);
@@ -98,7 +98,7 @@ public class DeveloperAuthenticationServiceImplTest {
     }
 
     @Test
-    public void testCreateDeveloperAuthentication_noUser() {
+    void testCreateDeveloperAuthentication_noUser() {
         // given
         when(userService.getCurrentUserName()).thenReturn(Optional.empty());
 
@@ -113,7 +113,7 @@ public class DeveloperAuthenticationServiceImplTest {
     }
 
     @Test
-    public void testCreateDeveloperAuthentication_invalidEnvironmentId() {
+    void testCreateDeveloperAuthentication_invalidEnvironmentId() {
         // given
         lenient().when(kafkaClusters.getEnvironment("test")).thenReturn(Optional.of(testCluster));
         lenient().when(testCluster.getRepository("devauth", DevAuthenticationMetadata.class)).thenReturn(metaRepo);
@@ -131,7 +131,7 @@ public class DeveloperAuthenticationServiceImplTest {
     }
 
     @Test
-    public void testCreateDeveloperAuthentication_deletePreviousAuth() throws Exception {
+    void testCreateDeveloperAuthentication_deletePreviousAuth() throws Exception {
         // given
         when(kafkaClusters.getEnvironment("test")).thenReturn(Optional.of(testCluster));
         when(testCluster.getRepository("devauth", DevAuthenticationMetadata.class)).thenReturn(metaRepo);
@@ -175,7 +175,7 @@ public class DeveloperAuthenticationServiceImplTest {
     }
 
     @Test
-    public void testGetDeveloperAuthenticationForCurrentUser_positive() throws Exception {
+    void testGetDeveloperAuthenticationForCurrentUser_positive() throws Exception {
         // given
         when(kafkaClusters.getEnvironment("test")).thenReturn(Optional.of(testCluster));
         when(testCluster.getRepository("devauth", DevAuthenticationMetadata.class)).thenReturn(metaRepo);
@@ -204,7 +204,7 @@ public class DeveloperAuthenticationServiceImplTest {
     }
 
     @Test
-    public void testGetDeveloperAuthenticationForCurrentUser_wrongUserName() throws Exception {
+    void testGetDeveloperAuthenticationForCurrentUser_wrongUserName() throws Exception {
         // given
         when(kafkaClusters.getEnvironment("test")).thenReturn(Optional.of(testCluster));
         when(testCluster.getRepository("devauth", DevAuthenticationMetadata.class)).thenReturn(metaRepo);
@@ -229,7 +229,7 @@ public class DeveloperAuthenticationServiceImplTest {
     }
 
     @Test
-    public void testGetDeveloperAuthenticationForCurrentUser_noCurrentUser() throws Exception {
+    void testGetDeveloperAuthenticationForCurrentUser_noCurrentUser() throws Exception {
         // given
         when(kafkaClusters.getEnvironment("test")).thenReturn(Optional.of(testCluster));
 
@@ -255,7 +255,7 @@ public class DeveloperAuthenticationServiceImplTest {
     }
 
     @Test
-    public void testGetDeveloperAuthenticationForCurrentUser_expired() throws Exception {
+    void testGetDeveloperAuthenticationForCurrentUser_expired() throws Exception {
         // given
         when(kafkaClusters.getEnvironment("test")).thenReturn(Optional.of(testCluster));
         when(testCluster.getRepository("devauth", DevAuthenticationMetadata.class)).thenReturn(metaRepo);
@@ -283,7 +283,7 @@ public class DeveloperAuthenticationServiceImplTest {
     }
 
     @Test
-    public void testClearExpiredDeveloperAuthenticationsOnAllClusters_positive() throws Exception {
+    void testClearExpiredDeveloperAuthenticationsOnAllClusters_positive() throws Exception {
         // given
         KafkaCluster cluster2 = mock(KafkaCluster.class);
         TopicBasedRepositoryMock<DevAuthenticationMetadata> metaRepo2 = new TopicBasedRepositoryMock<>();

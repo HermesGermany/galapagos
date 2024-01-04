@@ -1,8 +1,0 @@
-{
-"auth-server-url":"http://localhost:7080/auth",
-"realm":"galapagos",
-"resource":"galapagos-webapp",
-"public-client": true,
-"use-resource-role-mappings": true,
-"principal-attribute": "preferred_username"
-}

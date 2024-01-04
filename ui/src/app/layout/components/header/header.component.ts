@@ -1,11 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { ServerInfoService } from '../../../shared/services/serverinfo.service';
 import { NavigationEnd, Router } from '@angular/router';
-import { TranslateService } from '@ngx-translate/core';
-import { KeycloakService } from 'keycloak-angular';
 import { Observable } from 'rxjs';
 import { EnvironmentsService, KafkaEnvironment } from 'src/app/shared/services/environments.service';
 import { map } from 'rxjs/operators';
+import { TranslateService } from '@ngx-translate/core';
+import { AuthService } from '../../../shared/services/auth.service';
 
 @Component({
     selector: 'app-header',
@@ -15,7 +15,7 @@ import { map } from 'rxjs/operators';
 export class HeaderComponent implements OnInit {
     public pushRightClass: string;
 
-    public userName: Promise<string>;
+    public userName: Observable<string>;
 
     instanceNameInfo: Observable<string>;
 
@@ -29,8 +29,8 @@ export class HeaderComponent implements OnInit {
 
     darkmodeActive: boolean;
 
-    constructor(private translate: TranslateService, public router: Router, private keycloak: KeycloakService,
-                private environments: EnvironmentsService,  private serverInfoService: ServerInfoService) {
+    constructor(private translate: TranslateService, public router: Router, private authService: AuthService,
+                private environments: EnvironmentsService, private serverInfoService: ServerInfoService) {
 
     }
 
@@ -39,8 +39,7 @@ export class HeaderComponent implements OnInit {
 
         this.instanceNameInfo = this.serverInfoService.getServerInfo().pipe(map(info => info.galapagos.instanceName));
 
-        this.userName = Promise.resolve(this.keycloak.getKeycloakInstance().idTokenParsed.given_name
-            + ' ' + this.keycloak.getKeycloakInstance().idTokenParsed.family_name);
+        this.userName = this.authService.userProfile.pipe(map(profile => profile.displayName));
 
         this.router.events.subscribe(val => {
             if (
@@ -79,7 +78,7 @@ export class HeaderComponent implements OnInit {
     }
 
     async onLoggedout() {
-        return this.keycloak.logout();
+        return this.authService.logout();
     }
 
     changeLang(language: string) {

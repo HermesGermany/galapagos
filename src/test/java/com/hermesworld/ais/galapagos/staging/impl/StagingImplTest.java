@@ -11,24 +11,23 @@ import com.hermesworld.ais.galapagos.topics.TopicMetadata;
 import com.hermesworld.ais.galapagos.topics.TopicType;
 import com.hermesworld.ais.galapagos.topics.service.TopicService;
 import com.hermesworld.ais.galapagos.util.JsonUtil;
-import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class StagingImplTest {
+class StagingImplTest {
 
     @Test
-    public void testSubscriptionIdentity() throws Exception {
+    void testSubscriptionIdentity() throws Exception {
         TopicService topicService = mock(TopicService.class);
 
         TopicMetadata topic1 = new TopicMetadata();
@@ -36,8 +35,8 @@ public class StagingImplTest {
         topic1.setOwnerApplicationId("app-2");
         topic1.setType(TopicType.EVENTS);
 
-        when(topicService.listTopics("dev")).thenReturn(Collections.singletonList(topic1));
-        when(topicService.listTopics("int")).thenReturn(Collections.singletonList(topic1));
+        when(topicService.listTopics("dev")).thenReturn(List.of(topic1));
+        when(topicService.listTopics("int")).thenReturn(List.of(topic1));
 
         SubscriptionService subscriptionService = mock(SubscriptionService.class);
 
@@ -45,8 +44,7 @@ public class StagingImplTest {
         sub1.setClientApplicationId("app-1");
         sub1.setId("123");
         sub1.setTopicName("topic-1");
-        when(subscriptionService.getSubscriptionsOfApplication("dev", "app-1", false))
-                .thenReturn(Collections.singletonList(sub1));
+        when(subscriptionService.getSubscriptionsOfApplication("dev", "app-1", false)).thenReturn(List.of(sub1));
 
         StagingImpl staging = StagingImpl.build("app-1", "dev", "int", null, topicService, subscriptionService).get();
 
@@ -62,8 +60,7 @@ public class StagingImplTest {
         sub2.setClientApplicationId("app-1");
         sub2.setId("456");
         sub2.setTopicName("topic-1");
-        when(subscriptionService.getSubscriptionsOfApplication("int", "app-1", false))
-                .thenReturn(Collections.singletonList(sub2));
+        when(subscriptionService.getSubscriptionsOfApplication("int", "app-1", false)).thenReturn(List.of(sub2));
 
         staging = StagingImpl.build("app-1", "dev", "int", null, topicService, subscriptionService).get();
         changes = staging.getChanges();
@@ -72,7 +69,7 @@ public class StagingImplTest {
 
     @Test
     @DisplayName("should stage new added producer to next stage")
-    public void testProducerAddStaging() throws Exception {
+    void testProducerAddStaging() throws Exception {
         TopicService topicService = mock(TopicService.class);
 
         TopicMetadata topic1 = new TopicMetadata();
@@ -86,8 +83,8 @@ public class StagingImplTest {
         topic2.setOwnerApplicationId("app-1");
         topic2.setType(TopicType.EVENTS);
 
-        when(topicService.listTopics("dev")).thenReturn(Collections.singletonList(topic1));
-        when(topicService.listTopics("int")).thenReturn(Collections.singletonList(topic2));
+        when(topicService.listTopics("dev")).thenReturn(List.of(topic1));
+        when(topicService.listTopics("int")).thenReturn(List.of(topic2));
 
         StagingImpl staging = StagingImpl
                 .build("app-1", "dev", "int", null, topicService, mock(SubscriptionService.class)).get();
@@ -106,7 +103,7 @@ public class StagingImplTest {
 
     @Test
     @DisplayName("should stage removed producer to next stage")
-    public void testProducerRemoveStaging() throws Exception {
+    void testProducerRemoveStaging() throws Exception {
         TopicService topicService = mock(TopicService.class);
 
         TopicMetadata topic1 = new TopicMetadata();
@@ -121,8 +118,8 @@ public class StagingImplTest {
         topic2.setType(TopicType.EVENTS);
         topic2.setProducers(List.of("producer1"));
 
-        when(topicService.listTopics("dev")).thenReturn(Collections.singletonList(topic1));
-        when(topicService.listTopics("int")).thenReturn(Collections.singletonList(topic2));
+        when(topicService.listTopics("dev")).thenReturn(List.of(topic1));
+        when(topicService.listTopics("int")).thenReturn(List.of(topic2));
 
         List<String> producers = new ArrayList<>(topic1.getProducers());
         producers.remove("producer1");
@@ -138,7 +135,7 @@ public class StagingImplTest {
     }
 
     @Test
-    public void testSchemaIdentity() throws Exception {
+    void testSchemaIdentity() throws Exception {
         TopicService topicService = mock(TopicService.class);
 
         TopicMetadata topic1 = new TopicMetadata();
@@ -146,8 +143,8 @@ public class StagingImplTest {
         topic1.setOwnerApplicationId("app-1");
         topic1.setType(TopicType.EVENTS);
 
-        when(topicService.listTopics("dev")).thenReturn(Collections.singletonList(topic1));
-        when(topicService.listTopics("int")).thenReturn(Collections.singletonList(topic1));
+        when(topicService.listTopics("dev")).thenReturn(List.of(topic1));
+        when(topicService.listTopics("int")).thenReturn(List.of(topic1));
 
         SchemaMetadata schema1 = new SchemaMetadata();
         schema1.setId("999");
@@ -155,7 +152,7 @@ public class StagingImplTest {
         schema1.setCreatedBy("test");
         schema1.setTopicName("topic-1");
 
-        when(topicService.getTopicSchemaVersions("dev", "topic-1")).thenReturn(Collections.singletonList(schema1));
+        when(topicService.getTopicSchemaVersions("dev", "topic-1")).thenReturn(List.of(schema1));
 
         SubscriptionService subscriptionService = mock(SubscriptionService.class);
 
@@ -174,7 +171,7 @@ public class StagingImplTest {
         schema2.setCreatedBy("test");
         schema2.setTopicName("topic-1");
         schema2.setSchemaVersion(1);
-        when(topicService.getTopicSchemaVersions("int", "topic-1")).thenReturn(Collections.singletonList(schema2));
+        when(topicService.getTopicSchemaVersions("int", "topic-1")).thenReturn(List.of(schema2));
 
         staging = StagingImpl.build("app-1", "dev", "int", null, topicService, subscriptionService).get();
         changes = staging.getChanges();
@@ -182,7 +179,7 @@ public class StagingImplTest {
     }
 
     @Test
-    public void testCompoundChangeForApiTopicCreation() throws Exception {
+    void testCompoundChangeForApiTopicCreation() throws Exception {
         TopicService topicService = mock(TopicService.class);
 
         TopicMetadata topic1 = new TopicMetadata();
@@ -190,7 +187,7 @@ public class StagingImplTest {
         topic1.setOwnerApplicationId("app-1");
         topic1.setType(TopicType.EVENTS);
 
-        when(topicService.listTopics("dev")).thenReturn(Collections.singletonList(topic1));
+        when(topicService.listTopics("dev")).thenReturn(List.of(topic1));
         when(topicService.buildTopicCreateParams("dev", "topic-1"))
                 .thenReturn(CompletableFuture.completedFuture(new TopicCreateParams(2, 2)));
 
@@ -227,7 +224,7 @@ public class StagingImplTest {
     }
 
     @Test
-    public void testApiTopicWithoutSchema_fail() throws Exception {
+    void testApiTopicWithoutSchema_fail() throws Exception {
         TopicService topicService = mock(TopicService.class);
 
         TopicMetadata topic1 = new TopicMetadata();
@@ -235,7 +232,7 @@ public class StagingImplTest {
         topic1.setOwnerApplicationId("app-1");
         topic1.setType(TopicType.EVENTS);
 
-        when(topicService.listTopics("dev")).thenReturn(Collections.singletonList(topic1));
+        when(topicService.listTopics("dev")).thenReturn(List.of(topic1));
 
         SubscriptionService subscriptionService = mock(SubscriptionService.class);
 
@@ -254,7 +251,7 @@ public class StagingImplTest {
     }
 
     @Test
-    public void testStageDeprecatedTopic_fail() throws Exception {
+    void testStageDeprecatedTopic_fail() throws Exception {
         TopicService topicService = mock(TopicService.class);
 
         TopicMetadata topic1 = new TopicMetadata();
@@ -263,7 +260,7 @@ public class StagingImplTest {
         topic1.setType(TopicType.EVENTS);
         topic1.setDeprecated(true);
 
-        when(topicService.listTopics("dev")).thenReturn(Collections.singletonList(topic1));
+        when(topicService.listTopics("dev")).thenReturn(List.of(topic1));
 
         SubscriptionService subscriptionService = mock(SubscriptionService.class);
 

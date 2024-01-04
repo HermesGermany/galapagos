@@ -9,7 +9,6 @@ import com.hermesworld.ais.galapagos.subscriptions.SubscriptionMetadata;
 import com.hermesworld.ais.galapagos.topics.SchemaMetadata;
 import com.hermesworld.ais.galapagos.topics.TopicMetadata;
 import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -28,7 +27,6 @@ public class GalapagosEventManagerImpl implements GalapagosEventManager {
 
     private final List<EventContextSource> contextSources;
 
-    @Autowired
     public GalapagosEventManagerImpl(@Lazy List<TopicEventsListener> topicListeners,
             @Lazy List<SubscriptionEventsListener> subscriptionListeners,
             @Lazy List<ApplicationEventsListener> applicationListeners, @Lazy List<EventContextSource> contextSources) {

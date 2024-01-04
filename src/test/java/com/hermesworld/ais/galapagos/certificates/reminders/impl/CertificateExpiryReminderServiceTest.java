@@ -11,19 +11,18 @@ import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.kafka.config.KafkaEnvironmentConfig;
 import com.hermesworld.ais.galapagos.kafka.impl.TopicBasedRepositoryMock;
 import org.json.JSONObject;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class CertificateExpiryReminderServiceTest {
+class CertificateExpiryReminderServiceTest {
 
     private KafkaClusters clusters;
 
@@ -33,8 +32,8 @@ public class CertificateExpiryReminderServiceTest {
 
     private final TopicBasedRepositoryMock<ReminderMetadata> reminderRepository = new TopicBasedRepositoryMock<>();
 
-    @Before
-    public void initClusters() {
+    @BeforeEach
+    void initClusters() {
         clusters = mock(KafkaClusters.class);
         KafkaCluster cluster = mock(KafkaCluster.class);
         applicationsService = mock(ApplicationsService.class);
@@ -57,7 +56,7 @@ public class CertificateExpiryReminderServiceTest {
     }
 
     @Test
-    public void testNoReminder() {
+    void testNoReminder() {
         ApplicationMetadata metadata = new ApplicationMetadata();
         metadata.setApplicationId("123");
         metadata.setAuthenticationJson(authJson("CN=abc", 365));
@@ -69,7 +68,7 @@ public class CertificateExpiryReminderServiceTest {
     }
 
     @Test
-    public void testSimpleCase() {
+    void testSimpleCase() {
         ApplicationMetadata metadata = new ApplicationMetadata();
         metadata.setApplicationId("123");
         metadata.setAuthenticationJson(authJson("CN=abc", 40));
@@ -80,11 +79,11 @@ public class CertificateExpiryReminderServiceTest {
         assertEquals(1, reminders.size());
         assertEquals("123", reminders.get(0).getApplicationId());
         assertEquals("test", reminders.get(0).getEnvironmentId());
-        Assert.assertEquals(ReminderType.THREE_MONTHS, reminders.get(0).getReminderType());
+        assertEquals(ReminderType.THREE_MONTHS, reminders.get(0).getReminderType());
     }
 
     @Test
-    public void testMultipleCallsWithoutMarkMustReturnSameReminders() {
+    void testMultipleCallsWithoutMarkMustReturnSameReminders() {
         ApplicationMetadata metadata = new ApplicationMetadata();
         metadata.setApplicationId("123");
         metadata.setAuthenticationJson(authJson("CN=abc", 40));
@@ -100,7 +99,7 @@ public class CertificateExpiryReminderServiceTest {
     }
 
     @Test
-    public void testSimpleMark() {
+    void testSimpleMark() {
         List<ApplicationMetadata> applications = new ArrayList<>();
         ApplicationMetadata metadata = new ApplicationMetadata();
         metadata.setApplicationId("123");
@@ -126,7 +125,7 @@ public class CertificateExpiryReminderServiceTest {
     }
 
     @Test
-    public void testShortTimeAlreadySentShouldNotSendLongerTimeReminder() throws Exception {
+    void testShortTimeAlreadySentShouldNotSendLongerTimeReminder() throws Exception {
         List<ApplicationMetadata> applications = new ArrayList<>();
         ApplicationMetadata metadata = new ApplicationMetadata();
         metadata.setApplicationId("123");
@@ -148,7 +147,7 @@ public class CertificateExpiryReminderServiceTest {
     }
 
     @Test
-    public void testMultipleEnvironmentsWithExpiredEach() {
+    void testMultipleEnvironmentsWithExpiredEach() {
         ApplicationMetadata metadata = new ApplicationMetadata();
         metadata.setApplicationId("123");
         metadata.setAuthenticationJson(authJson("CN=abc", 5));
@@ -189,7 +188,7 @@ public class CertificateExpiryReminderServiceTest {
     }
 
     @Test
-    public void testMultipleEnvironmentsWithOnlyOneExpired() {
+    void testMultipleEnvironmentsWithOnlyOneExpired() {
         List<ApplicationMetadata> applications = new ArrayList<>();
         ApplicationMetadata metadata = new ApplicationMetadata();
         metadata.setApplicationId("123");

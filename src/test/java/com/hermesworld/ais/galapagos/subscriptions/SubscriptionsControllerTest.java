@@ -1,15 +1,17 @@
 package com.hermesworld.ais.galapagos.subscriptions;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
@@ -23,7 +25,7 @@ import com.hermesworld.ais.galapagos.topics.TopicMetadata;
 import com.hermesworld.ais.galapagos.topics.service.TopicService;
 import com.hermesworld.ais.galapagos.util.FutureUtil;
 
-public class SubscriptionsControllerTest {
+class SubscriptionsControllerTest {
 
     private KafkaClusters kafkaClusters;
 
@@ -35,8 +37,8 @@ public class SubscriptionsControllerTest {
 
     private SubscriptionMetadata subscription = new SubscriptionMetadata();
 
-    @Before
-    public void initMocks() {
+    @BeforeEach
+    void initMocks() {
         subscription.setId("sub-1");
         subscription.setTopicName("topic-1");
         subscription.setClientApplicationId("app-1");
@@ -49,7 +51,7 @@ public class SubscriptionsControllerTest {
     }
 
     @Test
-    public void testUpdateSubscription_positive() throws Exception {
+    void testUpdateSubscription_positive() throws Exception {
         TopicMetadata topic1 = new TopicMetadata();
         topic1.setName("topic-1");
         topic1.setOwnerApplicationId("app-2");
@@ -79,7 +81,7 @@ public class SubscriptionsControllerTest {
     }
 
     @Test
-    public void testUpdateSubscription_invalidUser_clientAppOwner() throws Exception {
+    void testUpdateSubscription_invalidUser_clientAppOwner() throws Exception {
         TopicMetadata topic = new TopicMetadata();
         topic.setName("topic-1");
         topic.setOwnerApplicationId("app-2");
@@ -104,12 +106,12 @@ public class SubscriptionsControllerTest {
             fail("Expected FORBIDDEN for owner of CLIENT application");
         }
         catch (ResponseStatusException e) {
-            assertEquals(HttpStatus.FORBIDDEN, e.getStatus());
+            assertEquals(HttpStatus.FORBIDDEN, e.getStatusCode());
         }
     }
 
     @Test
-    public void testUpdateSubscription_invalidTopic_forSubscription() throws Exception {
+    void testUpdateSubscription_invalidTopic_forSubscription() throws Exception {
         TopicMetadata topic1 = new TopicMetadata();
         topic1.setName("topic-1");
         topic1.setOwnerApplicationId("app-2");
@@ -137,12 +139,12 @@ public class SubscriptionsControllerTest {
             fail("Expected NOT_FOUND as subscription does not match topic");
         }
         catch (ResponseStatusException e) {
-            assertEquals(HttpStatus.NOT_FOUND, e.getStatus());
+            assertEquals(HttpStatus.NOT_FOUND, e.getStatusCode());
         }
     }
 
     @Test
-    public void testUpdateSubscription_topicHasFlagNotSet() throws Exception {
+    void testUpdateSubscription_topicHasFlagNotSet() throws Exception {
         TopicMetadata topic1 = new TopicMetadata();
         topic1.setName("topic-1");
         topic1.setOwnerApplicationId("app-2");
@@ -164,7 +166,7 @@ public class SubscriptionsControllerTest {
             fail("Expected BAD_REQUEST for updating subscription state for topic which does not require subscription approval");
         }
         catch (ResponseStatusException e) {
-            assertEquals(HttpStatus.BAD_REQUEST, e.getStatus());
+            assertEquals(HttpStatus.BAD_REQUEST, e.getStatusCode());
         }
     }
 

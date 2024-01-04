@@ -7,7 +7,7 @@ import { ApplicationsService } from '../../shared/services/applications.service'
 import { ServerInfoService } from '../../shared/services/serverinfo.service';
 import { RouterTestingModule } from '@angular/router/testing';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { PageHeaderModule } from '../../shared/modules';
+import { PageHeaderModule } from '../../shared';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { LanguageTranslationModule } from '../../shared/modules/language-translation/language-translation.module';
 import { SingleTopicComponent } from './single-topic.component';

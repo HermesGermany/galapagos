@@ -17,10 +17,10 @@ import com.hermesworld.ais.galapagos.util.JsonUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.annotation.Secured;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -43,7 +43,6 @@ public class ApplicationsController {
 
     private final KafkaClusters kafkaClusters;
 
-    @Autowired
     public ApplicationsController(ApplicationsService applicationsService, StagingService stagingService,
             KafkaClusters kafkaClusters) {
         this.applicationsService = applicationsService;
@@ -53,7 +52,7 @@ public class ApplicationsController {
 
     @GetMapping(value = "/api/applications", produces = MediaType.APPLICATION_JSON_VALUE)
     public List<KnownApplicationDto> listApplications(
-            @RequestParam(name = "excludeUserApps", required = false, defaultValue = "false") boolean excludeUserApps) {
+            @RequestParam(required = false, defaultValue = "false") boolean excludeUserApps) {
         return applicationsService.getKnownApplications(excludeUserApps).stream().map(app -> toKnownAppDto(app))
                 .collect(Collectors.toList());
     }
@@ -159,7 +158,7 @@ public class ApplicationsController {
         String filename = CertificateUtil.toAppCn(app.getName()) + "_" + environmentId;
         if (!request.isGenerateKey()) {
             String csrData = request.getCsrData();
-            if (StringUtils.isEmpty(csrData)) {
+            if (ObjectUtils.isEmpty(csrData)) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                         "No CSR (csrData) present! Set generateKey to true if you want the server to generate a private key for you (not recommended).");
             }
@@ -211,7 +210,7 @@ public class ApplicationsController {
 
         try {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            JSONObject params = StringUtils.isEmpty(request) ? new JSONObject() : new JSONObject(request);
+            JSONObject params = ObjectUtils.isEmpty(request) ? new JSONObject() : new JSONObject(request);
             ApplicationMetadata metadata = applicationsService
                     .registerApplicationOnEnvironment(environmentId, applicationId, params, baos).get();
             CreatedApiKeyDto dto = new CreatedApiKeyDto();
@@ -279,7 +278,7 @@ public class ApplicationsController {
         }
 
         List<Change> stagingFilter = null;
-        if (!StringUtils.isEmpty(stagingFilterRaw)) {
+        if (!ObjectUtils.isEmpty(stagingFilterRaw)) {
             try {
                 stagingFilter = JsonUtil.newObjectMapper().readValue(stagingFilterRaw,
                         TypeFactory.defaultInstance().constructCollectionType(ArrayList.class, Change.class));

@@ -1,6 +1,6 @@
-<div [@routerTransition] *ngIf="isAdmin">
+<div [@routerTransition] *ngIf="isAdmin | async">
     <h2 id="adminHeader" class="text-muted">{{ 'Administration' | translate }}</h2>
-    <hr />
+    <hr/>
     <div class="row mb-4">
         <div class="col-md-12">
             <div class="card">
@@ -8,6 +8,20 @@
                     <b>{{ 'Application Owner Requests' | translate }}</b>
                 </div>
                 <div class="card-body table-responsive">
+                    <div class="mb-3 row">
+                        <label for="table-complete-search" class="col-xs-3 col-sm-auto col-form-label">{{ 'Search' | translate }}:</label>
+                        <div class="col-xs-3 col-sm-auto">
+                            <input
+                                id="table-complete-search"
+                                type="text"
+                                class="form-control"
+                                class="form-control"
+                                name="searchTerm"
+                                [(ngModel)]="state.searchTerm"
+                                (ngModelChange)="search()"
+                            />
+                        </div>
+                    </div>
                     <table class="table table-striped">
                         <thead>
                             <tr>
@@ -20,12 +34,12 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr *ngFor="let request of allRequests | async">
+                            <tr *ngFor="let request of currentRequests">
                                 <td>{{ niceTimestamp(request.createdAt) | async }}</td>
-                                <td><ngb-highlight [result]="request.userName" [term]="searchTerm"></ngb-highlight></td>
+                                <td><ngb-highlight [result]="request.userName" [term]="state.searchTerm"></ngb-highlight></td>
                                 <td>
-                                    <a *ngIf="request.applicationInfoUrl" [href]="request.applicationInfoUrl" target="_blank"><ngb-highlight [result]="request.applicationName" [term]="searchTerm"></ngb-highlight></a>
-                                    <ngb-highlight *ngIf="!request.applicationInfoUrl" [result]="request.applicationName" [term]="searchTerm"></ngb-highlight></td>
+                                    <a *ngIf="request.applicationInfoUrl" [href]="request.applicationInfoUrl" target="_blank"><ngb-highlight [result]="request.applicationName" [term]="state.searchTerm"></ngb-highlight></a>
+                                    <ngb-highlight *ngIf="!request.applicationInfoUrl" [result]="request.applicationName" [term]="state.searchTerm"></ngb-highlight></td>
                                 <td><span [innerHTML]="request.comments"></span></td>
                                 <td style="min-width: 9em">
                                     <span
@@ -45,6 +59,24 @@
                             </tr>
                         </tbody>
                     </table>
+
+                    <div class="card-footer d-flex justify-content-between">
+                        <ngb-pagination
+                            [collectionSize]="state.totalItems"
+                            [(page)]="state.currentPage"
+                            [pageSize]="state.pageSize"
+                            [maxSize]="state.maxSize"
+                            [rotate]="true"
+                            (pageChange)="sliceData()"
+                        ></ngb-pagination>
+
+                        <select class="form-select" style="width: auto" name="pageSize" [(ngModel)]="state.pageSize" (ngModelChange)="sliceData()">
+                            <option [ngValue]="15">15 {{'items per page' | translate}}</option>
+                            <option [ngValue]="25">25 {{'items per page' | translate}}</option>
+                            <option [ngValue]="50">50 {{'items per page' | translate}}</option>
+                            <option [ngValue]="100">100 {{'items per page' | translate}}</option>
+                        </select>
+                    </div>
                 </div>
             </div>
         </div>

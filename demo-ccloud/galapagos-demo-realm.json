@@ -652,6 +652,7 @@
         "user"
       ],
       "redirectUris": [
+        "http://localhost:8080",
         "http://localhost:8080/*",
         "http://localhost:4200/*"
       ],
@@ -924,6 +925,23 @@
             "access.token.claim": "true",
             "claim.name": "birthdate",
             "jsonType.label": "String"
+          }
+        },
+        {
+          "id": "0ebf2c4a-e17b-45b7-840c-7c2bb1a0889e",
+          "name": "client roles",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-client-role-mapper",
+          "consentRequired": false,
+          "config": {
+            "multivalued": "true",
+            "userinfo.token.claim": "false",
+            "user.attribute": "foo",
+            "id.token.claim": "false",
+            "access.token.claim": "true",
+            "claim.name": "client_roles",
+            "jsonType.label": "String",
+            "usermodel.clientRoleMapping.clientId": "galapagos-webapp-dev"
           }
         },
         {

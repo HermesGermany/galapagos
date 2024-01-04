@@ -13,12 +13,14 @@ import com.hermesworld.ais.galapagos.util.FutureUtil;
 import com.hermesworld.ais.galapagos.util.TimeService;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.*;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -35,7 +37,6 @@ public class DeveloperAuthenticationServiceImpl implements DeveloperAuthenticati
 
     private final TimeService timeService;
 
-    @Autowired
     public DeveloperAuthenticationServiceImpl(KafkaClusters kafkaClusters, CurrentUserService currentUserService,
             DevUserAclListener aclUpdater, TimeService timeService) {
         this.kafkaClusters = kafkaClusters;
@@ -70,12 +71,9 @@ public class DeveloperAuthenticationServiceImpl implements DeveloperAuthenticati
 
         TopicBasedRepository<DevAuthenticationMetadata> repository = getRepository(cluster);
 
-        CompletableFuture<Void> removeFuture = repository
-                .getObject(
-                        userName)
-                .map(oldMeta -> aclUpdater.removeAcls(cluster, Collections.singleton(oldMeta))
-                        .thenCompose(o -> authModule.deleteDeveloperAuthentication(userName,
-                                new JSONObject(oldMeta.getAuthenticationJson()))))
+        CompletableFuture<Void> removeFuture = repository.getObject(userName)
+                .map(oldMeta -> aclUpdater.removeAcls(cluster, Set.of(oldMeta)).thenCompose(o -> authModule
+                        .deleteDeveloperAuthentication(userName, new JSONObject(oldMeta.getAuthenticationJson()))))
                 .orElse(FutureUtil.noop());
 
         return removeFuture.thenCompose(o -> authModule.createDeveloperAuthentication(userName, new JSONObject()))
@@ -95,7 +93,7 @@ public class DeveloperAuthenticationServiceImpl implements DeveloperAuthenticati
                     return meta;
                 }).thenCompose(meta -> meta == null
                         ? CompletableFuture.failedFuture(new NoSuchElementException("No authentication received"))
-                        : aclUpdater.updateAcls(cluster, Collections.singleton(meta))
+                        : aclUpdater.updateAcls(cluster, Set.of(meta))
                                 .thenCompose(o -> clearExpiredDeveloperAuthenticationsOnAllClusters())
                                 .thenApply(o -> meta)));
     }

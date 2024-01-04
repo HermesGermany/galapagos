@@ -95,4 +95,5 @@ to create Pull Requests.
 
 Some new versions of Galapagos require extra migration effort:
 
+* [Galapagos 2.6.x and 2.7.x to 2.8.0 Migration Guide](./docs/Migration%20Guide%202.8.md)
 * [Galapagos 2.5.x to 2.6.0 Migration Guide](./docs/Migration%20Guide%202.6.md)

@@ -8,10 +8,12 @@ import com.hermesworld.ais.galapagos.subscriptions.service.SubscriptionService;
 import com.hermesworld.ais.galapagos.topics.TopicMetadata;
 import com.hermesworld.ais.galapagos.topics.TopicType;
 import com.hermesworld.ais.galapagos.topics.service.TopicService;
+import org.apache.kafka.common.acl.AccessControlEntry;
 import org.apache.kafka.common.acl.AclBinding;
 import org.apache.kafka.common.acl.AclOperation;
 import org.apache.kafka.common.acl.AclPermissionType;
 import org.apache.kafka.common.resource.PatternType;
+import org.apache.kafka.common.resource.ResourcePattern;
 import org.apache.kafka.common.resource.ResourceType;
 import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,13 +29,15 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class AclSupportTest {
+class AclSupportTest {
 
-    private static final List<AclOperation> WRITE_TOPIC_OPERATIONS = Arrays.asList(AclOperation.DESCRIBE,
-            AclOperation.DESCRIBE_CONFIGS, AclOperation.READ, AclOperation.WRITE);
+    private static final List<AclOperationAndType> WRITE_TOPIC_OPERATIONS = Arrays.asList(
+            new AclOperationAndType(AclOperation.ALL, AclPermissionType.ALLOW),
+            new AclOperationAndType(AclOperation.DELETE, AclPermissionType.DENY));
 
-    private static final List<AclOperation> READ_TOPIC_OPERATIONS = Arrays.asList(AclOperation.DESCRIBE,
-            AclOperation.DESCRIBE_CONFIGS, AclOperation.READ);
+    private static final List<AclOperationAndType> READ_TOPIC_OPERATIONS = Arrays.asList(
+            new AclOperationAndType(AclOperation.READ, AclPermissionType.ALLOW),
+            new AclOperationAndType(AclOperation.DESCRIBE_CONFIGS, AclPermissionType.ALLOW));
 
     @Mock
     private KafkaEnvironmentsConfig kafkaConfig;
@@ -45,12 +49,12 @@ public class AclSupportTest {
     private SubscriptionService subscriptionService;
 
     @BeforeEach
-    public void initMocks() {
+    void initMocks() {
 
     }
 
     @Test
-    public void testGetRequiredAclBindings_simple() {
+    void testGetRequiredAclBindings_simple() {
         ApplicationMetadata metadata = new ApplicationMetadata();
         metadata.setApplicationId("app01");
         metadata.setConsumerGroupPrefixes(List.of("group.myapp.", "group2.myapp."));
@@ -77,34 +81,13 @@ public class AclSupportTest {
 
         when(topicService.listTopics("_test")).thenReturn(List.of(topic1, topic2));
         when(topicService.getTopic("_test", "topic2")).thenReturn(Optional.of(topic2));
-        when(subscriptionService.getSubscriptionsOfApplication("_test", "app01", false))
-                .thenReturn(Collections.singletonList(sub));
+        when(subscriptionService.getSubscriptionsOfApplication("_test", "app01", false)).thenReturn(List.of(sub));
 
         AclSupport aclSupport = new AclSupport(kafkaConfig, topicService, subscriptionService);
 
         Collection<AclBinding> acls = aclSupport.getRequiredAclBindings("_test", metadata, "User:CN=testapp", false);
 
-        assertEquals(15, acls.size());
-
-        // check that cluster DESCRIBE and DESCRIBE_CONFIGS right is included
-        assertNotNull(
-                acls.stream()
-                        .filter(b -> b.pattern().resourceType() == ResourceType.CLUSTER
-                                && b.pattern().patternType() == PatternType.LITERAL
-                                && b.pattern().name().equals("kafka-cluster")
-                                && b.entry().permissionType() == AclPermissionType.ALLOW
-                                && b.entry().operation() == AclOperation.DESCRIBE_CONFIGS)
-                        .findAny().orElse(null),
-                "No DESCRIBE_CONFIGS right for cluster included");
-        assertNotNull(
-                acls.stream()
-                        .filter(b -> b.pattern().resourceType() == ResourceType.CLUSTER
-                                && b.pattern().patternType() == PatternType.LITERAL
-                                && b.pattern().name().equals("kafka-cluster")
-                                && b.entry().permissionType() == AclPermissionType.ALLOW
-                                && b.entry().operation() == AclOperation.DESCRIBE)
-                        .findAny().orElse(null),
-                "No DESCRIBE right for cluster included");
+        assertEquals(9, acls.size());
 
         // two ACL for groups and two for topic prefixes must have been created
         assertNotNull(acls.stream()
@@ -135,30 +118,26 @@ public class AclSupportTest {
                 .filter(binding -> binding.pattern().resourceType() == ResourceType.TRANSACTIONAL_ID
                         && binding.pattern().patternType() == PatternType.PREFIXED
                         && binding.pattern().name().equals("de.myapp.")
-                        && binding.entry().operation() == AclOperation.DESCRIBE)
-                .findAny().orElse(null));
-        assertNotNull(acls.stream()
-                .filter(binding -> binding.pattern().resourceType() == ResourceType.TRANSACTIONAL_ID
-                        && binding.pattern().patternType() == PatternType.PREFIXED
-                        && binding.pattern().name().equals("de.myapp.")
-                        && binding.entry().operation() == AclOperation.WRITE)
+                        && binding.entry().operation() == AclOperation.ALL)
                 .findAny().orElse(null));
 
         // Write rights for owned topic must also be present
         WRITE_TOPIC_OPERATIONS.forEach(op -> assertNotNull(acls.stream()
                 .filter(binding -> binding.pattern().resourceType() == ResourceType.TOPIC
                         && binding.pattern().patternType() == PatternType.LITERAL
-                        && binding.pattern().name().equals("topic1") && binding.entry().operation() == op)));
+                        && binding.pattern().name().equals("topic1") && binding.entry().operation() == op.operation
+                        && binding.entry().permissionType() == op.permissionType)));
 
         // and read rights for subscribed topic
         READ_TOPIC_OPERATIONS.forEach(op -> assertNotNull(acls.stream()
                 .filter(binding -> binding.pattern().resourceType() == ResourceType.TOPIC
                         && binding.pattern().patternType() == PatternType.LITERAL
-                        && binding.pattern().name().equals("topic2") && binding.entry().operation() == op)));
+                        && binding.pattern().name().equals("topic2") && binding.entry().operation() == op.operation
+                        && binding.entry().permissionType() == op.permissionType)));
     }
 
     @Test
-    public void testNoWriteAclsForInternalTopics() {
+    void testNoWriteAclsForInternalTopics() {
         ApplicationMetadata app1 = new ApplicationMetadata();
         app1.setApplicationId("app-1");
         app1.setConsumerGroupPrefixes(List.of("groups."));
@@ -173,12 +152,12 @@ public class AclSupportTest {
         AclSupport aclSupport = new AclSupport(kafkaConfig, topicService, subscriptionService);
         Collection<AclBinding> bindings = aclSupport.getRequiredAclBindings("_test", app1, "User:CN=testapp", false);
 
-        assertEquals(3, bindings.size());
+        assertEquals(1, bindings.size());
         assertFalse(bindings.stream().anyMatch(binding -> binding.pattern().resourceType() == ResourceType.TOPIC));
     }
 
     @Test
-    public void testAdditionalProducerWriteAccess() {
+    void testAdditionalProducerWriteAccess() {
         ApplicationMetadata app1 = new ApplicationMetadata();
         app1.setApplicationId("app-1");
 
@@ -198,17 +177,16 @@ public class AclSupportTest {
                 false);
 
         WRITE_TOPIC_OPERATIONS.forEach(op -> assertNotNull(
-                bindings.stream()
-                        .filter(binding -> binding.pattern().resourceType() == ResourceType.TOPIC
-                                && binding.pattern().patternType() == PatternType.LITERAL
-                                && binding.pattern().name().equals("topic1") && binding.entry().operation() == op
-                                && binding.entry().principal().equals("User:CN=producer1"))
-                        .findAny().orElse(null),
-                "Did not find expected write ACL for topic (operation " + op.name() + " is missing)"));
+                bindings.stream().filter(binding -> binding.pattern().resourceType() == ResourceType.TOPIC
+                        && binding.pattern().patternType() == PatternType.LITERAL
+                        && binding.pattern().name().equals("topic1") && binding.entry().operation() == op.operation
+                        && binding.entry().permissionType() == op.permissionType
+                        && binding.entry().principal().equals("User:CN=producer1")).findAny().orElse(null),
+                "Did not find expected write ACL for topic (operation " + op.operation.name() + " is missing)"));
     }
 
     @Test
-    public void testDefaultAcls() {
+    void testDefaultAcls() {
         ApplicationMetadata app1 = new ApplicationMetadata();
         app1.setApplicationId("app-1");
         app1.setAuthenticationJson(new JSONObject(Map.of("dn", "CN=testapp")).toString());
@@ -236,7 +214,7 @@ public class AclSupportTest {
     }
 
     @Test
-    public void testReadOnlyAcls() {
+    void testReadOnlyAcls() {
         ApplicationMetadata metadata = new ApplicationMetadata();
         metadata.setApplicationId("app01");
         metadata.setConsumerGroupPrefixes(List.of("group.myapp.", "group2.myapp."));
@@ -263,34 +241,13 @@ public class AclSupportTest {
 
         when(topicService.listTopics("_test")).thenReturn(List.of(topic1, topic2));
         when(topicService.getTopic("_test", "topic2")).thenReturn(Optional.of(topic2));
-        when(subscriptionService.getSubscriptionsOfApplication("_test", "app01", false))
-                .thenReturn(Collections.singletonList(sub));
+        when(subscriptionService.getSubscriptionsOfApplication("_test", "app01", false)).thenReturn(List.of(sub));
 
         AclSupport aclSupport = new AclSupport(kafkaConfig, topicService, subscriptionService);
 
         Collection<AclBinding> acls = aclSupport.getRequiredAclBindings("_test", metadata, "User:CN=testapp", true);
 
-        assertEquals(14, acls.size());
-
-        // check that cluster DESCRIBE and DESCRIBE_CONFIGS right is included
-        assertNotNull(
-                acls.stream()
-                        .filter(b -> b.pattern().resourceType() == ResourceType.CLUSTER
-                                && b.pattern().patternType() == PatternType.LITERAL
-                                && b.pattern().name().equals("kafka-cluster")
-                                && b.entry().permissionType() == AclPermissionType.ALLOW
-                                && b.entry().operation() == AclOperation.DESCRIBE_CONFIGS)
-                        .findAny().orElse(null),
-                "No DESCRIBE_CONFIGS right for cluster included");
-        assertNotNull(
-                acls.stream()
-                        .filter(b -> b.pattern().resourceType() == ResourceType.CLUSTER
-                                && b.pattern().patternType() == PatternType.LITERAL
-                                && b.pattern().name().equals("kafka-cluster")
-                                && b.entry().permissionType() == AclPermissionType.ALLOW
-                                && b.entry().operation() == AclOperation.DESCRIBE)
-                        .findAny().orElse(null),
-                "No DESCRIBE right for cluster included");
+        assertEquals(8, acls.size());
 
         // NO group ACLs must have been created
         assertEquals(List.of(), acls.stream().filter(binding -> binding.pattern().resourceType() == ResourceType.GROUP)
@@ -307,23 +264,48 @@ public class AclSupportTest {
         assertEquals(List.of(), acls.stream().filter(binding -> binding.entry().operation() == AclOperation.WRITE)
                 .collect(Collectors.toList()));
 
-        // for internal, owned, and subscribed topics, DESCRIBE, DESCRIBE_CONFIGS, and READ must exist
-        for (AclOperation op : READ_TOPIC_OPERATIONS) {
-            assertTrue(acls.stream()
-                    .anyMatch(binding -> binding.pattern().resourceType() == ResourceType.TOPIC
-                            && binding.pattern().patternType() == PatternType.PREFIXED
-                            && binding.pattern().name().equals("de.myapp.") && binding.entry().operation() == op));
+        // for internal, owned, and subscribed topics, DESCRIBE_CONFIGS and READ must exist
+        for (AclOperationAndType op : READ_TOPIC_OPERATIONS) {
+            assertTrue(acls.stream().anyMatch(binding -> binding.pattern().resourceType() == ResourceType.TOPIC
+                    && binding.pattern().patternType() == PatternType.PREFIXED
+                    && binding.pattern().name().equals("de.myapp.") && binding.entry().operation() == op.operation
+                    && binding.entry().permissionType() == op.permissionType));
 
             assertTrue(acls.stream()
                     .anyMatch(binding -> binding.pattern().resourceType() == ResourceType.TOPIC
                             && binding.pattern().patternType() == PatternType.LITERAL
-                            && binding.pattern().name().equals("topic1") && binding.entry().operation() == op));
+                            && binding.pattern().name().equals("topic1") && binding.entry().operation() == op.operation
+                            && binding.entry().permissionType() == op.permissionType));
 
             assertTrue(acls.stream()
                     .anyMatch(binding -> binding.pattern().resourceType() == ResourceType.TOPIC
                             && binding.pattern().patternType() == PatternType.LITERAL
-                            && binding.pattern().name().equals("topic2") && binding.entry().operation() == op));
+                            && binding.pattern().name().equals("topic2") && binding.entry().operation() == op.operation
+                            && binding.entry().permissionType() == op.permissionType));
         }
+    }
+
+    @Test
+    void testSimplify() {
+        AclSupport support = new AclSupport(kafkaConfig, topicService, subscriptionService);
+
+        AclBinding superfluousBinding = new AclBinding(
+                new ResourcePattern(ResourceType.TOPIC, "test", PatternType.PREFIXED),
+                new AccessControlEntry("me", "*", AclOperation.READ, AclPermissionType.ALLOW));
+
+        List<AclBinding> bindings = List.of(superfluousBinding,
+                new AclBinding(new ResourcePattern(ResourceType.TOPIC, "test", PatternType.PREFIXED),
+                        new AccessControlEntry("me", "*", AclOperation.ALL, AclPermissionType.ALLOW)),
+                new AclBinding(new ResourcePattern(ResourceType.TOPIC, "2test", PatternType.LITERAL),
+                        new AccessControlEntry("me", "*", AclOperation.ALL, AclPermissionType.ALLOW)),
+                new AclBinding(new ResourcePattern(ResourceType.TOPIC, "2test", PatternType.PREFIXED),
+                        new AccessControlEntry("me", "*", AclOperation.READ, AclPermissionType.ALLOW)),
+                new AclBinding(new ResourcePattern(ResourceType.TOPIC, "2test", PatternType.PREFIXED),
+                        new AccessControlEntry("me", "*", AclOperation.CREATE, AclPermissionType.ALLOW)));
+
+        Collection<AclBinding> reducedBindings = support.simplify(bindings);
+        assertEquals(4, reducedBindings.size());
+        assertFalse(reducedBindings.contains(superfluousBinding));
     }
 
     private DefaultAclConfig defaultAclConfig(String name, ResourceType resourceType, PatternType patternType,
@@ -334,5 +316,17 @@ public class AclSupportTest {
         config.setPatternType(patternType);
         config.setOperation(operation);
         return config;
+    }
+
+    private static class AclOperationAndType {
+
+        private final AclOperation operation;
+
+        private final AclPermissionType permissionType;
+
+        private AclOperationAndType(AclOperation operation, AclPermissionType permissionType) {
+            this.operation = operation;
+            this.permissionType = permissionType;
+        }
     }
 }

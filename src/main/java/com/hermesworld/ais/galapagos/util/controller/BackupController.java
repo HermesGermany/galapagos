@@ -10,7 +10,6 @@ import com.hermesworld.ais.galapagos.util.JsonUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.annotation.Secured;
@@ -26,7 +25,6 @@ public class BackupController {
 
     private final ObjectMapper objectMapper = JsonUtil.newObjectMapper();
 
-    @Autowired
     public BackupController(KafkaClusters kafkaClusters) {
         this.kafkaClusters = kafkaClusters;
     }

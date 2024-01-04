@@ -11,7 +11,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.ApplicationArguments;
 
 import java.io.File;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -20,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class ImportBackupJobTest {
+class ImportBackupJobTest {
 
     private ImportBackupJob job;
 
@@ -33,7 +32,7 @@ public class ImportBackupJobTest {
     private TopicBasedRepositoryMock<TopicMetadata> topicRepository;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         kafkaClusters = mock(KafkaClusters.class);
         testCluster = mock(KafkaCluster.class);
         when(testCluster.getId()).thenReturn("prod");
@@ -55,12 +54,12 @@ public class ImportBackupJobTest {
 
     @Test
     @DisplayName("should import backup from import file")
-    public void importBackupTest() throws Exception {
+    void importBackupTest() throws Exception {
         // given
         ApplicationArguments args = mock(ApplicationArguments.class);
-        when(args.getOptionValues("import.file")).thenReturn(Collections.singletonList(testFile.getPath()));
-        when(args.getOptionValues("clearRepos")).thenReturn(Collections.singletonList("false"));
-        when(testCluster.getRepositories()).thenReturn(Collections.singletonList(topicRepository));
+        when(args.getOptionValues("import.file")).thenReturn(List.of(testFile.getPath()));
+        when(args.getOptionValues("clearRepos")).thenReturn(List.of("false"));
+        when(testCluster.getRepositories()).thenReturn(List.of(topicRepository));
         // when
         job.run(args);
 
@@ -70,11 +69,11 @@ public class ImportBackupJobTest {
 
     @Test
     @DisplayName("should not clear non-imported environments")
-    public void importBackup_noClearOnOtherEnv() throws Exception {
+    void importBackup_noClearOnOtherEnv() throws Exception {
         ApplicationArguments args = mock(ApplicationArguments.class);
-        when(args.getOptionValues("import.file")).thenReturn(Collections.singletonList(testFile.getPath()));
-        when(args.getOptionValues("clearRepos")).thenReturn(Collections.singletonList("true"));
-        when(testCluster.getRepositories()).thenReturn(Collections.singletonList(topicRepository));
+        when(args.getOptionValues("import.file")).thenReturn(List.of(testFile.getPath()));
+        when(args.getOptionValues("clearRepos")).thenReturn(List.of("true"));
+        when(testCluster.getRepositories()).thenReturn(List.of(topicRepository));
 
         KafkaCluster devCluster = mock(KafkaCluster.class);
         when(devCluster.getId()).thenReturn("dev");
@@ -108,14 +107,14 @@ public class ImportBackupJobTest {
 
     @Test
     @DisplayName("should import backup from import file and old metadata in repos should still be present")
-    public void importBackupWithoutClearingExistingRepos() throws Exception {
+    void importBackupWithoutClearingExistingRepos() throws Exception {
         // given
         ApplicationArguments args = mock(ApplicationArguments.class);
         topicRepository.save(buildTopicMetadata()).get();
         // when
-        when(args.getOptionValues("import.file")).thenReturn(Collections.singletonList(testFile.getPath()));
-        when(args.getOptionValues("clearRepos")).thenReturn(Collections.singletonList("false"));
-        when(testCluster.getRepositories()).thenReturn(Collections.singletonList(topicRepository));
+        when(args.getOptionValues("import.file")).thenReturn(List.of(testFile.getPath()));
+        when(args.getOptionValues("clearRepos")).thenReturn(List.of("false"));
+        when(testCluster.getRepositories()).thenReturn(List.of(topicRepository));
 
         // then
         job.run(args);
@@ -126,14 +125,14 @@ public class ImportBackupJobTest {
 
     @Test
     @DisplayName("should import backup from import file and old metadata in repos should be not present")
-    public void importBackupWithClearingExistingRepos() throws Exception {
+    void importBackupWithClearingExistingRepos() throws Exception {
         // given
         ApplicationArguments args = mock(ApplicationArguments.class);
         topicRepository.save(buildTopicMetadata()).get();
         // when
-        when(args.getOptionValues("import.file")).thenReturn(Collections.singletonList(testFile.getPath()));
-        when(args.getOptionValues("clearRepos")).thenReturn(Collections.singletonList("true"));
-        when(testCluster.getRepositories()).thenReturn(Collections.singletonList(topicRepository));
+        when(args.getOptionValues("import.file")).thenReturn(List.of(testFile.getPath()));
+        when(args.getOptionValues("clearRepos")).thenReturn(List.of("true"));
+        when(testCluster.getRepositories()).thenReturn(List.of(topicRepository));
 
         // then
         job.run(args);
@@ -144,13 +143,13 @@ public class ImportBackupJobTest {
 
     @Test
     @DisplayName("should throw exception because no import file is set")
-    public void importBackupTest_noFileOption() throws Exception {
+    void importBackupTest_noFileOption() throws Exception {
         // given
         ApplicationArguments args = mock(ApplicationArguments.class);
         topicRepository.save(buildTopicMetadata()).get();
         // when
-        when(args.getOptionValues("clearRepos")).thenReturn(Collections.singletonList("true"));
-        when(testCluster.getRepositories()).thenReturn(Collections.singletonList(topicRepository));
+        when(args.getOptionValues("clearRepos")).thenReturn(List.of("true"));
+        when(testCluster.getRepositories()).thenReturn(List.of(topicRepository));
 
         // then
         try {
@@ -165,13 +164,13 @@ public class ImportBackupJobTest {
 
     @Test
     @DisplayName("should throw exception because no clearRepos option given")
-    public void importBackupTest_noClearReposOption() throws Exception {
+    void importBackupTest_noClearReposOption() throws Exception {
         // given
         ApplicationArguments args = mock(ApplicationArguments.class);
         topicRepository.save(buildTopicMetadata()).get();
         // when
-        when(args.getOptionValues("import.file")).thenReturn(Collections.singletonList(testFile.getPath()));
-        when(testCluster.getRepositories()).thenReturn(Collections.singletonList(topicRepository));
+        when(args.getOptionValues("import.file")).thenReturn(List.of(testFile.getPath()));
+        when(testCluster.getRepositories()).thenReturn(List.of(topicRepository));
 
         // then
         try {
@@ -186,7 +185,7 @@ public class ImportBackupJobTest {
 
     @Test
     @DisplayName("should return correct job name")
-    public void importBackupTest_correctJobName() {
+    void importBackupTest_correctJobName() {
         assertEquals("import-backup", job.getJobName());
 
     }

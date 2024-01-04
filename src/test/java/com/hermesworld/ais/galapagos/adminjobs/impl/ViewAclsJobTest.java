@@ -1,12 +1,14 @@
 package com.hermesworld.ais.galapagos.adminjobs.impl;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
-import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -19,34 +21,34 @@ import org.apache.kafka.common.resource.ResourcePattern;
 import org.apache.kafka.common.resource.ResourceType;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.boot.ApplicationArguments;
 
 import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.util.FutureUtil;
 
-public class ViewAclsJobTest {
+class ViewAclsJobTest {
 
     private ByteArrayOutputStream stdoutData = new ByteArrayOutputStream();
 
     private PrintStream oldOut;
 
-    @Before
-    public void setup() {
+    @BeforeEach
+    void setup() {
         oldOut = System.out;
         System.setOut(new PrintStream(stdoutData));
     }
 
-    @After
-    public void cleanup() {
+    @AfterEach
+    void cleanup() {
         System.setOut(oldOut);
     }
 
     @Test
-    public void testJsonMapping() throws Exception {
+    void testJsonMapping() throws Exception {
         KafkaClusters clusters = mock(KafkaClusters.class);
 
         KafkaCluster cluster = mock(KafkaCluster.class);
@@ -67,7 +69,7 @@ public class ViewAclsJobTest {
         ViewAclsJob job = new ViewAclsJob(clusters);
 
         ApplicationArguments args = mock(ApplicationArguments.class);
-        when(args.getOptionValues("kafka.environment")).thenReturn(Collections.singletonList("test"));
+        when(args.getOptionValues("kafka.environment")).thenReturn(List.of("test"));
 
         job.run(args);
 

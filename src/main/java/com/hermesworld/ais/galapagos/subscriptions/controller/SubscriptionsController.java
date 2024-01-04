@@ -14,7 +14,6 @@ import com.hermesworld.ais.galapagos.subscriptions.service.SubscriptionService;
 import com.hermesworld.ais.galapagos.topics.TopicMetadata;
 import com.hermesworld.ais.galapagos.topics.service.TopicService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
@@ -34,7 +33,6 @@ public class SubscriptionsController {
 
     private final Supplier<ResponseStatusException> notFound = () -> new ResponseStatusException(HttpStatus.NOT_FOUND);
 
-    @Autowired
     public SubscriptionsController(SubscriptionService subscriptionService, ApplicationsService applicationsService,
             TopicService topicService, KafkaClusters kafkaEnvironments) {
         this.subscriptionService = subscriptionService;
@@ -45,8 +43,7 @@ public class SubscriptionsController {
 
     @GetMapping(value = "/api/applications/{applicationId}/subscriptions/{environmentId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public List<SubscriptionDto> getApplicationSubscriptions(@PathVariable String applicationId,
-            @PathVariable String environmentId,
-            @RequestParam(name = "includeNonApproved", defaultValue = "false") boolean includeNonApproved) {
+            @PathVariable String environmentId, @RequestParam(defaultValue = "false") boolean includeNonApproved) {
         applicationsService.getKnownApplication(applicationId).orElseThrow(notFound);
         kafkaEnvironments.getEnvironmentMetadata(environmentId).orElseThrow(notFound);
         return subscriptionService.getSubscriptionsOfApplication(environmentId, applicationId, includeNonApproved)
@@ -134,8 +131,7 @@ public class SubscriptionsController {
 
     @GetMapping(value = "/api/topics/{environmentId}/{topicName}/subscriptions", produces = MediaType.APPLICATION_JSON_VALUE)
     public List<SubscriptionDto> getTopicSubscriptions(@PathVariable String environmentId,
-            @PathVariable String topicName,
-            @RequestParam(name = "includeNonApproved", defaultValue = "false") boolean includeNonApproved) {
+            @PathVariable String topicName, @RequestParam(defaultValue = "false") boolean includeNonApproved) {
         kafkaEnvironments.getEnvironmentMetadata(environmentId).orElseThrow(notFound);
         topicService.getTopic(environmentId, topicName).orElseThrow(notFound);
 

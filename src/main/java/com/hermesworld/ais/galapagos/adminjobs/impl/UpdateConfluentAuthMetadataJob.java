@@ -11,7 +11,6 @@ import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.kafka.auth.KafkaAuthenticationModule;
 import com.hermesworld.ais.galapagos.kafka.util.TopicBasedRepository;
 import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.stereotype.Component;
 
@@ -26,7 +25,6 @@ public class UpdateConfluentAuthMetadataJob implements AdminJob {
 
     private final DeveloperAuthenticationService devAuthService;
 
-    @Autowired
     public UpdateConfluentAuthMetadataJob(KafkaClusters kafkaClusters, ApplicationsService applicationsService,
             DeveloperAuthenticationService devAuthService) {
         this.kafkaClusters = kafkaClusters;

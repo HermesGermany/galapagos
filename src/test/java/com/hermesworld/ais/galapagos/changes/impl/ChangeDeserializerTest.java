@@ -8,18 +8,18 @@ import com.hermesworld.ais.galapagos.topics.SchemaMetadata;
 import com.hermesworld.ais.galapagos.topics.TopicMetadata;
 import com.hermesworld.ais.galapagos.topics.TopicType;
 import com.hermesworld.ais.galapagos.util.JsonUtil;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class ChangeDeserializerTest {
+class ChangeDeserializerTest {
 
     @Test
-    public void testCompoundChangeDeser() throws Exception {
+    void testCompoundChangeDeser() throws Exception {
         // ChangesDeserializer is registered in the ObjectMapper by this method
         ObjectMapper mapper = JsonUtil.newObjectMapper();
 

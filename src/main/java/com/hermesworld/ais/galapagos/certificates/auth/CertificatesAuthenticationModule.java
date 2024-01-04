@@ -11,6 +11,7 @@ import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.pkcs.PKCSException;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import java.io.*;
@@ -89,7 +90,7 @@ public class CertificatesAuthenticationModule implements KafkaAuthenticationModu
 
         if (extendCertificate) {
             dn = existingAuthData.optString(DN);
-            if (StringUtils.isEmpty(dn)) {
+            if (ObjectUtils.isEmpty(dn)) {
                 return CompletableFuture.failedFuture(new IllegalArgumentException(
                         "Cannot extend certificate - no certificate information available for application"));
             }
@@ -106,7 +107,7 @@ public class CertificatesAuthenticationModule implements KafkaAuthenticationModu
 
         if (!generateKey) {
             String csr = createParameters.optString("csrData");
-            if (StringUtils.isEmpty(csr)) {
+            if (ObjectUtils.isEmpty(csr)) {
                 return CompletableFuture.failedFuture(new IllegalArgumentException(
                         "No CSR (csrData) present! Set generateKey to true if you want the server to generate a private key for you (not recommended)."));
             }

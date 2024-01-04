@@ -24,6 +24,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -71,8 +72,13 @@ public class KafkaRepositoryContainerImpl implements KafkaRepositoryContainer {
 
     public void dispose() {
         if (this.consumerThread != null) {
-            this.consumer.wakeup();
-            // consumer thread will terminate by the wakeup
+            if (this.repositories.isEmpty()) {
+                this.consumerThread.interrupt();
+            }
+            else {
+                // consumer thread will terminate by the wakeup
+                this.consumer.wakeup();
+            }
             this.consumerThread = null;
         }
     }
@@ -111,7 +117,7 @@ public class KafkaRepositoryContainerImpl implements KafkaRepositoryContainer {
             Map<String, TopicDescription> desc;
 
             try {
-                desc = this.adminClient.describeTopics(Collections.singleton(topic)).all().get();
+                desc = this.adminClient.describeTopics(Set.of(topic)).all().get();
             }
             catch (Exception e) {
                 desc = Collections.emptyMap();
@@ -125,7 +131,7 @@ public class KafkaRepositoryContainerImpl implements KafkaRepositoryContainer {
                 NewTopic newTopic = new NewTopic(topic, 1, (short) replicationFactor);
                 newTopic = newTopic
                         .configs(Map.of(TopicConfig.CLEANUP_POLICY_CONFIG, TopicConfig.CLEANUP_POLICY_COMPACT));
-                this.adminClient.createTopics(Collections.singleton(newTopic)).all().get();
+                this.adminClient.createTopics(Set.of(newTopic)).all().get();
             }
         }
         catch (InterruptedException e) {

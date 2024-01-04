@@ -52,8 +52,7 @@ public class NamingConfig implements Validator {
         if (target instanceof String && objName.endsWith("-format")) {
             checkValidFormat(target.toString(), errors);
         }
-        else if (target instanceof AdditionNamingRules) {
-            AdditionNamingRules rules = (AdditionNamingRules) target;
+        else if (target instanceof AdditionNamingRules rules) {
             if (!StringUtils.isEmpty(rules.getAllowedSeparators())
                     && !rules.getAllowedSeparators().matches(KAFKA_VALID_NAMES_REGEX)) {
                 errors.rejectValue("allowedSeparators", "invalid.value",

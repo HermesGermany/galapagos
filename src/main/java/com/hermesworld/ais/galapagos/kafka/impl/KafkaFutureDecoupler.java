@@ -51,6 +51,29 @@ public class KafkaFutureDecoupler {
     }
 
     /**
+     * Returns a {@link CompletableFuture} which completes when the given {@link CompletableFuture} completes. If the
+     * <code>ListenableFuture</code> is already complete, a completed Future is returned. Otherwise, the returned Future
+     * completes on a Thread provided by a fresh <code>ExecutorService</code> of the <code>KafkaExecutorFactory</code>
+     * provided for this helper class.
+     *
+     * @param <T>               Type of the value provided by the Future.
+     * @param completableFuture Future which may be complete, or which may complete on the Kafka Thread.
+     *
+     * @return A completable Future which may be already complete if the original Future already was complete, or which
+     *         completes on a Thread decoupled from the Kafka Thread.
+     */
+    public <T> CompletableFuture<T> toCompletableFuture(CompletableFuture<T> completableFuture) {
+        return toCompletableFuture(completableFuture, cb -> completableFuture.whenComplete((t, ex) -> {
+            if (ex != null) {
+                cb.onFailure(ex);
+            }
+            else {
+                cb.onSuccess(t);
+            }
+        }));
+    }
+
+    /**
      * Returns a {@link CompletableFuture} which completes when the given {@link ListenableFuture} completes. If the
      * <code>ListenableFuture</code> is already complete, a completed Future is returned. Otherwise, the returned Future
      * completes on a Thread provided by a fresh <code>ExecutorService</code> of the <code>KafkaExecutorFactory</code>

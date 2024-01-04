@@ -4,12 +4,11 @@ import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.kafka.auth.KafkaAuthenticationModule;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.config.SslConfigs;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StreamUtils;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
@@ -29,7 +28,6 @@ public class TrustStoreController {
 
     private final Supplier<ResponseStatusException> notFound = () -> new ResponseStatusException(HttpStatus.NOT_FOUND);
 
-    @Autowired
     public TrustStoreController(KafkaClusters kafkaClusters) {
         this.kafkaClusters = kafkaClusters;
     }
@@ -49,7 +47,7 @@ public class TrustStoreController {
         module.addRequiredKafkaProperties(props);
 
         String trustStoreLocation = props.getProperty(SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG);
-        if (StringUtils.isEmpty(trustStoreLocation)) {
+        if (ObjectUtils.isEmpty(trustStoreLocation)) {
             throw notFound.get();
         }
 

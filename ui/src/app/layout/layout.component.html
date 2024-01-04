@@ -1,9 +1,13 @@
-<app-header></app-header>
-<app-sidebar (collapsedEvent)="receiveCollapsed($event)"></app-sidebar>
-<section class="main-container" [ngClass]="{collapsed: collapedSideBar}">
-    <div style="position: absolute; right: 10px; top: 10px; z-index: 999">
-    <app-toast *ngFor="let t of toasts" [@fadeoutToast]="t.status"  autohide="true" [type]="t.toast.type" [header]="t.toast.header"
-               (hide)="hideToast(t.key, $event)" [delay]="t.toast.delay" style="display: block">{{ t.toast.message }}</app-toast>
-    </div>
-    <router-outlet></router-outlet>
-</section>
+<ng-container *ngIf="authService.authenticated | async">
+    <app-header></app-header>
+    <app-sidebar (collapsedEvent)="receiveCollapsed($event)"></app-sidebar>
+    <section class="main-container" [ngClass]="{collapsed: collapedSideBar}">
+        <div style="position: absolute; right: 10px; top: 10px; z-index: 999">
+            <app-toast *ngFor="let t of toasts" [@fadeoutToast]="t.status" autohide="true" [type]="t.toast.type"
+                       [header]="t.toast.header"
+                       (hide)="hideToast(t.key, $event)" [delay]="t.toast.delay"
+                       style="display: block">{{ t.toast.message }}</app-toast>
+        </div>
+        <router-outlet></router-outlet>
+    </section>
+</ng-container>

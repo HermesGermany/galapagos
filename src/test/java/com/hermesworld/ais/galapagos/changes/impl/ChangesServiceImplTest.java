@@ -22,14 +22,15 @@ import com.hermesworld.ais.galapagos.topics.SchemaMetadata;
 import com.hermesworld.ais.galapagos.topics.TopicMetadata;
 import com.hermesworld.ais.galapagos.topics.TopicType;
 import com.hermesworld.ais.galapagos.util.HasKey;
-import static org.junit.Assert.assertEquals;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class ChangesServiceImplTest {
+class ChangesServiceImplTest {
 
     private GalapagosEventContext context;
 
@@ -37,8 +38,8 @@ public class ChangesServiceImplTest {
 
     private AuditPrincipal principal;
 
-    @Before
-    public void buildMocks() {
+    @BeforeEach
+    void buildMocks() {
         KafkaClusters clusters = mock(KafkaClusters.class);
         impl = new ChangesServiceImpl(clusters);
 
@@ -52,7 +53,7 @@ public class ChangesServiceImplTest {
     }
 
     @Test
-    public void testChangeListener_createTopic() {
+    void testChangeListener_createTopic() {
         TopicMetadata metadata = buildTopicMetadata();
         TopicCreateParams params = new TopicCreateParams(2, 2);
 
@@ -68,7 +69,7 @@ public class ChangesServiceImplTest {
     }
 
     @Test
-    public void testChangeListener_deleteTopic() {
+    void testChangeListener_deleteTopic() {
         TopicMetadata metadata = buildTopicMetadata();
         TopicEvent event = new TopicEvent(context, metadata);
         impl.handleTopicDeleted(event);
@@ -82,7 +83,7 @@ public class ChangesServiceImplTest {
     }
 
     @Test
-    public void testChangeListener_topicDescriptionChanged() {
+    void testChangeListener_topicDescriptionChanged() {
         TopicMetadata metadata = buildTopicMetadata();
         TopicEvent event = new TopicEvent(context, metadata);
         impl.handleTopicDescriptionChanged(event);
@@ -96,7 +97,7 @@ public class ChangesServiceImplTest {
     }
 
     @Test
-    public void testChangeListener_topicDeprecated() {
+    void testChangeListener_topicDeprecated() {
         TopicMetadata metadata = buildTopicMetadata();
         metadata.setDeprecated(true);
         metadata.setDeprecationText("do not use");
@@ -114,7 +115,7 @@ public class ChangesServiceImplTest {
     }
 
     @Test
-    public void testChangeListener_topicUndeprecated() {
+    void testChangeListener_topicUndeprecated() {
         TopicMetadata metadata = buildTopicMetadata();
         TopicEvent event = new TopicEvent(context, metadata);
         impl.handleTopicUndeprecated(event);
@@ -128,7 +129,7 @@ public class ChangesServiceImplTest {
     }
 
     @Test
-    public void testChangeListener_topicSchemaVersionPublished() {
+    void testChangeListener_topicSchemaVersionPublished() {
         TopicMetadata metadata = buildTopicMetadata();
         SchemaMetadata schema = new SchemaMetadata();
         schema.setId("99");

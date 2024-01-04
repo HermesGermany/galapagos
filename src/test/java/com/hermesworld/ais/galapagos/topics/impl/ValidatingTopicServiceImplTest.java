@@ -10,33 +10,32 @@ import com.hermesworld.ais.galapagos.topics.TopicType;
 import com.hermesworld.ais.galapagos.topics.config.GalapagosTopicConfig;
 import com.hermesworld.ais.galapagos.topics.service.TopicService;
 import com.hermesworld.ais.galapagos.topics.service.impl.ValidatingTopicServiceImpl;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
 import java.time.Period;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class ValidatingTopicServiceImplTest {
+class ValidatingTopicServiceImplTest {
 
     private GalapagosTopicConfig topicConfig;
 
-    @Before
-    public void init() {
+    @BeforeEach
+    void init() {
         topicConfig = mock(GalapagosTopicConfig.class);
         when(topicConfig.getMinDeprecationTime()).thenReturn(Period.ofDays(10));
     }
 
     @Test
-    public void testCannotDeleteSubscribedTopic() {
+    void testCannotDeleteSubscribedTopic() {
         TopicService topicService = mock(TopicService.class);
         SubscriptionService subscriptionService = mock(SubscriptionService.class);
         KafkaClusters clusters = mock(KafkaClusters.class);
@@ -53,7 +52,7 @@ public class ValidatingTopicServiceImplTest {
 
         when(topicService.getTopic("_env1", "testtopic")).thenReturn(Optional.of(meta1));
         when(subscriptionService.getSubscriptionsForTopic("_env1", "testtopic", false))
-                .thenReturn(Collections.singletonList(subscription));
+                .thenReturn(List.of(subscription));
 
         ValidatingTopicServiceImpl service = new ValidatingTopicServiceImpl(topicService, subscriptionService,
                 mock(ApplicationsService.class), clusters, topicConfig, false);
@@ -62,7 +61,7 @@ public class ValidatingTopicServiceImplTest {
     }
 
     @Test
-    public void testCannotDeleteStagedPublicTopic() {
+    void testCannotDeleteStagedPublicTopic() {
         TopicService topicService = mock(TopicService.class);
         SubscriptionService subscriptionService = mock(SubscriptionService.class);
         KafkaClusters clusters = mock(KafkaClusters.class);
@@ -85,7 +84,7 @@ public class ValidatingTopicServiceImplTest {
     }
 
     @Test
-    public void canDeleteTopic_internal_positiv() {
+    void canDeleteTopic_internal_positiv() {
 
         TopicService topicService = mock(TopicService.class);
         SubscriptionService subscriptionService = mock(SubscriptionService.class);
@@ -110,7 +109,7 @@ public class ValidatingTopicServiceImplTest {
     }
 
     @Test
-    public void canDeleteTopic_internal_negative() {
+    void canDeleteTopic_internal_negative() {
 
         TopicService topicService = mock(TopicService.class);
         SubscriptionService subscriptionService = mock(SubscriptionService.class);
@@ -136,7 +135,7 @@ public class ValidatingTopicServiceImplTest {
 
     @Test
     @DisplayName("Should throw Exception when trying to add Producer to Topic on staging-only Stage")
-    public void addTopicProducerOnOnlyStagingEnv_negative() {
+    void addTopicProducerOnOnlyStagingEnv_negative() {
 
         TopicService topicService = mock(TopicService.class);
         SubscriptionService subscriptionService = mock(SubscriptionService.class);
@@ -167,7 +166,7 @@ public class ValidatingTopicServiceImplTest {
 
     @Test
     @DisplayName("Should throw Exception when trying to delete Producer from Topic on staging-only Stage")
-    public void deleteProducerFromTopicOnOnlyStagingEnv_negative() {
+    void deleteProducerFromTopicOnOnlyStagingEnv_negative() {
 
         TopicService topicService = mock(TopicService.class);
         SubscriptionService subscriptionService = mock(SubscriptionService.class);
@@ -200,7 +199,7 @@ public class ValidatingTopicServiceImplTest {
     }
 
     @Test
-    public void canDeleteTopic_withSubscribersAndEolDatePast() {
+    void canDeleteTopic_withSubscribersAndEolDatePast() {
 
         TopicService topicService = mock(TopicService.class);
         SubscriptionService subscriptionService = mock(SubscriptionService.class);
@@ -220,7 +219,7 @@ public class ValidatingTopicServiceImplTest {
         subscription.setClientApplicationId("2");
 
         when(subscriptionService.getSubscriptionsForTopic("_env1", "testtopic", false))
-                .thenReturn(Collections.singletonList(subscription));
+                .thenReturn(List.of(subscription));
         when(topicService.getTopic("_env1", "testtopic")).thenReturn(Optional.of(meta1));
 
         ValidatingTopicServiceImpl service = new ValidatingTopicServiceImpl(topicService, subscriptionService,
@@ -230,7 +229,7 @@ public class ValidatingTopicServiceImplTest {
     }
 
     @Test
-    public void canDeleteTopic_withSubscribersAndEolDateInFuture() {
+    void canDeleteTopic_withSubscribersAndEolDateInFuture() {
 
         TopicService topicService = mock(TopicService.class);
         SubscriptionService subscriptionService = mock(SubscriptionService.class);
@@ -250,7 +249,7 @@ public class ValidatingTopicServiceImplTest {
         subscription.setClientApplicationId("2");
 
         when(subscriptionService.getSubscriptionsForTopic("_env1", "testtopic", false))
-                .thenReturn(Collections.singletonList(subscription));
+                .thenReturn(List.of(subscription));
         when(topicService.getTopic("_env1", "testtopic")).thenReturn(Optional.of(meta1));
 
         ValidatingTopicServiceImpl service = new ValidatingTopicServiceImpl(topicService, subscriptionService,
