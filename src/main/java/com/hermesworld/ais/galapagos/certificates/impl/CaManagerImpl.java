@@ -373,7 +373,7 @@ public final class CaManagerImpl {
 
             if (!Arrays.equals(kp.getPublic().getEncoded(), data.getCaCertificate().getPublicKey().getEncoded())) {
                 throw new RuntimeException("The public/private key pair does not match for certificate "
-                        + data.getCaCertificate().getSubjectDN().getName());
+                        + data.getCaCertificate().getSubjectX500Principal().getName());
             }
 
             data.setCaPrivateKey(kp.getPrivate());
@@ -381,7 +381,7 @@ public final class CaManagerImpl {
 
         try {
             data.setApplicationCertificateValidity(
-                    StringUtils.isEmpty(config.getApplicationCertificateValidity()) ? DEFAULT_CERTIFICATE_VALIDITY
+                    !StringUtils.hasLength(config.getApplicationCertificateValidity()) ? DEFAULT_CERTIFICATE_VALIDITY
                             : Duration.parse(config.getApplicationCertificateValidity()).toMillis());
         }
         catch (DateTimeParseException e) {
@@ -390,7 +390,7 @@ public final class CaManagerImpl {
             data.setApplicationCertificateValidity(DEFAULT_CERTIFICATE_VALIDITY);
         }
         try {
-            data.setDeveloperCertificateValidity(StringUtils.isEmpty(config.getDeveloperCertificateValidity()) ? 0
+            data.setDeveloperCertificateValidity(!StringUtils.hasLength(config.getDeveloperCertificateValidity()) ? 0
                     : Duration.parse(config.getDeveloperCertificateValidity()).toMillis());
         }
         catch (DateTimeParseException e) {

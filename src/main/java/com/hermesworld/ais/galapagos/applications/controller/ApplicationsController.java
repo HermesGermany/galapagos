@@ -71,7 +71,7 @@ public class ApplicationsController {
     @PutMapping(value = "/api/me/requests", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ApplicationOwnerRequest submitApplicationOwnerRequest(
             @RequestBody ApplicationOwnerRequestSubmissionDto request) {
-        if (StringUtils.isEmpty(request.getApplicationId())) {
+        if (!StringUtils.hasLength(request.getApplicationId())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "Required parameter applicationId is missing or empty");
         }

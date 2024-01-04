@@ -1,7 +1,13 @@
 package com.hermesworld.ais.galapagos.kafka.impl;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.mock;
+import com.hermesworld.ais.galapagos.kafka.KafkaExecutorFactory;
+import com.hermesworld.ais.galapagos.kafka.KafkaUser;
+import org.apache.kafka.common.KafkaFuture;
+import org.apache.kafka.common.acl.*;
+import org.apache.kafka.common.resource.PatternType;
+import org.apache.kafka.common.resource.ResourcePattern;
+import org.apache.kafka.common.resource.ResourceType;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -9,19 +15,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Executors;
 
-import org.apache.kafka.clients.admin.CreateAclsResult;
-import org.apache.kafka.clients.admin.DeleteAclsResult;
-import org.apache.kafka.common.acl.AccessControlEntry;
-import org.apache.kafka.common.acl.AclBinding;
-import org.apache.kafka.common.acl.AclBindingFilter;
-import org.apache.kafka.common.acl.AclOperation;
-import org.apache.kafka.common.acl.AclPermissionType;
-import org.apache.kafka.common.resource.PatternType;
-import org.apache.kafka.common.resource.ResourcePattern;
-import org.apache.kafka.common.resource.ResourceType;
-import org.junit.jupiter.api.Test;
-import com.hermesworld.ais.galapagos.kafka.KafkaExecutorFactory;
-import com.hermesworld.ais.galapagos.kafka.KafkaUser;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
 
 class ConnectedKafkaClusterTest {
 
@@ -32,13 +27,13 @@ class ConnectedKafkaClusterTest {
 
         AdminClientStub adminClient = new AdminClientStub() {
             @Override
-            public CreateAclsResult createAcls(Collection<AclBinding> acls) {
+            public KafkaFuture<Void> createAcls(Collection<AclBinding> acls) {
                 createdAcls.addAll(acls);
                 return super.createAcls(acls);
             }
 
             @Override
-            public DeleteAclsResult deleteAcls(Collection<AclBindingFilter> filters) {
+            public KafkaFuture<Collection<AclBinding>> deleteAcls(Collection<AclBindingFilter> filters) {
                 deletedAcls.addAll(filters);
                 return super.deleteAcls(filters);
             }

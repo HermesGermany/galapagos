@@ -104,7 +104,8 @@ class CaManagerImplTest {
         assertEquals("CN=quattro,OU=certification_12345", result.getDn());
 
         // to be VERY sure, also inspect certificate (note that toString() output is slightly different)
-        assertEquals("CN=quattro, OU=certification_12345", result.getCertificate().getSubjectDN().toString());
+        assertEquals("CN=quattro, OU=certification_12345",
+                result.getCertificate().getSubjectX500Principal().toString());
     }
 
     @Test

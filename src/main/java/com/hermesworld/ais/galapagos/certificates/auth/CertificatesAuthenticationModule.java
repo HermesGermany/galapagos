@@ -52,7 +52,7 @@ public class CertificatesAuthenticationModule implements KafkaAuthenticationModu
         try {
             Files.createDirectories(Path.of(config.getCertificatesWorkdir()));
             this.caManager = new CaManagerImpl(environmentId, config);
-            if (StringUtils.isEmpty(config.getTruststoreFile())) {
+            if (!StringUtils.hasLength(config.getTruststoreFile())) {
                 createDynamicTruststore();
             }
             else {

@@ -29,6 +29,8 @@ export class AuthService {
 
     userProfile: Observable<UserProfile>;
 
+    showBounceBubbles = new BehaviorSubject<boolean>(false);
+
     private authenticatedSubject = new BehaviorSubject<boolean>(false);
 
     private rolesSubject = new BehaviorSubject<string[]>([]);
@@ -53,6 +55,7 @@ export class AuthService {
         this.loadAuthConfig().then(config => {
             this.configure(config);
             this.configLoaded.next(true);
+            this.showBounceBubbles.next(false);
         });
 
         window.addEventListener('storage', event => {
@@ -87,8 +90,8 @@ export class AuthService {
         });
     }
 
-    public logout() {
-        this.oauthService.logOut();
+    async logout() {
+        return this.oauthService.logOut(true, 'state');
     }
 
     private getConfigLoadedObservable(): Observable<boolean> {
@@ -113,7 +116,7 @@ export class AuthService {
 
                 preserveRequestedRoute: false,
 
-                postLogoutRedirectUri: '/logout'
+                redirectUriAsPostLogoutRedirectUriFallback: false
             }))));
     }
 
@@ -150,10 +153,11 @@ export class AuthService {
         return authenticated;
     }
 
-    private handleLogout() {
+    private async handleLogout() {
         this.authenticatedSubject.next(false);
         this.profileSubject.next(emptyUserProfile);
         this.rolesSubject.next([]);
+        await this.router.navigateByUrl('/logout-success');
     }
 
     private extractRoles(jwtClaims: object): string[] {

@@ -1,15 +1,11 @@
 package com.hermesworld.ais.galapagos.kafka.util;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
-
 import org.apache.kafka.clients.admin.Config;
 import org.apache.kafka.common.config.TopicConfig;
+
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 /**
  * Helper class for dealing with Kafka Topic Config properties. This class contains lots of information from the Kafka
@@ -19,6 +15,7 @@ import org.apache.kafka.common.config.TopicConfig;
  * @author AlbrechtFlo
  *
  */
+@SuppressWarnings("deprecation")
 public class KafkaTopicConfigHelper {
 
     private static final Map<String, ConfigValueInfo> CONFIG_INFOS = new LinkedHashMap<>();
@@ -48,7 +45,7 @@ public class KafkaTopicConfigHelper {
         CONFIG_INFOS.put(TopicConfig.FLUSH_MS_CONFIG,
                 new ConfigValueInfo(INFINITE_MS, "log.flush.interval.ms", TopicConfig.FLUSH_MS_DOC));
         CONFIG_INFOS.put(TopicConfig.INDEX_INTERVAL_BYTES_CONFIG,
-                new ConfigValueInfo("4096", "log.index.interval.bytes", TopicConfig.INDEX_INTERVAL_BYTES_DOCS));
+                new ConfigValueInfo("4096", "log.index.interval.bytes", TopicConfig.INDEX_INTERVAL_BYTES_DOC));
         CONFIG_INFOS.put(TopicConfig.MAX_MESSAGE_BYTES_CONFIG,
                 new ConfigValueInfo("1000012", "message.max.bytes", TopicConfig.MAX_MESSAGE_BYTES_DOC));
         CONFIG_INFOS.put(TopicConfig.MESSAGE_FORMAT_VERSION_CONFIG,
@@ -96,14 +93,14 @@ public class KafkaTopicConfigHelper {
 
     public static Map<String, String> getConfigKeysAndDescription() {
         Map<String, String> result = new LinkedHashMap<>();
-        CONFIG_INFOS.entrySet().stream().forEach(e -> result.put(e.getKey(), e.getValue().getDescription()));
+        CONFIG_INFOS.forEach((key, value) -> result.put(key, value.description()));
         return result;
     }
 
     public static Map<String, String> getTopicDefaultValues(Config brokerConfig) {
         Map<String, String> brokerConfigValues = new HashMap<>();
         // have to use forEach instead of Map collector because values could be null
-        brokerConfig.entries().stream().forEach(entry -> brokerConfigValues.put(entry.name(), entry.value()));
+        brokerConfig.entries().forEach(entry -> brokerConfigValues.put(entry.name(), entry.value()));
 
         Map<String, String> result = new HashMap<>();
 
@@ -112,67 +109,30 @@ public class KafkaTopicConfigHelper {
             ConfigValueInfo info = entry.getValue();
 
             String serverDefault = null;
-            if (brokerConfigValues.containsKey(info.getServerDefaultProperty())) {
-                serverDefault = brokerConfigValues.get(info.getServerDefaultProperty());
+            if (brokerConfigValues.containsKey(info.serverDefaultProperty())) {
+                serverDefault = brokerConfigValues.get(info.serverDefaultProperty());
             }
 
             if (serverDefault == null && SECONDARY_SERVER_PROPS.containsKey(configKey)) {
                 for (SecondaryServerProp prop : SECONDARY_SERVER_PROPS.get(configKey)) {
-                    if (brokerConfigValues.get(prop.getConfigName()) != null) {
-                        serverDefault = prop.apply(brokerConfigValues.get(prop.getConfigName()));
+                    if (brokerConfigValues.get(prop.configName()) != null) {
+                        serverDefault = prop.apply(brokerConfigValues.get(prop.configName()));
                         break;
                     }
                 }
             }
 
-            result.put(configKey, serverDefault == null ? info.getDefaultValue() : serverDefault);
+            result.put(configKey, serverDefault == null ? info.defaultValue() : serverDefault);
         }
 
         return result;
     }
 
-    private static class ConfigValueInfo {
-
-        private String defaultValue;
-
-        private String serverDefaultProperty;
-
-        private String description;
-
-        public ConfigValueInfo(String defaultValue, String serverDefaultProperty, String description) {
-            this.defaultValue = defaultValue;
-            this.serverDefaultProperty = serverDefaultProperty;
-            this.description = description;
-        }
-
-        public String getDefaultValue() {
-            return defaultValue;
-        }
-
-        public String getServerDefaultProperty() {
-            return serverDefaultProperty;
-        }
-
-        public String getDescription() {
-            return description;
-        }
+    private record ConfigValueInfo(String defaultValue, String serverDefaultProperty, String description) {
 
     }
 
-    private static class SecondaryServerProp {
-
-        private String configName;
-
-        private Function<String, String> mappingFunction;
-
-        public SecondaryServerProp(String configName, Function<String, String> mappingFunction) {
-            this.configName = configName;
-            this.mappingFunction = mappingFunction;
-        }
-
-        public String getConfigName() {
-            return configName;
-        }
+    private record SecondaryServerProp(String configName, Function<String, String> mappingFunction) {
 
         public String apply(String baseConfigValue) {
             return mappingFunction.apply(baseConfigValue);

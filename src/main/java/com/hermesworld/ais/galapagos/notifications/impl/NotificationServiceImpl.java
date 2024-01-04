@@ -8,6 +8,10 @@ import com.hermesworld.ais.galapagos.notifications.NotificationService;
 import com.hermesworld.ais.galapagos.subscriptions.SubscriptionMetadata;
 import com.hermesworld.ais.galapagos.subscriptions.service.SubscriptionService;
 import com.hermesworld.ais.galapagos.topics.service.TopicService;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.AddressException;
+import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -23,10 +27,6 @@ import org.springframework.util.StringUtils;
 import org.thymeleaf.ITemplateEngine;
 import org.thymeleaf.context.Context;
 
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.AddressException;
-import jakarta.mail.internet.InternetAddress;
-import jakarta.mail.internet.MimeMessage;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -95,7 +95,7 @@ public class NotificationServiceImpl implements NotificationService {
                     .filter(req -> req.getState().equals(RequestState.APPROVED)
                             && applicationId.equals(req.getApplicationId())
                             && !finalExcludeUser.equals(req.getUserName()))
-                    .map(ApplicationOwnerRequest::getNotificationEmailAddress).filter(s -> !StringUtils.isEmpty(s))
+                    .map(ApplicationOwnerRequest::getNotificationEmailAddress).filter(s -> StringUtils.hasLength(s))
                     .collect(Collectors.toSet()));
         }
 
@@ -105,7 +105,7 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public CompletableFuture<Void> notifyRequestor(ApplicationOwnerRequest request,
             NotificationParams notificationParams) {
-        if (StringUtils.isEmpty(request.getNotificationEmailAddress())) {
+        if (!StringUtils.hasLength(request.getNotificationEmailAddress())) {
             log.warn("Could not send e-mail to requestor: no e-mail address found in request " + request.getId());
             return CompletableFuture.completedFuture(null);
         }
