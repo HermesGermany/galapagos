@@ -77,7 +77,7 @@ export class HeaderComponent implements OnInit {
         dom.classList.toggle(this.pushRightClass);
     }
 
-    async onLoggedout() {
+    onLoggedout() {
         return this.authService.logout();
     }
 

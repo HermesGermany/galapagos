@@ -102,7 +102,7 @@ public class CertificateExpiryReminderRunner {
     private ZonedDateTime getDateOfExpiry(ApplicationMetadata metadata, String environmentId) {
         KafkaAuthenticationModule authModule = kafkaClusters.getAuthenticationModule(environmentId).orElseThrow();
 
-        if (StringUtils.isEmpty(metadata.getAuthenticationJson())) {
+        if (!StringUtils.hasLength(metadata.getAuthenticationJson())) {
             return null;
         }
         ZoneId tz;

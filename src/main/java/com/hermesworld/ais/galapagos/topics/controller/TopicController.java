@@ -17,6 +17,7 @@ import com.hermesworld.ais.galapagos.topics.SchemaMetadata;
 import com.hermesworld.ais.galapagos.topics.TopicMetadata;
 import com.hermesworld.ais.galapagos.topics.TopicType;
 import com.hermesworld.ais.galapagos.topics.service.ValidatingTopicService;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.KafkaException;
@@ -28,7 +29,6 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-import jakarta.validation.Valid;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
@@ -112,7 +112,7 @@ public class TopicController {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
 
-        if (StringUtils.isEmpty(producer.getProducerApplicationId())) {
+        if (!StringUtils.hasLength(producer.getProducerApplicationId())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
 
@@ -191,7 +191,7 @@ public class TopicController {
                 return;
             }
 
-            if (!StringUtils.isEmpty(request.getDeprecationText())) {
+            if (StringUtils.hasLength(request.getDeprecationText())) {
                 if (request.getEolDate() == null) {
                     throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                             "eolDate must be set for Topic deprecation");
@@ -228,7 +228,7 @@ public class TopicController {
         }
 
         for (UpdateTopicConfigEntryDto config : configs) {
-            if (StringUtils.isEmpty(config.getName()) || StringUtils.isEmpty(config.getValue())) {
+            if (!StringUtils.hasLength(config.getName()) || !StringUtils.hasLength(config.getValue())) {
                 throw badRequest.get();
             }
         }
@@ -246,7 +246,7 @@ public class TopicController {
 
     @PostMapping(value = "/api/util/topicname", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public TopicNameDto getTopicNameSuggestion(@RequestBody TopicNameSuggestionQueryDto query) {
-        if (StringUtils.isEmpty(query.getApplicationId()) || StringUtils.isEmpty(query.getEnvironmentId())
+        if (!StringUtils.hasLength(query.getApplicationId()) || !StringUtils.hasLength(query.getEnvironmentId())
                 || query.getTopicType() == null) {
             throw badRequest.get();
         }
@@ -288,7 +288,7 @@ public class TopicController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Missing topic type");
         }
 
-        if (StringUtils.isEmpty(topicData.getName())) {
+        if (!StringUtils.hasLength(topicData.getName())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Missing topic name");
         }
 
@@ -372,7 +372,7 @@ public class TopicController {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
 
-        if (schemaVersionDto == null || StringUtils.isEmpty(schemaVersionDto.getJsonSchema())) {
+        if (schemaVersionDto == null || !StringUtils.hasLength(schemaVersionDto.getJsonSchema())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "JSON Schema (jsonSchema property) is missing from request body");
         }

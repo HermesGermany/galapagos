@@ -58,7 +58,7 @@ public class CertificateExpiryReminderServiceImpl implements CertificateExpiryRe
             Collection<ReminderMetadata> sentReminders = getRepository(cluster).getObjects();
 
             for (ApplicationMetadata app : allMetadata) {
-                if (StringUtils.isEmpty(app.getAuthenticationJson())) {
+                if (!StringUtils.hasLength(app.getAuthenticationJson())) {
                     continue;
                 }
                 JSONObject authData;

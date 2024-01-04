@@ -9,8 +9,7 @@ import com.hermesworld.ais.galapagos.kafka.KafkaUser;
 import com.hermesworld.ais.galapagos.kafka.impl.ConnectedKafkaCluster;
 import com.hermesworld.ais.galapagos.kafka.util.AclSupport;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.clients.admin.CreateAclsResult;
-import org.apache.kafka.clients.admin.DeleteAclsResult;
+import org.apache.kafka.common.KafkaFuture;
 import org.apache.kafka.common.acl.AclBinding;
 import org.apache.kafka.common.acl.AclBindingFilter;
 import org.json.JSONException;
@@ -83,13 +82,13 @@ public class UpdateApplicationAclsJob extends SingleClusterAdminJob {
         if (dryRun) {
             ((ConnectedKafkaCluster) cluster).wrapAdminClient(client -> new NoUpdatesAdminClient(client) {
                 @Override
-                public CreateAclsResult createAcls(Collection<AclBinding> acls) {
+                public KafkaFuture<Void> createAcls(Collection<AclBinding> acls) {
                     dryRunCreatedAcls.addAll(acls);
                     return client.createAcls(List.of());
                 }
 
                 @Override
-                public DeleteAclsResult deleteAcls(Collection<AclBindingFilter> filters) {
+                public KafkaFuture<Collection<AclBinding>> deleteAcls(Collection<AclBindingFilter> filters) {
                     dryRunDeletedAcls.addAll(filters);
                     return client.deleteAcls(List.of());
                 }

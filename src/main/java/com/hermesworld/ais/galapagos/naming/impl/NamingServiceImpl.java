@@ -128,7 +128,7 @@ public class NamingServiceImpl implements NamingService {
 
         String addition = topicName.substring(commonPrefix.length());
 
-        List<String> sections = StringUtils.isEmpty(additionRules.getAllowedSeparators()) ? List.of(addition)
+        List<String> sections = !StringUtils.hasLength(additionRules.getAllowedSeparators()) ? List.of(addition)
                 : Arrays.asList(addition.split("[" + additionRules.getAllowedSeparators().replace("-", "\\-") + "]"));
 
         for (String section : sections) {

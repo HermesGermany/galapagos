@@ -130,7 +130,7 @@ class GenerateToolingCertificateJobTest {
         byte[] readData = StreamUtils.copyToByteArray(fis);
 
         X509Certificate cert = extractCertificate(readData);
-        assertEquals("galapagos", CertificateUtil.extractCn(cert.getSubjectDN().getName()));
+        assertEquals("galapagos", CertificateUtil.extractCn(cert.getSubjectX500Principal().getName()));
 
         // and no data on STDOUT
         assertFalse(stdoutData.toString().contains(DATA_MARKER));
@@ -170,7 +170,7 @@ class GenerateToolingCertificateJobTest {
 
         byte[] readData = Base64.getDecoder().decode(line);
         X509Certificate cert = extractCertificate(readData);
-        assertEquals("galapagos", CertificateUtil.extractCn(cert.getSubjectDN().getName()));
+        assertEquals("galapagos", CertificateUtil.extractCn(cert.getSubjectX500Principal().getName()));
     }
 
     private X509Certificate extractCertificate(byte[] p12Data)

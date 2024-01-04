@@ -268,7 +268,7 @@ public class ApplicationsServiceImpl implements ApplicationsService, InitPerClus
 
         GalapagosEventSink eventSink = eventManager.newEventSink(kafkaCluster);
 
-        JSONObject oldAuthentication = existing != null && !StringUtils.isEmpty(existing.getAuthenticationJson())
+        JSONObject oldAuthentication = existing != null && StringUtils.hasLength(existing.getAuthenticationJson())
                 ? new JSONObject(existing.getAuthenticationJson())
                 : new JSONObject();
 

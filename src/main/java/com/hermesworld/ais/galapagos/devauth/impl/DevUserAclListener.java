@@ -205,7 +205,7 @@ public class DevUserAclListener implements TopicEventsListener, SubscriptionEven
     @CheckReturnValue
     CompletableFuture<Void> updateAcls(KafkaCluster cluster, Set<DevAuthenticationMetadata> metadatas) {
         if (log.isDebugEnabled()) {
-            log.debug("Updating ACLs for {} on cluster {}", metadatas.stream().map(m -> m.getUserName()),
+            log.debug("Updating ACLs for {} on cluster {}", metadatas.stream().map(m -> m.getUserName()).toList(),
                     cluster.getId());
         }
         CompletableFuture<Void> result = CompletableFuture.completedFuture(null);

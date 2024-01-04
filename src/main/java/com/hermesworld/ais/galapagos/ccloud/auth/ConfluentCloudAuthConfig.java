@@ -26,8 +26,8 @@ public class ConfluentCloudAuthConfig {
     private Boolean serviceAccountIdCompatMode;
 
     public boolean isServiceAccountIdCompatMode() {
-        // currently (Sep 2022), true should be default for Confluent!
-        return Objects.requireNonNullElse(serviceAccountIdCompatMode, true);
+        // As Confluent Cloud now fully supports ResID-based ACLs, we do no longer have this to be the default
+        return Objects.requireNonNullElse(serviceAccountIdCompatMode, false);
     }
 
 }
