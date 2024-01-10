@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.admin.Admin;
 import org.apache.kafka.clients.admin.AdminClient;
+import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -31,9 +32,13 @@ class KafkaConnectionManager {
 
     private final KafkaFutureDecoupler futureDecoupler;
 
+    private final Long adminClientRequestTimeout;
+
     public KafkaConnectionManager(List<KafkaEnvironmentConfig> environments,
-            Map<String, KafkaAuthenticationModule> authenticationModules, KafkaFutureDecoupler futureDecoupler) {
+            Map<String, KafkaAuthenticationModule> authenticationModules, KafkaFutureDecoupler futureDecoupler,
+            Long adminClientRequestTimeout) {
         this.futureDecoupler = futureDecoupler;
+        this.adminClientRequestTimeout = adminClientRequestTimeout;
 
         for (KafkaEnvironmentConfig env : environments) {
             String id = env.getId();
@@ -81,14 +86,14 @@ class KafkaConnectionManager {
 
     private AdminClient buildAdminClient(KafkaEnvironmentConfig environment,
             KafkaAuthenticationModule authenticationModule) {
-        return buildAdminClient(environment, authenticationModule, new Properties());
-    }
-
-    private AdminClient buildAdminClient(KafkaEnvironmentConfig environment,
-            KafkaAuthenticationModule authenticationModule, Properties propsOverride) {
         Properties props = buildKafkaProperties(environment, authenticationModule);
-        props.putAll(propsOverride);
-
+        if (adminClientRequestTimeout != null) {
+            props.setProperty(AdminClientConfig.REQUEST_TIMEOUT_MS_CONFIG, String.valueOf(adminClientRequestTimeout));
+            props.setProperty(AdminClientConfig.DEFAULT_API_TIMEOUT_MS_CONFIG,
+                    String.valueOf(adminClientRequestTimeout));
+            props.setProperty(CommonClientConfigs.CONNECTIONS_MAX_IDLE_MS_CONFIG,
+                    String.valueOf(adminClientRequestTimeout));
+        }
         return AdminClient.create(props);
     }
 

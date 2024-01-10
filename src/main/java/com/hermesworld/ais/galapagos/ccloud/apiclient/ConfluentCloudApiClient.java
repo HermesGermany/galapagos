@@ -289,10 +289,10 @@ public class ConfluentCloudApiClient {
                 // then fallback to simple exception
             }
             return new ConfluentApiException(
-                    errorMessage + ": Server returned " + response.rawStatusCode() + " for " + uri);
+                    errorMessage + ": Server returned " + response.statusCode().value() + " for " + uri);
 
         }).defaultIfEmpty(new ConfluentApiException(
-                errorMessage + ": Server returned " + response.rawStatusCode() + " for " + uri));
+                errorMessage + ": Server returned " + response.statusCode().value() + " for " + uri));
     }
 
     // currently, we only take the first error of the array, and use its "detail" as error message.

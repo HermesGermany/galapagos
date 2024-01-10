@@ -127,7 +127,7 @@ public class UISupportController {
     @PostMapping(value = "/api/util/topic-create-defaults", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public TopicCreateDefaultsDto getDefaultTopicCreateParams(@RequestBody QueryTopicCreateDefaultsDto query) {
         TopicCreateDefaultsDto result = new TopicCreateDefaultsDto();
-        if (!StringUtils.isEmpty(query.getApplicationId()) && !StringUtils.isEmpty(query.getEnvironmentId())
+        if (StringUtils.hasLength(query.getApplicationId()) && StringUtils.hasLength(query.getEnvironmentId())
                 && query.getTopicType() != null) {
             result.setTopicNameSuggestion(getTopicNameSuggestion(query));
         }

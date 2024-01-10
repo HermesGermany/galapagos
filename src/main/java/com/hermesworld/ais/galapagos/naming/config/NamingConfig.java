@@ -5,10 +5,10 @@ import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.NonNull;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 import org.springframework.validation.annotation.Validated;
-import org.thymeleaf.util.StringUtils;
 
 @Configuration
 @ConfigurationProperties("galapagos.naming")
@@ -53,7 +53,7 @@ public class NamingConfig implements Validator {
             checkValidFormat(target.toString(), errors);
         }
         else if (target instanceof AdditionNamingRules rules) {
-            if (!StringUtils.isEmpty(rules.getAllowedSeparators())
+            if (StringUtils.hasLength(rules.getAllowedSeparators())
                     && !rules.getAllowedSeparators().matches(KAFKA_VALID_NAMES_REGEX)) {
                 errors.rejectValue("allowedSeparators", "invalid.value",
                         "The separators must be valid for use in Kafka Topic Names. Only dots, underscores, and hyphens are allowed.");

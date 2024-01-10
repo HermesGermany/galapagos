@@ -14,6 +14,7 @@ export class AuthGuard implements CanActivate {
         const authenticated = await this.authService.tryLoginFromData();
 
         if (!authenticated) {
+            this.authService.showBounceBubbles.next(true);
             return this.authService.login(state.url);
         }
 

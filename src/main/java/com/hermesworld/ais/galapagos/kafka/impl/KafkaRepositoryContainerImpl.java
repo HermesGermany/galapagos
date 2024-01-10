@@ -117,7 +117,7 @@ public class KafkaRepositoryContainerImpl implements KafkaRepositoryContainer {
             Map<String, TopicDescription> desc;
 
             try {
-                desc = this.adminClient.describeTopics(Set.of(topic)).all().get();
+                desc = this.adminClient.describeTopics(Set.of(topic)).allTopicNames().get();
             }
             catch (Exception e) {
                 desc = Collections.emptyMap();
