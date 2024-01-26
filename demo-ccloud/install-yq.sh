@@ -25,3 +25,4 @@ then
 fi
 
 curl -sLSf "$YQ_BASE_URL/yq_${OS_NAME}_${ARCH_NAME}${FILE_SUFFIX}" > "./bin/yq${FILE_SUFFIX}"
+chmod +x ./bin/yq${FILE_SUFFIX}
