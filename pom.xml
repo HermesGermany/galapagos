@@ -19,7 +19,7 @@
         <java.version>17</java.version>
         <lombok.version>1.18.28</lombok.version>
         <kafka.version>3.4.1</kafka.version>
-        <node.version>v16.14.0</node.version>
+        <node.version>v20.11.1</node.version>
         <sonar-maven-plugin.version>3.7.0.1746</sonar-maven-plugin.version>
         <sonar.sources>src/main/java</sonar.sources>
         <sonar.exclusions>src/main/resources/*</sonar.exclusions>
