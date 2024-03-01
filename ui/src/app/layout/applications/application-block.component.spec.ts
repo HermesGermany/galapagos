@@ -136,7 +136,7 @@ describe('ApplicationBlockComponent', () => {
         });
         fixture.detectChanges();
 
-        const accordion = fixture.debugElement.query(By.directive(NgbAccordionDirective)).componentInstance;
+        const accordion = fixture.debugElement.query(By.directive(NgbAccordionDirective)).injector.get(NgbAccordionDirective) as NgbAccordionDirective;
         accordion.expand('_panel_rights');
         fixture.detectChanges();
         const listItemsInternal = document.getElementById('internalTopicPrefixes').childNodes;
@@ -185,7 +185,7 @@ describe('ApplicationBlockComponent', () => {
 
         fixture.detectChanges();
 
-        const accordion = fixture.debugElement.query(By.directive(NgbAccordionDirective)).componentInstance;
+        const accordion = fixture.debugElement.query(By.directive(NgbAccordionDirective)).injector.get(NgbAccordionDirective) as NgbAccordionDirective;
         accordion.expand('_panel_authentication');
         const debugElement = fixture.debugElement;
 

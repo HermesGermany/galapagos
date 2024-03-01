@@ -80,7 +80,7 @@
                         </div>
                     </div>
                 </div>
-                <div ngbAccordionItem [id]="'_panel_rights'">
+                <div ngbAccordionItem="_panel_rights">
                     <h2 ngbAccordionHeader>
                         <button ngbAccordionButton>
                             <span><i class="fas fa-key me-2"></i>{{ 'Kafka Access Rights' | translate }}</span>
@@ -128,7 +128,7 @@
                         </div>
                     </div>
                 </div>
-                <div ngbAccordionItem [id]="'_panel_authentication'">
+                <div ngbAccordionItem="_panel_authentication">
                     <h2 ngbAccordionHeader>
                         <button ngbAccordionButton>
                             <ng-container [ngSwitch]="authenticationMode">
