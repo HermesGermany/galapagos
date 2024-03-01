@@ -19,7 +19,7 @@ Feel free to contact us if you have any questions or need help!
 
 * galapagos@hermesworld.com
 
-Our colleagues at Hermes can also use the Team Channel "Kafka @ Hermes" to contact us.
+Our colleagues at Hermes can also use the Teams Channel "Kafka @ Hermes" to contact us.
 
 
 ## How to change code
