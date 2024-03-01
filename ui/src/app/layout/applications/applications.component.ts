@@ -73,8 +73,6 @@ export class ApplicationsComponent implements OnInit {
 
     appListLoading = true;
 
-    showCopyCompleteText = false;
-
     currentLang: Observable<string>;
 
     apiKeyRequestError: any;
@@ -193,7 +191,11 @@ export class ApplicationsComponent implements OnInit {
         const apiKey = await this.apiKeyService.getApplicationApiKeysPromise(app.id);
         this.apiKeyDlgData.existingApiKey = apiKey.authentications[env.id];
 
-        this.modalService.open(content, { ariaLabelledBy: 'modal-title', size: 'lg', windowClass: 'modal-xxl' }).result.then(result => {
+        this.modalService.open(content, {
+            ariaLabelledBy: 'modal-title',
+            size: 'lg',
+            windowClass: 'modal-xxl'
+        }).result.then(() => {
         }, reason => {
             if (reason === ModalDismissReasons.BACKDROP_CLICK || reason === ModalDismissReasons.ESC) {
                 this.handleDlgDismiss();

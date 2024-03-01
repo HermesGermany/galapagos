@@ -92,7 +92,7 @@ describe('SchemaSectionComponent', () => {
 
         };
         component.topic = topic;
-        const auth = fixture.debugElement.injector.get(AuthService);
+        fixture.debugElement.injector.get(AuthService);
         fixture.detectChanges();
     }));
 

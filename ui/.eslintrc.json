@@ -18,7 +18,9 @@
             },
             "extends": [
                 "plugin:@angular-eslint/recommended",
-                "plugin:@angular-eslint/template/process-inline-templates"
+                "plugin:@angular-eslint/template/process-inline-templates",
+                "plugin:@typescript-eslint/eslint-recommended",
+                "plugin:@typescript-eslint/recommended"
             ],
             "rules": {
                 "@angular-eslint/component-selector": [
@@ -45,21 +47,58 @@
                         "accessibility": "explicit"
                     }
                 ],
+                "@typescript-eslint/no-explicit-any": "off",
                 "@typescript-eslint/naming-convention": [
                     "error",
-                    { "selector": "default", "format": ["camelCase"] },
-                    { "selector": [ "class", "interface", "enum", "typeAlias", "typeParameter" ], "format": ["PascalCase"] },
-                    { "selector": "variable", "modifiers": ["const"], "format": ["camelCase", "UPPER_CASE"] },
-                    { "selector": ["classMethod", "classProperty" ], "modifiers": ["private"],
-                                "format": ["camelCase"],
-                                "leadingUnderscore": "allow"
+                    {
+                        "selector": "default",
+                        "format": [
+                            "camelCase"
+                        ]
+                    },
+                    {
+                        "selector": [
+                            "class",
+                            "interface",
+                            "enum",
+                            "typeAlias",
+                            "typeParameter"
+                        ],
+                        "format": [
+                            "PascalCase"
+                        ]
+                    },
+                    {
+                        "selector": "variable",
+                        "modifiers": [
+                            "const"
+                        ],
+                        "format": [
+                            "camelCase",
+                            "UPPER_CASE"
+                        ]
+                    },
+                    {
+                        "selector": [
+                            "classMethod",
+                            "classProperty"
+                        ],
+                        "modifiers": [
+                            "private"
+                        ],
+                        "format": [
+                            "camelCase"
+                        ],
+                        "leadingUnderscore": "allow"
                     },
                     {
                         "selector": [
                             "objectLiteralProperty"
                         ],
                         "format": null,
-                        "modifiers": ["requiresQuotes"]
+                        "modifiers": [
+                            "requiresQuotes"
+                        ]
                     }
                 ],
                 "arrow-parens": [

@@ -1,16 +1,13 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 
 @Component({
     selector: 'app-logout-success',
     templateUrl: './logout-success.component.html',
     styleUrls: ['./logout-success.component.scss']
 })
-export class LogoutSuccessComponent implements OnInit {
+export class LogoutSuccessComponent {
 
     constructor() {
-    }
-
-    ngOnInit() {
     }
 
 }
