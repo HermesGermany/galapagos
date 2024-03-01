@@ -122,7 +122,6 @@
             }
         }
     },
-    "defaultProject": "galapagos",
     "schematics": {
         "@schematics/angular:component": {
             "prefix": "app",
