@@ -77,18 +77,18 @@
                 "serve": {
                     "builder": "@angular-devkit/build-angular:dev-server",
                     "options": {
-                        "browserTarget": "galapagos:build"
+                      "buildTarget": "galapagos:build"
                     },
                     "configurations": {
                         "production": {
-                            "browserTarget": "galapagos:build:production"
+                          "buildTarget": "galapagos:build:production"
                         }
                     }
                 },
                 "extract-i18n": {
                     "builder": "@angular-devkit/build-angular:extract-i18n",
                     "options": {
-                        "browserTarget": "galapagos:build"
+                      "buildTarget": "galapagos:build"
                     }
                 },
                 "test": {

@@ -20,124 +20,139 @@
             <p><i
                 [innerHTML]="'APPLICATION_ENV_HINT_HTML' | translate: { environmentName: (environmentsService.getCurrentEnvironment() | async)?.name }"></i>
             </p>
-            <ngb-accordion #acc="ngbAccordion"
-                           [activeIds]="['_panel_topics']">
-                <ngb-panel [id]="'_panel_topics'">
-                    <ng-template ngbPanelTitle>
-                        <span><i class="fa fa-layer-group me-2"></i>{{ 'Topics' | translate }}</span>
-                    </ng-template>
-                    <ng-template ngbPanelContent>
-                        <div class="container-fluid">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <table class="table table-striped">
-                                        <thead>
-                                        <tr>
-                                            <th>{{ 'Owned Topics' | translate }}</th>
-                                        </tr>
-                                        </thead>
-                                        <tbody>
-                                        <tr *ngFor="let t of application.owningTopics">
-                                            <td>
-                                                <code><a [routerLink]="'/topics/' + t">{{ t }}</a></code>
-                                            </td>
-                                        </tr>
-                                        <tr *ngIf="application.owningTopics.length === 0">
-                                            <td>
-                                                <i>{{ 'No topics found.' | translate }}</i>
-                                            </td>
-                                        </tr>
-                                        </tbody>
-                                    </table>
+            <div ngbAccordion>
+                <div ngbAccordionItem [collapsed]="false">
+                    <h2 ngbAccordionHeader>
+                        <button ngbAccordionButton>
+                            <span><i class="fa fa-layer-group me-2"></i>{{ 'Topics' | translate }}</span>
+                        </button>
+                    </h2>
+                    <div ngbAccordionCollapse>
+                        <div ngbAccordionBody>
+                            <ng-template>
+                                <div class="container-fluid">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <table class="table table-striped">
+                                                <thead>
+                                                <tr>
+                                                    <th>{{ 'Owned Topics' | translate }}</th>
+                                                </tr>
+                                                </thead>
+                                                <tbody>
+                                                <tr *ngFor="let t of application.owningTopics">
+                                                    <td>
+                                                        <code><a [routerLink]="'/topics/' + t">{{ t }}</a></code>
+                                                    </td>
+                                                </tr>
+                                                <tr *ngIf="application.owningTopics.length === 0">
+                                                    <td>
+                                                        <i>{{ 'No topics found.' | translate }}</i>
+                                                    </td>
+                                                </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <table class="table table-striped">
+                                                <thead>
+                                                <tr>
+                                                    <th>{{ 'Subscribed Topics' | translate }}</th>
+                                                </tr>
+                                                </thead>
+                                                <tbody>
+                                                <tr *ngFor="let t of application.usingTopics | async">
+                                                    <td>
+                                                        <code><a [routerLink]="'/topics/' + t">{{ t }}</a></code>
+                                                    </td>
+                                                </tr>
+                                                <tr *ngIf="(application.usingTopics | async)?.length === 0">
+                                                    <td>
+                                                        <i>{{ 'No topics found.' | translate }}</i>
+                                                    </td>
+                                                </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="col-md-6">
-                                    <table class="table table-striped">
-                                        <thead>
-                                        <tr>
-                                            <th>{{ 'Subscribed Topics' | translate }}</th>
-                                        </tr>
-                                        </thead>
-                                        <tbody>
-                                        <tr *ngFor="let t of application.usingTopics | async">
-                                            <td>
-                                                <code><a [routerLink]="'/topics/' + t">{{ t }}</a></code>
-                                            </td>
-                                        </tr>
-                                        <tr *ngIf="(application.usingTopics | async)?.length === 0">
-                                            <td>
-                                                <i>{{ 'No topics found.' | translate }}</i>
-                                            </td>
-                                        </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
+                            </ng-template>
                         </div>
-                    </ng-template>
-                </ngb-panel>
-                <ngb-panel [id]="'_panel_rights'">
-                    <ng-template ngbPanelTitle>
-                        <span><i class="fas fa-key me-2"></i>{{ 'Kafka Access Rights' | translate }}</span>
-                    </ng-template>
-                    <ng-template ngbPanelContent>
-                        <table class="table">
-                            <thead></thead>
-                            <tbody>
-                            <tr>
-                                <th>{{ 'Prefixes for internal topics' | translate }}</th>
-                                <td>
-                                    <ul id="internalTopicPrefixes">
-                                        <li *ngFor="let prefix of internalTopicPrefixes | async">
-                                            <code>{{ prefix }}</code>
-                                        </li>
-                                    </ul>
-                                </td>
-                            </tr>
-                            <tr>
-                                <th>{{ 'Prefixes for consumer group IDs' | translate }}</th>
-                                <td>
-                                    <ul id="consumerGroupPrefixes">
-                                        <li *ngFor="let prefix of consumerGroupPrefixes | async">
-                                            <code>{{ prefix }}</code>
-                                        </li>
-                                    </ul>
-                                </td>
-                            </tr>
-                            <tr>
-                                <th>{{ 'Prefixes for transactional IDs' | translate }}</th>
-                                <td>
-                                    <ul id="transactionIdPrefixes">
-                                        <li *ngFor="let prefix of transactionIdPrefixes | async">
-                                            <code>{{ prefix }}</code>
-                                        </li>
-                                    </ul>
-                                </td>
-                            </tr>
-                            </tbody>
-                        </table>
-                    </ng-template>
-                </ngb-panel>
-                <ngb-panel [id]="'_panel_authentication'">
-                    <ng-template ngbPanelTitle>
-                        <ng-container [ngSwitch]="authenticationMode">
+                    </div>
+                </div>
+                <div ngbAccordionItem [id]="'_panel_rights'">
+                    <h2 ngbAccordionHeader>
+                        <button ngbAccordionButton>
+                            <span><i class="fas fa-key me-2"></i>{{ 'Kafka Access Rights' | translate }}</span>
+                        </button>
+                    </h2>
+                    <div ngbAccordionCollapse>
+                        <div ngbAccordionBody>
+                            <ng-template>
+                                <table class="table">
+                                    <thead></thead>
+                                    <tbody>
+                                    <tr>
+                                        <th>{{ 'Prefixes for internal topics' | translate }}</th>
+                                        <td>
+                                            <ul id="internalTopicPrefixes">
+                                                <li *ngFor="let prefix of internalTopicPrefixes | async">
+                                                    <code>{{ prefix }}</code>
+                                                </li>
+                                            </ul>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>{{ 'Prefixes for consumer group IDs' | translate }}</th>
+                                        <td>
+                                            <ul id="consumerGroupPrefixes">
+                                                <li *ngFor="let prefix of consumerGroupPrefixes | async">
+                                                    <code>{{ prefix }}</code>
+                                                </li>
+                                            </ul>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>{{ 'Prefixes for transactional IDs' | translate }}</th>
+                                        <td>
+                                            <ul id="transactionIdPrefixes">
+                                                <li *ngFor="let prefix of transactionIdPrefixes | async">
+                                                    <code>{{ prefix }}</code>
+                                                </li>
+                                            </ul>
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </ng-template>
+                        </div>
+                    </div>
+                </div>
+                <div ngbAccordionItem [id]="'_panel_authentication'">
+                    <h2 ngbAccordionHeader>
+                        <button ngbAccordionButton>
+                            <ng-container [ngSwitch]="authenticationMode">
                             <span *ngSwitchCase="'certificates'"><i
                                 class="fas fa-award me-2"></i>{{ 'Certificate Info' | translate }}</span>
-                            <span *ngSwitchCase="'ccloud'"><i
-                                class="fas fa-award me-2"></i>{{ 'Client Access' | translate }}</span>
-                        </ng-container>
-                    </ng-template>
-                    <ng-template ngbPanelContent>
-                        <ng-container [ngSwitch]="authenticationMode">
-                            <div *ngSwitchCase="'certificates'">
-                                <ng-container *ngTemplateOutlet="certificatePanel"></ng-container>
-                            </div>
-                            <div *ngSwitchCase="'ccloud'">
-                                <ng-container *ngTemplateOutlet="apiKeyPanel"></ng-container>
-                            </div>
-                        </ng-container>
-                    </ng-template>
-                </ngb-panel>
-            </ngb-accordion>
+                                <span *ngSwitchCase="'ccloud'"><i
+                                    class="fas fa-award me-2"></i>{{ 'Client Access' | translate }}</span>
+                            </ng-container>
+                        </button>
+                    </h2>
+                    <div ngbAccordionCollapse>
+                        <div ngbAccordionBody>
+                            <ng-template>
+                                <div *ngIf="authenticationMode === 'certificates'">
+                                    <ng-container *ngTemplateOutlet="certificatePanel"></ng-container>
+                                </div>
+                                <div *ngIf="authenticationMode === 'ccloud'">
+                                    <ng-container *ngTemplateOutlet="apiKeyPanel"></ng-container>
+                                </div>
+                            </ng-template>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -176,7 +191,7 @@
         <tr>
             <th>{{ 'Certificate DN' | translate }}</th>
             <td>
-                <code>{{ (currentEnvApplicationCertificate | async).dn }}</code>
+                <code>{{ (currentEnvApplicationCertificate | async)?.dn }}</code>
             </td>
         </tr>
         <tr>
