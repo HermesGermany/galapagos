@@ -1,15 +1,22 @@
 package com.hermesworld.ais.galapagos.ccloud;
 
+import com.github.tomakehurst.wiremock.client.MappingBuilder;
+import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
+import com.github.tomakehurst.wiremock.matching.*;
+import com.github.tomakehurst.wiremock.verification.NearMiss;
 import com.hermesworld.ais.galapagos.ccloud.apiclient.ApiKeySpec;
 import com.hermesworld.ais.galapagos.ccloud.apiclient.ConfluentApiException;
 import com.hermesworld.ais.galapagos.ccloud.apiclient.ConfluentCloudApiClient;
 import com.hermesworld.ais.galapagos.ccloud.apiclient.ServiceAccountSpec;
-import okhttp3.mockwebserver.MockResponse;
-import okhttp3.mockwebserver.MockWebServer;
-import okhttp3.mockwebserver.RecordedRequest;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -24,41 +31,36 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.junit.jupiter.api.Assertions.*;
 
+@WireMockTest
 class ConfluentCloudApiClientTest {
 
-    private static MockWebServer mockBackEnd;
+    private static final String SERVICE_ACCOUNTS_ENDPOINT = "/iam/v2/service-accounts";
+
+    private static final String API_KEYS_ENDPOINT = "/iam/v2/api-keys";
 
     private String baseUrl;
 
-    @BeforeAll
-    static void setUp() throws IOException {
-        mockBackEnd = new MockWebServer();
-        mockBackEnd.start();
-    }
-
-    @AfterAll
-    static void tearDown() throws IOException {
-        mockBackEnd.shutdown();
-    }
+    private WireMock wireMock;
 
     @BeforeEach
-    void init() {
-        baseUrl = "http://localhost:%s".formatted(mockBackEnd.getPort());
+    void init(WireMockRuntimeInfo info) {
+        wireMock = info.getWireMock();
+        baseUrl = "http://localhost:%s".formatted(info.getHttpPort());
     }
 
     @AfterEach
-    void consumeRequests() throws Exception {
-        RecordedRequest request;
-        while ((request = mockBackEnd.takeRequest(10, TimeUnit.MILLISECONDS)) != null) {
-            System.err.println(
-                    "WARN: Unconsumed request found in mockBackEnd queue. Every test case should consume all expected requests.");
-            System.err.println("Request was " + request.getMethod() + " " + request.getRequestUrl());
-        }
+    void checkWireMockStatus(WireMockRuntimeInfo info) {
+        WireMock wireMock = info.getWireMock();
+        wireMock.findAllUnmatchedRequests().forEach(req -> {
+            System.err.println("Unmatched request: " + req.getAbsoluteUrl());
+            List<NearMiss> nearMisses = WireMock.findNearMissesFor(req);
+            nearMisses.forEach(miss -> System.err.println("Potential near miss:" + miss.getDiff()));
+        });
     }
 
     private String readTestResource(String resourceName) throws IOException {
@@ -70,10 +72,40 @@ class ConfluentCloudApiClientTest {
         }
     }
 
+    private static MappingBuilder authenticatedEndpoint(String path, HttpMethod method) {
+        UrlPathPattern urlPattern = urlPathEqualTo(path);
+        MappingBuilder builder = switch (method.name()) {
+        case "POST" -> post(urlPattern);
+        case "PUT" -> put(urlPattern);
+        case "DELETE" -> delete(urlPattern);
+        case "PATCH" -> patch(urlPattern);
+        default -> get(urlPattern);
+        };
+
+        return builder.withBasicAuth("myKey", "mySecret");
+    }
+
+    private static MappingBuilder authenticatedEndpoint(String path) {
+        return authenticatedEndpoint(path, HttpMethod.GET);
+    }
+
+    private static MappingBuilder serviceAccountsEndpoint(HttpMethod method) {
+        return authenticatedEndpoint(SERVICE_ACCOUNTS_ENDPOINT, method);
+    }
+
+    private static MappingBuilder serviceAccountsEndpoint() {
+        return serviceAccountsEndpoint(HttpMethod.GET).withQueryParam("page_size", new RegexPattern("[0-9]+"));
+    }
+
+    private static ResponseDefinitionBuilder okForPlainJson(String jsonSource) {
+        return ResponseDefinitionBuilder.responseDefinition().withStatus(HttpStatus.OK.value()).withBody(jsonSource)
+                .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+    }
+
     @Test
     void testListServiceAccounts() throws Exception {
-        mockBackEnd.enqueue(new MockResponse().setBody(readTestResource("ccloud/service-accounts.json"))
-                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE));
+        wireMock.register(
+                serviceAccountsEndpoint().willReturn(okForPlainJson(readTestResource("ccloud/service-accounts.json"))));
 
         ConfluentCloudApiClient apiClient = new ConfluentCloudApiClient(baseUrl, "myKey", "mySecret", false);
 
@@ -85,20 +117,16 @@ class ConfluentCloudApiClientTest {
         assertEquals("service-account-two", accounts.get(1).getDisplayName());
         assertEquals("sa-xy124", accounts.get(1).getResourceId());
 
-        RecordedRequest recordedRequest = mockBackEnd.takeRequest(10, TimeUnit.SECONDS);
-        assertNotNull(recordedRequest);
-        assertEquals("/iam/v2/service-accounts", Objects.requireNonNull(recordedRequest.getRequestUrl()).encodedPath());
-        assertEquals("Basic " + HttpHeaders.encodeBasicAuth("myKey", "mySecret", StandardCharsets.UTF_8),
-                recordedRequest.getHeader(HttpHeaders.AUTHORIZATION));
+        wireMock.verifyThat(1, requestedFor(HttpMethod.GET.name(), urlPathEqualTo(SERVICE_ACCOUNTS_ENDPOINT)));
     }
 
     @Test
     void testPagination() throws Exception {
-        mockBackEnd.enqueue(new MockResponse()
-                .setBody(readTestResource("ccloud/service-accounts-page1.json").replace("${baseurl}", baseUrl))
-                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE));
-        mockBackEnd.enqueue(new MockResponse().setBody(readTestResource("ccloud/service-accounts-page2.json"))
-                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE));
+        wireMock.register(serviceAccountsEndpoint().willReturn(
+                okForPlainJson(readTestResource("ccloud/service-accounts-page1.json").replace("${baseurl}", baseUrl))));
+        wireMock.register(get(urlPathEqualTo("/next_page")).withBasicAuth("myKey", "mySecret")
+                .withQueryParam("page_token", new EqualToPattern("ABC"))
+                .willReturn(okForPlainJson(readTestResource("ccloud/service-accounts-page2.json"))));
 
         ConfluentCloudApiClient apiClient = new ConfluentCloudApiClient(baseUrl, "myKey", "mySecret", false);
 
@@ -115,22 +143,15 @@ class ConfluentCloudApiClientTest {
 
         StepVerifier.create(apiClient.listServiceAccounts()).assertNext(verifyAccounts).verifyComplete();
 
-        RecordedRequest recordedRequest = mockBackEnd.takeRequest(10, TimeUnit.SECONDS);
-        assertNotNull(recordedRequest);
-        assertEquals("/iam/v2/service-accounts", Objects.requireNonNull(recordedRequest.getRequestUrl()).encodedPath());
-        recordedRequest = mockBackEnd.takeRequest(10, TimeUnit.SECONDS);
-        assertNotNull(recordedRequest);
-        // second request must still be authenticated
-        assertEquals("Basic " + HttpHeaders.encodeBasicAuth("myKey", "mySecret", StandardCharsets.UTF_8),
-                recordedRequest.getHeader(HttpHeaders.AUTHORIZATION));
-        assertEquals("/next_page", Objects.requireNonNull(recordedRequest.getRequestUrl()).encodedPath());
-        assertEquals("page_token=ABC", Objects.requireNonNull(recordedRequest.getRequestUrl()).encodedQuery());
+        wireMock.verifyThat(1, requestedFor(HttpMethod.GET.name(), urlPathEqualTo(SERVICE_ACCOUNTS_ENDPOINT)));
+        wireMock.verifyThat(1, requestedFor(HttpMethod.GET.name(), urlPathEqualTo("/next_page")));
     }
 
     @Test
     void testListApiKeys() throws Exception {
-        mockBackEnd.enqueue(new MockResponse().setBody(readTestResource("ccloud/api-keys.json"))
-                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE));
+        wireMock.register(authenticatedEndpoint(API_KEYS_ENDPOINT)
+                .withQueryParam("spec.resource", new EqualToPattern("lkc-mycluster"))
+                .willReturn(okForPlainJson(readTestResource("ccloud/api-keys.json"))));
 
         ConfluentCloudApiClient apiClient = new ConfluentCloudApiClient(baseUrl, "myKey", "mySecret", false);
 
@@ -143,139 +164,104 @@ class ConfluentCloudApiClientTest {
         assertEquals("sa-xy123", apiKeys.get(0).getServiceAccountId());
         assertEquals("2022-09-16T11:45:01.722675Z", apiKeys.get(0).getCreatedAt().toString());
 
-        RecordedRequest recordedRequest = mockBackEnd.takeRequest(10, TimeUnit.SECONDS);
-        assertNotNull(recordedRequest);
-        assertEquals("/iam/v2/api-keys", Objects.requireNonNull(recordedRequest.getRequestUrl()).encodedPath());
-
-        assertEquals("lkc-mycluster",
-                Objects.requireNonNull(recordedRequest.getRequestUrl()).queryParameter("spec.resource"));
+        wireMock.verifyThat(1, requestedFor(HttpMethod.GET.name(), urlPathEqualTo(API_KEYS_ENDPOINT)));
     }
 
     @Test
     void testCreateServiceAccount() throws Exception {
-        mockBackEnd.enqueue(new MockResponse().setBody(readTestResource("ccloud/service-account.json"))
-                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .setResponseCode(HttpStatus.CREATED.value()));
+        wireMock.register(serviceAccountsEndpoint(HttpMethod.POST)
+                .withRequestBody(
+                        new JsonWithPropertiesPattern(Map.of("display_name", "myaccount", "description", "mydesc")))
+                .willReturn(okForPlainJson(readTestResource("ccloud/service-account.json"))
+                        .withStatus(HttpStatus.CREATED.value())));
 
         ConfluentCloudApiClient apiClient = new ConfluentCloudApiClient(baseUrl, "myKey", "mySecret", false);
 
         ServiceAccountSpec spec = apiClient.createServiceAccount("myaccount", "mydesc").block();
         assertNotNull(spec);
 
-        RecordedRequest recordedRequest = mockBackEnd.takeRequest(10, TimeUnit.SECONDS);
-        assertNotNull(recordedRequest);
-        assertEquals(HttpMethod.POST.name(), recordedRequest.getMethod());
-        assertEquals("/iam/v2/service-accounts", Objects.requireNonNull(recordedRequest.getRequestUrl()).encodedPath());
         assertEquals("Created Service Account.", spec.getDescription());
         assertEquals("CREATED_service_account", spec.getDisplayName());
         assertEquals("sa-xy123", spec.getResourceId());
         assertNull(spec.getNumericId());
 
-        String requestBody = recordedRequest.getBody().readUtf8();
-        JSONObject requestObj = new JSONObject(requestBody);
-        assertEquals("myaccount", requestObj.getString("display_name"));
-        assertEquals("mydesc", requestObj.getString("description"));
+        wireMock.verifyThat(1, requestedFor(HttpMethod.POST.name(), urlPathEqualTo(SERVICE_ACCOUNTS_ENDPOINT)));
     }
 
     @Test
     void testCreateServiceAccount_withNumericId() throws Exception {
-        mockBackEnd.enqueue(new MockResponse().setBody(readTestResource("ccloud/service-account.json"))
-                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .setResponseCode(HttpStatus.CREATED.value()));
-        mockBackEnd.enqueue(new MockResponse().setBody(readTestResource("ccloud/service-account-mapping.json"))
-                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE));
+        wireMock.register(serviceAccountsEndpoint(HttpMethod.POST)
+                .willReturn(okForPlainJson(readTestResource("ccloud/service-account.json"))
+                        .withStatus(HttpStatus.CREATED.value())));
+        wireMock.register(authenticatedEndpoint("/service_accounts")
+                .willReturn(okForPlainJson(readTestResource("ccloud/service-account-mapping.json"))));
 
         ConfluentCloudApiClient apiClient = new ConfluentCloudApiClient(baseUrl, "myKey", "mySecret", true);
 
         ServiceAccountSpec spec = apiClient.createServiceAccount("myaccount", "mydesc").block();
         assertNotNull(spec);
-
-        RecordedRequest createRequest = mockBackEnd.takeRequest(10, TimeUnit.SECONDS);
-        RecordedRequest mappingRequest = mockBackEnd.takeRequest(10, TimeUnit.SECONDS);
-
-        assertNotNull(createRequest);
-        assertNotNull(mappingRequest);
-
-        assertEquals("/iam/v2/service-accounts", Objects.requireNonNull(createRequest.getRequestUrl()).encodedPath());
-        assertEquals("/service_accounts", Objects.requireNonNull(mappingRequest.getRequestUrl()).encodedPath());
-
         assertEquals("123456", spec.getNumericId());
+
+        wireMock.verifyThat(1, requestedFor(HttpMethod.POST.name(), urlPathEqualTo(SERVICE_ACCOUNTS_ENDPOINT)));
+        wireMock.verifyThat(1, requestedFor(HttpMethod.GET.name(), urlPathEqualTo("/service_accounts")));
     }
 
     @Test
     void testCreateApiKey() throws Exception {
-        mockBackEnd.enqueue(new MockResponse().setBody(readTestResource("ccloud/api-key.json"))
-                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .setResponseCode(HttpStatus.ACCEPTED.value()));
+        Map<String, String> expectedJsonProperties = Map.of("spec.display_name", "", "spec.description",
+                "description param", "spec.owner.id", "sa-xy123", "spec.owner.environment", "env-ab123",
+                "spec.resource.id", "lkc-abc123", "spec.resource.environment", "env-ab123");
+
+        wireMock.register(authenticatedEndpoint(API_KEYS_ENDPOINT, HttpMethod.POST)
+                .withRequestBody(new JsonWithPropertiesPattern(expectedJsonProperties))
+                .willReturn(okForPlainJson(readTestResource("ccloud/api-key.json"))
+                        .withStatus(HttpStatus.ACCEPTED.value())));
 
         ConfluentCloudApiClient apiClient = new ConfluentCloudApiClient(baseUrl, "myKey", "mySecret", false);
 
         ApiKeySpec spec = apiClient.createApiKey("env-ab123", "lkc-abc123", "description param", "sa-xy123").block();
         assertNotNull(spec);
 
-        RecordedRequest recordedRequest = mockBackEnd.takeRequest(10, TimeUnit.SECONDS);
-        assertNotNull(recordedRequest);
-        assertEquals(HttpMethod.POST.name(), recordedRequest.getMethod());
-        assertEquals("/iam/v2/api-keys", Objects.requireNonNull(recordedRequest.getRequestUrl()).encodedPath());
-
         assertEquals("ABCDEF123456", spec.getId());
         assertEquals("2022-07-22T14:48:41.966079Z", spec.getCreatedAt().toString());
         assertEquals("API Key Description", spec.getDescription());
         assertEquals("sa-xy123", spec.getServiceAccountId());
 
-        String requestBody = recordedRequest.getBody().readUtf8();
-        JSONObject requestObj = new JSONObject(requestBody);
-
-        JSONObject specObj = requestObj.getJSONObject("spec");
-        assertEquals("", specObj.getString("display_name"));
-        assertEquals("description param", specObj.getString("description"));
-
-        JSONObject ownerObj = specObj.getJSONObject("owner");
-        assertEquals("sa-xy123", ownerObj.getString("id"));
-        assertEquals("env-ab123", ownerObj.getString("environment"));
-
-        JSONObject resObj = specObj.getJSONObject("resource");
-        assertEquals("lkc-abc123", resObj.getString("id"));
-        assertEquals("env-ab123", resObj.getString("environment"));
+        wireMock.verifyThat(1, requestedFor(HttpMethod.POST.name(), urlPathEqualTo(API_KEYS_ENDPOINT)));
     }
 
     @Test
-    void testDeleteApiKey() throws Exception {
-        mockBackEnd.enqueue(new MockResponse().setResponseCode(HttpStatus.NO_CONTENT.value()));
-
+    void testDeleteApiKey() {
+        wireMock.register(
+                authenticatedEndpoint(API_KEYS_ENDPOINT + "/ABCDEF123456", HttpMethod.DELETE).willReturn(noContent()));
         ConfluentCloudApiClient apiClient = new ConfluentCloudApiClient(baseUrl, "myKey", "mySecret", false);
 
         ApiKeySpec spec = new ApiKeySpec();
         spec.setId("ABCDEF123456");
 
         apiClient.deleteApiKey(spec).block();
-
-        RecordedRequest recordedRequest = mockBackEnd.takeRequest(10, TimeUnit.SECONDS);
-        assertNotNull(recordedRequest);
-        assertEquals(HttpMethod.DELETE.name(), recordedRequest.getMethod());
-        assertEquals("/iam/v2/api-keys/ABCDEF123456",
-                Objects.requireNonNull(recordedRequest.getRequestUrl()).encodedPath());
+        wireMock.verifyThat(1,
+                requestedFor(HttpMethod.DELETE.name(), urlPathEqualTo(API_KEYS_ENDPOINT + "/ABCDEF123456")));
     }
 
     @Test
-    void testErrorStatusCode() throws Exception {
-        mockBackEnd.enqueue(new MockResponse().setResponseCode(HttpStatus.NOT_FOUND.value()));
-
+    void testErrorStatusCode() {
         ConfluentCloudApiClient apiClient = new ConfluentCloudApiClient(baseUrl, "myKey", "mySecret", false);
         ApiKeySpec spec = new ApiKeySpec();
         spec.setId("ABCDEF123456");
 
         StepVerifier.create(apiClient.deleteApiKey(spec)).expectErrorMatches(t -> (t instanceof ConfluentApiException)
                 && t.getMessage().startsWith("Could not delete API key: Server returned 404 for ")).verify();
-
-        assertNotNull(mockBackEnd.takeRequest(10, TimeUnit.SECONDS));
+        wireMock.resetRequests();
     }
 
     @Test
-    void testErrorMessage_singleError() throws Exception {
+    void testErrorMessage_singleError() {
         JSONObject errorObj = new JSONObject(Map.of("error", "something went wrong"));
-        mockBackEnd.enqueue(new MockResponse().setResponseCode(HttpStatus.BAD_REQUEST.value())
-                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE).setBody(errorObj.toString()));
+
+        wireMock.register(authenticatedEndpoint(API_KEYS_ENDPOINT + "/ABCDEF123456", HttpMethod.DELETE)
+                .willReturn(badRequest().withBody(errorObj.toString()).withHeader(HttpHeaders.CONTENT_TYPE,
+                        MediaType.APPLICATION_JSON_VALUE)));
 
         ConfluentCloudApiClient apiClient = new ConfluentCloudApiClient(baseUrl, "myKey", "mySecret", false);
         ApiKeySpec spec = new ApiKeySpec();
@@ -283,12 +269,10 @@ class ConfluentCloudApiClientTest {
 
         StepVerifier.create(apiClient.deleteApiKey(spec)).expectErrorMatches(t -> (t instanceof ConfluentApiException)
                 && t.getMessage().equals("Could not delete API key: something went wrong")).verify();
-
-        assertNotNull(mockBackEnd.takeRequest(10, TimeUnit.SECONDS));
     }
 
     @Test
-    void testErrorMessage_errorsArray() throws Exception {
+    void testErrorMessage_errorsArray() {
         JSONObject errorObj = new JSONObject(Map.of("detail", "something went wrong"));
         JSONObject errorObj2 = new JSONObject(Map.of("detail", "all is broken"));
         JSONArray errors = new JSONArray();
@@ -296,8 +280,9 @@ class ConfluentCloudApiClientTest {
         errors.put(errorObj2);
         JSONObject body = new JSONObject(Map.of("errors", errors));
 
-        mockBackEnd.enqueue(new MockResponse().setResponseCode(HttpStatus.BAD_REQUEST.value())
-                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE).setBody(body.toString()));
+        wireMock.register(authenticatedEndpoint(API_KEYS_ENDPOINT + "/ABCDEF123456", HttpMethod.DELETE)
+                .willReturn(badRequest().withBody(body.toString()).withHeader(HttpHeaders.CONTENT_TYPE,
+                        MediaType.APPLICATION_JSON_VALUE)));
 
         ConfluentCloudApiClient apiClient = new ConfluentCloudApiClient(baseUrl, "myKey", "mySecret", false);
         ApiKeySpec spec = new ApiKeySpec();
@@ -305,15 +290,13 @@ class ConfluentCloudApiClientTest {
 
         StepVerifier.create(apiClient.deleteApiKey(spec)).expectErrorMatches(t -> (t instanceof ConfluentApiException)
                 && t.getMessage().equals("Could not delete API key: something went wrong")).verify();
-
-        assertNotNull(mockBackEnd.takeRequest(10, TimeUnit.SECONDS));
     }
 
     @Test
-    void testError_textOnlyResponse() throws Exception {
-        mockBackEnd.enqueue(new MockResponse().setResponseCode(HttpStatus.BAD_REQUEST.value())
-                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN_VALUE)
-                .setBody("This is your friendly error message in text only."));
+    void testError_textOnlyResponse() {
+        wireMock.register(authenticatedEndpoint(API_KEYS_ENDPOINT + "/ABCDEF123456", HttpMethod.DELETE)
+                .willReturn(badRequest().withBody("This is your friendly error message in text only.")
+                        .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN_VALUE)));
 
         ConfluentCloudApiClient apiClient = new ConfluentCloudApiClient(baseUrl, "myKey", "mySecret", false);
         ApiKeySpec spec = new ApiKeySpec();
@@ -321,8 +304,64 @@ class ConfluentCloudApiClientTest {
 
         StepVerifier.create(apiClient.deleteApiKey(spec)).expectErrorMatches(t -> (t instanceof ConfluentApiException)
                 && t.getMessage().startsWith("Could not delete API key: Server returned 400 for ")).verify();
+    }
 
-        assertNotNull(mockBackEnd.takeRequest(10, TimeUnit.SECONDS));
+    private static class JsonWithPropertiesPattern extends ContentPattern<byte[]> {
+
+        private final Map<String, String> propertiesAndValues;
+
+        public JsonWithPropertiesPattern(Map<String, String> propertiesAndValues) {
+            super(propertiesAndValues.toString().getBytes(StandardCharsets.UTF_8));
+            this.propertiesAndValues = propertiesAndValues;
+        }
+
+        @Override
+        public String getName() {
+            return "json-with-properties";
+        }
+
+        @Override
+        public String getExpected() {
+            return propertiesAndValues.toString();
+        }
+
+        private boolean containsProperty(JSONObject obj, String propertyName, String expectedValue) {
+            if (propertyName.contains(".")) {
+                String pn = propertyName.split("\\.")[0];
+                if (!obj.has(pn)) {
+                    return false;
+                }
+                return containsProperty(obj.getJSONObject(pn), propertyName.substring(propertyName.indexOf('.') + 1),
+                        expectedValue);
+            }
+            return obj.has(propertyName) && Objects.equals(obj.getString(propertyName), expectedValue);
+        }
+
+        @Override
+        public MatchResult match(byte[] value) {
+            try {
+                JSONObject obj = new JSONObject(new String(value, StandardCharsets.UTF_8));
+
+                int matchCounter = 0;
+                for (Map.Entry<String, String> pairs : propertiesAndValues.entrySet()) {
+                    if (containsProperty(obj, pairs.getKey(), pairs.getValue())) {
+                        matchCounter++;
+                    }
+                }
+
+                if (matchCounter == propertiesAndValues.size()) {
+                    return MatchResult.exactMatch();
+                }
+                if (matchCounter == 0) {
+                    return MatchResult.noMatch();
+                }
+
+                return MatchResult.partialMatch(propertiesAndValues.size() - matchCounter);
+            }
+            catch (JSONException e) {
+                return MatchResult.noMatch();
+            }
+        }
     }
 
 }

@@ -7,18 +7,22 @@ import com.hermesworld.ais.galapagos.schemas.SchemaCompatibilityValidator;
 import org.everit.json.schema.Schema;
 import org.everit.json.schema.loader.SchemaLoader;
 import org.json.JSONObject;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.util.StreamUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 public class SchemaCompatibilityValidatorTest {
 
-    @Test(expected = IncompatibleSchemaException.class)
+    @Test
     public void testAddAdditionalPropertiesOnObject_fail() throws Exception {
-        verifyConsumerCompatibleTo(readSchema("test01a"), readSchema("test01b"));
+        assertThrows(IncompatibleSchemaException.class, () -> {
+            verifyConsumerCompatibleTo(readSchema("test01a"), readSchema("test01b"));
+        });
     }
 
     @Test
@@ -31,9 +35,11 @@ public class SchemaCompatibilityValidatorTest {
         verifyConsumerCompatibleTo(readSchema("test03a"), readSchema("test03b"));
     }
 
-    @Test(expected = IncompatibleSchemaException.class)
+    @Test
     public void testAddOneOfSchema_fail() throws Exception {
-        verifyConsumerCompatibleTo(readSchema("test03a"), readSchema("test03c"));
+        assertThrows(IncompatibleSchemaException.class, () -> {
+            verifyConsumerCompatibleTo(readSchema("test03a"), readSchema("test03c"));
+        });
     }
 
     @Test
@@ -41,9 +47,11 @@ public class SchemaCompatibilityValidatorTest {
         verifyConsumerCompatibleTo(readSchema("test03a"), readSchema("test03d"));
     }
 
-    @Test(expected = IncompatibleSchemaException.class)
+    @Test
     public void testRelaxArrayRestriction_fail() throws Exception {
-        verifyConsumerCompatibleTo(readSchema("test03d"), readSchema("test03e"));
+        assertThrows(IncompatibleSchemaException.class, () -> {
+            verifyConsumerCompatibleTo(readSchema("test03d"), readSchema("test03e"));
+        });
     }
 
     @Test
@@ -56,9 +64,11 @@ public class SchemaCompatibilityValidatorTest {
         verifyConsumerCompatibleTo(readSchema("test04a"), readSchema("test04c"));
     }
 
-    @Test(expected = IncompatibleSchemaException.class)
+    @Test
     public void testRelaxStringLimits_fail() throws Exception {
-        verifyConsumerCompatibleTo(readSchema("test04c"), readSchema("test04d"));
+        assertThrows(IncompatibleSchemaException.class, () -> {
+            verifyConsumerCompatibleTo(readSchema("test04c"), readSchema("test04d"));
+        });
     }
 
     @Test
@@ -66,9 +76,11 @@ public class SchemaCompatibilityValidatorTest {
         verifyConsumerCompatibleTo(readSchema("test05a"), readSchema("test05b"));
     }
 
-    @Test(expected = IncompatibleSchemaException.class)
+    @Test
     public void testAddEnumValue_fail() throws Exception {
-        verifyConsumerCompatibleTo(readSchema("test05a"), readSchema("test05c"));
+        assertThrows(IncompatibleSchemaException.class, () -> {
+            verifyConsumerCompatibleTo(readSchema("test05a"), readSchema("test05c"));
+        });
     }
 
     @Test
@@ -76,14 +88,18 @@ public class SchemaCompatibilityValidatorTest {
         verifyConsumerCompatibleTo(readSchema("test06a"), readSchema("test06b"));
     }
 
-    @Test(expected = IncompatibleSchemaException.class)
+    @Test
     public void testNotMoreStrict_fail() throws Exception {
-        verifyConsumerCompatibleTo(readSchema("test06a"), readSchema("test06c"));
+        assertThrows(IncompatibleSchemaException.class, () -> {
+            verifyConsumerCompatibleTo(readSchema("test06a"), readSchema("test06c"));
+        });
     }
 
-    @Test(expected = IncompatibleSchemaException.class)
+    @Test
     public void testTotallyDifferent_fail() throws Exception {
-        verifyConsumerCompatibleTo(readSchema("test01a"), readSchema("test03a"));
+        assertThrows(IncompatibleSchemaException.class, () -> {
+            verifyConsumerCompatibleTo(readSchema("test01a"), readSchema("test03a"));
+        });
     }
 
     @Test
@@ -91,14 +107,18 @@ public class SchemaCompatibilityValidatorTest {
         verifyConsumerCompatibleTo(readSchema("test07a"), readSchema("test07b"));
     }
 
-    @Test(expected = IncompatibleSchemaException.class)
+    @Test
     public void testAnyOfReplacedByIncompatibleSchema_fail() throws Exception {
-        verifyConsumerCompatibleTo(readSchema("test07a"), readSchema("test07c"));
+        assertThrows(IncompatibleSchemaException.class, () -> {
+            verifyConsumerCompatibleTo(readSchema("test07a"), readSchema("test07c"));
+        });
     }
 
-    @Test(expected = IncompatibleSchemaException.class)
+    @Test
     public void testIntegerToNumber_fail() throws Exception {
-        verifyConsumerCompatibleTo(readSchema("test08a"), readSchema("test08b"));
+        assertThrows(IncompatibleSchemaException.class, () -> {
+            verifyConsumerCompatibleTo(readSchema("test08a"), readSchema("test08b"));
+        });
     }
 
     @Test
@@ -116,9 +136,11 @@ public class SchemaCompatibilityValidatorTest {
         verifyConsumerCompatibleTo(readSchema("test09a"), readSchema("test09b"));
     }
 
-    @Test(expected = IncompatibleSchemaException.class)
+    @Test
     public void testRemoveOptionalWithAdditionalProperties_fail() throws Exception {
-        verifyConsumerCompatibleTo(readSchema("test09a"), readSchema("test09c"));
+        assertThrows(IncompatibleSchemaException.class, () -> {
+            verifyConsumerCompatibleTo(readSchema("test09a"), readSchema("test09c"));
+        });
     }
 
     @Test
@@ -127,10 +149,12 @@ public class SchemaCompatibilityValidatorTest {
                 readSchema("test-pattern-field-with-another-prop"));
     }
 
-    @Test(expected = IncompatibleSchemaException.class)
+    @Test
     public void testProducerCompatible_failWithAdditionalProperty() throws Exception {
-        ProducerCompatibilityErrorHandler errorHandler = new ProducerCompatibilityErrorHandler(false);
-        new SchemaCompatibilityValidator(readSchema("test10b"), readSchema("test10a"), errorHandler).validate();
+        assertThrows(IncompatibleSchemaException.class, () -> {
+            ProducerCompatibilityErrorHandler errorHandler = new ProducerCompatibilityErrorHandler(false);
+            new SchemaCompatibilityValidator(readSchema("test10b"), readSchema("test10a"), errorHandler).validate();
+        });
     }
 
     @Test

@@ -1,14 +1,12 @@
 package com.hermesworld.ais.galapagos.security.impl;
 
+import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import com.hermesworld.ais.galapagos.security.SecurityConfig;
 import com.hermesworld.ais.galapagos.security.config.GalapagosSecurityProperties;
-import okhttp3.mockwebserver.Dispatcher;
-import okhttp3.mockwebserver.MockResponse;
-import okhttp3.mockwebserver.MockWebServer;
-import okhttp3.mockwebserver.RecordedRequest;
-import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +30,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import static java.net.HttpURLConnection.HTTP_OK;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
@@ -39,6 +38,7 @@ import static org.mockito.Mockito.when;
 @SpringBootTest(classes = { OAuthConfigController.class, SecurityConfig.class,
         GalapagosSecurityProperties.class }, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @EnableAutoConfiguration(exclude = OAuth2ClientAutoConfiguration.class)
+@WireMockTest
 class OAuthConfigControllerIntegrationTest {
 
     @LocalServerPort
@@ -54,28 +54,11 @@ class OAuthConfigControllerIntegrationTest {
     @SuppressWarnings("unused")
     private JwtDecoder jwtDecoder;
 
-    private MockWebServer oauthServer;
-
     @BeforeEach
-    void initOauthPropertiesAndServer() throws Exception {
-        oauthServer = new MockWebServer();
-        oauthServer.setDispatcher(new Dispatcher() {
-            @NotNull
-            @Override
-            public MockResponse dispatch(@NotNull RecordedRequest recordedRequest) {
-                String path = recordedRequest.getPath();
-                if (path == null) {
-                    return new MockResponse().setResponseCode(404);
-                }
-                if (recordedRequest.getPath().endsWith("/openid-configuration")) {
-                    return new MockResponse().setBody(readOpenidConfig()).setResponseCode(200)
-                            .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
-                }
-
-                return new MockResponse().setResponseCode(404);
-            }
-        });
-        oauthServer.start(0);
+    void initOauthPropertiesAndServer(WireMockRuntimeInfo wireMockInfo) {
+        WireMock wireMock = wireMockInfo.getWireMock();
+        wireMock.register(WireMock.get("/auth/realms/galapagos/.well-known/openid-configuration")
+                .willReturn(okForPlainJson(readOpenidConfig(wireMockInfo.getHttpPort()))));
 
         Map<String, OAuth2ClientProperties.Registration> oauthMap = new HashMap<>();
         OAuth2ClientProperties.Registration reg = new OAuth2ClientProperties.Registration();
@@ -86,16 +69,11 @@ class OAuthConfigControllerIntegrationTest {
 
         Map<String, OAuth2ClientProperties.Provider> providerMap = new HashMap<>();
         OAuth2ClientProperties.Provider provider = new OAuth2ClientProperties.Provider();
-        provider.setIssuerUri("http://localhost:" + oauthServer.getPort() + "/auth/realms/galapagos");
+        provider.setIssuerUri("http://localhost:" + wireMockInfo.getHttpPort() + "/auth/realms/galapagos");
         providerMap.put("keycloak", provider);
 
         when(oauthProperties.getRegistration()).thenReturn(oauthMap);
         when(oauthProperties.getProvider()).thenReturn(providerMap);
-    }
-
-    @AfterEach
-    void shutdownServer() throws IOException {
-        oauthServer.shutdown();
     }
 
     @Test
@@ -111,14 +89,20 @@ class OAuthConfigControllerIntegrationTest {
         assertEquals("test-webapp", config.get("clientId"));
     }
 
-    private String readOpenidConfig() {
+    private String readOpenidConfig(int httpPort) {
         try (InputStream in = OAuthConfigControllerIntegrationTest.class.getClassLoader()
                 .getResourceAsStream("openid-config.json")) {
             return StreamUtils.copyToString(in, StandardCharsets.UTF_8).replace("http://keycloak/",
-                    "http://localhost:" + oauthServer.getPort() + "/");
+                    "http://localhost:" + httpPort + "/");
         }
         catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
+
+    private static ResponseDefinitionBuilder okForPlainJson(String jsonSource) {
+        return ResponseDefinitionBuilder.responseDefinition().withStatus(HTTP_OK).withBody(jsonSource)
+                .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+    }
+
 }
