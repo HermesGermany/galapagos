@@ -5,15 +5,17 @@
     <div class="card-body">
         <p [innerHTML]="'TOPIC_SETTINGS_INTRO_HTML' | translate"></p>
         <div class="form-group">
-            <ngb-accordion #acc="ngbAccordion" [activeIds]="['_panel_estimates']">
-                <ngb-panel *ngIf="showSubscriptionApprovalRequired">
-                    <ng-template ngbPanelTitle>
-                        <span> <i class="fas fa-shield-alt fa-fw me-1"></i>{{ 'Security Settings' | translate }}</span>
-                    </ng-template>
-                    <ng-template ngbPanelContent>
-                        <div class="row">
-                            <div class="card-body">
-                                <p [innerHTML]="'SECURITY_SETTINGS_HTML' | translate"></p>
+            <div ngbAccordion #acc="ngbAccordion">
+                <div ngbAccordionItem *ngIf="showSubscriptionApprovalRequired">
+                    <h2 ngbAccordionHeader>
+                        <button ngbAccordionButton><span> <i
+                            class="fas fa-shield-alt fa-fw me-1"></i>{{ 'Security Settings' | translate }}</span>
+                        </button>
+                    </h2>
+                    <div ngbAccordionCollapse>
+                        <div ngbAccordionBody>
+                            <ng-template>
+                                <p [innerHTML]="'SECURITY_SETTINGS_HTML' | translate" class="mt-2"></p>
                                 <div class="form-check">
                                     <input (change)="handleSubscriptionApprovalRequiredChange()"
                                            class="form-check-input" type="checkbox"
@@ -23,39 +25,43 @@
                                         {{ 'Subscriptions of this topic require approval' | translate }}
                                     </label>
                                 </div>
-                            </div>
+                            </ng-template>
                         </div>
-                    </ng-template>
-                </ngb-panel>
-                <ngb-panel>
-                    <ng-template ngbPanelTitle>
-                        <span> <i class="fas fa-snowplow fa-fw me-1"></i>{{'Cleanup Policy' | translate}}</span>
-                    </ng-template>
-                    <ng-template ngbPanelContent>
-                        <p [innerHTML]="'CLEANUP_STRATEGY_TEXT_HTML' | translate"></p>
-                        <div>
-                            <div class="btn-group mb-3" role="group">
-                                <label
-                                    class="{{activeButtons.logCompaction ? 'btn btn-success':'btn btn-secondary'}} btn-lg"
-                                    ngbButtonLabel>
-                                    <input
-                                        (change)="!selectedCleanUpStrategy.includes('compact') ?
+                    </div>
+                </div>
+                <div ngbAccordionItem>
+                    <h2 ngbAccordionHeader>
+                        <button ngbAccordionButton>
+                            <span> <i class="fas fa-snowplow fa-fw me-1"></i>{{'Cleanup Policy' | translate}}</span>
+                        </button>
+                    </h2>
+                    <div ngbAccordionCollapse>
+                        <div ngbAccordionBody>
+                            <ng-template>
+                                <p [innerHTML]="'CLEANUP_STRATEGY_TEXT_HTML' | translate" class="mt-2"></p>
+                                <div>
+                                    <div class="btn-group mb-3" role="group">
+                                        <label
+                                            class="{{activeButtons.logCompaction ? 'btn btn-success':'btn btn-secondary'}} btn-lg"
+                                            ngbButtonLabel>
+                                            <input
+                                                (change)="!selectedCleanUpStrategy.includes('compact') ?
                                             selectedCleanUpStrategy.push('compact'): deleteItem('compact')"
-                                        type="checkbox" ngbButton class="btn-check"
-                                        [(ngModel)]="activeButtons.logCompaction">
-                                    {{'Log Compaction' | translate}}
-                                </label>
-                                <label
-                                    class="{{(subscriptionApprovalRequired ||
+                                                type="checkbox" ngbButton class="btn-check"
+                                                [(ngModel)]="activeButtons.logCompaction">
+                                            {{'Log Compaction' | translate}}
+                                        </label>
+                                        <label
+                                            class="{{(subscriptionApprovalRequired ||
                                         selectedCleanUpStrategy.includes('delete')) ? 'btn btn-danger':'btn btn-secondary'}} btn-lg"
-                                    ngbButtonLabel>
-                                    <input [disabled]="subscriptionApprovalRequired"
-                                           (change)="!selectedCleanUpStrategy.includes('delete') ?
+                                            ngbButtonLabel>
+                                            <input [disabled]="subscriptionApprovalRequired"
+                                                   (change)="!selectedCleanUpStrategy.includes('delete') ?
                                             selectedCleanUpStrategy.push('delete'): deleteItem('delete')"
-                                           type="checkbox" ngbButton class="btn-check"
-                                           [(ngModel)]="activeButtons.deletion"> {{'Deletion' | translate}}
-                                </label>
-                            </div>
+                                                   type="checkbox" ngbButton class="btn-check"
+                                                   [(ngModel)]="activeButtons.deletion"> {{'Deletion' | translate}}
+                                        </label>
+                                    </div>
                             <br>
                             <span *ngIf="activeButtons.logCompaction">
                                 <label>{{'Compaction time' | translate}}</label>
@@ -92,58 +98,72 @@
                                 </div>
                             </div>
                           </span>
+                                </div>
+                            </ng-template>
                         </div>
-                    </ng-template>
-                </ngb-panel>
-                <ngb-panel>
-                    <ng-template ngbPanelTitle>
-                        <span> <i class="fas fa-exclamation fa-fw me-1"></i>{{'Criticality' | translate}}</span>
-                    </ng-template>
-                    <ng-template ngbPanelContent>
-                        <p [innerHTML]="'CRITICALITY_TEXT_HTML' | translate"></p>
-                        <div class="form-check">
-                            <input [(ngModel)]="criticalityType" class="form-check-input" type="radio"
-                                   value="NORMAL" id="flexRadioDefault1">
-                            <label class="form-check-label" for="flexRadioDefault1">
-                                {{'Normal' | translate}}
-                            </label>
+                    </div>
+                </div>
+                <div ngbAccordionItem>
+                    <h2 ngbAccordionHeader>
+                        <button ngbAccordionButton>
+                            <span> <i class="fas fa-exclamation fa-fw me-1"></i>{{'Criticality' | translate}}</span>
+                        </button>
+                    </h2>
+                    <div ngbAccordionCollapse>
+                        <div ngbAccordionBody>
+                            <ng-template>
+                                <p [innerHTML]="'CRITICALITY_TEXT_HTML' | translate" class="mt-2"></p>
+                                <div class="form-check">
+                                    <input [(ngModel)]="criticalityType" class="form-check-input" type="radio"
+                                           value="NORMAL" id="flexRadioDefault1">
+                                    <label class="form-check-label" for="flexRadioDefault1">
+                                        {{'Normal' | translate}}
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" value="CRITICAL"
+                                           id="flexRadioDefault2"
+                                           [(ngModel)]="criticalityType">
+                                    <label class="form-check-label" for="flexRadioDefault2">
+                                        {{'Critical' | translate}} </label>
+                                </div>
+                            </ng-template>
                         </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" value="CRITICAL"
-                                   id="flexRadioDefault2"
-                                   [(ngModel)]="criticalityType">
-                            <label class="form-check-label" for="flexRadioDefault2">
-                                {{'Critical' | translate}} </label>
-                        </div>
-                    </ng-template>
-                </ngb-panel>
-                <ngb-panel [id]="'_panel_estimates'">
-                    <ng-template ngbPanelTitle>
+                    </div>
+                </div>
+                <div ngbAccordionItem [collapsed]="false">
+                    <h2 ngbAccordionHeader>
+                        <button ngbAccordionButton>
                         <span> <i
                             class="fas fa-ruler fa-fw me-1"></i>{{'Size estimates' | translate}}</span>
-                    </ng-template>
-                    <ng-template ngbPanelContent>
-                        <p [innerHTML]="'SIZE_ESTIMATION_TEXT_HTML' | translate"></p><br>
-                        <div class="custom-slider">
-                            <div class="slider">
-                                <label class="custom-label" for="dataSlider">
-                                    <b>{{'Messages per day' | translate}}</b></label>
-                                <ngx-slider id="dataSlider" [options]="optionsData"
-                                            (userChangeEnd)="onUserChangeEndData($event)"></ngx-slider>
-                            </div>
+                        </button>
+                    </h2>
+                    <div ngbAccordionCollapse>
+                        <div ngbAccordionBody>
+                            <ng-template>
+                                <p [innerHTML]="'SIZE_ESTIMATION_TEXT_HTML' | translate" class="mt-2"></p><br>
+                                <div class="custom-slider">
+                                    <div class="slider">
+                                        <label class="custom-label" for="dataSlider">
+                                            <b>{{'Messages per day' | translate}}</b></label>
+                                        <ngx-slider id="dataSlider" [options]="optionsData"
+                                                    (userChangeEnd)="onUserChangeEndData($event)"></ngx-slider>
+                                    </div>
+                                </div>
+                                <br> <br>
+                                <div class="custom-slider">
+                                    <div class="slider">
+                                        <label class="custom-label" for="sizeSlider">
+                                            <b>{{'Size of the Messages' | translate}}</b></label>
+                                        <ngx-slider id="sizeSlider" [options]="optionsSize"
+                                                    (userChangeEnd)="onUserChangeEndSize($event)"></ngx-slider>
+                                    </div>
+                                </div>
+                            </ng-template>
                         </div>
-                        <br> <br>
-                        <div class="custom-slider">
-                            <div class="slider">
-                                <label class="custom-label" for="sizeSlider">
-                                    <b>{{'Size of the Messages' | translate}}</b></label>
-                                <ngx-slider id="sizeSlider" [options]="optionsSize"
-                                            (userChangeEnd)="onUserChangeEndSize($event)"></ngx-slider>
-                            </div>
-                        </div>
-                    </ng-template>
-                </ngb-panel>
-            </ngb-accordion>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>

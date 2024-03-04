@@ -11,20 +11,17 @@ import { LanguageTranslationModule } from '../../shared/modules/language-transla
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { PageHeaderModule } from '../../shared/modules';
+import { PageHeaderModule } from '../../shared';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { ApplicationsComponent } from './applications.component';
 import { SpinnerWhileModule } from '../../shared/modules/spinner-while/spinner-while.module';
-import { of } from 'rxjs';
 import { ApiKeyService } from '../../shared/services/apikey.service';
 import { CertificateService } from '../../shared/services/certificates.service';
 
 describe('ApplicationsComponent', () => {
     let component: ApplicationsComponent;
     let fixture: ComponentFixture<ApplicationsComponent>;
-    let apps;
-    let testTopic;
 
     beforeEach((() => {
         TestBed.configureTestingModule({
@@ -57,50 +54,6 @@ describe('ApplicationsComponent', () => {
         fixture = TestBed.createComponent(ApplicationsComponent);
         component = fixture.componentInstance;
         fixture.detectChanges();
-
-        apps = [{
-            id: '1',
-            name: 'a nice application',
-            aliases: ['app1'],
-            owningTopics: ['myCoolTopic'],
-
-            usingTopics: of(['some topic']),
-            kafkaGroupPrefix: 'some prefix',
-            businessCapabilities: [{
-                id: '1',
-                name: 'some name',
-                topicNamePrefix: 'prefix name'
-            }]
-        }];
-        testTopic = {
-            name: 'myCoolTopic',
-
-            topicType: 'EVENTS',
-
-            environmentId: 'prod',
-
-            description: 'my topic',
-
-            ownerApplication: {
-                id: '1',
-
-                name: 'app1',
-
-                aliases: ['a1']
-            },
-
-            createdTimestamp: 'string',
-
-            deprecated: false,
-
-            deprecationText: '',
-
-            eolDate: '',
-
-            subscriptionApprovalRequired: false,
-
-            deletable: false
-        };
     }));
 
     it('should create', () => {

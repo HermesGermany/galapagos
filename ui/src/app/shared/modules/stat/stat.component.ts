@@ -1,11 +1,11 @@
-import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 
 @Component({
     selector: 'app-stat',
     templateUrl: './stat.component.html',
     styleUrls: ['./stat.component.scss']
 })
-export class StatComponent implements OnInit {
+export class StatComponent {
     @Input() bgClass: string;
     @Input() icon: string;
     @Input() count: number;
@@ -13,7 +13,7 @@ export class StatComponent implements OnInit {
     @Input() data: number;
     @Output() event: EventEmitter<any> = new EventEmitter();
 
-    constructor() {}
+    constructor() {
+    }
 
-    ngOnInit() {}
 }

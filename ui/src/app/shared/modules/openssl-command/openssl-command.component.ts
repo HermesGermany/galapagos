@@ -25,7 +25,7 @@ export class OpensslCommandComponent implements OnInit, OnChanges {
         this.updateCommand();
     }
 
-    ngOnChanges(changes) {
+    ngOnChanges() {
         this.updateCommand();
     }
 

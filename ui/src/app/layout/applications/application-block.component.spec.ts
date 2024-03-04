@@ -6,7 +6,7 @@ import { ApplicationsService } from '../../shared/services/applications.service'
 import { ServerInfoService } from '../../shared/services/serverinfo.service';
 import { ToastService } from '../../shared/modules/toast/toast.service';
 import { TranslateService } from '@ngx-translate/core';
-import { NgbAccordion, NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import { NgbAccordionDirective, NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { LanguageTranslationModule } from '../../shared/modules/language-translation/language-translation.module';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
@@ -136,7 +136,7 @@ describe('ApplicationBlockComponent', () => {
         });
         fixture.detectChanges();
 
-        const accordion = fixture.debugElement.query(By.directive(NgbAccordion)).componentInstance;
+        const accordion = fixture.debugElement.query(By.directive(NgbAccordionDirective)).injector.get(NgbAccordionDirective) as NgbAccordionDirective;
         accordion.expand('_panel_rights');
         fixture.detectChanges();
         const listItemsInternal = document.getElementById('internalTopicPrefixes').childNodes;
@@ -185,7 +185,7 @@ describe('ApplicationBlockComponent', () => {
 
         fixture.detectChanges();
 
-        const accordion = fixture.debugElement.query(By.directive(NgbAccordion)).componentInstance;
+        const accordion = fixture.debugElement.query(By.directive(NgbAccordionDirective)).injector.get(NgbAccordionDirective) as NgbAccordionDirective;
         accordion.expand('_panel_authentication');
         const debugElement = fixture.debugElement;
 

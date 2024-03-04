@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { Observable, ReplaySubject } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
 import { TranslateService } from '@ngx-translate/core';
-import { TopicsService } from '../../services/topics.service';
 
 export type ToastType = 'info' | 'success' | 'warning' | 'danger';
 
