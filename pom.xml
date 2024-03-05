@@ -43,8 +43,14 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-oauth2-client</artifactId>
         </dependency>
-        <!-- overwrite version with security issue referenced in oauth2-client -->
-        <!-- remove when upgrading Spring Boot version -->
+        <!-- specific newer version from nimbus-jose-jwt due to CVE CVE-2023-52428 -->
+        <!-- remove when Spring includes newer version -->
+        <dependency>
+            <groupId>com.nimbusds</groupId>
+            <artifactId>nimbus-jose-jwt</artifactId>
+            <version>9.37.3</version>
+        </dependency>
+
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-config</artifactId>
@@ -149,11 +155,6 @@
             <groupId>com.github.erosb</groupId>
             <artifactId>everit-json-schema</artifactId>
             <version>1.14.2</version>
-        </dependency>
-        <dependency>
-            <groupId>com.auth0</groupId>
-            <artifactId>java-jwt</artifactId>
-            <version>4.3.0</version>
         </dependency>
 
         <dependency>
