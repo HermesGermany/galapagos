@@ -4,7 +4,9 @@ import { EnvironmentsService, KafkaEnvironment } from '../../../shared/services/
 import { ToastService } from '../../../shared/modules/toast/toast.service';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { Router } from '@angular/router';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, Observable } from 'rxjs';
+import { ServerInfoService } from "../../../shared/services/serverinfo.service";
+import { map } from "rxjs/operators";
 
 @Component({
     selector: 'app-delete-topic-component',
@@ -24,13 +26,17 @@ export class DeleteTopicComponent {
 
     topicNameConfirmText = '';
 
+    showAdvancedTopicConfig: Observable<boolean>;
+
     constructor(
         private toasts: ToastService,
         private topicService: TopicsService,
         private environmentsService: EnvironmentsService,
+        serverInfoService: ServerInfoService,
         private modalService: NgbModal,
         private router: Router
     ) {
+        this.showAdvancedTopicConfig = serverInfoService.getServerInfo().pipe(map(info => info.toggles.showAdvancedTopicConfig === "true"));
     }
 
     openDeleteConfirmDlg(content: any) {
