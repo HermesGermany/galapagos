@@ -141,7 +141,8 @@ describe('SchemaSectionComponent', () => {
             },
             toggles: {
                 subscriptionApproval: 'false',
-                schemaDeleteWithSub: 'true'
+                schemaDeleteWithSub: 'true',
+                showAdvancedTopicConfig: 'true'
 
             },
             galapagos:{
@@ -220,7 +221,8 @@ describe('SchemaSectionComponent', () => {
             },
             toggles: {
                 subscriptionApproval: 'false',
-                schemaDeleteWithSub: 'false'
+                schemaDeleteWithSub: 'false',
+                showAdvancedTopicConfig: 'true'
             },
             galapagos:{
                 instanceName:'test-instance'
@@ -283,7 +285,8 @@ describe('SchemaSectionComponent', () => {
             },
             toggles: {
                 subscriptionApproval: 'false',
-                schemaDeleteWithSub: 'false'
+                schemaDeleteWithSub: 'false',
+                showAdvancedTopicConfig: 'true'
             },
             galapagos:{
                 instanceName:'test-instance'
