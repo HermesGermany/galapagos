@@ -203,6 +203,10 @@
     "SAVE_DEV_KEY_WARNING": "Please <b>save</b> the secret before leaving this page! The secret will not be stored in Galapagos. Please also note that the API key has the following <b>expiry date</b>: {{ expiresAt }}",
     "NOTICE_TOPIC_DATA_VIEW": "This is only a <b>preview</b> of the data in this topic. Only a very limited amount of data is displayed. For a full view, please use suitable software.",
     "SKIP_COMPAT_CHECK_WARNING": "<b>Caution</b>: This allows for incompatible changes in the topic data. Only use this if you really know what you are doing.",
-    "USE_STAGING_FOR_SUB_TEXT": "To transfer your subscription for this topic from the previous environment to this one, please use "
+    "USE_STAGING_FOR_SUB_TEXT": "To transfer your subscription for this topic from the previous environment to this one, please use ",
+    "APP_SUBSCRIPTION_CANCELLED": "The application's rights for this topic have been revoked.",
+    "APP_SUBSCRIPTION_CANNOT_BE_REVOKED": "The application's rights for this topic could not be revoked.",
+    "APP_SUCCESSFUL_TOPIC_APPROVED": "The application was successfully approved for this topic.",
+    "APP_TOPIC_APPROVED_FAILED": "The application could not be approved for this topic"
 }
 

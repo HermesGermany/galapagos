@@ -71,11 +71,13 @@ export class TopicMetadataTableComponent implements OnInit {
     }
 
     async rejectSubscription(sub: TopicSubscription) {
+        const successMsg = await firstValueFrom(this.translateService.get("APP_SUBSCRIPTION_CANCELLED"));
+        const errorMsg = await firstValueFrom(this.translateService.get("APP_SUBSCRIPTION_CANNOT_BE_REVOKED"));
         return this.updateSubscription(
             sub,
             false,
-            'Der Anwendung wurden die Rechte für dieses Topic entzogen.',
-            'Der Anwendung konnten die Rechte für dieses Topic nicht entzogen werden'
+            successMsg,
+            errorMsg
         );
     }
 
@@ -128,11 +130,13 @@ export class TopicMetadataTableComponent implements OnInit {
     }
 
     async approveSubscription(sub: TopicSubscription) {
+        const successMsg = await firstValueFrom(this.translateService.get("APP_SUCCESSFUL_TOPIC_APPROVED"));
+        const errorMsg = await firstValueFrom(this.translateService.get("APP_TOPIC_APPROVED_FAILED"));
         return this.updateSubscription(
             sub,
             true,
-            'Die Anwendung wurde erfolgreich für dieses Topic freigegeben.',
-            'Die Anwendung konnte nicht für dieses Topic freigegeben werden'
+            successMsg,
+            errorMsg
         );
     }
 
