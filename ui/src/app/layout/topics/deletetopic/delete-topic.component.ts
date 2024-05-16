@@ -5,8 +5,8 @@ import { ToastService } from '../../../shared/modules/toast/toast.service';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { Router } from '@angular/router';
 import { firstValueFrom, Observable } from 'rxjs';
-import { ServerInfoService } from "../../../shared/services/serverinfo.service";
-import { map } from "rxjs/operators";
+import { ServerInfoService } from '../../../shared/services/serverinfo.service';
+import { map } from 'rxjs/operators';
 
 @Component({
     selector: 'app-delete-topic-component',
@@ -36,7 +36,7 @@ export class DeleteTopicComponent {
         private modalService: NgbModal,
         private router: Router
     ) {
-        this.showAdvancedTopicConfig = serverInfoService.getServerInfo().pipe(map(info => info.toggles.showAdvancedTopicConfig === "true"));
+        this.showAdvancedTopicConfig = serverInfoService.getServerInfo().pipe(map(info => info.toggles.showAdvancedTopicConfig === 'true'));
     }
 
     openDeleteConfirmDlg(content: any) {

@@ -22,6 +22,9 @@
                 "plugin:@typescript-eslint/eslint-recommended",
                 "plugin:@typescript-eslint/recommended"
             ],
+            "plugins": [
+                "@stylistic"
+            ],
             "rules": {
                 "@angular-eslint/component-selector": [
                     "error",
@@ -120,11 +123,15 @@
                         "SwitchCase": 1
                     }
                 ],
-                "no-trailing-spaces": [
+                "@stylistic/no-trailing-spaces": [
                     "error",
                     {
                         "skipBlankLines": true
                     }
+                ],
+                "@stylistic/quotes": [
+                    "error",
+                    "single"
                 ],
                 "no-underscore-dangle": "off",
                 "object-curly-spacing": [
