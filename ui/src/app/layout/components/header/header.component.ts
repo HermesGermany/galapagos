@@ -1,11 +1,11 @@
-import {Component, OnInit} from '@angular/core';
-import {ServerInfoService} from '../../../shared/services/serverinfo.service';
-import {NavigationEnd, Router} from '@angular/router';
-import {Observable} from 'rxjs';
-import {EnvironmentsService, KafkaEnvironment} from 'src/app/shared/services/environments.service';
-import {map} from 'rxjs/operators';
-import {TranslateService} from '@ngx-translate/core';
-import {AuthService} from '../../../shared/services/auth.service';
+import { Component, OnInit } from '@angular/core';
+import { ServerInfoService } from '../../../shared/services/serverinfo.service';
+import { NavigationEnd, Router } from '@angular/router';
+import { Observable } from 'rxjs';
+import { EnvironmentsService, KafkaEnvironment } from 'src/app/shared/services/environments.service';
+import { map } from 'rxjs/operators';
+import { TranslateService } from '@ngx-translate/core';
+import { AuthService } from '../../../shared/services/auth.service';
 
 @Component({
     selector: 'app-header',
@@ -69,7 +69,6 @@ export class HeaderComponent implements OnInit {
         if (localStorage.getItem('appLanguage')) {
             this.translate.use(localStorage.getItem('appLanguage'));
         }
-
     }
 
     isToggled(): boolean {
