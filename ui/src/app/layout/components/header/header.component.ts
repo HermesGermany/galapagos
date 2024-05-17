@@ -65,6 +65,10 @@ export class HeaderComponent implements OnInit {
         this.allEnvironments = this.environments.getEnvironments();
 
         this.authenticationMode = this.environments.getCurrentEnvironment().pipe(map(env => env.authenticationMode));
+
+        if (localStorage.getItem('appLanguage')) {
+            this.translate.use(localStorage.getItem('appLanguage'));
+        }
     }
 
     isToggled(): boolean {
@@ -83,6 +87,7 @@ export class HeaderComponent implements OnInit {
 
     changeLang(language: string) {
         this.translate.use(language);
+        localStorage.setItem('appLanguage', language);
     }
 
     selectEnvironment(env: KafkaEnvironment) {
