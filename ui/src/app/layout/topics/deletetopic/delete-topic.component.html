@@ -5,12 +5,14 @@
                 class="fas fa-exclamation-triangle me-3"></i>{{ 'Danger Zone' | translate }}
             </div>
             <div class="card-body">
-                <p>{{ 'TOPIC_CONFIG_TEXT' | translate }}</p>
-                <button class="btn btn-warning"
-                        [routerLink]="'/topics/' + topicName + '/config'">
-                    <i class="fas fa-wrench me-3"></i>{{ 'Advanced Configuration' | translate }}
-                </button>
-                <hr>
+                <div *ngIf="showAdvancedTopicConfig | async">
+                    <p>{{ 'TOPIC_CONFIG_TEXT' | translate }}</p>
+                    <button class="btn btn-warning"
+                            [routerLink]="'/topics/' + topicName + '/config'">
+                        <i class="fas fa-wrench me-3"></i>{{ 'Advanced Configuration' | translate }}
+                    </button>
+                    <hr>
+                </div>
                 <div *ngIf="topic.topicType !== 'COMMANDS' && !selectedEnvironment.stagingOnly">
                     <p>{{ 'ADD_PRODUCER_HTML' | translate }}</p>
                     <button class="btn btn-warning"

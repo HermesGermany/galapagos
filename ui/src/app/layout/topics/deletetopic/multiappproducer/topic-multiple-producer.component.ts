@@ -36,7 +36,9 @@ export class TopicMultipleProducerComponent implements OnInit {
         this.applicationsService.getRegisteredApplications(this.selectedEnvironment.id).then(
             registeredApps => {
                 this.selectableProducerApps = registeredApps.filter(producerApp => producerApp.id !== topicOwnerAppId
-                    && !this.topic.producers.includes(producerApp.id));
+                    && !this.topic.producers.includes(producerApp.id)).sort(
+                    (a, b) => a.name.localeCompare(b.name)
+                );
             });
     }
 

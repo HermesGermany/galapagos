@@ -13,6 +13,8 @@ export interface TogglesInfo {
     subscriptionApproval: string;
 
     schemaDeleteWithSub: string;
+
+    showAdvancedTopicConfig: string;
 }
 
 export interface ServerInfo {
