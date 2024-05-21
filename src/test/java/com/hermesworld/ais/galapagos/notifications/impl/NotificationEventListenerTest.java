@@ -22,8 +22,7 @@ import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -112,7 +111,34 @@ class NotificationEventListenerTest {
 
         assertTrue(params.getVariables().get("change_action_text").toString()
                 .contains("some change description goes here"));
+        assertFalse(
+                params.getVariables().get("change_action_text").toString().contains("Keine Beschreibung angegeben"));
 
+    }
+
+    @Test
+    void testHandleTopicSchemaAddedNoDescription() throws ExecutionException, InterruptedException {
+
+        TopicMetadata metadata = new TopicMetadata();
+        metadata.setName("testtopic");
+        metadata.setType(TopicType.EVENTS);
+        SchemaMetadata schema = new SchemaMetadata();
+        schema.setId("42");
+        schema.setJsonSchema("{}");
+        schema.setSchemaVersion(1);
+        schema.setTopicName("testtopic");
+        schema.setChangeDescription(null);
+
+        ArgumentCaptor<NotificationParams> captor = ArgumentCaptor.forClass(NotificationParams.class);
+        when(notificationService.notifySubscribers(any(), any(), any(), any())).thenReturn(FutureUtil.noop());
+        TopicSchemaAddedEvent event = new TopicSchemaAddedEvent(context, metadata, schema);
+        listener.handleTopicSchemaAdded(event).get();
+
+        verify(notificationService).notifySubscribers(eq("test"), eq("testtopic"), captor.capture(), any());
+
+        NotificationParams params = captor.getValue();
+
+        assertTrue(params.getVariables().get("change_action_text").toString().contains("Keine Beschreibung angegeben"));
     }
 
     private TopicEvent buildTestEvent(String envId) {
