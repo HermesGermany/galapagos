@@ -12,12 +12,12 @@ import com.hermesworld.ais.galapagos.security.CurrentUserService;
 import com.hermesworld.ais.galapagos.subscriptions.SubscriptionState;
 import com.hermesworld.ais.galapagos.topics.service.TopicService;
 import com.hermesworld.ais.galapagos.util.FutureUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import jakarta.servlet.http.HttpServletRequest;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
@@ -161,13 +161,16 @@ public class NotificationEventListener
 
     @Override
     public CompletableFuture<Void> handleTopicSchemaAdded(TopicSchemaAddedEvent event) {
-        return handleTopicChange(event,
-                "ein neues JSON-Schema veröffentlicht (" + event.getNewSchema().getChangeDescription() + ")");
+        String changeDescription = event.getNewSchema().getChangeDescription();
+        if (changeDescription == null || changeDescription.isEmpty()) {
+            changeDescription = "Keine Beschreibung angegeben";
+        }
+        return handleTopicChange(event, "ein neues JSON-Schema veröffentlicht (" + changeDescription + ")");
     }
 
     @Override
     public CompletableFuture<Void> handleTopicSchemaDeleted(TopicSchemaRemovedEvent event) {
-        return handleTopicChange(event, "ein JSON-Schema wurde gelöscht ( )");
+        return handleTopicChange(event, "ein JSON-Schema gelöscht");
     }
 
     @Override
@@ -258,7 +261,6 @@ public class NotificationEventListener
     private CompletableFuture<Void> handleTopicChange(TopicEvent event, String changeText) {
         String environmentId = event.getContext().getKafkaCluster().getId();
         String topicName = event.getMetadata().getName();
-
         String userName = event.getContext().getContextValue(USER_NAME_KEY).map(Object::toString).orElse(unknownUser);
         String environmentName = kafkaClusters.getEnvironmentMetadata(environmentId)
                 .map(KafkaEnvironmentConfig::getName).orElse(unknownEnv);
