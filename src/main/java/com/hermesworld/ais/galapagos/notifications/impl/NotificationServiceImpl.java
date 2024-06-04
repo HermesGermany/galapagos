@@ -5,6 +5,7 @@ import com.hermesworld.ais.galapagos.applications.ApplicationsService;
 import com.hermesworld.ais.galapagos.applications.RequestState;
 import com.hermesworld.ais.galapagos.notifications.NotificationParams;
 import com.hermesworld.ais.galapagos.notifications.NotificationService;
+import com.hermesworld.ais.galapagos.notifications.config.GalapagosMailConfig;
 import com.hermesworld.ais.galapagos.subscriptions.SubscriptionMetadata;
 import com.hermesworld.ais.galapagos.subscriptions.service.SubscriptionService;
 import com.hermesworld.ais.galapagos.topics.service.TopicService;
@@ -16,7 +17,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -47,38 +47,24 @@ public class NotificationServiceImpl implements NotificationService {
 
     private final ITemplateEngine templateEngine;
 
-    private final InternetAddress fromAddress;
-
-    private final List<InternetAddress> adminMailRecipients;
+    private final GalapagosMailConfig galapagosMailConfig;
 
     public NotificationServiceImpl(SubscriptionService subscriptionService, ApplicationsService applicationsService,
-            TopicService topicService, JavaMailSender mailSender, TaskExecutor taskExecutor,
-            @Qualifier("emailTemplateEngine") ITemplateEngine templateEngine,
-            @Value("${galapagos.mail.sender:Galapagos <me@privacy.net>}") String fromAddress,
-            @Value("${galapagos.mail.admin-recipients:}") String adminMailRecipients) {
+                                   TopicService topicService, JavaMailSender mailSender, TaskExecutor taskExecutor,
+                                   @Qualifier("emailTemplateEngine") ITemplateEngine templateEngine,
+                                   GalapagosMailConfig galapagosMailConfig) {
         this.subscriptionService = subscriptionService;
         this.applicationsService = applicationsService;
         this.topicService = topicService;
         this.mailSender = mailSender;
         this.taskExecutor = taskExecutor;
         this.templateEngine = templateEngine;
-        try {
-            this.fromAddress = InternetAddress.parse(fromAddress)[0];
-        }
-        catch (AddressException e) {
-            throw new RuntimeException("Invalid e-mail address specified as Galapagos FROM address", e);
-        }
-        try {
-            this.adminMailRecipients = toRecipientsList(adminMailRecipients);
-        }
-        catch (AddressException e) {
-            throw new RuntimeException("Invalid e-mail address(es) specified as Galapagos admin e-mail recipients", e);
-        }
+        this.galapagosMailConfig = galapagosMailConfig;
     }
 
     @Override
     public CompletableFuture<Void> notifySubscribers(String environmentId, String topicName,
-            NotificationParams notificationParams, String excludeUser) {
+                                                     NotificationParams notificationParams, String excludeUser) {
         List<SubscriptionMetadata> subscriptions = subscriptionService.getSubscriptionsForTopic(environmentId,
                 topicName, false);
 
@@ -104,7 +90,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public CompletableFuture<Void> notifyRequestor(ApplicationOwnerRequest request,
-            NotificationParams notificationParams) {
+                                                   NotificationParams notificationParams) {
         if (!StringUtils.hasLength(request.getNotificationEmailAddress())) {
             log.warn("Could not send e-mail to requestor: no e-mail address found in request " + request.getId());
             return CompletableFuture.completedFuture(null);
@@ -113,8 +99,7 @@ public class NotificationServiceImpl implements NotificationService {
         try {
             return doSendAsync(notificationParams,
                     Arrays.asList(InternetAddress.parse(request.getNotificationEmailAddress())), false);
-        }
-        catch (AddressException e) {
+        } catch (AddressException e) {
             log.error("Invalid e-mail address found in request, could not send notification e-mail to "
                     + request.getNotificationEmailAddress(), e);
             return CompletableFuture.failedFuture(e);
@@ -123,12 +108,12 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public CompletableFuture<Void> notifyAdmins(NotificationParams notificationParams) {
-        return doSendAsync(notificationParams, this.adminMailRecipients, false);
+        return doSendAsync(notificationParams, galapagosMailConfig.getAdminRecipients(), false);
     }
 
     @Override
     public CompletableFuture<Void> notifyProducer(NotificationParams notificationParams, String currentUserEmail,
-            String producerApplicationId) {
+                                                  String producerApplicationId) {
         Set<String> mailAddresses = applicationsService.getAllApplicationOwnerRequests().stream()
                 .filter(ownerReq -> ownerReq.getState().equals(RequestState.APPROVED)
                         && ownerReq.getApplicationId().equals(producerApplicationId)
@@ -140,7 +125,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public CompletableFuture<Void> notifyTopicOwners(String environmentId, String topicName,
-            NotificationParams notificationParams) {
+                                                     NotificationParams notificationParams) {
         String ownerApplicationId = topicService.getTopic(environmentId, topicName).map(m -> m.getOwnerApplicationId())
                 .orElse(null);
         if (ownerApplicationId == null) {
@@ -153,7 +138,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public CompletableFuture<Void> notifyApplicationTopicOwners(String applicationId,
-            NotificationParams notificationParams) {
+                                                                NotificationParams notificationParams) {
         List<String> mailAddresses = applicationsService.getAllApplicationOwnerRequests().stream()
                 .filter(r -> r.getState().equals(RequestState.APPROVED) && applicationId.equals(r.getApplicationId()))
                 .map(ApplicationOwnerRequest::getNotificationEmailAddress).distinct().collect(Collectors.toList());
@@ -162,7 +147,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     private CompletableFuture<Void> doSendAsync(NotificationParams params, List<InternetAddress> recipients,
-            boolean bcc) {
+                                                boolean bcc) {
         if (recipients.isEmpty()) {
             log.debug("No recipients specified, not sending e-mail with template " + params.getTemplateName());
             return CompletableFuture.completedFuture(null);
@@ -179,11 +164,10 @@ public class NotificationServiceImpl implements NotificationService {
             try {
                 MimeMessage msg = mailSender.createMimeMessage();
                 MimeMessageHelper helper = new MimeMessageHelper(msg, true);
-                helper.setFrom(fromAddress);
+                helper.setFrom(galapagosMailConfig.getSender());
                 if (bcc) {
                     helper.setBcc(recipients.toArray(new InternetAddress[recipients.size()]));
-                }
-                else {
+                } else {
                     helper.setTo(recipients.toArray(new InternetAddress[recipients.size()]));
                 }
 
@@ -195,8 +179,7 @@ public class NotificationServiceImpl implements NotificationService {
                 log.debug("E-mail sent successfully.");
 
                 future.complete(null);
-            }
-            catch (MessagingException | MailException e) {
+            } catch (MessagingException | MailException e) {
                 log.error("Exception when sending notification e-mail", e);
                 future.complete(null);
             }
@@ -210,12 +193,12 @@ public class NotificationServiceImpl implements NotificationService {
         Context ctx = new Context();
         ctx.setVariables(params.getVariables());
 
-        String htmlCode = this.templateEngine.process(params.getTemplateName(), ctx);
+        String htmlCode = this.templateEngine.process(galapagosMailConfig.getDefaultMailLanguage() + "/" + params.getTemplateName(), ctx);
         Document doc = Jsoup.parse(htmlCode);
         String subject = doc.head().getElementsByTag("title").text();
         String plainText = doc.body().text();
 
-        return new String[] { subject, htmlCode, plainText };
+        return new String[]{subject, htmlCode, plainText};
     }
 
     private List<InternetAddress> safeToRecipientsList(Collection<String> recipients, boolean logWarnings) {
@@ -223,8 +206,7 @@ public class NotificationServiceImpl implements NotificationService {
         for (String address : recipients) {
             try {
                 addresses.addAll(Arrays.asList(InternetAddress.parse(address)));
-            }
-            catch (AddressException e) {
+            } catch (AddressException e) {
                 if (logWarnings) {
                     log.warn("Invalid e-mail address found in request, cannot notify: " + address, e);
                 }

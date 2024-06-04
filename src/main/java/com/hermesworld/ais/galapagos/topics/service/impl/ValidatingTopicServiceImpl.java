@@ -50,14 +50,14 @@ public class ValidatingTopicServiceImpl implements ValidatingTopicService {
     public ValidatingTopicServiceImpl(@Qualifier(value = "nonvalidating") TopicService topicService,
                                       SubscriptionService subscriptionService, ApplicationsService applicationsService,
                                       KafkaClusters kafkaClusters, GalapagosTopicConfig topicConfig,
-                                      @Value("${info.toggles.schemaDeleteWithSub:false}") boolean schemaDeleteWithSub) {
+                                      @Value("${info.toggles.schemaDeleteWithSub:false}") boolean schemaDeleteWithSub, MessagesServiceFactory MessagesServiceFactory) {
         this.topicService = topicService;
         this.subscriptionService = subscriptionService;
         this.applicationsService = applicationsService;
         this.kafkaClusters = kafkaClusters;
         this.topicConfig = topicConfig;
         this.schemaDeleteWithSub = schemaDeleteWithSub;
-        this.messagesService = new MessagesService();
+        this.messagesService = MessagesServiceFactory.getMessageService(ValidatingTopicServiceImpl.class);
     }
 
     @Override

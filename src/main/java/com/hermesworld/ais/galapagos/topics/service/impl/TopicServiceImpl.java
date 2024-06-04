@@ -64,14 +64,14 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
 
     public TopicServiceImpl(KafkaClusters kafkaClusters, ApplicationsService applicationsService,
                             NamingService namingService, CurrentUserService userService, GalapagosTopicConfig topicSettings,
-                            GalapagosEventManager eventManager) {
+                            GalapagosEventManager eventManager, MessagesServiceFactory MessagesServiceFactory) {
         this.kafkaClusters = kafkaClusters;
         this.applicationsService = applicationsService;
         this.namingService = namingService;
         this.userService = userService;
         this.topicSettings = topicSettings;
         this.eventManager = eventManager;
-        messagesService = new MessagesService();
+        this.messagesService = MessagesServiceFactory.getMessageService(TopicServiceImpl.class);
     }
 
     @Override

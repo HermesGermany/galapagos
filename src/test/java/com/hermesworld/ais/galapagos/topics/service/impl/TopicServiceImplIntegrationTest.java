@@ -48,7 +48,7 @@ import static org.mockito.Mockito.when;
  * chained <code>markTopicDeprecated</code> and <code>unmarkTopicDeprecated</code> operations.
  */
 @SpringBootTest
-@Import({ GalapagosTestConfig.class, TopicServiceImplIntegrationTest.TestEventListener.class })
+@Import({GalapagosTestConfig.class, TopicServiceImplIntegrationTest.TestEventListener.class})
 class TopicServiceImplIntegrationTest {
 
     @Autowired
@@ -56,6 +56,8 @@ class TopicServiceImplIntegrationTest {
 
     @Autowired
     private GalapagosEventManager eventManager;
+
+    private final MessagesServiceFactory MessagesServiceFactory = new MessagesServiceFactory();
 
     @Autowired
     private TestEventListener eventListener;
@@ -126,7 +128,7 @@ class TopicServiceImplIntegrationTest {
         topicRepository2.save(topic).get();
 
         TopicServiceImpl service = new TopicServiceImpl(clusters, applicationsService, namingService,
-                currentUserService, topicSettings, eventManager);
+                currentUserService, topicSettings, eventManager, MessagesServiceFactory);
 
         SecurityContext securityContext = mock(SecurityContext.class);
         Authentication auth = mock(Authentication.class);
@@ -163,7 +165,7 @@ class TopicServiceImplIntegrationTest {
         topicRepository2.save(topic).get();
 
         TopicServiceImpl service = new TopicServiceImpl(clusters, applicationsService, namingService,
-                currentUserService, topicSettings, eventManager);
+                currentUserService, topicSettings, eventManager, MessagesServiceFactory);
 
         SecurityContext securityContext = mock(SecurityContext.class);
         Authentication auth = mock(Authentication.class);
@@ -264,8 +266,7 @@ class TopicServiceImplIntegrationTest {
             return super.save(value).thenCompose(o -> CompletableFuture.runAsync(() -> {
                 try {
                     Thread.sleep(200);
-                }
-                catch (InterruptedException e) {
+                } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 }
             }, executorService));

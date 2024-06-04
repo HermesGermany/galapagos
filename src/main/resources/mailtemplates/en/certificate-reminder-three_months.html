@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Kafka Certificate Expiring Soon</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+</head>
+<!--/*@thymesVar id="app_name" type="java.lang.String"*/-->
+<!--/*@thymesVar id="environment_name" type="java.lang.String"*/-->
+<!--/*@thymesVar id="expiry_date" type="java.time.ZonedDateTime"*/-->
+<body style="font-family: Helvetica, Arial, sans-serif; font-size: 11pt">
+<p>
+    Hello dear Application Topic Administrator,
+</p>
+<p>The Kafka client certificate of the application <span th:text="${app_name}" style="font-weight:bold">AppName</span>
+    for the Kafka environment <span
+            th:text="${environment_name}" style="font-weight:bold">EnvName</span>
+    will expire within the next three months, on <span
+            th:text="${#temporals.format(expiry_date, 'dd.MM.yyyy')}" style="font-weight:bold">xx.yy.zzzz</span>.</p>
+<p>You should issue a renewal certificate (possibly in consultation with the other Application Topic Administrators)
+    using Galapagos to avoid your application becoming non-functional.</p>
+<br><br>
+<p><i style="font-size: 10pt">This email was sent to you by Galapagos as the Application Topic Administrator of the
+    mentioned application.
+    If you believe you have received this email by mistake, please contact a Galapagos administrator.</i>
+</p>
+</body>
+</html>

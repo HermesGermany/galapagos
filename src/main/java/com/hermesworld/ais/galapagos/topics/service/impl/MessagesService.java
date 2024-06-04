@@ -14,12 +14,16 @@ import java.util.ResourceBundle;
 @Slf4j
 public class MessagesService {
 
+    private final String packageName;
+
+    public MessagesService(Class<?> clazz) {
+        packageName = clazz.getPackage().getName() + ".messages";
+    }
+
     public String getMessage(String key, Object... args) {
 
         Locale locale = getLocale();
-        String packageName = this.getClass().getPackage().getName();
-        String bundleName = packageName + ".messages";
-        ResourceBundle rb = ResourceBundle.getBundle(bundleName, locale);
+        ResourceBundle rb = ResourceBundle.getBundle(packageName, locale);
         String message;
         try {
             message = rb.getString(key);
@@ -32,7 +36,7 @@ public class MessagesService {
     }
 
 
-    private Locale getLocale() {
+    public static Locale getLocale() {
 
         try {
             if (RequestContextHolder.currentRequestAttributes() instanceof ServletRequestAttributes) {

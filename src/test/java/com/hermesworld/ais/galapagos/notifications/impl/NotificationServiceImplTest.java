@@ -1,5 +1,27 @@
 package com.hermesworld.ais.galapagos.notifications.impl;
 
+import com.hermesworld.ais.galapagos.applications.ApplicationOwnerRequest;
+import com.hermesworld.ais.galapagos.applications.ApplicationsService;
+import com.hermesworld.ais.galapagos.applications.RequestState;
+import com.hermesworld.ais.galapagos.notifications.NotificationParams;
+import com.hermesworld.ais.galapagos.notifications.config.GalapagosMailConfig;
+import com.hermesworld.ais.galapagos.subscriptions.SubscriptionMetadata;
+import com.hermesworld.ais.galapagos.subscriptions.service.SubscriptionService;
+import com.hermesworld.ais.galapagos.topics.service.TopicService;
+import jakarta.mail.Address;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeMessage;
+import jakarta.mail.internet.MimeMessage.RecipientType;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
+import org.springframework.mail.MailSendException;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
+import org.thymeleaf.ITemplateEngine;
+
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
@@ -9,30 +31,10 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
-import jakarta.mail.Address;
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
-import jakarta.mail.internet.MimeMessage.RecipientType;
 
-import com.hermesworld.ais.galapagos.applications.ApplicationOwnerRequest;
-import com.hermesworld.ais.galapagos.applications.ApplicationsService;
-import com.hermesworld.ais.galapagos.applications.RequestState;
-import com.hermesworld.ais.galapagos.notifications.NotificationParams;
-import com.hermesworld.ais.galapagos.subscriptions.SubscriptionMetadata;
-import com.hermesworld.ais.galapagos.subscriptions.service.SubscriptionService;
-import com.hermesworld.ais.galapagos.topics.service.TopicService;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentMatchers;
 import static org.mockito.Mockito.*;
-import org.springframework.mail.MailSendException;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
-import org.thymeleaf.ITemplateEngine;
 
 class NotificationServiceImplTest {
 
@@ -56,6 +58,9 @@ class NotificationServiceImplTest {
 
     private MimeMessageHolder messageHolder;
 
+    private GalapagosMailConfig galapagosMailConfig;
+
+
     @BeforeEach
     void feedMocks() throws MessagingException {
         subscriptionService = mock(SubscriptionService.class);
@@ -69,6 +74,11 @@ class NotificationServiceImplTest {
         templateEngine = mock(ITemplateEngine.class);
 
         executor = Executors.newSingleThreadExecutor();
+
+        galapagosMailConfig = new GalapagosMailConfig();
+        galapagosMailConfig.setSender(new InternetAddress("test@abc.de"));
+        galapagosMailConfig.setAdminRecipients(List.of(new InternetAddress("Test@abc.de")));
+
     }
 
     @AfterEach
@@ -78,8 +88,7 @@ class NotificationServiceImplTest {
 
     @Test
     void testDoSendAsync_NoFailOnMailException() throws Exception {
-        String testFromAddress = "test@abc.de";
-        String testAdminMailsRecipients = "Test@abc.de";
+
         NotificationParams testNotificationParams = generateNotificationParams(TEST_USER, TEST_TOPIC);
 
         doThrow(new MailSendException("mail cannot be sent")).when(mailSender).send((MimeMessage) any());
@@ -88,16 +97,14 @@ class NotificationServiceImplTest {
 
         ConcurrentTaskExecutor exec = new ConcurrentTaskExecutor(executor);
         NotificationServiceImpl notificationServiceImpl = new NotificationServiceImpl(subscriptionService,
-                applicationService, topicService, mailSender, exec, templateEngine, testFromAddress,
-                testAdminMailsRecipients);
+                applicationService, topicService, mailSender, exec, templateEngine, galapagosMailConfig);
 
         notificationServiceImpl.notifyAdmins(testNotificationParams).get();
     }
 
     @Test
     void testNotifySubscribersWithExclusionUser() throws Exception {
-        String testFromAddress = "test@abc.de";
-        String testAdminMailsRecipients = "Test@abc.de";
+
         String testApplicationId = "42";
         NotificationParams testNotificationParams = generateNotificationParams(TEST_USER, TEST_TOPIC);
 
@@ -105,7 +112,7 @@ class NotificationServiceImplTest {
         when(subscriptionService.getSubscriptionsForTopic(TEST_ENV, TEST_TOPIC, false))
                 .thenReturn(subscriptionMetadatas);
 
-        List<ApplicationOwnerRequest> applicationOwnerRequests = generateApplicationOwnerRequests(testFromAddress,
+        List<ApplicationOwnerRequest> applicationOwnerRequests = generateApplicationOwnerRequests(galapagosMailConfig.getSender().toString(),
                 testApplicationId);
         when(applicationService.getAllApplicationOwnerRequests()).thenReturn(applicationOwnerRequests);
 
@@ -115,18 +122,16 @@ class NotificationServiceImplTest {
         ConcurrentTaskExecutor exec = new ConcurrentTaskExecutor(executor);
 
         NotificationServiceImpl notificationServiceImpl = new NotificationServiceImpl(subscriptionService,
-                applicationService, topicService, mailSender, exec, templateEngine, testFromAddress,
-                testAdminMailsRecipients);
+                applicationService, topicService, mailSender, exec, templateEngine, galapagosMailConfig);
 
         notificationServiceImpl.notifySubscribers(TEST_ENV, TEST_TOPIC, testNotificationParams, TEST_USER).get();
 
-        assertFalse(messageHolder.recipients.contains(testFromAddress));
+        assertFalse(messageHolder.recipients.contains(galapagosMailConfig.getSender().toString()));
     }
 
     @Test
     void testNotifyApplicationTopicOwners_noSubmittedIncluded() throws Exception {
-        String testFromAddress = "test@abc.de";
-        String testAdminMailsRecipients = "Test@abc.de";
+
         String applicationId = "1";
         NotificationParams testNotificationParams = generateNotificationParams(TEST_USER, TEST_TOPIC);
 
@@ -161,8 +166,7 @@ class NotificationServiceImplTest {
         ConcurrentTaskExecutor exec = new ConcurrentTaskExecutor(executor);
 
         NotificationServiceImpl notificationServiceImpl = new NotificationServiceImpl(subscriptionService,
-                applicationService, topicService, mailSender, exec, templateEngine, testFromAddress,
-                testAdminMailsRecipients);
+                applicationService, topicService, mailSender, exec, templateEngine, galapagosMailConfig);
 
         notificationServiceImpl.notifyApplicationTopicOwners(applicationId, testNotificationParams).get();
         assertTrue(messageHolder.recipients.contains("foo@bar.com"));
@@ -173,8 +177,7 @@ class NotificationServiceImplTest {
 
     @Test
     void testNotifySubscribers_noSubmittedIncluded() throws Exception {
-        String testFromAddress = "test@abc.de";
-        String testAdminMailsRecipients = "Test@abc.de";
+
         NotificationParams testNotificationParams = generateNotificationParams(TEST_USER, TEST_TOPIC);
 
         ApplicationOwnerRequest requestSucess1 = new ApplicationOwnerRequest();
@@ -214,8 +217,7 @@ class NotificationServiceImplTest {
         ConcurrentTaskExecutor exec = new ConcurrentTaskExecutor(executor);
 
         NotificationServiceImpl notificationServiceImpl = new NotificationServiceImpl(subscriptionService,
-                applicationService, topicService, mailSender, exec, templateEngine, testFromAddress,
-                testAdminMailsRecipients);
+                applicationService, topicService, mailSender, exec, templateEngine, galapagosMailConfig);
 
         notificationServiceImpl.notifySubscribers(TEST_ENV, TEST_TOPIC, testNotificationParams, TEST_USER).get();
 
@@ -248,7 +250,7 @@ class NotificationServiceImplTest {
     }
 
     private List<ApplicationOwnerRequest> generateApplicationOwnerRequests(String notificationEmailAddress,
-            String applicationId) {
+                                                                           String applicationId) {
         List<ApplicationOwnerRequest> requests = new ArrayList<>();
 
         ApplicationOwnerRequest applicationOwnerRequest = generateApplicationOwnerRequest(TEST_USER,
@@ -266,7 +268,7 @@ class NotificationServiceImplTest {
     }
 
     private ApplicationOwnerRequest generateApplicationOwnerRequest(String userName, String notificationEmailAddress,
-            String applicationId) {
+                                                                    String applicationId) {
         ZonedDateTime past = ZonedDateTime.of(LocalDateTime.of(2020, 6, 19, 10, 0), ZoneOffset.UTC);
         ZonedDateTime now = ZonedDateTime.of(LocalDateTime.of(2020, 6, 20, 10, 0), ZoneOffset.UTC);
         ApplicationOwnerRequest applicationOwnerRequest = new ApplicationOwnerRequest();
