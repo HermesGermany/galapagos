@@ -60,7 +60,6 @@ class NotificationServiceImplTest {
 
     private GalapagosMailConfig galapagosMailConfig;
 
-
     @BeforeEach
     void feedMocks() throws MessagingException {
         subscriptionService = mock(SubscriptionService.class);
@@ -112,8 +111,8 @@ class NotificationServiceImplTest {
         when(subscriptionService.getSubscriptionsForTopic(TEST_ENV, TEST_TOPIC, false))
                 .thenReturn(subscriptionMetadatas);
 
-        List<ApplicationOwnerRequest> applicationOwnerRequests = generateApplicationOwnerRequests(galapagosMailConfig.getSender().toString(),
-                testApplicationId);
+        List<ApplicationOwnerRequest> applicationOwnerRequests = generateApplicationOwnerRequests(
+                galapagosMailConfig.getSender().toString(), testApplicationId);
         when(applicationService.getAllApplicationOwnerRequests()).thenReturn(applicationOwnerRequests);
 
         String htmlCode = "<html><head><title>Testmail</title></head><body><p>Test</p></body></html>";
@@ -250,7 +249,7 @@ class NotificationServiceImplTest {
     }
 
     private List<ApplicationOwnerRequest> generateApplicationOwnerRequests(String notificationEmailAddress,
-                                                                           String applicationId) {
+            String applicationId) {
         List<ApplicationOwnerRequest> requests = new ArrayList<>();
 
         ApplicationOwnerRequest applicationOwnerRequest = generateApplicationOwnerRequest(TEST_USER,
@@ -268,7 +267,7 @@ class NotificationServiceImplTest {
     }
 
     private ApplicationOwnerRequest generateApplicationOwnerRequest(String userName, String notificationEmailAddress,
-                                                                    String applicationId) {
+            String applicationId) {
         ZonedDateTime past = ZonedDateTime.of(LocalDateTime.of(2020, 6, 19, 10, 0), ZoneOffset.UTC);
         ZonedDateTime now = ZonedDateTime.of(LocalDateTime.of(2020, 6, 20, 10, 0), ZoneOffset.UTC);
         ApplicationOwnerRequest applicationOwnerRequest = new ApplicationOwnerRequest();

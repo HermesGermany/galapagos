@@ -27,7 +27,8 @@ public class MessagesService {
         String message;
         try {
             message = rb.getString(key);
-        } catch (MissingResourceException e) {
+        }
+        catch (MissingResourceException e) {
             log.warn("No matching message for the provided key {}", key);
             return key;
         }
@@ -35,15 +36,16 @@ public class MessagesService {
         return MessageFormat.format(message, args);
     }
 
-
     public static Locale getLocale() {
 
         try {
             if (RequestContextHolder.currentRequestAttributes() instanceof ServletRequestAttributes) {
-                HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
+                HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder
+                        .currentRequestAttributes()).getRequest();
                 return RequestContextUtils.getLocale(request);
             }
-        } catch (IllegalStateException e) {
+        }
+        catch (IllegalStateException e) {
             // OK, no request
             log.trace("No current request found for MessageService, using default locale");
         }

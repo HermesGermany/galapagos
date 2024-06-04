@@ -278,7 +278,8 @@ class TopicServiceImplTest {
         try {
             service.createTopic("test", topic1, null, Map.of()).get();
             fail("Expected exception when creating topic for which name validation fails");
-        } catch (ExecutionException e) {
+        }
+        catch (ExecutionException e) {
             assertInstanceOf(InvalidTopicNameException.class, e.getCause());
         }
 
@@ -321,7 +322,8 @@ class TopicServiceImplTest {
         try {
             service.addTopicProducer("test", "topic-1", "producer1").get();
             fail("Expected exception when adding a producer to commands topic");
-        } catch (ExecutionException e) {
+        }
+        catch (ExecutionException e) {
             assertInstanceOf(IllegalStateException.class, e.getCause());
         }
 
@@ -365,7 +367,8 @@ class TopicServiceImplTest {
         try {
             service.removeTopicProducer("test", "topic-1", "producer3").get();
             fail("Expected exception when deleting producer from commands topic");
-        } catch (ExecutionException e) {
+        }
+        catch (ExecutionException e) {
             assertInstanceOf(IllegalStateException.class, e.getCause());
             TopicMetadata savedTopic = topicRepository.getObject("topic-1").get();
             assertEquals(4, savedTopic.getProducers().size());
@@ -414,7 +417,8 @@ class TopicServiceImplTest {
         try {
             service.changeTopicOwner("test", "topic-1", "producer1").get();
             fail("exception expected when trying no change owner of internal topic");
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             assertInstanceOf(IllegalStateException.class, e.getCause());
         }
 
@@ -487,7 +491,8 @@ class TopicServiceImplTest {
         try {
             service.deleteLatestTopicSchemaVersion("test", "topic-1").get();
             fail("Exception expected, but none thrown");
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             assertInstanceOf(IllegalStateException.class, e.getCause());
         }
 
@@ -529,7 +534,8 @@ class TopicServiceImplTest {
         try {
             validatingService.deleteLatestTopicSchemaVersion("test", "topic-1").get();
             fail("Exception expected, but none thrown");
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             assertInstanceOf(IllegalStateException.class, e.getCause());
         }
 
@@ -562,7 +568,8 @@ class TopicServiceImplTest {
         try {
             service.addTopicSchemaVersion("test", "topic-1", newSchema, null, SchemaCompatCheckMode.CHECK_SCHEMA).get();
             fail("addTopicSchemaVersion() should have failed because same schema should not be added again");
-        } catch (ExecutionException e) {
+        }
+        catch (ExecutionException e) {
             assertInstanceOf(IllegalArgumentException.class, e.getCause());
         }
     }
@@ -593,7 +600,8 @@ class TopicServiceImplTest {
         try {
             service.addTopicSchemaVersion("test", "topic-1", newSchema, null, SchemaCompatCheckMode.CHECK_SCHEMA).get();
             fail("addTopicSchemaVersion() should have failed for incompatible schema");
-        } catch (ExecutionException e) {
+        }
+        catch (ExecutionException e) {
             assertInstanceOf(IncompatibleSchemaException.class, e.getCause());
         }
     }
@@ -680,7 +688,8 @@ class TopicServiceImplTest {
         try {
             service.addTopicSchemaVersion("test", schema1, SchemaCompatCheckMode.CHECK_SCHEMA).get();
             fail("addTopicSchemaVersion() should have failed because version #2 and no version existing for topic");
-        } catch (ExecutionException e) {
+        }
+        catch (ExecutionException e) {
             assertInstanceOf(IllegalArgumentException.class, e.getCause());
         }
     }
@@ -716,7 +725,8 @@ class TopicServiceImplTest {
         try {
             service.addTopicSchemaVersion("test", schema2, SchemaCompatCheckMode.CHECK_SCHEMA).get();
             fail("addTopicSchemaVersion() should have failed because version #3 and only version #1 existing for topic");
-        } catch (ExecutionException e) {
+        }
+        catch (ExecutionException e) {
             assertInstanceOf(IllegalArgumentException.class, e.getCause());
         }
     }
@@ -737,7 +747,8 @@ class TopicServiceImplTest {
             service.addTopicSchemaVersion("test", "topic-1", "{ \"title\": 17 }", null,
                     SchemaCompatCheckMode.CHECK_SCHEMA).get();
             fail("addTopicSchemaVersion() should have failed because JSON is no JSON schema");
-        } catch (ExecutionException e) {
+        }
+        catch (ExecutionException e) {
             assertInstanceOf(IllegalArgumentException.class, e.getCause());
         }
     }
@@ -757,7 +768,8 @@ class TopicServiceImplTest {
         try {
             service.addTopicSchemaVersion("test", "topic-1", "{", null, SchemaCompatCheckMode.CHECK_SCHEMA).get();
             fail("addTopicSchemaVersion() should have failed because no valid JSON");
-        } catch (ExecutionException e) {
+        }
+        catch (ExecutionException e) {
             assertInstanceOf(IllegalArgumentException.class, e.getCause());
         }
     }
@@ -782,7 +794,8 @@ class TopicServiceImplTest {
             service.addTopicSchemaVersion("test", "topic-1", testJsonSchema, null, SchemaCompatCheckMode.CHECK_SCHEMA)
                     .get();
             fail("addTopicSchemaVersion() should have failed because there is a Data-Object in JSON Schema");
-        } catch (ExecutionException e) {
+        }
+        catch (ExecutionException e) {
             assertInstanceOf(IllegalArgumentException.class, e.getCause());
         }
     }
@@ -827,7 +840,8 @@ class TopicServiceImplTest {
             service.addTopicSchemaVersion("test", "topic-1", testJsonSchema, null, SchemaCompatCheckMode.CHECK_SCHEMA)
                     .get();
             fail("addTopicSchemaVersion() should have failed because there is no schema prop in JSON Schema");
-        } catch (ExecutionException e) {
+        }
+        catch (ExecutionException e) {
             assertInstanceOf(IllegalArgumentException.class, e.getCause());
         }
     }
@@ -878,7 +892,8 @@ class TopicServiceImplTest {
         try {
             service.setSubscriptionApprovalRequiredFlag("test", "topic-1", true).get();
             fail("Expected exception when trying to set subscriptionApprovalRequired flag on internal topic");
-        } catch (ExecutionException e) {
+        }
+        catch (ExecutionException e) {
             assertInstanceOf(IllegalStateException.class, e.getCause());
         }
 
@@ -1005,7 +1020,8 @@ class TopicServiceImplTest {
         try {
             service.markTopicDeprecated("topic-2", "Because test", LocalDate.of(2020, 10, 1)).get();
             fail("Exception expected when marking not existing topic as deprecated, but succeeded");
-        } catch (ExecutionException e) {
+        }
+        catch (ExecutionException e) {
             assertInstanceOf(NoSuchElementException.class, e.getCause());
         }
     }
@@ -1140,7 +1156,8 @@ class TopicServiceImplTest {
         try {
             service.addTopicSchemaVersion("test", newSchema, SchemaCompatCheckMode.CHECK_SCHEMA).get();
             fail("Exception expected when adding change description for first published schema");
-        } catch (ExecutionException e) {
+        }
+        catch (ExecutionException e) {
             assertInstanceOf(IllegalArgumentException.class, e.getCause());
         }
     }
@@ -1217,7 +1234,8 @@ class TopicServiceImplTest {
         try {
             validatingService.deleteLatestTopicSchemaVersion("test", "topic-1").get();
             fail("Exception expected when trying to delete schema with subscribers when schemaDeleteWithSub is set to false");
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             assertInstanceOf(IllegalStateException.class, e.getCause());
         }
     }
@@ -1270,7 +1288,8 @@ class TopicServiceImplTest {
         try {
             validatingService.deleteLatestTopicSchemaVersion("prod", "topic-1").get();
             fail("Exception expected, but none thrown");
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             assertInstanceOf(IllegalStateException.class, e.getCause());
         }
     }

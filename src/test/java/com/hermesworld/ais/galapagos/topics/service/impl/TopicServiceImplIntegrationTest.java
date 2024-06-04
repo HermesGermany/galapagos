@@ -48,7 +48,7 @@ import static org.mockito.Mockito.when;
  * chained <code>markTopicDeprecated</code> and <code>unmarkTopicDeprecated</code> operations.
  */
 @SpringBootTest
-@Import({GalapagosTestConfig.class, TopicServiceImplIntegrationTest.TestEventListener.class})
+@Import({ GalapagosTestConfig.class, TopicServiceImplIntegrationTest.TestEventListener.class })
 class TopicServiceImplIntegrationTest {
 
     @Autowired
@@ -266,7 +266,8 @@ class TopicServiceImplIntegrationTest {
             return super.save(value).thenCompose(o -> CompletableFuture.runAsync(() -> {
                 try {
                     Thread.sleep(200);
-                } catch (InterruptedException e) {
+                }
+                catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 }
             }, executorService));

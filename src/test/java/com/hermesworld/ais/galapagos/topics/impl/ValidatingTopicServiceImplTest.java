@@ -160,7 +160,8 @@ class ValidatingTopicServiceImplTest {
         try {
             service.addTopicProducer("_env1", "testtopic", "producer1").get();
             fail("Expected exception trying to add Producer to Topic on staging-only Stage");
-        } catch (ExecutionException | InterruptedException e) {
+        }
+        catch (ExecutionException | InterruptedException e) {
             assertInstanceOf(IllegalStateException.class, e.getCause());
         }
     }
@@ -191,7 +192,8 @@ class ValidatingTopicServiceImplTest {
         try {
             service.removeTopicProducer("_env1", "testtopic", "producer1").get();
             fail("Expected exception trying to remove Producer from Topic on staging-only Stage");
-        } catch (ExecutionException | InterruptedException e) {
+        }
+        catch (ExecutionException | InterruptedException e) {
             assertInstanceOf(IllegalStateException.class, e.getCause());
 
         }
