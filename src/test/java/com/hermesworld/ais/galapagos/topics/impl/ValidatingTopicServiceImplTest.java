@@ -9,7 +9,6 @@ import com.hermesworld.ais.galapagos.topics.TopicMetadata;
 import com.hermesworld.ais.galapagos.topics.TopicType;
 import com.hermesworld.ais.galapagos.topics.config.GalapagosTopicConfig;
 import com.hermesworld.ais.galapagos.topics.service.TopicService;
-import com.hermesworld.ais.galapagos.topics.service.impl.MessagesServiceFactory;
 import com.hermesworld.ais.galapagos.topics.service.impl.ValidatingTopicServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -28,7 +27,6 @@ import static org.mockito.Mockito.when;
 class ValidatingTopicServiceImplTest {
 
     private GalapagosTopicConfig topicConfig;
-    private final MessagesServiceFactory MessagesServiceFactory = new MessagesServiceFactory();
 
     @BeforeEach
     void init() {
@@ -57,7 +55,7 @@ class ValidatingTopicServiceImplTest {
                 .thenReturn(List.of(subscription));
 
         ValidatingTopicServiceImpl service = new ValidatingTopicServiceImpl(topicService, subscriptionService,
-                mock(ApplicationsService.class), clusters, topicConfig, false, MessagesServiceFactory);
+                mock(ApplicationsService.class), clusters, topicConfig, false);
 
         assertFalse(service.canDeleteTopic("_env1", "testtopic"));
     }
@@ -79,7 +77,7 @@ class ValidatingTopicServiceImplTest {
         when(clusters.getEnvironmentIds()).thenReturn(List.of("_env1", "_env2"));
 
         ValidatingTopicServiceImpl service = new ValidatingTopicServiceImpl(topicService, subscriptionService,
-                mock(ApplicationsService.class), clusters, topicConfig, false, MessagesServiceFactory);
+                mock(ApplicationsService.class), clusters, topicConfig, false);
 
         assertFalse(service.canDeleteTopic("_env1", "testtopic"));
         assertTrue(service.canDeleteTopic("_env2", "testtopic"));
@@ -104,7 +102,7 @@ class ValidatingTopicServiceImplTest {
         when(clusters.getEnvironmentMetadata("_env1")).thenReturn(Optional.of(envMeta));
 
         ValidatingTopicServiceImpl service = new ValidatingTopicServiceImpl(topicService, subscriptionService,
-                mock(ApplicationsService.class), clusters, topicConfig, false, MessagesServiceFactory);
+                mock(ApplicationsService.class), clusters, topicConfig, false);
 
         assertTrue(service.canDeleteTopic("_env1", "testtopic"));
 
@@ -129,7 +127,7 @@ class ValidatingTopicServiceImplTest {
         when(clusters.getEnvironmentMetadata("_env1")).thenReturn(Optional.of(envMeta));
 
         ValidatingTopicServiceImpl service = new ValidatingTopicServiceImpl(topicService, subscriptionService,
-                mock(ApplicationsService.class), clusters, topicConfig, false, MessagesServiceFactory);
+                mock(ApplicationsService.class), clusters, topicConfig, false);
 
         assertFalse(service.canDeleteTopic("_env1", "testtopic"));
 
@@ -155,14 +153,14 @@ class ValidatingTopicServiceImplTest {
         when(clusters.getEnvironmentMetadata("_env1")).thenReturn(Optional.of(envMeta));
 
         ValidatingTopicServiceImpl service = new ValidatingTopicServiceImpl(topicService, subscriptionService,
-                mock(ApplicationsService.class), clusters, topicConfig, false, MessagesServiceFactory);
+                mock(ApplicationsService.class), clusters, topicConfig, false);
 
         try {
             service.addTopicProducer("_env1", "testtopic", "producer1").get();
             fail("Expected exception trying to add Producer to Topic on staging-only Stage");
         }
         catch (ExecutionException | InterruptedException e) {
-            assertInstanceOf(IllegalStateException.class, e.getCause());
+            assertTrue(e.getCause() instanceof IllegalStateException);
         }
     }
 
@@ -187,14 +185,14 @@ class ValidatingTopicServiceImplTest {
         when(clusters.getEnvironmentMetadata("_env1")).thenReturn(Optional.of(envMeta));
 
         ValidatingTopicServiceImpl service = new ValidatingTopicServiceImpl(topicService, subscriptionService,
-                mock(ApplicationsService.class), clusters, topicConfig, false, MessagesServiceFactory);
+                mock(ApplicationsService.class), clusters, topicConfig, false);
 
         try {
             service.removeTopicProducer("_env1", "testtopic", "producer1").get();
             fail("Expected exception trying to remove Producer from Topic on staging-only Stage");
         }
         catch (ExecutionException | InterruptedException e) {
-            assertInstanceOf(IllegalStateException.class, e.getCause());
+            assertTrue(e.getCause() instanceof IllegalStateException);
 
         }
 
@@ -225,7 +223,7 @@ class ValidatingTopicServiceImplTest {
         when(topicService.getTopic("_env1", "testtopic")).thenReturn(Optional.of(meta1));
 
         ValidatingTopicServiceImpl service = new ValidatingTopicServiceImpl(topicService, subscriptionService,
-                mock(ApplicationsService.class), clusters, topicConfig, false, MessagesServiceFactory);
+                mock(ApplicationsService.class), clusters, topicConfig, false);
 
         assertTrue(service.canDeleteTopic("_env1", "testtopic"));
     }
@@ -255,7 +253,7 @@ class ValidatingTopicServiceImplTest {
         when(topicService.getTopic("_env1", "testtopic")).thenReturn(Optional.of(meta1));
 
         ValidatingTopicServiceImpl service = new ValidatingTopicServiceImpl(topicService, subscriptionService,
-                mock(ApplicationsService.class), clusters, topicConfig, false, MessagesServiceFactory);
+                mock(ApplicationsService.class), clusters, topicConfig, false);
 
         assertFalse(service.canDeleteTopic("_env1", "testtopic"));
     }

@@ -51,8 +51,6 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
 
     private final GalapagosEventManager eventManager;
 
-    private final MessagesService messagesService;
-
     private static final Comparator<TopicMetadata> topicsComparator = Comparator.comparing(TopicMetadata::getName);
 
     private static final Comparator<SchemaMetadata> schemaVersionsComparator = Comparator
@@ -64,14 +62,13 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
 
     public TopicServiceImpl(KafkaClusters kafkaClusters, ApplicationsService applicationsService,
             NamingService namingService, CurrentUserService userService, GalapagosTopicConfig topicSettings,
-            GalapagosEventManager eventManager, MessagesServiceFactory MessagesServiceFactory) {
+            GalapagosEventManager eventManager) {
         this.kafkaClusters = kafkaClusters;
         this.applicationsService = applicationsService;
         this.namingService = namingService;
         this.userService = userService;
         this.topicSettings = topicSettings;
         this.eventManager = eventManager;
-        this.messagesService = MessagesServiceFactory.getMessageService(TopicServiceImpl.class);
     }
 
     @Override
@@ -86,8 +83,8 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
         KnownApplication ownerApplication = applicationsService.getKnownApplication(topic.getOwnerApplicationId())
                 .orElse(null);
         if (ownerApplication == null) {
-            return CompletableFuture.failedFuture(new IllegalArgumentException(
-                    messagesService.getMessage("UNKNOWN_APPLICATION_ID", topic.getOwnerApplicationId())));
+            return CompletableFuture.failedFuture(
+                    new IllegalArgumentException("Unknown application ID: " + topic.getOwnerApplicationId()));
         }
 
         KafkaCluster environment = kafkaClusters.getEnvironment(environmentId).orElse(null);
@@ -98,13 +95,13 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
         ApplicationMetadata metadata = applicationsService
                 .getApplicationMetadata(environmentId, topic.getOwnerApplicationId()).orElse(null);
         if (metadata == null) {
-            return CompletableFuture.failedFuture(new IllegalArgumentException(messagesService.getMessage(
-                    "APPLICATION_NOT_REGISTERED_ON_ENVIRONMENT", topic.getOwnerApplicationId(), environmentId)));
+            return CompletableFuture.failedFuture(new IllegalArgumentException("Application "
+                    + topic.getOwnerApplicationId() + " is not registered on environment " + environmentId));
         }
 
         if (!applicationsService.isUserAuthorizedFor(metadata.getApplicationId())) {
-            return CompletableFuture.failedFuture(new IllegalStateException(messagesService
-                    .getMessage("CURRENT_USER_IS_NO_OWNER_OF_APPLICATION", metadata.getApplicationId())));
+            return CompletableFuture.failedFuture(new IllegalStateException(
+                    "Current user is no owner of application " + metadata.getApplicationId()));
         }
 
         try {
@@ -146,8 +143,8 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
     public CompletableFuture<Void> addTopicProducer(String environmentId, String topicName, String producerId) {
         return doWithClusterAndTopic(environmentId, topicName, (kafkaCluster, metadata, eventSink) -> {
             if (metadata.getType() == TopicType.COMMANDS) {
-                return CompletableFuture.failedFuture(new IllegalStateException(
-                        messagesService.getMessage("FOR_COMMAND_SUBSCRIBE_TOPIC_ADD_PRODUCER")));
+                return CompletableFuture.failedFuture(
+                        new IllegalStateException("For Command Topics, subscribe to the Topic to add a new Producer"));
             }
             List<String> producerList = new ArrayList<>(metadata.getProducers());
             producerList.add(producerId);
@@ -163,8 +160,8 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
     public CompletableFuture<Void> removeTopicProducer(String envId, String topicName, String producerId) {
         return doWithClusterAndTopic(envId, topicName, (kafkaCluster, metadata, eventSink) -> {
             if (metadata.getType() == TopicType.COMMANDS) {
-                return CompletableFuture.failedFuture(new IllegalStateException(
-                        messagesService.getMessage("FOR_COMMAND_SUBSCRIBE_TOPIC_REMOVE_PRODUCER")));
+                return CompletableFuture.failedFuture(
+                        new IllegalStateException("For Command Topics, subscribe to the Topic to remove a Producer"));
             }
             List<String> producerList = new ArrayList<>(metadata.getProducers());
             producerList.remove(producerId);
@@ -181,8 +178,8 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
             String newApplicationOwnerId) {
         return doOnAllStages(topicName, (kafkaCluster, metadata, eventSink) -> {
             if (metadata.getType() == TopicType.INTERNAL) {
-                return CompletableFuture.failedFuture(
-                        new IllegalStateException(messagesService.getMessage("CANNOT_CHANGE_OWNER_INTERNAL_TOPICS")));
+                return CompletableFuture
+                        .failedFuture(new IllegalStateException("Cannot change owner for internal topics"));
             }
             String previousOwnerApplicationId = metadata.getOwnerApplicationId();
             List<String> producerList = new ArrayList<>(metadata.getProducers());
@@ -258,8 +255,8 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
             }
 
             if (metadata.getType() == TopicType.INTERNAL) {
-                return CompletableFuture.failedFuture(new IllegalStateException(messagesService
-                        .getMessage("CANNOT_UPDATE_SUBSCRIPTION_APPROVAL_REQUIRED_INTERNAL_FLAG_TOPIC")));
+                return CompletableFuture.failedFuture(new IllegalStateException(
+                        "Cannot update subscriptionApprovalRequired flag for application internal topics"));
             }
 
             TopicMetadata newMeta = new TopicMetadata(metadata);
@@ -314,8 +311,7 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
             String jsonSchema, String changeDescription, SchemaCompatCheckMode skipCompatCheck) {
         String userName = userService.getCurrentUserName().orElse(null);
         if (userName == null) {
-            return CompletableFuture
-                    .failedFuture(new IllegalStateException(messagesService.getMessage("NO_USER_CURRENTLY_LOGGED_IN")));
+            return CompletableFuture.failedFuture(new IllegalStateException("No user currently logged in"));
         }
 
         int nextVersionNo = 1;
@@ -346,8 +342,8 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
         List<SchemaMetadata> existingVersions = getTopicSchemaVersions(environmentId, topicName);
         String nextEnvId = nextStageId(environmentId).orElse(null);
         if (existingVersions.isEmpty()) {
-            return CompletableFuture.failedFuture(
-                    new IllegalStateException(messagesService.getMessage("NO_SCHEMA_CURRENT_STAGE_TOPIC", topicName)));
+            return CompletableFuture
+                    .failedFuture(new IllegalStateException("No Schemas on current stage for topic " + topicName));
         }
         SchemaMetadata latestSchemaOnCurrentStage = existingVersions.get(existingVersions.size() - 1);
 
@@ -361,8 +357,10 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
         }
 
         if (schemaOnNextStage != null) {
-            return CompletableFuture
-                    .failedFuture(new IllegalStateException(messagesService.getMessage("SCHEMA_ALREADY_STAGED")));
+            return CompletableFuture.failedFuture(new IllegalStateException("""
+                    The selected schema already exists on the next stage! To delete \
+                    this schema you have to delete it there first!\
+                    """));
         }
 
         GalapagosEventSink eventSink = eventManager.newEventSink(kafkaCluster);
@@ -379,8 +377,7 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
             SchemaCompatCheckMode skipCompatCheck) {
         String userName = userService.getCurrentUserName().orElse(null);
         if (userName == null) {
-            return CompletableFuture
-                    .failedFuture(new IllegalStateException(messagesService.getMessage("NO_USER_CURRENTLY_LOGGED_IN")));
+            return CompletableFuture.failedFuture(new IllegalStateException("No user currently logged in"));
         }
 
         KafkaCluster kafkaCluster = kafkaClusters.getEnvironment(environmentId).orElse(null);
@@ -396,8 +393,8 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
         }
 
         if (metadata.getType() == TopicType.INTERNAL) {
-            return CompletableFuture.failedFuture(
-                    new IllegalStateException(messagesService.getMessage("CANNOT_ADD_JSON_SCHEMAS_INTERNAL_TOPICS")));
+            return CompletableFuture
+                    .failedFuture(new IllegalStateException("Cannot add JSON schemas to internal topics"));
         }
 
         List<SchemaMetadata> existingVersions = getTopicSchemaVersions(environmentId, topicName);
@@ -408,30 +405,32 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
 
         }
         catch (JSONException | SchemaException e) {
-            return CompletableFuture.failedFuture(
-                    new IllegalArgumentException(messagesService.getMessage("CANNOT_PARSE_JSON_SCHEMA"), e));
+            return CompletableFuture.failedFuture(new IllegalArgumentException("Could not parse JSON schema", e));
         }
 
         JSONObject json = new JSONObject(schemaMetadata.getJsonSchema());
         if (!json.has("$schema")) {
             return CompletableFuture.failedFuture(
-                    new IllegalArgumentException(messagesService.getMessage("JSON_SCHEMA_MUST_DECLARE_SCHEMA_VALUE")));
+                    new IllegalArgumentException("The JSON Schema must declare a \"$schema\" value on first level."));
         }
 
         if (newSchema.definesProperty("data")
                 && (metadata.getType() == TopicType.EVENTS || metadata.getType() == TopicType.COMMANDS)) {
             return CompletableFuture.failedFuture(new IllegalArgumentException(
-                    messagesService.getMessage("JSON_SCHEMA_MUST_NOT_DECLARE_DATA_OBJECT")));
+                    """
+                            The JSON Schema must not declare a "data" object on first level.\
+                             The JSON Schema must not contain the CloudEvents fields, but only the contents of the "data" field.\
+                            """));
         }
 
         if (existingVersions.isEmpty() && schemaMetadata.getSchemaVersion() != 1) {
-            return CompletableFuture.failedFuture(new IllegalArgumentException(messagesService
-                    .getMessage("ILLEGAL_NEXT_VERSION_NUMBER_TOPIC", schemaMetadata.getSchemaVersion(), topicName)));
+            return CompletableFuture.failedFuture(new IllegalArgumentException("Illegal next schema version number #"
+                    + schemaMetadata.getSchemaVersion() + " for topic " + topicName));
         }
         if (!existingVersions.isEmpty() && existingVersions.get(existingVersions.size() - 1)
                 .getSchemaVersion() != schemaMetadata.getSchemaVersion() - 1) {
-            return CompletableFuture.failedFuture(new IllegalArgumentException(messagesService
-                    .getMessage("ILLEGAL_NEXT_VERSION_NUMBER_TOPIC", schemaMetadata.getSchemaVersion(), topicName)));
+            return CompletableFuture.failedFuture(new IllegalArgumentException("Illegal next schema version number #"
+                    + schemaMetadata.getSchemaVersion() + " for topic " + topicName));
         }
 
         SchemaMetadata previousVersion = existingVersions.isEmpty() ? null
@@ -444,7 +443,7 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
                 // additional test: if both are equal, do not accept (save a tree!)
                 if (SchemaUtil.areEqual(newSchema, previousSchema)) {
                     return CompletableFuture.failedFuture(new IllegalArgumentException(
-                            messagesService.getMessage("NEW_SCHEMA_IS_IDENTICAL_TO_THE_LATEST")));
+                            "The new schema is identical to the latest schema of this topic."));
                 }
 
                 SchemaCompatibilityValidator validator;
@@ -463,8 +462,8 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
             }
             catch (JSONException e) {
                 // how, on earth, did it get into the repo then???
-                log.error(messagesService.getMessage("INVALID_SCHEMA_IN_REPOSITORY_FOUND_FOR_TOPIC", topicName,
-                        environmentId, previousVersion.getSchemaVersion()));
+                log.error("Invalid JSON schema in repository found for topic " + topicName + " on environment "
+                        + environmentId + " with schema version " + previousVersion.getSchemaVersion());
 
                 // danger zone here: allow full replacement of invalid schema (fallthrough)
             }
@@ -475,12 +474,12 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
 
         if (existingVersions.isEmpty() && schemaMetadata.getChangeDescription() != null) {
             return CompletableFuture.failedFuture(
-                    new IllegalArgumentException(messagesService.getMessage("CANNOT_CHANGE_DESCRIPTION_FOR_SCHEMA")));
+                    new IllegalArgumentException("Cant have a change description for schema with version number #1."));
         }
 
         if (!existingVersions.isEmpty() && schemaMetadata.getChangeDescription() == null) {
             return CompletableFuture.failedFuture(new IllegalArgumentException(
-                    messagesService.getMessage("CHANGE_DESCRIPTION_REQUIRED_FOR_VERSION_GREATER_THAN_1")));
+                    "Change Description has to be set for schemas with version greater 1."));
         }
 
         // copy to be safe here
@@ -508,8 +507,8 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
             return noSuchTopic(environmentId, topicName);
         }
         if (metadata.getType() == TopicType.INTERNAL) {
-            return CompletableFuture.failedFuture(new IllegalStateException(
-                    messagesService.getMessage("CANNOT_RETRIEVE_DATA_INTERNAL_TOPICS_VIA_GALAPAGOS")));
+            return CompletableFuture.failedFuture(
+                    new IllegalStateException("Data of internal topics cannot be retrieved via Galapagos."));
         }
 
         return kafkaClusters.getEnvironment(environmentId).map(cluster -> cluster.peekTopicData(topicName, limit))
@@ -564,7 +563,7 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
 
         if (environmentIds.isEmpty()) {
             return CompletableFuture
-                    .failedFuture(new NoSuchElementException(messagesService.getMessage("TOPIC_NOT_FOUND", topicName)));
+                    .failedFuture(new NoSuchElementException("Topic " + topicName + " not found on any environment"));
         }
 
         CompletableFuture<Void> result = CompletableFuture.completedFuture(null);
@@ -601,9 +600,9 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
         return SchemaLoader.builder().draftV7Support().schemaJson(obj).build().load().build();
     }
 
-    private <T> CompletableFuture<T> noSuchTopic(String environmentId, String topicName) {
+    private static <T> CompletableFuture<T> noSuchTopic(String environmentId, String topicName) {
         return CompletableFuture.failedFuture(new NoSuchElementException(
-                messagesService.getMessage("NO_TOPIC_WITH_NAME_WAS_FOUND", topicName, environmentId)));
+                "No topic with name " + topicName + " found on environment " + environmentId + "."));
     }
 
     private interface TopicServiceAction {
