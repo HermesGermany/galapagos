@@ -44,20 +44,16 @@ public class ValidatingTopicServiceImpl implements ValidatingTopicService {
 
     private final boolean schemaDeleteWithSub;
 
-    private final MessagesService messagesService;
-
     public ValidatingTopicServiceImpl(@Qualifier(value = "nonvalidating") TopicService topicService,
             SubscriptionService subscriptionService, ApplicationsService applicationsService,
             KafkaClusters kafkaClusters, GalapagosTopicConfig topicConfig,
-            @Value("${info.toggles.schemaDeleteWithSub:false}") boolean schemaDeleteWithSub,
-            MessagesServiceFactory MessagesServiceFactory) {
+            @Value("${info.toggles.schemaDeleteWithSub:false}") boolean schemaDeleteWithSub) {
         this.topicService = topicService;
         this.subscriptionService = subscriptionService;
         this.applicationsService = applicationsService;
         this.kafkaClusters = kafkaClusters;
         this.topicConfig = topicConfig;
         this.schemaDeleteWithSub = schemaDeleteWithSub;
-        this.messagesService = MessagesServiceFactory.getMessageService(ValidatingTopicServiceImpl.class);
     }
 
     @Override
@@ -66,8 +62,8 @@ public class ValidatingTopicServiceImpl implements ValidatingTopicService {
 
         if ((topic.getMessagesPerDay() == null || topic.getMessagesSize() == null)
                 && topic.getType() != TopicType.INTERNAL) {
-            return CompletableFuture.failedFuture(
-                    new IllegalStateException(messagesService.getMessage("SELECT_THE_NUMBER_OF_MESSAGES")));
+            return CompletableFuture.failedFuture(new IllegalStateException(
+                    "Please select the number of messages per day and how big your messages are!"));
         }
 
         return checkOnNonStaging(environmentId, "create topics", TopicMetadata.class)
@@ -108,13 +104,13 @@ public class ValidatingTopicServiceImpl implements ValidatingTopicService {
 
         if (topic == null) {
             return CompletableFuture.failedFuture(new NoSuchElementException(
-                    messagesService.getMessage("NO_TOPIC_WITH_NAME_WAS_FOUND", topicName, environmentId)));
+                    "No topic with name " + topicName + " found on environment " + environmentId + "."));
         }
 
         if (!subscriptionService.getSubscriptionsForTopic(environmentId, topicName, false).isEmpty()) {
             if (!this.schemaDeleteWithSub) {
-                return CompletableFuture.failedFuture(
-                        new IllegalStateException(messagesService.getMessage("SUBSCRIBED_SCHEMAS_CANNOT_BE_DELETED")));
+                return CompletableFuture
+                        .failedFuture(new IllegalStateException("Schemas of subscribed Topics cannot be deleted!"));
             }
             return checkOnNonStaging(environmentId, "Delete latest schema")
                     .orElseGet(() -> topicService.deleteLatestTopicSchemaVersion(environmentId, topicName));
@@ -127,8 +123,8 @@ public class ValidatingTopicServiceImpl implements ValidatingTopicService {
     @Override
     public CompletableFuture<Void> deleteTopic(String environmentId, String topicName) {
         if (!canDeleteTopic(environmentId, topicName)) {
-            return CompletableFuture
-                    .failedFuture(new TopicInUseException(messagesService.getMessage("TOPIC_IS_CURRENTLY_IN_USE")));
+            return CompletableFuture.failedFuture(new TopicInUseException(
+                    "The topic is currently in use by at least one application (other than owner application) and / or has been staged and thus cannot be deleted."));
         }
 
         return topicService.deleteTopic(environmentId, topicName);
@@ -144,8 +140,9 @@ public class ValidatingTopicServiceImpl implements ValidatingTopicService {
     @Override
     public CompletableFuture<Void> markTopicDeprecated(String topicName, String deprecationText, LocalDate eolDate) {
         if (eolDate.isBefore(LocalDate.now().plus(topicConfig.getMinDeprecationTime()))) {
-            return CompletableFuture.failedFuture(new IllegalArgumentException(messagesService.getMessage(
-                    "EOL_DATE_FOR_DEPRECATED_TOPIC", toDisplayString(topicConfig.getMinDeprecationTime()))));
+            return CompletableFuture
+                    .failedFuture(new IllegalArgumentException("EOL date for deprecated topic must be at least "
+                            + toDisplayString(topicConfig.getMinDeprecationTime()) + " in the future"));
         }
 
         return topicService.markTopicDeprecated(topicName, deprecationText, eolDate);
@@ -184,8 +181,8 @@ public class ValidatingTopicServiceImpl implements ValidatingTopicService {
             Class<T> resultClass) {
         if (kafkaClusters.getEnvironmentMetadata(environmentId).map(KafkaEnvironmentConfig::isStagingOnly)
                 .orElse(false)) {
-            return Optional.of(CompletableFuture.failedFuture(new IllegalStateException(
-                    messagesService.getMessage("ONLY_PERFORM_THIS_ACTION_ON_NON_STAGING_ENVIRONMENT", action))));
+            return Optional.of(CompletableFuture.failedFuture(new IllegalStateException("You may only " + action
+                    + " on non-staging-only environments. Use Staging to apply such a change on this environment.")));
         }
         return Optional.empty();
     }
@@ -235,8 +232,8 @@ public class ValidatingTopicServiceImpl implements ValidatingTopicService {
         // if metadata is null, topicService implementation will deal with it.
         if (metadata != null && metadata.isSubscriptionApprovalRequired()
                 && !currentUserMayRead(environmentId, metadata)) {
-            return CompletableFuture.failedFuture(
-                    new IllegalStateException(messagesService.getMessage("NOT_PERMITTED_TO_READ_FROM_THIS_TOPIC")));
+            return CompletableFuture.failedFuture(new IllegalStateException(
+                    "You are not permitted to read from this topic. Subscribe one of your applications to this topic first."));
         }
 
         return topicService.peekTopicData(environmentId, topicName, limit);

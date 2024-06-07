@@ -57,8 +57,6 @@ class TopicServiceImplIntegrationTest {
     @Autowired
     private GalapagosEventManager eventManager;
 
-    private final MessagesServiceFactory MessagesServiceFactory = new MessagesServiceFactory();
-
     @Autowired
     private TestEventListener eventListener;
 
@@ -128,7 +126,7 @@ class TopicServiceImplIntegrationTest {
         topicRepository2.save(topic).get();
 
         TopicServiceImpl service = new TopicServiceImpl(clusters, applicationsService, namingService,
-                currentUserService, topicSettings, eventManager, MessagesServiceFactory);
+                currentUserService, topicSettings, eventManager);
 
         SecurityContext securityContext = mock(SecurityContext.class);
         Authentication auth = mock(Authentication.class);
@@ -165,7 +163,7 @@ class TopicServiceImplIntegrationTest {
         topicRepository2.save(topic).get();
 
         TopicServiceImpl service = new TopicServiceImpl(clusters, applicationsService, namingService,
-                currentUserService, topicSettings, eventManager, MessagesServiceFactory);
+                currentUserService, topicSettings, eventManager);
 
         SecurityContext securityContext = mock(SecurityContext.class);
         Authentication auth = mock(Authentication.class);
