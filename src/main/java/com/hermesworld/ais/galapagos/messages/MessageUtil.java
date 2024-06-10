@@ -1,4 +1,4 @@
-package com.hermesworld.ais.galapagos.topics.service.impl;
+package com.hermesworld.ais.galapagos.messages;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -6,37 +6,12 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.servlet.support.RequestContextUtils;
 
-import java.text.MessageFormat;
 import java.util.Locale;
-import java.util.MissingResourceException;
-import java.util.ResourceBundle;
 
 @Slf4j
-public class MessagesService {
+public class MessageUtil {
 
-    private final String packageName;
-
-    public MessagesService(Class<?> clazz) {
-        packageName = clazz.getPackage().getName() + ".messages";
-    }
-
-    public String getMessage(String key, Object... args) {
-
-        Locale locale = getLocale();
-        ResourceBundle rb = ResourceBundle.getBundle(packageName, locale);
-        String message;
-        try {
-            message = rb.getString(key);
-        }
-        catch (MissingResourceException e) {
-            log.warn("No matching message for the provided key {}", key);
-            return key;
-        }
-
-        return MessageFormat.format(message, args);
-    }
-
-    public static Locale getLocale() {
+    public static Locale getCurrentLocale() {
 
         try {
             if (RequestContextHolder.currentRequestAttributes() instanceof ServletRequestAttributes) {

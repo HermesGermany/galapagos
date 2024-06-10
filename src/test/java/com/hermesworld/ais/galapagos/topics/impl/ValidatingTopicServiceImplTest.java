@@ -3,13 +3,13 @@ package com.hermesworld.ais.galapagos.topics.impl;
 import com.hermesworld.ais.galapagos.applications.ApplicationsService;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.kafka.config.KafkaEnvironmentConfig;
+import com.hermesworld.ais.galapagos.messages.MessagesServiceFactory;
 import com.hermesworld.ais.galapagos.subscriptions.SubscriptionMetadata;
 import com.hermesworld.ais.galapagos.subscriptions.service.SubscriptionService;
 import com.hermesworld.ais.galapagos.topics.TopicMetadata;
 import com.hermesworld.ais.galapagos.topics.TopicType;
 import com.hermesworld.ais.galapagos.topics.config.GalapagosTopicConfig;
 import com.hermesworld.ais.galapagos.topics.service.TopicService;
-import com.hermesworld.ais.galapagos.topics.service.impl.MessagesServiceFactory;
 import com.hermesworld.ais.galapagos.topics.service.impl.ValidatingTopicServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -28,7 +28,7 @@ import static org.mockito.Mockito.when;
 class ValidatingTopicServiceImplTest {
 
     private GalapagosTopicConfig topicConfig;
-    private final MessagesServiceFactory MessagesServiceFactory = new MessagesServiceFactory();
+    private final MessagesServiceFactory messagesServiceFactory = new MessagesServiceFactory();
 
     @BeforeEach
     void init() {
@@ -57,7 +57,7 @@ class ValidatingTopicServiceImplTest {
                 .thenReturn(List.of(subscription));
 
         ValidatingTopicServiceImpl service = new ValidatingTopicServiceImpl(topicService, subscriptionService,
-                mock(ApplicationsService.class), clusters, topicConfig, false, MessagesServiceFactory);
+                mock(ApplicationsService.class), clusters, topicConfig, false, messagesServiceFactory);
 
         assertFalse(service.canDeleteTopic("_env1", "testtopic"));
     }
@@ -79,7 +79,7 @@ class ValidatingTopicServiceImplTest {
         when(clusters.getEnvironmentIds()).thenReturn(List.of("_env1", "_env2"));
 
         ValidatingTopicServiceImpl service = new ValidatingTopicServiceImpl(topicService, subscriptionService,
-                mock(ApplicationsService.class), clusters, topicConfig, false, MessagesServiceFactory);
+                mock(ApplicationsService.class), clusters, topicConfig, false, messagesServiceFactory);
 
         assertFalse(service.canDeleteTopic("_env1", "testtopic"));
         assertTrue(service.canDeleteTopic("_env2", "testtopic"));
@@ -104,7 +104,7 @@ class ValidatingTopicServiceImplTest {
         when(clusters.getEnvironmentMetadata("_env1")).thenReturn(Optional.of(envMeta));
 
         ValidatingTopicServiceImpl service = new ValidatingTopicServiceImpl(topicService, subscriptionService,
-                mock(ApplicationsService.class), clusters, topicConfig, false, MessagesServiceFactory);
+                mock(ApplicationsService.class), clusters, topicConfig, false, messagesServiceFactory);
 
         assertTrue(service.canDeleteTopic("_env1", "testtopic"));
 
@@ -129,7 +129,7 @@ class ValidatingTopicServiceImplTest {
         when(clusters.getEnvironmentMetadata("_env1")).thenReturn(Optional.of(envMeta));
 
         ValidatingTopicServiceImpl service = new ValidatingTopicServiceImpl(topicService, subscriptionService,
-                mock(ApplicationsService.class), clusters, topicConfig, false, MessagesServiceFactory);
+                mock(ApplicationsService.class), clusters, topicConfig, false, messagesServiceFactory);
 
         assertFalse(service.canDeleteTopic("_env1", "testtopic"));
 
@@ -155,7 +155,7 @@ class ValidatingTopicServiceImplTest {
         when(clusters.getEnvironmentMetadata("_env1")).thenReturn(Optional.of(envMeta));
 
         ValidatingTopicServiceImpl service = new ValidatingTopicServiceImpl(topicService, subscriptionService,
-                mock(ApplicationsService.class), clusters, topicConfig, false, MessagesServiceFactory);
+                mock(ApplicationsService.class), clusters, topicConfig, false, messagesServiceFactory);
 
         try {
             service.addTopicProducer("_env1", "testtopic", "producer1").get();
@@ -187,7 +187,7 @@ class ValidatingTopicServiceImplTest {
         when(clusters.getEnvironmentMetadata("_env1")).thenReturn(Optional.of(envMeta));
 
         ValidatingTopicServiceImpl service = new ValidatingTopicServiceImpl(topicService, subscriptionService,
-                mock(ApplicationsService.class), clusters, topicConfig, false, MessagesServiceFactory);
+                mock(ApplicationsService.class), clusters, topicConfig, false, messagesServiceFactory);
 
         try {
             service.removeTopicProducer("_env1", "testtopic", "producer1").get();
@@ -225,7 +225,7 @@ class ValidatingTopicServiceImplTest {
         when(topicService.getTopic("_env1", "testtopic")).thenReturn(Optional.of(meta1));
 
         ValidatingTopicServiceImpl service = new ValidatingTopicServiceImpl(topicService, subscriptionService,
-                mock(ApplicationsService.class), clusters, topicConfig, false, MessagesServiceFactory);
+                mock(ApplicationsService.class), clusters, topicConfig, false, messagesServiceFactory);
 
         assertTrue(service.canDeleteTopic("_env1", "testtopic"));
     }
@@ -255,7 +255,7 @@ class ValidatingTopicServiceImplTest {
         when(topicService.getTopic("_env1", "testtopic")).thenReturn(Optional.of(meta1));
 
         ValidatingTopicServiceImpl service = new ValidatingTopicServiceImpl(topicService, subscriptionService,
-                mock(ApplicationsService.class), clusters, topicConfig, false, MessagesServiceFactory);
+                mock(ApplicationsService.class), clusters, topicConfig, false, messagesServiceFactory);
 
         assertFalse(service.canDeleteTopic("_env1", "testtopic"));
     }

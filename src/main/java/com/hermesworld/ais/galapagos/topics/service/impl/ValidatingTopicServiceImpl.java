@@ -4,6 +4,8 @@ import com.hermesworld.ais.galapagos.applications.ApplicationsService;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.kafka.TopicCreateParams;
 import com.hermesworld.ais.galapagos.kafka.config.KafkaEnvironmentConfig;
+import com.hermesworld.ais.galapagos.messages.MessagesServiceFactory;
+import com.hermesworld.ais.galapagos.messages.impl.MessagesServiceImpl;
 import com.hermesworld.ais.galapagos.subscriptions.SubscriptionMetadata;
 import com.hermesworld.ais.galapagos.subscriptions.service.SubscriptionService;
 import com.hermesworld.ais.galapagos.topics.*;
@@ -44,20 +46,20 @@ public class ValidatingTopicServiceImpl implements ValidatingTopicService {
 
     private final boolean schemaDeleteWithSub;
 
-    private final MessagesService messagesService;
+    private final MessagesServiceImpl messagesServiceImpl;
 
     public ValidatingTopicServiceImpl(@Qualifier(value = "nonvalidating") TopicService topicService,
             SubscriptionService subscriptionService, ApplicationsService applicationsService,
             KafkaClusters kafkaClusters, GalapagosTopicConfig topicConfig,
             @Value("${info.toggles.schemaDeleteWithSub:false}") boolean schemaDeleteWithSub,
-            MessagesServiceFactory MessagesServiceFactory) {
+            MessagesServiceFactory messagesServiceFactory) {
         this.topicService = topicService;
         this.subscriptionService = subscriptionService;
         this.applicationsService = applicationsService;
         this.kafkaClusters = kafkaClusters;
         this.topicConfig = topicConfig;
         this.schemaDeleteWithSub = schemaDeleteWithSub;
-        this.messagesService = MessagesServiceFactory.getMessageService(ValidatingTopicServiceImpl.class);
+        this.messagesServiceImpl = messagesServiceFactory.getMessagesService(ValidatingTopicServiceImpl.class);
     }
 
     @Override
@@ -67,7 +69,7 @@ public class ValidatingTopicServiceImpl implements ValidatingTopicService {
         if ((topic.getMessagesPerDay() == null || topic.getMessagesSize() == null)
                 && topic.getType() != TopicType.INTERNAL) {
             return CompletableFuture.failedFuture(
-                    new IllegalStateException(messagesService.getMessage("SELECT_THE_NUMBER_OF_MESSAGES")));
+                    new IllegalStateException(messagesServiceImpl.getMessage("SELECT_THE_NUMBER_OF_MESSAGES")));
         }
 
         return checkOnNonStaging(environmentId, "create topics", TopicMetadata.class)
@@ -108,13 +110,13 @@ public class ValidatingTopicServiceImpl implements ValidatingTopicService {
 
         if (topic == null) {
             return CompletableFuture.failedFuture(new NoSuchElementException(
-                    messagesService.getMessage("NO_TOPIC_WITH_NAME_WAS_FOUND", topicName, environmentId)));
+                    messagesServiceImpl.getMessage("NO_TOPIC_WITH_NAME_WAS_FOUND", topicName, environmentId)));
         }
 
         if (!subscriptionService.getSubscriptionsForTopic(environmentId, topicName, false).isEmpty()) {
             if (!this.schemaDeleteWithSub) {
-                return CompletableFuture.failedFuture(
-                        new IllegalStateException(messagesService.getMessage("SUBSCRIBED_SCHEMAS_CANNOT_BE_DELETED")));
+                return CompletableFuture.failedFuture(new IllegalStateException(
+                        messagesServiceImpl.getMessage("SUBSCRIBED_SCHEMAS_CANNOT_BE_DELETED")));
             }
             return checkOnNonStaging(environmentId, "Delete latest schema")
                     .orElseGet(() -> topicService.deleteLatestTopicSchemaVersion(environmentId, topicName));
@@ -128,7 +130,7 @@ public class ValidatingTopicServiceImpl implements ValidatingTopicService {
     public CompletableFuture<Void> deleteTopic(String environmentId, String topicName) {
         if (!canDeleteTopic(environmentId, topicName)) {
             return CompletableFuture
-                    .failedFuture(new TopicInUseException(messagesService.getMessage("TOPIC_IS_CURRENTLY_IN_USE")));
+                    .failedFuture(new TopicInUseException(messagesServiceImpl.getMessage("TOPIC_IS_CURRENTLY_IN_USE")));
         }
 
         return topicService.deleteTopic(environmentId, topicName);
@@ -144,7 +146,7 @@ public class ValidatingTopicServiceImpl implements ValidatingTopicService {
     @Override
     public CompletableFuture<Void> markTopicDeprecated(String topicName, String deprecationText, LocalDate eolDate) {
         if (eolDate.isBefore(LocalDate.now().plus(topicConfig.getMinDeprecationTime()))) {
-            return CompletableFuture.failedFuture(new IllegalArgumentException(messagesService.getMessage(
+            return CompletableFuture.failedFuture(new IllegalArgumentException(messagesServiceImpl.getMessage(
                     "EOL_DATE_FOR_DEPRECATED_TOPIC", toDisplayString(topicConfig.getMinDeprecationTime()))));
         }
 
@@ -185,7 +187,7 @@ public class ValidatingTopicServiceImpl implements ValidatingTopicService {
         if (kafkaClusters.getEnvironmentMetadata(environmentId).map(KafkaEnvironmentConfig::isStagingOnly)
                 .orElse(false)) {
             return Optional.of(CompletableFuture.failedFuture(new IllegalStateException(
-                    messagesService.getMessage("ONLY_PERFORM_THIS_ACTION_ON_NON_STAGING_ENVIRONMENT", action))));
+                    messagesServiceImpl.getMessage("ONLY_PERFORM_THIS_ACTION_ON_NON_STAGING_ENVIRONMENT", action))));
         }
         return Optional.empty();
     }
@@ -236,7 +238,7 @@ public class ValidatingTopicServiceImpl implements ValidatingTopicService {
         if (metadata != null && metadata.isSubscriptionApprovalRequired()
                 && !currentUserMayRead(environmentId, metadata)) {
             return CompletableFuture.failedFuture(
-                    new IllegalStateException(messagesService.getMessage("NOT_PERMITTED_TO_READ_FROM_THIS_TOPIC")));
+                    new IllegalStateException(messagesServiceImpl.getMessage("NOT_PERMITTED_TO_READ_FROM_THIS_TOPIC")));
         }
 
         return topicService.peekTopicData(environmentId, topicName, limit);
