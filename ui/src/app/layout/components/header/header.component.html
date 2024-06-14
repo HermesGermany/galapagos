@@ -1,6 +1,7 @@
 <nav class="navbar navbar-expand-lg fixed-top">
     <div class="container-fluid">
-        <a class="navbar-brand" href="#"><img src="/assets/images/galapagos_text_white.png"></a>
+        <a class="navbar-brand" href="javascript:void(0)" (click)="navigateToDashboard()"><img
+            src="/assets/images/galapagos_text_white.png"></a>
         <button class="navbar-toggler" type="button" (click)="toggleSidebar()">
             <!-- <span class="navbar-toggler-icon"></span> -->
             <i class="fa fa-bars text-muted" aria-hidden="true"></i>
@@ -16,14 +17,16 @@
             </ul>
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item dropdown me-4" ngbDropdown>
-                        <a href="javascript:void(0)" class="nav-link" ngbDropdownToggle>
-                            <i [class]="currentEnvironmentIcon | async"></i>&nbsp;&nbsp; {{ currentEnvironmentName | async }} <b class="caret"></b>
+                    <a href="javascript:void(0)" class="nav-link" ngbDropdownToggle>
+                        <i [class]="currentEnvironmentIcon | async"></i>&nbsp;&nbsp; {{ currentEnvironmentName | async }}
+                        <b class="caret"></b>
+                    </a>
+                    <div class="dropdown-menu-right" ngbDropdownMenu>
+                        <a *ngFor="let env of allEnvironments | async" class="dropdown-item" href="javascript:void(0)"
+                           (click)="selectEnvironment(env)">
+                            {{ env.name }}
                         </a>
-                        <div class="dropdown-menu-right" ngbDropdownMenu>
-                            <a *ngFor="let env of allEnvironments | async" class="dropdown-item" href="javascript:void(0)" (click)="selectEnvironment(env)">
-                                {{ env.name }}
-                            </a>
-                        </div>
+                    </div>
                 </li>
                 <li class="nav-item dropdown" ngbDropdown>
                     <a href="javascript:void(0)" class="nav-link" ngbDropdownToggle>
@@ -52,9 +55,9 @@
                             <i class="fa fa-fw fa-power-off"></i> {{ 'Log Out' | translate }}
                         </a>
                         <a class="dropdown-item" type="button" (click)="darkmodeButton()">
-                           <div *ngIf="!darkmodeActive">
+                            <div *ngIf="!darkmodeActive">
                                 <i class="fa fa-fw fa-moon"></i> {{ 'Darkmode' | translate }}
-                           </div>
+                            </div>
                             <div *ngIf="darkmodeActive">
                                 <i class="fa fa-fw fa-sun"></i> {{ 'Lightmode' | translate }}
                             </div>
