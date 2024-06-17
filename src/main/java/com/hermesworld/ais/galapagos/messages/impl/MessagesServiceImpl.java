@@ -24,7 +24,8 @@ public class MessagesServiceImpl implements com.hermesworld.ais.galapagos.messag
         String message;
         try {
             message = rb.getString(key);
-        } catch (MissingResourceException e) {
+        }
+        catch (MissingResourceException e) {
             log.warn("No matching message for the provided key {}", key);
             return key;
         }

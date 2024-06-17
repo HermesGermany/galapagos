@@ -49,10 +49,10 @@ public class ValidatingTopicServiceImpl implements ValidatingTopicService {
     private final MessagesService messagesService;
 
     public ValidatingTopicServiceImpl(@Qualifier(value = "nonvalidating") TopicService topicService,
-                                      SubscriptionService subscriptionService, ApplicationsService applicationsService,
-                                      KafkaClusters kafkaClusters, GalapagosTopicConfig topicConfig,
-                                      @Value("${info.toggles.schemaDeleteWithSub:false}") boolean schemaDeleteWithSub,
-                                      MessagesServiceFactory messagesServiceFactory) {
+            SubscriptionService subscriptionService, ApplicationsService applicationsService,
+            KafkaClusters kafkaClusters, GalapagosTopicConfig topicConfig,
+            @Value("${info.toggles.schemaDeleteWithSub:false}") boolean schemaDeleteWithSub,
+            MessagesServiceFactory messagesServiceFactory) {
         this.topicService = topicService;
         this.subscriptionService = subscriptionService;
         this.applicationsService = applicationsService;
@@ -64,7 +64,7 @@ public class ValidatingTopicServiceImpl implements ValidatingTopicService {
 
     @Override
     public CompletableFuture<TopicMetadata> createTopic(String environmentId, TopicMetadata topic,
-                                                        Integer partitionCount, Map<String, String> topicConfig) {
+            Integer partitionCount, Map<String, String> topicConfig) {
 
         if ((topic.getMessagesPerDay() == null || topic.getMessagesSize() == null)
                 && topic.getType() != TopicType.INTERNAL) {
@@ -120,7 +120,8 @@ public class ValidatingTopicServiceImpl implements ValidatingTopicService {
             }
             return checkOnNonStaging(environmentId, "Delete latest schema")
                     .orElseGet(() -> topicService.deleteLatestTopicSchemaVersion(environmentId, topicName));
-        } else {
+        }
+        else {
             return topicService.deleteLatestTopicSchemaVersion(environmentId, topicName);
         }
     }
@@ -137,7 +138,7 @@ public class ValidatingTopicServiceImpl implements ValidatingTopicService {
 
     @Override
     public CompletableFuture<Void> updateTopicDescription(String environmentId, String topicName,
-                                                          String newDescription) {
+            String newDescription) {
         return checkOnNonStaging(environmentId, "update topic descriptions")
                 .orElseGet(() -> topicService.updateTopicDescription(environmentId, topicName, newDescription));
     }
@@ -159,21 +160,21 @@ public class ValidatingTopicServiceImpl implements ValidatingTopicService {
 
     @Override
     public CompletableFuture<Void> setSubscriptionApprovalRequiredFlag(String environmentId, String topicName,
-                                                                       boolean subscriptionApprovalRequired) {
+            boolean subscriptionApprovalRequired) {
         return checkOnNonStaging(environmentId, "update subscriptionApprovalRequired flag").orElseGet(() -> topicService
                 .setSubscriptionApprovalRequiredFlag(environmentId, topicName, subscriptionApprovalRequired));
     }
 
     @Override
     public CompletableFuture<SchemaMetadata> addTopicSchemaVersion(String environmentId, String topicName,
-                                                                   String jsonSchema, String changeDescription, SchemaCompatCheckMode skipCompatCheck) {
+            String jsonSchema, String changeDescription, SchemaCompatCheckMode skipCompatCheck) {
         return checkOnNonStaging(environmentId, "add JSON schemas", SchemaMetadata.class).orElseGet(() -> topicService
                 .addTopicSchemaVersion(environmentId, topicName, jsonSchema, changeDescription, skipCompatCheck));
     }
 
     @Override
     public CompletableFuture<SchemaMetadata> addTopicSchemaVersion(String environmentId, SchemaMetadata metadata,
-                                                                   SchemaCompatCheckMode skipCompatCheck) {
+            SchemaCompatCheckMode skipCompatCheck) {
         return topicService.addTopicSchemaVersion(environmentId, metadata, skipCompatCheck);
     }
 
@@ -182,7 +183,7 @@ public class ValidatingTopicServiceImpl implements ValidatingTopicService {
     }
 
     private <T> Optional<CompletableFuture<T>> checkOnNonStaging(String environmentId, String action,
-                                                                 Class<T> resultClass) {
+            Class<T> resultClass) {
         if (kafkaClusters.getEnvironmentMetadata(environmentId).map(KafkaEnvironmentConfig::isStagingOnly)
                 .orElse(false)) {
             return Optional.of(CompletableFuture.failedFuture(new IllegalStateException(
@@ -230,7 +231,7 @@ public class ValidatingTopicServiceImpl implements ValidatingTopicService {
 
     @Override
     public CompletableFuture<List<ConsumerRecord<String, String>>> peekTopicData(String environmentId, String topicName,
-                                                                                 int limit) {
+            int limit) {
         TopicMetadata metadata = getTopic(environmentId, topicName).orElse(null);
 
         // if metadata is null, topicService implementation will deal with it.
@@ -257,7 +258,7 @@ public class ValidatingTopicServiceImpl implements ValidatingTopicService {
 
     @Override
     public CompletableFuture<Void> changeTopicOwner(String environmentId, String topicName,
-                                                    String newApplicationOwnerId) {
+            String newApplicationOwnerId) {
         return checkOnNonStaging(environmentId, "change Topic owner", Void.class)
                 .orElseGet(() -> topicService.changeTopicOwner(environmentId, topicName, newApplicationOwnerId));
     }
