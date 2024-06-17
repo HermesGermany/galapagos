@@ -197,6 +197,10 @@ public class TopicController {
                             "eolDate must be set for Topic deprecation");
                 }
 
+                if (topic.isDeprecated()) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Topic is already deprecated");
+                }
+
                 topicService.markTopicDeprecated(topicName, request.getDeprecationText(), request.getEolDate()).get();
 
             }
