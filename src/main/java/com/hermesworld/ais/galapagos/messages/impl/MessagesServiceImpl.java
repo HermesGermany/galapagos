@@ -9,11 +9,11 @@ import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
 @Slf4j
-public class MessagesService implements com.hermesworld.ais.galapagos.messages.MessagesService {
+public class MessagesServiceImpl implements com.hermesworld.ais.galapagos.messages.MessagesService {
 
     private final String packageName;
 
-    public MessagesService(Class<?> clazz) {
+    public MessagesServiceImpl(Class<?> clazz) {
         packageName = clazz.getPackage().getName() + ".messages";
     }
 
@@ -24,8 +24,7 @@ public class MessagesService implements com.hermesworld.ais.galapagos.messages.M
         String message;
         try {
             message = rb.getString(key);
-        }
-        catch (MissingResourceException e) {
+        } catch (MissingResourceException e) {
             log.warn("No matching message for the provided key {}", key);
             return key;
         }
