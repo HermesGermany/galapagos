@@ -110,5 +110,7 @@ export class HeaderComponent implements OnInit {
         }
     }
 
-
+    async navigateToDashboard() {
+        await this.router.navigate(['/dashboard']);
+    }
 }
