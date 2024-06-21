@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Topic subscription has been terminated</title>
+    <title th:text="'Subscription for topic ' + ${topic_name_abbreviated} + ' has been terminated'">Topic subscription
+        has
+        been terminated</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
 </head>
 <body style="font-family: Helvetica, Arial, sans-serif; font-size: 11pt">

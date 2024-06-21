@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-<title>Kafka-Topic wurde aktualisiert</title>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title th:text="'Kafka-Topic ' + ${topic_name_abbreviated} + ' wurde aktualisiert'">Kafka-Topic wurde
+        aktualisiert</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
 </head>
 <!--/*@thymesVar id="user_name" type="java.lang.String"*/-->
 <!--/*@thymesVar id="topic_name" type="java.lang.String"*/-->
@@ -11,32 +12,32 @@
 <!--/*@thymesVar id="environment_name" type="java.lang.String"*/-->
 <body style="font-family: Helvetica, Arial, sans-serif; font-size: 11pt">
 <p>
-	Hallo lieber Galapagos-Benutzer,
+    Hallo lieber Galapagos-Benutzer,
 </p>
 <p>Benutzer <b><i>
-	<span th:text="${user_name}">someuser</span></i></b> hat für das Kafka-Topic <b>
-	<span th:text="${topic_name}">de.hlg.something.SomeTopic</span></b> auf der Kafka-Umgebung <b>
-	<span th:text="${environment_name}">DEV/TEST</span></b> <span th:text="${change_action_text}">etwas völlig unerwartetes getan</span>.
+    <span th:text="${user_name}">someuser</span></i></b> hat für das Kafka-Topic <b>
+    <span th:text="${topic_name}">de.hlg.something.SomeTopic</span></b> auf der Kafka-Umgebung <b>
+    <span th:text="${environment_name}">DEV/TEST</span></b> <span th:text="${change_action_text}">etwas völlig unerwartetes getan</span>.
 </p>
 <p>Du kannst die Änderungen direkt in Galapagos einsehen. Bitte prüfe, ob diese Änderung Auswirkungen auf Deine
-	Anwendung(en) hat.</p>
+    Anwendung(en) hat.</p>
 <table style="width:300px; margin-left:auto; margin-right:auto">
-	<tr>
-		<td>
-			<div style="background-color: #0091CD; border-radius: 4px; text-align: center; padding: 1em 1.5em">
-				<a style="font-weight: bold; font-size:16pt; color: white; text-decoration: none"
-				   th:href="${galapagos_topic_url}">Galapagos öffnen</a>
-			</div>
-		</td>
-	</tr>
+    <tr>
+        <td>
+            <div style="background-color: #0091CD; border-radius: 4px; text-align: center; padding: 1em 1.5em">
+                <a style="font-weight: bold; font-size:16pt; color: white; text-decoration: none"
+                   th:href="${galapagos_topic_url}">Galapagos öffnen</a>
+            </div>
+        </td>
+    </tr>
 </table>
 <br><br>
 <p style="text-align: center">
 </p>
 <p><i style="font-size: 10pt">Diese E-Mail wurde von Galapagos an Dich gesendet, da Du Application Topic Owner von
-	mindestens einer Anwendung bist, die dieses Topic abonniert hat.<br>
-	Wenn Du der Meinung bist, dass Du diese E-Mail nicht erhalten solltest, wende Dich bitte an einen
-	Galapagos-Administrator.</i>
+    mindestens einer Anwendung bist, die dieses Topic abonniert hat.<br>
+    Wenn Du der Meinung bist, dass Du diese E-Mail nicht erhalten solltest, wende Dich bitte an einen
+    Galapagos-Administrator.</i>
 </p>
 </body>
 </html>

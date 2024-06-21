@@ -20,10 +20,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -72,6 +69,7 @@ public class NotificationEventListener
     public CompletableFuture<Void> handleSubscriptionCreated(SubscriptionEvent event) {
         if (event.getMetadata().getState() == SubscriptionState.PENDING) {
             String topicName = event.getMetadata().getTopicName();
+            String topicNameAbbreviated = abbreviateTopicName(topicName);
             String environmentId = event.getContext().getKafkaCluster().getId();
 
             String clientApplicationName = applicationsService
@@ -83,6 +81,7 @@ public class NotificationEventListener
 
             NotificationParams params = new NotificationParams("approve_subscription");
             params.addVariable("topic_name", topicName);
+            params.addVariable("topic_name_abbreviated", topicNameAbbreviated);
             params.addVariable("client_application_name", clientApplicationName);
             params.addVariable("owner_application_name", ownerApplicationName);
             params.addVariable("subscription_description", event.getMetadata().getDescription());
@@ -102,6 +101,7 @@ public class NotificationEventListener
     @Override
     public CompletableFuture<Void> handleSubscriptionUpdated(SubscriptionEvent event) {
         String topicName = event.getMetadata().getTopicName();
+        String topicNameAbbreviated = abbreviateTopicName(topicName);
         String environmentId = event.getContext().getKafkaCluster().getId();
         String environmentName = kafkaClusters.getEnvironmentMetadata(environmentId)
                 .map(KafkaEnvironmentConfig::getName).orElse(unknownEnv);
@@ -117,6 +117,7 @@ public class NotificationEventListener
         NotificationParams params = new NotificationParams(
                 "subscription-" + event.getMetadata().getState().name().toLowerCase(Locale.US));
         params.addVariable("topic_name", topicName);
+        params.addVariable("topic_name_abbreviated", topicNameAbbreviated);
         params.addVariable("env_name", environmentName);
         params.addVariable("client_application_name", clientApplicationName);
         params.addVariable("owner_application_name", ownerApplicationName);
@@ -124,6 +125,22 @@ public class NotificationEventListener
                 buildUIUrl(event, "/topics/" + topicName + "?environment=" + environmentId));
 
         return notificationService.notifyApplicationTopicOwners(clientApplicationId, params);
+    }
+
+    private String abbreviateTopicName(String topicName) {
+        String[] blocks = topicName.split("\\.");
+        if (blocks.length < 4) {
+            return topicName;
+        }
+        else {
+            StringJoiner joiner = new StringJoiner(".");
+            joiner.add(blocks[0]);
+            joiner.add(blocks[1]);
+            joiner.add(blocks[2]);
+            joiner.add("[...]");
+            joiner.add(blocks[blocks.length - 1]);
+            return joiner.toString();
+        }
     }
 
     @Override

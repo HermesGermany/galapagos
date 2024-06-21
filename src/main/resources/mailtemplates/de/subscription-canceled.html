@@ -1,41 +1,42 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-	<title>Topic-Abonnement wurde abgebrochen</title>
-	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <title th:text="'Abonnement für Topic ' + ${topic_name_abbreviated} + ' wurde abgebrochen'">Topic-Abonnement wurde
+        abgebrochen</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
 </head>
 <body style="font-family: Helvetica, Arial, sans-serif; font-size: 11pt">
 <p>
-	Hallo lieber Galapagos-Benutzer,
+    Hallo lieber Galapagos-Benutzer,
 </p>
 <p>das Abonnement Deiner Anwendung <b><span th:text="${client_application_name}"></span></b> des Kafka-Topics <b><span
-		th:text="${topic_name}">de.hlg.something.SomeTopic</span></b> wurde auf der Umgebung <b><span
-		th:text="${env_name}"></span></b> <b>abgebrochen</b>. Dies bedeutet, dass Deine Anwendung <b>ab sofort</b> auf
-	dieser
-	Umgebung keine Daten mehr aus diesem Topic lesen kann.
+        th:text="${topic_name}">de.hlg.something.SomeTopic</span></b> wurde auf der Umgebung <b><span
+        th:text="${env_name}"></span></b> <b>abgebrochen</b>. Dies bedeutet, dass Deine Anwendung <b>ab sofort</b> auf
+    dieser
+    Umgebung keine Daten mehr aus diesem Topic lesen kann.
 
 </p>
 <p>Bitte setze Dich mit dem Team in Verbindung, dass die besitzende Anwendung <b><span
-		th:text="${owner_application_name}"></span></b>
-	betreut, um mehr über die Gründe zu erfahren. Üblicherweise wird ein solcher Abbruch nur bei gravierenden
-	Datenschutzproblemen durchgeführt.</p>
+        th:text="${owner_application_name}"></span></b>
+    betreut, um mehr über die Gründe zu erfahren. Üblicherweise wird ein solcher Abbruch nur bei gravierenden
+    Datenschutzproblemen durchgeführt.</p>
 <table style="width:300px; margin-left:auto; margin-right:auto">
-	<tr>
-		<td>
-			<div style="background-color: #0091CD; border-radius: 4px; text-align: center; padding: 1em 1.5em">
-				<a style="font-weight: bold; font-size:16pt; color: white; text-decoration: none"
-				   th:href="${galapagos_topic_url}">Galapagos öffnen</a>
-			</div>
-		</td>
-	</tr>
+    <tr>
+        <td>
+            <div style="background-color: #0091CD; border-radius: 4px; text-align: center; padding: 1em 1.5em">
+                <a style="font-weight: bold; font-size:16pt; color: white; text-decoration: none"
+                   th:href="${galapagos_topic_url}">Galapagos öffnen</a>
+            </div>
+        </td>
+    </tr>
 </table>
 <br><br>
 <p style="text-align: center">
 </p>
 <p><i style="font-size: 10pt">Diese E-Mail wurde von Galapagos an Dich gesendet, da Du Application Topic Owner der
-	Anwendung <span th:text="${client_application_name}"></span> bist.<br>
-	Wenn Du der Meinung bist, dass Du diese E-Mail nicht erhalten solltest, wende Dich bitte an einen
-	Galapagos-Administrator.</i>
+    Anwendung <span th:text="${client_application_name}"></span> bist.<br>
+    Wenn Du der Meinung bist, dass Du diese E-Mail nicht erhalten solltest, wende Dich bitte an einen
+    Galapagos-Administrator.</i>
 </p>
 </body>
 </html>
