@@ -1,6 +1,7 @@
 package com.hermesworld.ais.galapagos.messages.impl;
 
 import com.hermesworld.ais.galapagos.messages.MessageUtil;
+import com.hermesworld.ais.galapagos.messages.MessagesService;
 import lombok.extern.slf4j.Slf4j;
 
 import java.text.MessageFormat;
@@ -9,7 +10,7 @@ import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
 @Slf4j
-public class MessagesServiceImpl implements com.hermesworld.ais.galapagos.messages.MessagesService {
+public class MessagesServiceImpl implements MessagesService {
 
     private final String packageName;
 
