@@ -7,6 +7,7 @@ import com.hermesworld.ais.galapagos.events.*;
 import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.kafka.impl.TopicBasedRepositoryMock;
+import com.hermesworld.ais.galapagos.messages.MessagesServiceFactory;
 import com.hermesworld.ais.galapagos.naming.NamingService;
 import com.hermesworld.ais.galapagos.notifications.NotificationService;
 import com.hermesworld.ais.galapagos.security.CurrentUserService;
@@ -56,6 +57,8 @@ class TopicServiceImplIntegrationTest {
 
     @Autowired
     private GalapagosEventManager eventManager;
+
+    private final MessagesServiceFactory messagesServiceFactory = new MessagesServiceFactory();
 
     @Autowired
     private TestEventListener eventListener;
@@ -126,7 +129,7 @@ class TopicServiceImplIntegrationTest {
         topicRepository2.save(topic).get();
 
         TopicServiceImpl service = new TopicServiceImpl(clusters, applicationsService, namingService,
-                currentUserService, topicSettings, eventManager);
+                currentUserService, topicSettings, eventManager, messagesServiceFactory);
 
         SecurityContext securityContext = mock(SecurityContext.class);
         Authentication auth = mock(Authentication.class);
@@ -163,7 +166,7 @@ class TopicServiceImplIntegrationTest {
         topicRepository2.save(topic).get();
 
         TopicServiceImpl service = new TopicServiceImpl(clusters, applicationsService, namingService,
-                currentUserService, topicSettings, eventManager);
+                currentUserService, topicSettings, eventManager, messagesServiceFactory);
 
         SecurityContext securityContext = mock(SecurityContext.class);
         Authentication auth = mock(Authentication.class);
