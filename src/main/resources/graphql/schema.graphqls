@@ -1,20 +1,20 @@
 type Query {
     topicsByType(environmentId: String, topicType: TopicType): [Topic]!
-    applicationsByEnvironmentId(environmentId: String): [AllApplications]!
+    applicationsByEnvironmentId(environmentId: String): [RegisteredApplication]!
 }
 #ApplicationMetaData
-type AllApplications {
+type RegisteredApplication {
     id: ID!
     name: String
     infoUrl: String
     aliases: [String]
     developers: [String]
     businessCapabilities: [BusinessCapability]
-    subscriptions: [Subscriptions]
+    subscriptions: [ApplicationSubscription]
     authenticationInfo: String
 }
 
-type Subscriptions {
+type ApplicationSubscription {
     id: ID!
     topicName: String
     description: String
@@ -35,9 +35,15 @@ type Topic {
     compactionTimeMillis: Float
     retentionTimeMillis: Float
     eolDate: String
+    schemas: [Schemas]
     producers: [Application]
     ownerApplication: Application
     subscriptions: [TopicSubscription]
+}
+
+type Schemas {
+    schemaVersion: Int
+    jsonSchema: String
 }
 
 type Application {

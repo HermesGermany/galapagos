@@ -3,6 +3,7 @@ package com.hermesworld.ais.galapagos.graphql;
 import com.hermesworld.ais.galapagos.applications.*;
 import com.hermesworld.ais.galapagos.subscriptions.SubscriptionMetadata;
 import com.hermesworld.ais.galapagos.subscriptions.service.SubscriptionService;
+import com.hermesworld.ais.galapagos.topics.SchemaMetadata;
 import com.hermesworld.ais.galapagos.topics.TopicMetadata;
 import com.hermesworld.ais.galapagos.topics.TopicType;
 import com.hermesworld.ais.galapagos.topics.service.TopicService;
@@ -13,7 +14,6 @@ import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.graphql.data.method.annotation.SchemaMapping;
 import org.springframework.stereotype.Controller;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -48,13 +48,8 @@ public class GraphqlController {
     @SchemaMapping(typeName = "Topic", field = "producers")
     public List<KnownApplication> getProducers(TopicMetadata topic) {
         List<String> producerIds = topic.getProducers();
-        List<KnownApplication> producerMetadataList = new ArrayList<>();
-
-        for (String producerId : producerIds) {
-            Optional<KnownApplication> producerMetadata = applicationsService.getKnownApplication(producerId);
-            producerMetadata.ifPresent(producerMetadataList::add);
-        }
-        return producerMetadataList;
+        return producerIds.stream().map(applicationsService::getKnownApplication).filter(Optional::isPresent)
+                .map(Optional::get).toList();
     }
 
     @SchemaMapping(typeName = "Topic", field = "subscriptions")
@@ -68,27 +63,29 @@ public class GraphqlController {
         return applicationsService.getKnownApplication(subscriptionMetadata.getClientApplicationId());
     }
 
+    @SchemaMapping(typeName = "Topic", field = "schemas")
+    public List<SchemaMetadata> getSchemas(@ContextValue(name = "environmentId") String environmentId,
+            TopicMetadata topic) {
+        return topicService.getTopicSchemaVersions(environmentId, topic.getName());
+    }
+
     @QueryMapping
     public List<KnownApplication> applicationsByEnvironmentId(@Argument String environmentId,
             GraphQLContext graphQLContext) {
         graphQLContext.put("applicationsEnvironmentId", environmentId);
         List<ApplicationMetadata> allApplications = applicationsService.getAllApplicationMetadata(environmentId);
-        List<KnownApplication> applicationList = new ArrayList<>();
-        for (ApplicationMetadata application : allApplications) {
-            String applicationId = application.getApplicationId();
-            Optional<KnownApplication> knownApplication = applicationsService.getKnownApplication(applicationId);
-            knownApplication.ifPresent(applicationList::add);
-        }
-        return applicationList;
+
+        return allApplications.stream().map(meta -> applicationsService.getKnownApplication(meta.getApplicationId()))
+                .filter(Optional::isPresent).map(Optional::get).toList();
     }
 
-    @SchemaMapping(typeName = "AllApplications", field = "subscriptions")
+    @SchemaMapping(typeName = "RegisteredApplication", field = "subscriptions")
     public List<SubscriptionMetadata> getSubscriptionsOfApplication(
             @ContextValue(name = "applicationsEnvironmentId") String environmentId, KnownApplication application) {
         return subscriptionService.getSubscriptionsOfApplication(environmentId, application.getId(), false);
     }
 
-    @SchemaMapping(typeName = "AllApplications", field = "developers")
+    @SchemaMapping(typeName = "RegisteredApplication", field = "developers")
     public List<String> getDevelopers(KnownApplication application) {
         List<ApplicationOwnerRequest> allOwnerRequests = applicationsService.getAllApplicationOwnerRequests();
         return allOwnerRequests.stream()
@@ -97,7 +94,7 @@ public class GraphqlController {
                 .map(ApplicationOwnerRequest::getUserName).collect(Collectors.toList());
     }
 
-    @SchemaMapping(typeName = "AllApplications", field = "authenticationInfo")
+    @SchemaMapping(typeName = "RegisteredApplication", field = "authenticationInfo")
     public String getAuthenticationInfo(@ContextValue(name = "applicationsEnvironmentId") String environmentId,
             KnownApplication application) {
         Optional<ApplicationMetadata> applicationMetadataOpt = applicationsService.getApplicationMetadata(environmentId,
