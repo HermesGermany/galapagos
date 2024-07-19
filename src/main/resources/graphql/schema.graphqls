@@ -1,7 +1,26 @@
 type Query {
     topicsByType(environmentId: String, topicType: TopicType): [Topic]!
+    applicationsByEnvironmentId(environmentId: String): [AllApplications]!
+}
+#ApplicationMetaData
+type AllApplications {
+    id: ID!
+    name: String
+    infoUrl: String
+    aliases: [String]
+    developers: [String]
+    businessCapabilities: [BusinessCapability]
+    subscriptions: [Subscriptions]
+    authenticationInfo: String
 }
 
+type Subscriptions {
+    id: ID!
+    topicName: String
+    description: String
+}
+
+#TopicMetaData
 type Topic {
     environmentId: ID!
     type: TopicType
@@ -30,15 +49,13 @@ type Application {
 }
 
 type TopicSubscription {
-    id: ID
-    topicName: String
-    state: SubscriptionState
+    id: ID!
     description: String
     clientApplication: Application
 }
 
 type BusinessCapability {
-    id: ID
+    id: ID!
     name: String
 }
 
@@ -56,8 +73,4 @@ enum MessagesPerDay {
 
 enum TopicType {
     EVENTS, DATA, COMMANDS, INTERNAL
-}
-
-enum SubscriptionState {
-    APPROVED, PENDING, REJECTED, CANCELED
 }
