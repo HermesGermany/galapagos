@@ -234,7 +234,8 @@ class GraphqlControllerTest {
         ownerRequest4.setUserName("developer4");
         ownerRequest4.setState(RequestState.APPROVED);
 
-        when(applicationsService.getAllApplicationOwnerRequests()).thenReturn(List.of(ownerRequest1, ownerRequest2, ownerRequest3, ownerRequest4));
+        when(applicationsService.getAllApplicationOwnerRequests())
+                .thenReturn(List.of(ownerRequest1, ownerRequest2, ownerRequest3, ownerRequest4));
         List<String> developers = graphqlController.getDevelopers(app);
 
         assertNotNull(developers);
