@@ -15,7 +15,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Import;
+import org.springframework.graphql.test.tester.HttpGraphQlTester;
+import org.springframework.test.web.reactive.server.WebTestClient;
+import org.springframework.test.web.servlet.client.MockMvcWebTestClient;
+import org.springframework.web.context.WebApplicationContext;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -43,6 +48,9 @@ class GraphqlControllerTest {
 
     @Autowired
     private GraphqlController graphqlController;
+
+    @Autowired
+    ApplicationContext context;
 
     @Test
     void testTopicsByType() {
@@ -72,6 +80,36 @@ class GraphqlControllerTest {
         assertNotNull(topic.getProducers());
         assertNotNull(topic.getEolDate());
         assertEquals("Deprecation notice", topic.getDeprecationText());
+    }
+
+    @Test
+    void testTopicsByTypeWithMultipleTopics() {
+        assertNotNull(graphqlController);
+
+        String environmentId = "test-env";
+        TopicType topicType = TopicType.EVENTS;
+
+        TopicMetadata topicMetadata1 = new TopicMetadata();
+        topicMetadata1.setType(TopicType.EVENTS);
+        topicMetadata1.setName("test-topic-1");
+        TopicMetadata topicMetadata2 = new TopicMetadata();
+        topicMetadata2.setType(TopicType.INTERNAL);
+        topicMetadata2.setName("test-topic-2");
+        TopicMetadata topicMetadata3 = new TopicMetadata();
+        topicMetadata3.setType(TopicType.EVENTS);
+        topicMetadata3.setName("test-topic-3");
+        GraphQLContext context = GraphQLContext.newContext().build();
+
+        when(topicService.listTopics(environmentId))
+                .thenReturn(List.of(topicMetadata1, topicMetadata2, topicMetadata3));
+        List<TopicMetadata> topics = graphqlController.topicsByType(environmentId, topicType, context);
+
+        assertNotNull(topics);
+        assertEquals(2, topics.size());
+        assertEquals("test-topic-1", topics.get(0).getName());
+        assertEquals("test-topic-3", topics.get(1).getName());
+        assertEquals(TopicType.EVENTS, topics.get(0).getType());
+        assertEquals(TopicType.EVENTS, topics.get(1).getType());
     }
 
     @Test
@@ -277,5 +315,55 @@ class GraphqlControllerTest {
         String authInfo = graphqlController.getAuthenticationInfo(environmentId, app);
 
         assertNull(authInfo);
+    }
+
+    @Test
+    void testGraphQlQuery() {
+        String environmentId = "test-env";
+
+        TopicMetadata topicMetadata1 = new TopicMetadata();
+        topicMetadata1.setType(TopicType.EVENTS);
+        topicMetadata1.setName("test-topic-1");
+        TopicMetadata topicMetadata2 = new TopicMetadata();
+        topicMetadata2.setType(TopicType.INTERNAL);
+        topicMetadata2.setName("test-topic-2");
+        TopicMetadata topicMetadata3 = new TopicMetadata();
+        topicMetadata3.setType(TopicType.EVENTS);
+        topicMetadata3.setName("test-topic-3");
+
+        when(topicService.listTopics(environmentId))
+                .thenReturn(List.of(topicMetadata1, topicMetadata2, topicMetadata3));
+
+        ApplicationMetadata appMetadata1 = new ApplicationMetadata();
+        appMetadata1.setApplicationId("app-id");
+        KnownApplicationImpl app = new KnownApplicationImpl("app-id", "app-name");
+        when(applicationsService.getAllApplicationMetadata(environmentId)).thenReturn(List.of(appMetadata1));
+        when(applicationsService.getKnownApplication("app-id")).thenReturn(Optional.of(app));
+
+        WebTestClient client = MockMvcWebTestClient.bindToApplicationContext((WebApplicationContext) context)
+                .configureClient().baseUrl("/graphql").build();
+
+        HttpGraphQlTester graphQlTester = HttpGraphQlTester.create(client);
+        String query = """
+                    query {
+                        topicsByType(environmentId: "test-env", topicType: EVENTS) {
+                            name
+                            type
+                            ownerApplication {
+                                id
+                                name
+                            }
+                        }
+                        applicationsByEnvironmentId(environmentId: "test-env") {
+                            id
+                            name
+                        }
+                    }
+                """;
+
+        graphQlTester.document(query).execute().path("topicsByType").entityList(TopicMetadata.class).hasSize(2);
+
+        graphQlTester.document(query).execute().path("applicationsByEnvironmentId")
+                .entityList(KnownApplicationImpl.class).hasSize(1);
     }
 }
