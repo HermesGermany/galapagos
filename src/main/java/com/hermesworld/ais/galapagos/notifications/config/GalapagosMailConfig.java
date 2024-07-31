@@ -14,6 +14,8 @@ import java.util.List;
 @Setter
 public class GalapagosMailConfig {
     private InternetAddress sender;
+
     private List<InternetAddress> adminRecipients;
+
     private String defaultMailLanguage;
 }

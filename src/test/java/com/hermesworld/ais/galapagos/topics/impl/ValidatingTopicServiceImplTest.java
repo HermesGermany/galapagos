@@ -28,6 +28,7 @@ import static org.mockito.Mockito.when;
 class ValidatingTopicServiceImplTest {
 
     private GalapagosTopicConfig topicConfig;
+
     private final MessagesServiceFactory messagesServiceFactory = new MessagesServiceFactory();
 
     @BeforeEach

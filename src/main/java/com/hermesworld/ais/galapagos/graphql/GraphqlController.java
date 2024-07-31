@@ -22,7 +22,9 @@ import java.util.stream.Collectors;
 public class GraphqlController {
 
     private final TopicService topicService;
+
     private final ApplicationsService applicationsService;
+
     private final SubscriptionService subscriptionService;
 
     public GraphqlController(TopicService topicService, ApplicationsService applicationsService,
