@@ -31,6 +31,7 @@ import static org.mockito.Mockito.when;
 public class ApplicationsServiceRequestStatesImplTest {
 
     private static final String testUserName = "Alice";
+
     private static final String testAppId = "1";
 
     private final GalapagosEventManager eventManager = mock(GalapagosEventManager.class);

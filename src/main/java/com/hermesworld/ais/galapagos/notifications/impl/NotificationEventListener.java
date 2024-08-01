@@ -50,7 +50,9 @@ public class NotificationEventListener
 
     // TODO externalize
     private final String unknownApp = "(unknown app)";
+
     private final String unknownUser = "(unknown user)";
+
     private final String unknownEnv = "(unknown environment)";
 
     private static final String HTTP_REQUEST_URL_KEY = NotificationEventListener.class.getName() + "_requestUrl";

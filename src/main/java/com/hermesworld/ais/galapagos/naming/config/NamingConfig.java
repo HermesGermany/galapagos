@@ -18,8 +18,11 @@ import org.springframework.validation.annotation.Validated;
 public class NamingConfig implements Validator {
 
     public static final String PARAM_APPLICATION = "{application}";
+
     public static final String PARAM_APP_OR_ALIAS = "{app-or-alias}";
+
     public static final String PARAM_BUSINESS_CAPABILITY = "{business-capability}";
+
     public static final String PARAM_ADDITION = "{addition}";
 
     public static final String KAFKA_VALID_NAMES_REGEX = "[a-zA-Z0-9._\\-]+";

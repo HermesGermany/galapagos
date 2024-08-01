@@ -46,6 +46,7 @@ class ApplicationsServiceImplTest {
     private final TopicBasedRepository<KnownApplicationImpl> knownApplicationRepository = new TopicBasedRepositoryMock<>();
 
     private final TopicBasedRepository<ApplicationMetadata> applicationMetadataRepository = new TopicBasedRepositoryMock<>();
+
     private final TopicBasedRepository<ApplicationMetadata> applicationMetadataRepository2 = new TopicBasedRepositoryMock<>();
 
     private KafkaAuthenticationModule authenticationModule;

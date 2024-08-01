@@ -1,0 +1,82 @@
+type Query {
+    topicsByType(environmentId: String!, topicType: TopicType!): [Topic]!
+    applicationsByEnvironmentId(environmentId: String!): [RegisteredApplication]!
+}
+#ApplicationMetaData
+type RegisteredApplication {
+    id: ID!
+    name: String
+    infoUrl: String
+    aliases: [String]
+    developers: [String]
+    businessCapabilities: [BusinessCapability]
+    subscriptions: [ApplicationSubscription]
+    authenticationInfo: String
+}
+
+type ApplicationSubscription {
+    id: ID!
+    topicName: String
+    description: String
+}
+
+#TopicMetaData
+type Topic {
+    environmentId: ID!
+    type: TopicType
+    name: String
+    deprecated: Boolean
+    deprecationText: String
+    subscriptionApprovalRequired: Boolean
+    infoUrl: String
+    criticality: Criticality
+    messagesSize: MessagesSize
+    messagesPerDay: MessagesPerDay
+    compactionTimeMillis: Float
+    retentionTimeMillis: Float
+    eolDate: String
+    schemas: [Schemas]
+    producers: [Application]
+    ownerApplication: Application
+    subscriptions: [TopicSubscription]
+}
+
+type Schemas {
+    schemaVersion: Int
+    jsonSchema: String
+}
+
+type Application {
+    id: ID!
+    name: String
+    infoUrl: String
+    aliases: [String]
+    businessCapabilities: [BusinessCapability]
+}
+
+type TopicSubscription {
+    id: ID!
+    description: String
+    clientApplication: Application
+}
+
+type BusinessCapability {
+    id: ID!
+    name: String
+}
+
+enum Criticality {
+    NORMAL, CRITICAL
+}
+
+enum MessagesSize {
+    VERY_SMALL, SMALL, NORMAL, LARGE, VERY_LARGE
+}
+
+enum MessagesPerDay {
+    FEW, NORMAL, MANY, VERY_MANY
+}
+
+enum TopicType {
+    EVENTS, DATA, COMMANDS, INTERNAL
+}

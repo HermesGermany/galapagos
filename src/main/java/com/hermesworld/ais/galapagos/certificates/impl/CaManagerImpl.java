@@ -79,6 +79,7 @@ public final class CaManagerImpl {
 
     private static final ASN1ObjectIdentifier TRUSTED_KEY_USAGE = new ASN1ObjectIdentifier(
             "2.16.840.1.113894.746875.1.1");
+
     private static final ASN1ObjectIdentifier ANY_EXTENDED_KEY_USAGE = new ASN1ObjectIdentifier("2.5.29.37.0");
 
     private static final Random RANDOM = new Random();
