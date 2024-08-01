@@ -52,7 +52,7 @@ class GraphqlControllerTest {
 
     @Autowired
     ApplicationContext context;
-    
+
     @Test
     void testTopicsByType() {
         assertNotNull(graphqlController);
