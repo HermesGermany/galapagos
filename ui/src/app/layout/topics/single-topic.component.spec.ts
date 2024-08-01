@@ -20,14 +20,24 @@ import { SpinnerWhileDirective } from '../../shared/modules/spinner-while/spinne
 import { Highlight } from 'ngx-highlightjs';
 import { of } from 'rxjs';
 import { ReplayContainer } from '../../shared/services/services-common';
+import { AuthService } from '../../shared/services/auth.service';
+import { MockAuthService } from '../../shared/util/test-util';
 
 describe('SingleTopicComponent', () => {
     let component: SingleTopicComponent;
     let fixture: ComponentFixture<SingleTopicComponent>;
     let testTopic: {
-        eolDate: string; environmentId: string; subscriptionApprovalRequired: boolean; createdTimestamp: string;
-        deprecated: boolean; name: string; ownerApplication: { aliases: string[]; name: string; id: string }; deletable: boolean;
-        description: string; deprecationText: string; topicType: string;
+        eolDate: string;
+        environmentId: string;
+        subscriptionApprovalRequired: boolean;
+        createdTimestamp: string;
+        deprecated: boolean;
+        name: string;
+        ownerApplication: { aliases: string[]; name: string; id: string };
+        deletable: boolean;
+        description: string;
+        deprecationText: string;
+        topicType: string;
     };
     let deprecationText: string;
     let eolDate: string;
@@ -46,6 +56,7 @@ describe('SingleTopicComponent', () => {
             ],
             declarations: [SingleTopicComponent, SpinnerWhileDirective, Highlight],
             providers: [
+                { provide: AuthService, useClass: MockAuthService },
                 RouterModule,
                 TopicsService,
                 EnvironmentsService,

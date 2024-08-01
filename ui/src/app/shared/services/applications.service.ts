@@ -3,6 +3,7 @@ import { firstValueFrom, Observable, ReplaySubject } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
 import { jsonHeader, ReplayContainer } from './services-common';
+import { AuthService } from './auth.service';
 
 export interface ApplicationInfo {
     id: string;
@@ -75,7 +76,7 @@ class ApplicationNameServiceImpl implements ApplicationNameService {
 
     private apps: Observable<ApplicationInfo[]>;
 
-    private appNameCache: { [id: string]: Observable<string> } = { };
+    private appNameCache: { [id: string]: Observable<string> } = {};
 
     constructor(apps: Observable<ApplicationInfo[]>) {
         this.apps = apps;
@@ -113,7 +114,7 @@ export class ApplicationsService {
 
     private allRequests = new ReplayContainer<ApplicationOwnerRequest[]>(() => this.http.get('/api/admin/requests'));
 
-    constructor(private http: HttpClient) {
+    constructor(private http: HttpClient, private authService: AuthService) {
     }
 
     public getAvailableApplications(excludeUserApps: boolean): Observable<ApplicationInfo[]> {
@@ -178,10 +179,17 @@ export class ApplicationsService {
     }
 
     public async refresh(): Promise<any> {
-        return Promise.all([
-            this.userRequests.refresh(),
-            this.allRequests.refresh()
-        ]);
+        const isAdmin = await firstValueFrom(this.authService.admin);
+        if (isAdmin) {
+            return Promise.all([
+                this.userRequests.refresh(),
+                this.allRequests.refresh()
+            ]);
+        } else {
+            return Promise.all([
+                this.userRequests.refresh()
+            ]);
+        }
     }
 
     public newApplicationNameService(): ApplicationNameService {

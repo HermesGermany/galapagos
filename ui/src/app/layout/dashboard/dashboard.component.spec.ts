@@ -15,6 +15,8 @@ import { PageHeaderModule } from '../../shared';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { By } from '@angular/platform-browser';
 import { LanguageTranslationModule } from '../../shared/modules/language-translation/language-translation.module';
+import { AuthService } from '../../shared/services/auth.service';
+import { MockAuthService } from '../../shared/util/test-util';
 
 describe('DashboardComponent', () => {
     let component: DashboardComponent;
@@ -33,6 +35,7 @@ describe('DashboardComponent', () => {
             ],
             declarations: [DashboardComponent],
             providers: [
+                { provide: AuthService, useClass: MockAuthService },
                 EnvironmentsService,
                 ToastService,
                 ApplicationsService,
