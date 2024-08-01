@@ -24,6 +24,7 @@ import org.springframework.web.context.WebApplicationContext;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -51,7 +52,7 @@ class GraphqlControllerTest {
 
     @Autowired
     ApplicationContext context;
-
+    
     @Test
     void testTopicsByType() {
         assertNotNull(graphqlController);
@@ -340,10 +341,6 @@ class GraphqlControllerTest {
         when(applicationsService.getAllApplicationMetadata(environmentId)).thenReturn(List.of(appMetadata1));
         when(applicationsService.getKnownApplication("app-id")).thenReturn(Optional.of(app));
 
-        WebTestClient client = MockMvcWebTestClient.bindToApplicationContext((WebApplicationContext) context)
-                .configureClient().baseUrl("/graphql").build();
-
-        HttpGraphQlTester graphQlTester = HttpGraphQlTester.create(client);
         String query = """
                     query {
                         topicsByType(environmentId: "test-env", topicType: EVENTS) {
@@ -361,9 +358,61 @@ class GraphqlControllerTest {
                     }
                 """;
 
+        WebTestClient client = MockMvcWebTestClient.bindToApplicationContext((WebApplicationContext) context)
+                .configureClient().baseUrl("/graphql").build();
+        HttpGraphQlTester graphQlTester = HttpGraphQlTester.create(client);
+
         graphQlTester.document(query).execute().path("topicsByType").entityList(TopicMetadata.class).hasSize(2);
 
         graphQlTester.document(query).execute().path("applicationsByEnvironmentId")
                 .entityList(KnownApplicationImpl.class).hasSize(1);
+    }
+
+    @Test
+    void testTopicsByTypeMissingParameters() {
+        String queryMissingEnvironmentId = """
+                    query {
+                        topicsByType(topicType: EVENTS) {
+                            name
+                            type
+                        }
+                    }
+                """;
+        executeInvalidQuery(queryMissingEnvironmentId, "MissingFieldArgument@[topicsByType]");
+
+        String queryMissingTopicType = """
+                    query {
+                        topicsByType(environmentId: "test-env") {
+                            name
+                            type
+                        }
+                    }
+                """;
+        executeInvalidQuery(queryMissingTopicType, "MissingFieldArgument@[topicsByType]");
+    }
+
+    @Test
+    void testApplicationsByEnvironmentIdMissingEnvironmentId() {
+        String queryMissingEnvironmentIdInApps = """
+                    query {
+                        applicationsByEnvironmentId {
+                            id
+                            name
+                        }
+                    }
+                """;
+
+        executeInvalidQuery(queryMissingEnvironmentIdInApps, "MissingFieldArgument@[applicationsByEnvironmentId]");
+    }
+
+    private void executeInvalidQuery(String query, String expectedErrorMessage) {
+        WebTestClient client = MockMvcWebTestClient.bindToApplicationContext((WebApplicationContext) context)
+                .configureClient().baseUrl("/graphql").build();
+        HttpGraphQlTester graphQlTester = HttpGraphQlTester.create(client);
+
+        graphQlTester.document(query).execute().errors().satisfy(errors -> {
+            assertFalse(errors.isEmpty());
+            assertTrue(Objects.requireNonNull(errors.get(0).getMessage()).contains(expectedErrorMessage));
+        });
     }
 }

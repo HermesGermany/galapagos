@@ -1,6 +1,6 @@
 type Query {
-    topicsByType(environmentId: String, topicType: TopicType): [Topic]!
-    applicationsByEnvironmentId(environmentId: String): [RegisteredApplication]!
+    topicsByType(environmentId: String!, topicType: TopicType!): [Topic]!
+    applicationsByEnvironmentId(environmentId: String!): [RegisteredApplication]!
 }
 #ApplicationMetaData
 type RegisteredApplication {

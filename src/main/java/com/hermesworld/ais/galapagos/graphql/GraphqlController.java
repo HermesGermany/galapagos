@@ -37,6 +37,10 @@ public class GraphqlController {
     @QueryMapping
     public List<TopicMetadata> topicsByType(@Argument String environmentId, @Argument TopicType topicType,
             GraphQLContext graphQLContext) {
+        if (environmentId == null || topicType == null) {
+            throw new IllegalArgumentException(
+                    "The environmentId and topicType parameters are required and cannot be null.");
+        }
         graphQLContext.put("environmentId", environmentId);
         return topicService.listTopics(environmentId).stream().filter(m -> m.getType().equals(topicType))
                 .collect(Collectors.toList());
@@ -74,6 +78,9 @@ public class GraphqlController {
     @QueryMapping
     public List<KnownApplication> applicationsByEnvironmentId(@Argument String environmentId,
             GraphQLContext graphQLContext) {
+        if (environmentId == null) {
+            throw new IllegalArgumentException("The environmentId parameter is required and cannot be null.");
+        }
         graphQLContext.put("applicationsEnvironmentId", environmentId);
         List<ApplicationMetadata> allApplications = applicationsService.getAllApplicationMetadata(environmentId);
 
