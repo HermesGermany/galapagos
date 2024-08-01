@@ -18,6 +18,8 @@ import { ApplicationsComponent } from './applications.component';
 import { SpinnerWhileModule } from '../../shared/modules/spinner-while/spinner-while.module';
 import { ApiKeyService } from '../../shared/services/apikey.service';
 import { CertificateService } from '../../shared/services/certificates.service';
+import { AuthService } from '../../shared/services/auth.service';
+import { MockAuthService } from '../../shared/util/test-util';
 
 describe('ApplicationsComponent', () => {
     let component: ApplicationsComponent;
@@ -38,6 +40,7 @@ describe('ApplicationsComponent', () => {
                 SpinnerWhileModule
             ],
             providers: [
+                { provide: AuthService, useClass: MockAuthService },
                 RouterModule,
                 TopicsService,
                 EnvironmentsService,
