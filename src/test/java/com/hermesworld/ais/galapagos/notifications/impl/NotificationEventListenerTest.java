@@ -17,6 +17,7 @@ import com.hermesworld.ais.galapagos.util.FutureUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Spy;
 
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
@@ -30,6 +31,7 @@ class NotificationEventListenerTest {
 
     private NotificationEventListener listener;
 
+    @Spy
     private NotificationService notificationService;
 
     private GalapagosEventContext context;
@@ -37,7 +39,7 @@ class NotificationEventListenerTest {
     @BeforeEach
     void feedMocks() {
 
-        notificationService = spy(mock(NotificationService.class));
+        notificationService = mock(NotificationService.class);
         KafkaClusters kafkaClusters = mock(KafkaClusters.class);
         ApplicationsService applicationsService = mock(ApplicationsService.class);
         TopicService topicService = mock(TopicService.class);
