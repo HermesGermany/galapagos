@@ -37,7 +37,7 @@ class NotificationEventListenerTest {
     @BeforeEach
     void feedMocks() {
 
-        notificationService = spy(mock(NotificationService.class));
+        notificationService = mock(NotificationService.class);
         KafkaClusters kafkaClusters = mock(KafkaClusters.class);
         ApplicationsService applicationsService = mock(ApplicationsService.class);
         TopicService topicService = mock(TopicService.class);
