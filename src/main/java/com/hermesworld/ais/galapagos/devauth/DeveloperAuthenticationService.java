@@ -19,7 +19,7 @@ public interface DeveloperAuthenticationService {
 
     /**
      * Returns all known (and currently valid) developer authentications for the given Kafka Cluster.
-     * 
+     *
      * @param environmentId ID of the environment (Kafka Cluster) to return all valid developer authentications for.
      * @return A (possibly empty) list of developer authentications.
      */

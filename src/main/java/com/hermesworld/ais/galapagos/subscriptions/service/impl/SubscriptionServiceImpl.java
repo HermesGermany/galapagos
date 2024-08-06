@@ -143,7 +143,7 @@ public class SubscriptionServiceImpl implements SubscriptionService, InitPerClus
             return (state == SubscriptionState.REJECTED || state == SubscriptionState.CANCELED
                     ? getRepository(kafkaCluster).delete(subscription)
                     : getRepository(kafkaCluster).save(subscription))
-                            .thenCompose(o -> eventSink.handleSubscriptionUpdated(subscription));
+                    .thenCompose(o -> eventSink.handleSubscriptionUpdated(subscription));
         });
     }
 

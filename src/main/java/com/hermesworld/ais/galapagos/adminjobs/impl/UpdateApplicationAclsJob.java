@@ -106,7 +106,7 @@ public class UpdateApplicationAclsJob extends SingleClusterAdminJob {
                     try {
                         System.out.println(new ToolingUser(opMeta.get(), cluster.getId(),
                                 kafkaClusters.getAuthenticationModule(cluster.getId()).orElseThrow(), aclSupport)
-                                        .getRequiredAclBindings());
+                                .getRequiredAclBindings());
                     }
                     catch (Exception e) {
                         e.printStackTrace();

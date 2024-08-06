@@ -32,7 +32,7 @@ public interface ApplicationPrefixes {
     /**
      * Combines the prefixes set in this object with the prefixes set in the given other object, returning the "union"
      * of both, but removing duplicate prefixes.
-     * 
+     *
      * @param other Other set of prefixes to combine with this set.
      * @return A "union" of both sets of prefixes, without duplicates in its lists.
      */
