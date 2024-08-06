@@ -83,7 +83,7 @@ class UpdateApplicationAclsListenerTest {
     void testUpdateApplicationAcls() throws InterruptedException, ExecutionException {
         when(authenticationModule
                 .extractKafkaUserName(ArgumentMatchers.argThat(obj -> obj.getString("dn").equals("CN=testapp"))))
-                        .thenReturn("User:CN=testapp");
+                .thenReturn("User:CN=testapp");
 
         when(cluster.updateUserAcls(any())).thenReturn(FutureUtil.noop());
         lenient().when(cluster.removeUserAcls(any())).thenThrow(UnsupportedOperationException.class);
@@ -134,7 +134,7 @@ class UpdateApplicationAclsListenerTest {
         when(applicationsService.getApplicationMetadata("_test", "producer1")).thenReturn(Optional.of(producer1));
         when(authenticationModule
                 .extractKafkaUserName(ArgumentMatchers.argThat(obj -> obj.getString("dn").equals("CN=producer1"))))
-                        .thenReturn("User:CN=producer1");
+                .thenReturn("User:CN=producer1");
 
         UpdateApplicationAclsListener listener = new UpdateApplicationAclsListener(kafkaClusters, subscriptionService,
                 applicationsService, aclSupport);
@@ -163,7 +163,7 @@ class UpdateApplicationAclsListenerTest {
         when(applicationsService.getApplicationMetadata("_test", "producer1")).thenReturn(Optional.of(producer1));
         when(authenticationModule
                 .extractKafkaUserName(ArgumentMatchers.argThat(obj -> obj.getString("dn").equals("CN=producer1"))))
-                        .thenReturn("User:CN=producer1");
+                .thenReturn("User:CN=producer1");
 
         TopicAddProducerEvent event = new TopicAddProducerEvent(context, "producer1", new TopicMetadata());
         UpdateApplicationAclsListener listener = new UpdateApplicationAclsListener(kafkaClusters, subscriptionService,
@@ -197,7 +197,7 @@ class UpdateApplicationAclsListenerTest {
         when(applicationsService.getApplicationMetadata("_test", "producer1")).thenReturn(Optional.of(producer1));
         when(authenticationModule
                 .extractKafkaUserName(ArgumentMatchers.argThat(obj -> obj.getString("dn").equals("CN=producer1"))))
-                        .thenReturn("User:CN=producer1");
+                .thenReturn("User:CN=producer1");
 
         TopicRemoveProducerEvent event = new TopicRemoveProducerEvent(context, "producer1", new TopicMetadata());
         UpdateApplicationAclsListener listener = new UpdateApplicationAclsListener(kafkaClusters, subscriptionService,
@@ -225,7 +225,7 @@ class UpdateApplicationAclsListenerTest {
         when(applicationsService.getApplicationMetadata("_test", "app01")).thenReturn(Optional.of(app1));
         when(authenticationModule
                 .extractKafkaUserName(ArgumentMatchers.argThat(obj -> obj.getString("dn").equals("CN=testapp"))))
-                        .thenReturn("User:CN=testapp");
+                .thenReturn("User:CN=testapp");
 
         SubscriptionMetadata metadata = new SubscriptionMetadata();
         metadata.setClientApplicationId("app01");

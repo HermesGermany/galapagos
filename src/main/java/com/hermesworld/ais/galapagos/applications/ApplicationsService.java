@@ -50,10 +50,10 @@ public interface ApplicationsService {
      * method). <br>
      * Currently, this functionality is only available using the admin job "reset-application-prefixes", which indeed
      * <b>does</b> also refresh the associated Kafka ACLs.
-     * 
+     *
      * @param environmentId ID of Kafka cluster to operate on.
      * @param applicationId ID of application to reset prefixes of.
-     * 
+     *
      * @return A CompletableFuture completing once Application Metadata has been updated, or failing when any ID is
      *         invalid, or any other error occurs.
      */
