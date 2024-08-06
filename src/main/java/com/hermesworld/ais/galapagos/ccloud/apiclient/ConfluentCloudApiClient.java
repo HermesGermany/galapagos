@@ -52,7 +52,7 @@ public class ConfluentCloudApiClient {
 
     /**
      * Creates a new Confluent Cloud REST API Client, using a given API Key and secret.
-     * 
+     *
      * @param apiKey       API Key to use for authentication.
      * @param apiSecret    Secret for the API Key for authentication.
      * @param idCompatMode If <code>true</code>, the "internal" numeric ID of service accounts is retrieved and used for
@@ -114,7 +114,7 @@ public class ConfluentCloudApiClient {
     /**
      * Uses the unofficial endpoint https://api.confluent.cloud/service_accounts to retrieve the internal numeric IDs
      * for each Service Account in the current organization.
-     * 
+     *
      * @return A map from Confluent resource IDs (e.g. sa-xy123) to numeric service account IDs (e.g. 123456).
      */
     public Mono<Map<String, String>> getServiceAccountInternalIds() {

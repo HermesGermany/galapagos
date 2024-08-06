@@ -35,12 +35,12 @@ public interface KafkaAuthenticationModule {
     /**
      * Returns the Kafka username which represents the given application or developer from the given authentication data
      * which have been created by this module. The return value <b>must</b> include the <code>User:</code> prefix.
-     * 
+     *
      * @param existingAuthData Authentication data stored for the application or developer, which have been created by
      *                         this module.
-     * 
+     *
      * @return The Kafka username for the given application or developer, never <code>null</code>.
-     * 
+     *
      * @throws JSONException If authentication data could not be parsed, or if the username could not be determined from
      *                       the authentication data.
      */
