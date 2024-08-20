@@ -384,7 +384,6 @@ export class TopicsService {
                 producers: a.producers,
                 infoUrl: a.infoUrl
             }));
-            console.log('Mapping topic:', result);
             return result;
         };
 
