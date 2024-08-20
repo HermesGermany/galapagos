@@ -1,5 +1,10 @@
 import { Injectable } from '@angular/core';
-import { ApplicationInfo, ApplicationsService, BusinessCapabilityInfo, UserApplicationInfo } from './applications.service';
+import {
+    ApplicationInfo,
+    ApplicationsService,
+    BusinessCapabilityInfo,
+    UserApplicationInfo
+} from './applications.service';
 import { HttpClient } from '@angular/common/http';
 import { concatMap, map, take } from 'rxjs/operators';
 import { jsonHeader, ReplayContainer } from './services-common';
@@ -35,6 +40,8 @@ export interface Topic {
     deletable: boolean;
 
     producers: string[];
+
+    infoUrl?: string;
 
 }
 
@@ -374,9 +381,10 @@ export class TopicsService {
                 ownerApplication: apps.find(app => app.id === a.ownerApplicationId) || null,
                 subscriptionApprovalRequired: a.subscriptionApprovalRequired,
                 deletable: a.deletable,
-                producers: a.producers
+                producers: a.producers,
+                infoUrl: a.infoUrl
             }));
-
+            console.log('Mapping topic:', result);
             return result;
         };
 
