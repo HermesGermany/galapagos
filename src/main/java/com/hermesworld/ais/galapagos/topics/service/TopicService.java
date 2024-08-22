@@ -17,7 +17,7 @@ public interface TopicService {
 
     @CheckReturnValue
     CompletableFuture<TopicMetadata> createTopic(String environmentId, TopicMetadata topic, Integer partitionCount,
-            Map<String, String> topicConfig);
+                                                 Map<String, String> topicConfig);
 
     @CheckReturnValue
     boolean canDeleteTopic(String environmentId, String topicName);
@@ -37,8 +37,8 @@ public interface TopicService {
      * @param eolDate         EOL date until when the topic is guaranteed to exist. The topic can only be deleted before
      *                        this date when it has no more subscribers (standard topic deletion rules and order apply).
      * @return A future which completed once the topic has been deprecated on all known clusters, or which completes
-     *         exceptionally when the deprecation could not be performed successfully. Note that the topic may be
-     *         deprecated on <b>some</b> stages even if the future completes exceptionally.
+     * exceptionally when the deprecation could not be performed successfully. Note that the topic may be
+     * deprecated on <b>some</b> stages even if the future completes exceptionally.
      */
     @CheckReturnValue
     CompletableFuture<Void> markTopicDeprecated(String topicName, String deprecationText, LocalDate eolDate);
@@ -49,8 +49,8 @@ public interface TopicService {
      *
      * @param topicName Name of the topic.
      * @return A future which completed once the topic has been undeprecated on all known clusters, or which completes
-     *         exceptionally when the deprecation removal could not be performed successfully. Note that the topic may
-     *         be deprecated on <b>some</b> stages even if the future completes exceptionally.
+     * exceptionally when the deprecation removal could not be performed successfully. Note that the topic may
+     * be deprecated on <b>some</b> stages even if the future completes exceptionally.
      */
     @CheckReturnValue
     CompletableFuture<Void> unmarkTopicDeprecated(String topicName);
@@ -73,7 +73,7 @@ public interface TopicService {
      */
     @CheckReturnValue
     CompletableFuture<Void> setSubscriptionApprovalRequiredFlag(String environmentId, String topicName,
-            boolean subscriptionApprovalRequired);
+                                                                boolean subscriptionApprovalRequired);
 
     @CheckReturnValue
     List<TopicMetadata> listTopics(String environmentId);
@@ -89,7 +89,7 @@ public interface TopicService {
 
     @CheckReturnValue
     CompletableFuture<SchemaMetadata> addTopicSchemaVersion(String environmentId, String topicName, String jsonSchema,
-            String changeDescription, SchemaCompatCheckMode skipCompatCheck);
+                                                            String changeDescription, SchemaCompatCheckMode skipCompatCheck);
 
     @CheckReturnValue
     CompletableFuture<Void> deleteLatestTopicSchemaVersion(String environmentId, String topicName);
@@ -104,18 +104,18 @@ public interface TopicService {
      * @param environmentId Environment ID to add the schema version to.
      * @param metadata      Metadata of the schema to add, including topic name and schema version.
      * @return A Future which completes when the operation completes, or a failed future when the schema could not be
-     *         added.
+     * added.
      */
     @CheckReturnValue
     CompletableFuture<SchemaMetadata> addTopicSchemaVersion(String environmentId, SchemaMetadata metadata,
-            SchemaCompatCheckMode skipCompatCheck);
+                                                            SchemaCompatCheckMode skipCompatCheck);
 
     @CheckReturnValue
     CompletableFuture<TopicCreateParams> buildTopicCreateParams(String environmentId, String topicName);
 
     @CheckReturnValue
     CompletableFuture<List<ConsumerRecord<String, String>>> peekTopicData(String environmentId, String topicName,
-            int limit);
+                                                                          int limit);
 
     @CheckReturnValue
     CompletableFuture<Void> addTopicProducer(String environmentId, String topicName, String producerId);
@@ -125,5 +125,8 @@ public interface TopicService {
 
     @CheckReturnValue
     CompletableFuture<Void> changeTopicOwner(String environmentId, String topicName, String newApplicationOwnerId);
+
+    @CheckReturnValue
+    Optional<TopicMetadata> getSingleTopic(String environmentId, String topicName);
 
 }

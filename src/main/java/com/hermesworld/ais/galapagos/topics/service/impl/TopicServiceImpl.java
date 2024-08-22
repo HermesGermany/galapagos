@@ -22,6 +22,7 @@ import com.hermesworld.ais.galapagos.topics.service.TopicService;
 import com.hermesworld.ais.galapagos.util.FutureUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.common.errors.InvalidTopicException;
 import org.everit.json.schema.Schema;
 import org.everit.json.schema.SchemaException;
 import org.everit.json.schema.loader.SchemaLoader;
@@ -34,6 +35,7 @@ import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 @Service
@@ -65,8 +67,8 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
     static final String SCHEMA_TOPIC_NAME = "schemas";
 
     public TopicServiceImpl(KafkaClusters kafkaClusters, ApplicationsService applicationsService,
-            NamingService namingService, CurrentUserService userService, GalapagosTopicConfig topicSettings,
-            GalapagosEventManager eventManager, MessagesServiceFactory messagesServiceFactory) {
+                            NamingService namingService, CurrentUserService userService, GalapagosTopicConfig topicSettings,
+                            GalapagosEventManager eventManager, MessagesServiceFactory messagesServiceFactory) {
         this.kafkaClusters = kafkaClusters;
         this.applicationsService = applicationsService;
         this.namingService = namingService;
@@ -84,7 +86,7 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
 
     @Override
     public CompletableFuture<TopicMetadata> createTopic(String environmentId, TopicMetadata topic,
-            Integer partitionCount, Map<String, String> topicConfig) {
+                                                        Integer partitionCount, Map<String, String> topicConfig) {
         KnownApplication ownerApplication = applicationsService.getKnownApplication(topic.getOwnerApplicationId())
                 .orElse(null);
         if (ownerApplication == null) {
@@ -111,8 +113,7 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
 
         try {
             namingService.validateTopicName(topic.getName(), topic.getType(), ownerApplication);
-        }
-        catch (InvalidTopicNameException e) {
+        } catch (InvalidTopicNameException e) {
             return CompletableFuture.failedFuture(e);
         }
 
@@ -122,7 +123,7 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
 
             int replicationFactor = (topic.getType() != TopicType.INTERNAL
                     && topic.getCriticality() == Criticality.CRITICAL) ? topicSettings.getCriticalReplicationFactor()
-                            : topicSettings.getStandardReplicationFactor();
+                    : topicSettings.getStandardReplicationFactor();
 
             if (brokerCount < replicationFactor) {
                 replicationFactor = brokerCount;
@@ -180,7 +181,7 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
 
     @Override
     public CompletableFuture<Void> changeTopicOwner(String environmentId, String topicName,
-            String newApplicationOwnerId) {
+                                                    String newApplicationOwnerId) {
         return doOnAllStages(topicName, (kafkaCluster, metadata, eventSink) -> {
             if (metadata.getType() == TopicType.INTERNAL) {
                 return CompletableFuture.failedFuture(
@@ -196,6 +197,28 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
             return getTopicRepository(kafkaCluster).save(newTopic)
                     .thenCompose(o -> eventSink.handleTopicOwnerChanged(newTopic, previousOwnerApplicationId));
         });
+    }
+
+    @Override
+    public Optional<TopicMetadata> getSingleTopic(String environmentId, String topicName) {
+        KafkaCluster kafkaCluster = kafkaClusters.getEnvironment(environmentId).orElse(null);
+        if (kafkaCluster == null) {
+            return Optional.empty();
+        }
+
+        Optional<TopicMetadata> topicMetadata = getTopicRepository(kafkaCluster).getObject(topicName);
+        if (topicMetadata.isPresent() && topicMetadata.get().getType() == TopicType.INTERNAL) {
+            CompletableFuture<?> future = kafkaClusters.getEnvironment(environmentId).get().getTopicConfig(topicName);
+            try {
+                future.get();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            } catch (ExecutionException e) {
+                boolean b = e.getCause() instanceof InvalidTopicException;
+                throw new RuntimeException(e);
+            }
+        }
+        return topicMetadata;
     }
 
     @Override
@@ -215,7 +238,7 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
 
     @Override
     public CompletableFuture<Void> updateTopicDescription(String environmentId, String topicName,
-            String newDescription) {
+                                                          String newDescription) {
         return doWithClusterAndTopic(environmentId, topicName, (kafkaCluster, metadata, eventSink) -> {
             TopicMetadata newMeta = new TopicMetadata(metadata);
             newMeta.setDescription(newDescription);
@@ -253,7 +276,7 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
 
     @Override
     public CompletableFuture<Void> setSubscriptionApprovalRequiredFlag(String environmentId, String topicName,
-            boolean subscriptionApprovalRequired) {
+                                                                       boolean subscriptionApprovalRequired) {
         return doWithClusterAndTopic(environmentId, topicName, (kafkaCluster, metadata, eventSink) -> {
             if (metadata.isSubscriptionApprovalRequired() == subscriptionApprovalRequired) {
                 return FutureUtil.noop();
@@ -313,7 +336,7 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
 
     @Override
     public CompletableFuture<SchemaMetadata> addTopicSchemaVersion(String environmentId, String topicName,
-            String jsonSchema, String changeDescription, SchemaCompatCheckMode skipCompatCheck) {
+                                                                   String jsonSchema, String changeDescription, SchemaCompatCheckMode skipCompatCheck) {
         String userName = userService.getCurrentUserName().orElse(null);
         if (userName == null) {
             return CompletableFuture
@@ -378,7 +401,7 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
 
     @Override
     public CompletableFuture<SchemaMetadata> addTopicSchemaVersion(String environmentId, SchemaMetadata schemaMetadata,
-            SchemaCompatCheckMode skipCompatCheck) {
+                                                                   SchemaCompatCheckMode skipCompatCheck) {
         String userName = userService.getCurrentUserName().orElse(null);
         if (userName == null) {
             return CompletableFuture
@@ -408,8 +431,7 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
         try {
             newSchema = compileSchema(schemaMetadata.getJsonSchema());
 
-        }
-        catch (JSONException | SchemaException e) {
+        } catch (JSONException | SchemaException e) {
             return CompletableFuture.failedFuture(
                     new IllegalArgumentException(messagesService.getMessage("CANNOT_PARSE_JSON_SCHEMA"), e));
         }
@@ -454,23 +476,20 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
                     validator = new SchemaCompatibilityValidator(newSchema, previousSchema,
                             new ProducerCompatibilityErrorHandler(
                                     topicSettings.getSchemas().isAllowAddedPropertiesOnCommandTopics()));
-                }
-                else {
+                } else {
                     validator = new SchemaCompatibilityValidator(previousSchema, newSchema,
                             new ConsumerCompatibilityErrorHandler(
                                     topicSettings.getSchemas().isAllowRemovedOptionalProperties()));
                 }
 
                 validator.validate();
-            }
-            catch (JSONException e) {
+            } catch (JSONException e) {
                 // how, on earth, did it get into the repo then???
                 log.error(messagesService.getMessage("INVALID_SCHEMA_IN_REPOSITORY_FOUND_FOR_TOPIC", topicName,
                         environmentId, previousVersion.getSchemaVersion()));
 
                 // danger zone here: allow full replacement of invalid schema (fallthrough)
-            }
-            catch (IncompatibleSchemaException e) {
+            } catch (IncompatibleSchemaException e) {
                 return CompletableFuture.failedFuture(e);
             }
         }
@@ -503,7 +522,7 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
 
     @Override
     public CompletableFuture<List<ConsumerRecord<String, String>>> peekTopicData(String environmentId, String topicName,
-            int limit) {
+                                                                                 int limit) {
         // only allow peek of API topics
         TopicMetadata metadata = getTopic(environmentId, topicName).orElse(null);
         if (metadata == null) {
@@ -539,7 +558,7 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
     }
 
     private CompletableFuture<Void> doWithClusterAndTopic(String environmentId, String topicName,
-            TopicServiceAction action) {
+                                                          TopicServiceAction action) {
         KafkaCluster kafkaCluster = kafkaClusters.getEnvironment(environmentId).orElse(null);
         if (kafkaCluster == null) {
             return FutureUtil.noSuchEnvironment(environmentId);

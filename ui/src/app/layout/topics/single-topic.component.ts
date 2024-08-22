@@ -1,9 +1,9 @@
 import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { routerTransition } from '../../router.animations';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Topic, TopicsService, TopicSubscription } from '../../shared/services/topics.service';
-import { combineLatest, firstValueFrom, Observable } from 'rxjs';
-import { finalize, map, shareReplay } from 'rxjs/operators';
+import { combineLatest, firstValueFrom, Observable, of, switchMap } from 'rxjs';
+import { catchError, finalize, map, shareReplay } from 'rxjs/operators';
 import { ApplicationsService, UserApplicationInfo } from '../../shared/services/applications.service';
 import { EnvironmentsService, KafkaEnvironment } from '../../shared/services/environments.service';
 
@@ -46,7 +46,8 @@ export class SingleTopicComponent implements OnInit {
         private route: ActivatedRoute,
         private topicService: TopicsService,
         private environmentsService: EnvironmentsService,
-        private applicationsService: ApplicationsService
+        private applicationsService: ApplicationsService,
+        private router: Router
     ) {
         route.queryParamMap.subscribe({
             next: params => {
@@ -73,16 +74,28 @@ export class SingleTopicComponent implements OnInit {
 
         this.loading = listTopics.getLoadingStatus();
 
-        this.topic = combineLatest([this.topicName, listTopics.getObservable()])
-            .pipe(map(values => values[1].find(t => t.name === values[0])))
-            .pipe(shareReplay(1));
+        this.topic = combineLatest([this.topicName, this.selectedEnvironment]).pipe(
+            switchMap(([name, env]) => this.topicService.getSingleTopic(env.id, name).pipe(
+                catchError(err => {
+                    if (err.status === 404) {
+                        this.handleTopicNotFound();
+                        return of(null);
+                    }
+                    return of(null);
+                })
+            )),
+            shareReplay(1)
+        );
 
         combineLatest([this.topic, this.environmentsService.getCurrentEnvironment()]).subscribe({
-            next: value => {
-                if (value[0]) {
-                    this.loadSubscribers(value[0], value[1].id);
-                    this.translateParams.topicName = value[0].name;
+            next: ([topic, environment]) => {
+                if (topic) {
+                    this.loadSubscribers(topic, environment.id);
+                    this.translateParams.topicName = topic.name;
                 }
+            },
+            error: async () => {
+                await this.handleTopicNotFound();
             }
         });
 
@@ -93,6 +106,10 @@ export class SingleTopicComponent implements OnInit {
         this.environmentsService.getCurrentEnvironment().subscribe({ next: env => (this.translateParams.environmentName = env.name) });
     }
 
+
+    async handleTopicNotFound() {
+        await this.router.navigate(['/topics/not-found']);
+    }
 
     async refreshChildData() {
         const topic = await firstValueFrom(this.topic);

@@ -1,5 +1,10 @@
 import { Injectable } from '@angular/core';
-import { ApplicationInfo, ApplicationsService, BusinessCapabilityInfo, UserApplicationInfo } from './applications.service';
+import {
+    ApplicationInfo,
+    ApplicationsService,
+    BusinessCapabilityInfo,
+    UserApplicationInfo
+} from './applications.service';
 import { HttpClient } from '@angular/common/http';
 import { concatMap, map, take } from 'rxjs/operators';
 import { jsonHeader, ReplayContainer } from './services-common';
@@ -355,6 +360,10 @@ export class TopicsService {
 
     public getTopicData(topicName: string, environmentId: string): Promise<TopicRecord[]> {
         return firstValueFrom(this.http.get('/api/util/peek-data/' + environmentId + '/' + topicName).pipe(map(d => d as TopicRecord[])));
+    }
+
+    public getSingleTopic(environmentId: string, topicName: string): Observable<Topic> {
+        return this.http.get<Topic>(`/api/topics/${environmentId}/${topicName}`);
     }
 
     private buildTopicsRefresher(environmentId: string): () => Observable<Topic[]> {
