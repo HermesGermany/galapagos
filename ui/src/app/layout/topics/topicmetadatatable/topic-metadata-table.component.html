@@ -34,7 +34,7 @@
         <tr *ngIf="topic.infoUrl">
             <th scope="row">{{ 'More Infos' | translate }}</th>
             <td>
-                <a [href]="topic.infoUrl" target="_blank">{{ 'LeanIX Factsheet' }}</a>
+                <a [href]="topic.infoUrl" target="_blank">{{ topic.infoUrl }}</a>
             </td>
         </tr>
         <tr *ngIf="topic.deprecated">
