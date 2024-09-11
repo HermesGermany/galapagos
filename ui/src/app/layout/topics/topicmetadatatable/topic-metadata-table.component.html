@@ -31,10 +31,10 @@
                 </button>
             </td>
         </tr>
-        <tr *ngIf="topic.infoUrl">
+        <tr *ngIf="topic.externalInterfaceUrl">
             <th scope="row">{{ 'More Infos' | translate }}</th>
             <td>
-                <a [href]="topic.infoUrl" target="_blank">{{ topic.infoUrl }}</a>
+                <a [href]="topic.externalInterfaceUrl" target="_blank">{{ topic.externalInterfaceUrl }}</a>
             </td>
         </tr>
         <tr *ngIf="topic.deprecated">

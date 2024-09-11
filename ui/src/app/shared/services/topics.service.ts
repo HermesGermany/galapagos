@@ -41,7 +41,7 @@ export interface Topic {
 
     producers: string[];
 
-    infoUrl?: string;
+    externalInterfaceUrl?: string;
 
 }
 
@@ -382,7 +382,7 @@ export class TopicsService {
                 subscriptionApprovalRequired: a.subscriptionApprovalRequired,
                 deletable: a.deletable,
                 producers: a.producers,
-                infoUrl: a.infoUrl
+                externalInterfaceUrl: a.externalInterfaceUrl
             }));
             return result;
         };
