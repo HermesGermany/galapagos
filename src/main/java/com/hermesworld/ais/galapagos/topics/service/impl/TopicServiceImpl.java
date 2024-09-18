@@ -22,6 +22,7 @@ import com.hermesworld.ais.galapagos.topics.service.TopicService;
 import com.hermesworld.ais.galapagos.util.FutureUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.common.errors.InvalidTopicException;
 import org.everit.json.schema.Schema;
 import org.everit.json.schema.SchemaException;
 import org.everit.json.schema.loader.SchemaLoader;
@@ -34,6 +35,7 @@ import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 @Service
@@ -196,6 +198,30 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
             return getTopicRepository(kafkaCluster).save(newTopic)
                     .thenCompose(o -> eventSink.handleTopicOwnerChanged(newTopic, previousOwnerApplicationId));
         });
+    }
+
+    @Override
+    public Optional<TopicMetadata> getSingleTopic(String environmentId, String topicName) {
+        KafkaCluster kafkaCluster = kafkaClusters.getEnvironment(environmentId).orElse(null);
+        if (kafkaCluster == null) {
+            return Optional.empty();
+        }
+
+        Optional<TopicMetadata> topicMetadata = getTopicRepository(kafkaCluster).getObject(topicName);
+        if (topicMetadata.isPresent() && topicMetadata.get().getType() == TopicType.INTERNAL) {
+            CompletableFuture<?> future = kafkaClusters.getEnvironment(environmentId).get().getTopicConfig(topicName);
+            try {
+                future.get();
+            }
+            catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            catch (ExecutionException e) {
+                boolean b = e.getCause() instanceof InvalidTopicException;
+                throw new RuntimeException(e);
+            }
+        }
+        return topicMetadata;
     }
 
     @Override

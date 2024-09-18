@@ -84,6 +84,15 @@ public class TopicController {
                 .collect(Collectors.toList());
     }
 
+    @GetMapping(value = "/api/topics/{environmentId}/{topicName}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public Optional<TopicMetadata> getSingleTopic(@PathVariable String environmentId, @PathVariable String topicName) {
+        kafkaEnvironments.getEnvironmentMetadata(environmentId).orElseThrow(notFound);
+        List<String> userAppIds = applicationsService.getUserApplications().stream().map(KnownApplication::getId)
+                .toList();
+        return topicService.getSingleTopic(environmentId, topicName)
+                .filter(t -> userAppIds.contains(t.getOwnerApplicationId()));
+    }
+
     @GetMapping(value = "/api/topicconfigs/{environmentId}/{topicName}", produces = MediaType.APPLICATION_JSON_VALUE)
     public List<TopicConfigEntryDto> getTopicConfig(@PathVariable String environmentId,
             @PathVariable String topicName) {

@@ -126,4 +126,7 @@ public interface TopicService {
     @CheckReturnValue
     CompletableFuture<Void> changeTopicOwner(String environmentId, String topicName, String newApplicationOwnerId);
 
+    @CheckReturnValue
+    Optional<TopicMetadata> getSingleTopic(String environmentId, String topicName);
+
 }

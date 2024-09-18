@@ -364,6 +364,10 @@ export class TopicsService {
         return firstValueFrom(this.http.get('/api/util/peek-data/' + environmentId + '/' + topicName).pipe(map(d => d as TopicRecord[])));
     }
 
+    public getSingleTopic(environmentId: string, topicName: string): Observable<Topic> {
+        return this.http.get<Topic>(`/api/topics/${environmentId}/${topicName}`);
+    }
+
     private buildTopicsRefresher(environmentId: string): () => Observable<Topic[]> {
         const toTopicArray = (values: [any, ApplicationInfo[]]) => {
             const arr: Array<any> = values[0] as Array<any>;
