@@ -3,7 +3,7 @@ import { SidebarComponent } from './sidebar.component';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { LanguageTranslationModule } from '../../../shared/modules/language-translation/language-translation.module';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { PageHeaderModule } from '../../../shared';
@@ -18,6 +18,7 @@ import { DashboardComponent } from '../../dashboard/dashboard.component';
 import { AuthService } from '../../../shared/services/auth.service';
 import { BehaviorSubject } from 'rxjs';
 import { MockAuthService } from '../../../shared/util/test-util';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('SidebarComponent', () => {
     let component: SidebarComponent;
@@ -30,23 +31,19 @@ describe('SidebarComponent', () => {
 
     beforeEach(() => {
         TestBed.configureTestingModule({
-            imports: [
-                RouterTestingModule.withRoutes(routes),
+            declarations: [SidebarComponent],
+            imports: [RouterTestingModule.withRoutes(routes),
                 TranslateModule.forRoot(),
                 LanguageTranslationModule,
                 NgbModule,
-                HttpClientTestingModule,
                 BrowserAnimationsModule,
                 PageHeaderModule,
                 AdminModule,
-                DashboardModule
-            ],
-            declarations: [SidebarComponent],
+                DashboardModule],
             providers: [TranslateService,
                 { provide: AuthService, useClass: MockAuthService },
                 Location,
-                ApplicationsService
-            ]
+                ApplicationsService, provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
         }).compileComponents();
 
         fixture = TestBed.createComponent(SidebarComponent);

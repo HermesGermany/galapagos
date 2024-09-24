@@ -8,7 +8,7 @@ import { ToastService } from '../../shared/modules/toast/toast.service';
 import { TranslateService } from '@ngx-translate/core';
 import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { LanguageTranslationModule } from '../../shared/modules/language-translation/language-translation.module';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { PageHeaderModule } from '../../shared';
@@ -20,6 +20,7 @@ import { ApiKeyService } from '../../shared/services/apikey.service';
 import { CertificateService } from '../../shared/services/certificates.service';
 import { AuthService } from '../../shared/services/auth.service';
 import { MockAuthService } from '../../shared/util/test-util';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('ApplicationsComponent', () => {
     let component: ApplicationsComponent;
@@ -28,17 +29,14 @@ describe('ApplicationsComponent', () => {
     beforeEach((() => {
         TestBed.configureTestingModule({
             declarations: [ApplicationsComponent],
-            imports: [
-                LanguageTranslationModule,
+            imports: [LanguageTranslationModule,
                 NgbModule,
-                HttpClientTestingModule,
                 RouterTestingModule,
                 BrowserAnimationsModule,
                 PageHeaderModule,
                 FormsModule,
                 CommonModule,
-                SpinnerWhileModule
-            ],
+                SpinnerWhileModule],
             providers: [
                 { provide: AuthService, useClass: MockAuthService },
                 RouterModule,
@@ -50,7 +48,9 @@ describe('ApplicationsComponent', () => {
                 ServerInfoService,
                 ToastService,
                 TranslateService,
-                NgbModal
+                NgbModal,
+                provideHttpClient(withInterceptorsFromDi()),
+                provideHttpClientTesting()
             ]
         }).compileComponents();
 

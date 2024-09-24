@@ -12,11 +12,12 @@ import { RouterTestingModule } from '@angular/router/testing';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { firstValueFrom, of } from 'rxjs';
 import { PageHeaderModule } from '../../shared';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { By } from '@angular/platform-browser';
 import { LanguageTranslationModule } from '../../shared/modules/language-translation/language-translation.module';
 import { AuthService } from '../../shared/services/auth.service';
 import { MockAuthService } from '../../shared/util/test-util';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('DashboardComponent', () => {
     let component: DashboardComponent;
@@ -24,16 +25,13 @@ describe('DashboardComponent', () => {
 
     beforeEach(() => {
         TestBed.configureTestingModule({
-            imports: [
-                TranslateModule.forRoot(),
+            declarations: [DashboardComponent],
+            imports: [TranslateModule.forRoot(),
                 LanguageTranslationModule,
                 NgbModule,
-                HttpClientTestingModule,
                 RouterTestingModule,
                 BrowserAnimationsModule,
-                PageHeaderModule
-            ],
-            declarations: [DashboardComponent],
+                PageHeaderModule],
             providers: [
                 { provide: AuthService, useClass: MockAuthService },
                 EnvironmentsService,
@@ -41,7 +39,9 @@ describe('DashboardComponent', () => {
                 ApplicationsService,
                 ServerInfoService,
                 Location,
-                TranslateService
+                TranslateService,
+                provideHttpClient(withInterceptorsFromDi()),
+                provideHttpClientTesting()
             ]
         }).compileComponents();
 

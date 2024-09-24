@@ -10,7 +10,7 @@ import { CreateTopicComponent } from './createtopic.component';
 import { FormsModule } from '@angular/forms';
 import { SpinnerWhileModule } from '../../shared/modules/spinner-while/spinner-while.module';
 import { TopicsService } from '../../shared/services/topics.service';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { of } from 'rxjs';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterTestingModule } from '@angular/router/testing';
@@ -18,6 +18,7 @@ import { ApiKeyService } from '../../shared/services/apikey.service';
 import { CertificateService } from '../../shared/services/certificates.service';
 import { AuthService } from '../../shared/services/auth.service';
 import { MockAuthService } from '../../shared/util/test-util';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('CreateTopicComponent', () => {
     let component: CreateTopicComponent;
@@ -25,17 +26,14 @@ describe('CreateTopicComponent', () => {
 
     beforeEach(() => {
         TestBed.configureTestingModule({
-            imports: [
-                TranslateModule.forRoot(),
+            declarations: [CreateTopicComponent],
+            imports: [TranslateModule.forRoot(),
                 LanguageTranslationModule,
-                HttpClientTestingModule,
                 NgbModule,
                 FormsModule,
                 SpinnerWhileModule,
                 NoopAnimationsModule,
-                RouterTestingModule
-            ],
-            declarations: [CreateTopicComponent],
+                RouterTestingModule],
             providers: [TranslateService,
                 { provide: AuthService, useClass: MockAuthService },
                 ToastService,
@@ -44,8 +42,7 @@ describe('CreateTopicComponent', () => {
                 EnvironmentsService,
                 ApplicationsService,
                 ServerInfoService,
-                CertificateService
-            ]
+                CertificateService, provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
         }).compileComponents();
 
         fixture = TestBed.createComponent(CreateTopicComponent);
