@@ -129,7 +129,7 @@ public class NotificationEventListener
         return notificationService.notifyApplicationTopicOwners(clientApplicationId, params);
     }
 
-    private String abbreviateTopicName(String topicName) {
+    public String abbreviateTopicName(String topicName) {
         String[] blocks = topicName.split("\\.");
         if (blocks.length < 4) {
             return topicName;
@@ -165,6 +165,14 @@ public class NotificationEventListener
         // only notify for production environment, to avoid N mails for N environments
         if (kafkaClusters.getProductionEnvironmentId().equals(event.getContext().getKafkaCluster().getId())) {
             return handleTopicChange(event, "als \"deprecated\" markiert");
+        }
+        return FutureUtil.noop();
+    }
+
+    @Override
+    public CompletableFuture<Void> handleMissingInternalTopicDeleted(TopicEvent event) {
+        if (kafkaClusters.getProductionEnvironmentId().equals(event.getContext().getKafkaCluster().getId())) {
+            return handleInternalTopicDeleted(event);
         }
         return FutureUtil.noop();
     }
@@ -293,6 +301,25 @@ public class NotificationEventListener
                 buildUIUrl(event, "/topics/" + topicName + "?environment=" + environmentId));
         params.addVariable("environment_name", environmentName);
         return notificationService.notifySubscribers(environmentId, topicName, params, userName);
+    }
+
+    private CompletableFuture<Void> handleInternalTopicDeleted(TopicEvent event) {
+        String environmentId = event.getContext().getKafkaCluster().getId();
+        String topicName = event.getMetadata().getName();
+        String topicNameAbbreviated = abbreviateTopicName(topicName);
+        String userName = event.getContext().getContextValue(USER_NAME_KEY).map(Object::toString).orElse(unknownUser);
+        String environmentName = kafkaClusters.getEnvironmentMetadata(environmentId)
+                .map(KafkaEnvironmentConfig::getName).orElse(unknownEnv);
+
+        NotificationParams params = new NotificationParams("topic-deleted");
+        params.addVariable("user_name", userName);
+        params.addVariable("topic_name", topicName);
+        params.addVariable("topic_name_abbreviated", topicNameAbbreviated);
+        params.addVariable("environment_name", environmentName);
+        params.addVariable("galapagos_topic_url",
+                buildUIUrl(event, "/topics/" + topicName + "?environment=" + environmentId));
+
+        return notificationService.notifyApplicationTopicOwners(event.getMetadata().getOwnerApplicationId(), params);
     }
 
     @Override

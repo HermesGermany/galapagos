@@ -71,6 +71,11 @@ public class AuditEventsListener implements TopicEventsListener, SubscriptionEve
     }
 
     @Override
+    public CompletableFuture<Void> handleMissingInternalTopicDeleted(TopicEvent event) {
+        return FutureUtil.noop();
+    }
+
+    @Override
     public CompletableFuture<Void> handleTopicDescriptionChanged(TopicEvent event) {
         return handleTopicEvent(event, "TOPIC_DESCRIPTION_CHANGED");
     }

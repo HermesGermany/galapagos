@@ -186,6 +186,11 @@ public class DevUserAclListener implements TopicEventsListener, SubscriptionEven
     }
 
     @Override
+    public CompletableFuture<Void> handleMissingInternalTopicDeleted(TopicEvent event) {
+        return FutureUtil.noop();
+    }
+
+    @Override
     @CheckReturnValue
     public CompletableFuture<Void> handleTopicUndeprecated(TopicEvent event) {
         return FutureUtil.noop();

@@ -21,7 +21,6 @@ import java.util.concurrent.CompletableFuture;
  * </ul>
  *
  * @author AlbrechtFlo
- *
  */
 @Component
 public class SubscriptionTopicListener implements TopicEventsListener {
@@ -56,6 +55,11 @@ public class SubscriptionTopicListener implements TopicEventsListener {
 
     @Override
     public CompletableFuture<Void> handleTopicDeprecated(TopicEvent event) {
+        return FutureUtil.noop();
+    }
+
+    @Override
+    public CompletableFuture<Void> handleMissingInternalTopicDeleted(TopicEvent event) {
         return FutureUtil.noop();
     }
 

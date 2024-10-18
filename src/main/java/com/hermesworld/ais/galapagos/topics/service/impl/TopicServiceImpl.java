@@ -201,27 +201,46 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
     }
 
     @Override
+    public CompletableFuture<Boolean> verifyInternalTopicExists(String environmentId, String topicName) {
+        Optional<KafkaCluster> kafkaClusterOpt = kafkaClusters.getEnvironment(environmentId);
+        if (kafkaClusterOpt.isEmpty()) {
+            return CompletableFuture.completedFuture(false);
+        }
+        KafkaCluster kafkaCluster = kafkaClusterOpt.get();
+
+        Optional<TopicMetadata> topicMetadata = getTopicRepository(kafkaCluster).getObject(topicName);
+        if (topicMetadata.isPresent() && topicMetadata.get().getType() != TopicType.INTERNAL) {
+            return CompletableFuture.completedFuture(true);
+        }
+
+        CompletableFuture<?> future = kafkaCluster.getTopicConfig(topicName);
+        try {
+            future.get();
+        }
+        catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        catch (ExecutionException e) {
+            if (e.getCause() instanceof InvalidTopicException) {
+                GalapagosEventSink eventSink = eventManager.newEventSink(kafkaCluster);
+                TopicMetadata metadata = getTopicRepository(kafkaCluster).getObject(topicName).orElse(null);
+                getTopicRepository(kafkaCluster).delete(metadata)
+                        .thenCompose(o2 -> eventSink.handleTopicDeleted(metadata));
+                getTopicRepository(kafkaCluster).save(metadata)
+                        .thenCompose(o2 -> eventSink.handleMissingInternalTopicDeleted(metadata));
+            }
+            throw new RuntimeException(e);
+        }
+        return CompletableFuture.completedFuture(false);
+    }
+
+    @Override
     public Optional<TopicMetadata> getSingleTopic(String environmentId, String topicName) {
         KafkaCluster kafkaCluster = kafkaClusters.getEnvironment(environmentId).orElse(null);
         if (kafkaCluster == null) {
             return Optional.empty();
         }
-
-        Optional<TopicMetadata> topicMetadata = getTopicRepository(kafkaCluster).getObject(topicName);
-        if (topicMetadata.isPresent() && topicMetadata.get().getType() == TopicType.INTERNAL) {
-            CompletableFuture<?> future = kafkaClusters.getEnvironment(environmentId).get().getTopicConfig(topicName);
-            try {
-                future.get();
-            }
-            catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-            catch (ExecutionException e) {
-                boolean b = e.getCause() instanceof InvalidTopicException;
-                throw new RuntimeException(e);
-            }
-        }
-        return topicMetadata;
+        return getTopicRepository(kafkaCluster).getObject(topicName);
     }
 
     @Override

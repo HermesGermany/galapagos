@@ -12,6 +12,8 @@ public interface TopicEventsListener {
 
     CompletableFuture<Void> handleTopicDeprecated(TopicEvent event);
 
+    CompletableFuture<Void> handleMissingInternalTopicDeleted(TopicEvent event);
+
     CompletableFuture<Void> handleTopicUndeprecated(TopicEvent event);
 
     CompletableFuture<Void> handleTopicSchemaAdded(TopicSchemaAddedEvent event);

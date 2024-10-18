@@ -63,6 +63,11 @@ public class ChangesServiceImpl
     }
 
     @Override
+    public CompletableFuture<Void> handleMissingInternalTopicDeleted(TopicEvent event) {
+        return null;
+    }
+
+    @Override
     public CompletableFuture<Void> handleTopicUndeprecated(TopicEvent event) {
         return logChange(ChangeBase.unmarkTopicDeprecated(event.getMetadata().getName()), event);
     }

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title th:text="'Kafka-Topic ' + ${topic_name_abbreviated} + ' has been deleted'">Kafka Topic has been
+        deleted</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+</head>
+<!--/*@thymesVar id="user_name" type="java.lang.String"*/-->
+<!--/*@thymesVar id="topic_name" type="java.lang.String"*/-->
+<!--/*@thymesVar id="galapagos_topic_url" type="java.lang.String"*/-->
+<!--/*@thymesVar id="environment_name" type="java.lang.String"*/-->
+<body style="font-family: Helvetica, Arial, sans-serif; font-size: 11pt">
+<p>
+    Hello dear Galapagos user,
+</p>
+<p>User <b><i><span th:text="${user_name}">someuser</span></i></b> has deleted the Kafka Topic <b>
+    <span th:text="${topic_name}">de.hlg.something.SomeTopic</span></b> in the Kafka Environment <b>
+    <span th:text="${environment_name}">DEV/TEST</span></b>.
+</p>
+<p>Please be aware that this topic is no longer available. If this deletion impacts your application(s), take the
+    necessary actions.</p>
+<table style="width:300px; margin-left:auto; margin-right:auto">
+    <tr>
+        <td>
+            <div style="background-color: #0091CD; border-radius: 4px; text-align: center; padding: 1em 1.5em">
+                <a style="font-weight: bold; font-size:16pt; color: white; text-decoration: none"
+                   th:href="${galapagos_topic_url}">Open Galapagos</a>
+            </div>
+        </td>
+    </tr>
+</table>
+<br><br>
+<p style="text-align: center"></p>
+<p><i style="font-size: 10pt">This email was sent to you by Galapagos because you are an Application Topic Owner of
+    at least one application that had subscribed to this topic.<br>
+    If you believe you should not have received this email, please contact a Galapagos administrator.</i>
+</p>
+</body>
+</html>

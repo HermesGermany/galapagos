@@ -33,6 +33,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -86,6 +87,10 @@ public class TopicController {
 
     @GetMapping(value = "/api/topics/{environmentId}/{topicName}", produces = MediaType.APPLICATION_JSON_VALUE)
     public Optional<TopicMetadata> getSingleTopic(@PathVariable String environmentId, @PathVariable String topicName) {
+        CompletableFuture<Boolean> future = topicService.verifyInternalTopicExists(environmentId, topicName);
+        if (!future.join()) {
+            return Optional.empty();
+        }
         kafkaEnvironments.getEnvironmentMetadata(environmentId).orElseThrow(notFound);
         List<String> userAppIds = applicationsService.getUserApplications().stream().map(KnownApplication::getId)
                 .toList();

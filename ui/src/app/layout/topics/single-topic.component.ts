@@ -20,6 +20,8 @@ export class SingleTopicComponent implements OnInit {
 
     topicName: Observable<string>;
 
+    environmentName: Observable<string>
+
     loading: Observable<boolean>;
 
     topicSubscribers: Observable<TopicSubscription[]>;
@@ -69,7 +71,10 @@ export class SingleTopicComponent implements OnInit {
     ngOnInit() {
         this.topicName = this.route.params.pipe(map(params => params['name'] as string)).pipe(shareReplay(1));
         this.selectedEnvironment = this.environmentsService.getCurrentEnvironment();
-
+        this.environmentName = this.route.params.pipe(map(params => params['environment'] as string)).pipe(shareReplay(1));
+        const singleTopic = this.topicService.getSingleTopic('nonprod', 'de.hlg.data.sales.graphql-test');
+        console.log('Show Topic Info : ', singleTopic);
+        //this.loading = singleTopic.getLoadingStatus();
         const listTopics = this.topicService.listTopics();
 
         this.loading = listTopics.getLoadingStatus();
