@@ -24,19 +24,14 @@
         <sonar.sources>src/main/java</sonar.sources>
         <sonar.exclusions>src/main/resources/*</sonar.exclusions>
         <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
+        <!-- Spring Framework Override to temporarily fix security issues -->
+        <spring-framework.version>6.1.14</spring-framework.version>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
-        <!-- override security-affected version in starter-web -->
-        <!-- remove when upgrading Spring Boot version -->
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-webmvc</artifactId>
-            <version>6.1.14</version>
         </dependency>
         <dependency>
             <groupId>org.yaml</groupId>
@@ -81,13 +76,6 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webflux</artifactId>
-        </dependency>
-        <!-- override security-affected version in starter-webflux -->
-        <!-- remove when upgrading Spring Boot version -->
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-webflux</artifactId>
-            <version>6.1.14</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.kafka</groupId>
