@@ -20,7 +20,7 @@ public class KnownApplicationDto {
     private final boolean valid;
 
     public KnownApplicationDto(String id, String name, String infoUrl, List<BusinessCapabilityDto> businessCapabilities,
-                               List<String> aliases, boolean valid) {
+            List<String> aliases, boolean valid) {
         this.id = id;
         this.name = name;
         this.infoUrl = infoUrl;
