@@ -170,6 +170,11 @@ public class NotificationEventListener
     }
 
     @Override
+    public CompletableFuture<Void> handleMissingInternalTopicDeleted(TopicEvent event) {
+        return FutureUtil.noop();
+    }
+
+    @Override
     public CompletableFuture<Void> handleTopicUndeprecated(TopicEvent event) {
         // only notify for production environment, to avoid N mails for N environments
         if (kafkaClusters.getProductionEnvironmentId().equals(event.getContext().getKafkaCluster().getId())) {
@@ -293,6 +298,25 @@ public class NotificationEventListener
                 buildUIUrl(event, "/topics/" + topicName + "?environment=" + environmentId));
         params.addVariable("environment_name", environmentName);
         return notificationService.notifySubscribers(environmentId, topicName, params, userName);
+    }
+
+    private CompletableFuture<Void> handleInternalTopicDeleted(TopicEvent event) {
+        String environmentId = event.getContext().getKafkaCluster().getId();
+        String topicName = event.getMetadata().getName();
+        String topicNameAbbreviated = abbreviateTopicName(topicName);
+        String userName = event.getContext().getContextValue(USER_NAME_KEY).map(Object::toString).orElse(unknownUser);
+        String environmentName = kafkaClusters.getEnvironmentMetadata(environmentId)
+                .map(KafkaEnvironmentConfig::getName).orElse(unknownEnv);
+
+        NotificationParams params = new NotificationParams("internal-topic-deleted");
+        params.addVariable("user_name", userName);
+        params.addVariable("topic_name", topicName);
+        params.addVariable("topic_name_abbreviated", topicNameAbbreviated);
+        params.addVariable("environment_name", environmentName);
+        params.addVariable("galapagos_topic_url",
+                buildUIUrl(event, "/topics/" + topicName + "?environment=" + environmentId));
+
+        return notificationService.notifyApplicationTopicOwners(event.getMetadata().getOwnerApplicationId(), params);
     }
 
     @Override

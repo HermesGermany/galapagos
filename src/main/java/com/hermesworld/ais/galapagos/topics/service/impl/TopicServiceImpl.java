@@ -22,6 +22,7 @@ import com.hermesworld.ais.galapagos.topics.service.TopicService;
 import com.hermesworld.ais.galapagos.util.FutureUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.common.errors.InvalidTopicException;
 import org.everit.json.schema.Schema;
 import org.everit.json.schema.SchemaException;
 import org.everit.json.schema.loader.SchemaLoader;
@@ -34,6 +35,7 @@ import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 @Service
@@ -196,6 +198,51 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
             return getTopicRepository(kafkaCluster).save(newTopic)
                     .thenCompose(o -> eventSink.handleTopicOwnerChanged(newTopic, previousOwnerApplicationId));
         });
+    }
+
+    @Override
+    public CompletableFuture<Boolean> verifyInternalTopicExists(String environmentId, String topicName) {
+        Optional<KafkaCluster> kafkaClusterOpt = kafkaClusters.getEnvironment(environmentId);
+        if (kafkaClusterOpt.isEmpty()) {
+            return CompletableFuture.completedFuture(false);
+        }
+        KafkaCluster kafkaCluster = kafkaClusterOpt.get();
+
+        Optional<TopicMetadata> topicMetadata = getTopicRepository(kafkaCluster).getObject(topicName);
+        if (topicMetadata.isPresent() && topicMetadata.get().getType() != TopicType.INTERNAL) {
+            return CompletableFuture.completedFuture(false);
+        }
+
+        CompletableFuture<?> future = kafkaCluster.getTopicConfig(topicName);
+        try {
+            future.get();
+            return CompletableFuture
+                    .completedFuture(topicMetadata.isPresent() && topicMetadata.get().getType() == TopicType.INTERNAL);
+        }
+        catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        catch (ExecutionException e) {
+            if (e.getCause() instanceof InvalidTopicException) {
+                GalapagosEventSink eventSink = eventManager.newEventSink(kafkaCluster);
+                TopicMetadata metadata = getTopicRepository(kafkaCluster).getObject(topicName).orElse(null);
+                getTopicRepository(kafkaCluster).delete(metadata)
+                        .thenCompose(o2 -> eventSink.handleTopicDeleted(metadata));
+                getTopicRepository(kafkaCluster).save(metadata)
+                        .thenCompose(o2 -> eventSink.handleMissingInternalTopicDeleted(metadata));
+            }
+            throw new RuntimeException(e);
+        }
+        return CompletableFuture.completedFuture(false);
+    }
+
+    @Override
+    public Optional<TopicMetadata> getSingleTopic(String environmentId, String topicName) {
+        KafkaCluster kafkaCluster = kafkaClusters.getEnvironment(environmentId).orElse(null);
+        if (kafkaCluster == null) {
+            return Optional.empty();
+        }
+        return getTopicRepository(kafkaCluster).getObject(topicName);
     }
 
     @Override

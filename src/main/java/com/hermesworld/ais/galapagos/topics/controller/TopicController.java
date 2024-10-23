@@ -33,6 +33,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -82,6 +83,22 @@ public class TopicController {
                 .filter(t -> t.getType() != TopicType.INTERNAL || userAppIds.contains(t.getOwnerApplicationId()))
                 .map(t -> toDto(environmentId, t, topicService.canDeleteTopic(environmentId, t.getName())))
                 .collect(Collectors.toList());
+    }
+
+    @GetMapping(value = "/api/topics/{environmentId}/{topicName}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public Optional<TopicMetadata> getSingleTopic(@PathVariable String environmentId, @PathVariable String topicName) {
+        CompletableFuture<Boolean> future = topicService.verifyInternalTopicExists(environmentId, topicName);
+        try {
+            future.get();
+        }
+        catch (InterruptedException | ExecutionException e) {
+            throw new RuntimeException(e);
+        }
+        kafkaEnvironments.getEnvironmentMetadata(environmentId).orElseThrow(notFound);
+        List<String> userAppIds = applicationsService.getUserApplications().stream().map(KnownApplication::getId)
+                .toList();
+        return topicService.getSingleTopic(environmentId, topicName)
+                .filter(t -> userAppIds.contains(t.getOwnerApplicationId()));
     }
 
     @GetMapping(value = "/api/topicconfigs/{environmentId}/{topicName}", produces = MediaType.APPLICATION_JSON_VALUE)
