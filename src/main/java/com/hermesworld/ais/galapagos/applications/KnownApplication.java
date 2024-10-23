@@ -7,11 +7,8 @@ import java.util.Set;
 /**
  * An application "known" to Galapagos. The list of all known applications form the basis from which the users can
  * select "their" applications and create Application Owner Requests for. Known applications must be registered on a
- * Kafka Cluster using
- * {@link ApplicationsService#createApplicationCertificateAndPrivateKey(String, String, String, java.io.OutputStream)}
- * or
- * {@link ApplicationsService#createApplicationCertificateFromCsr(String, String, String, String, java.io.OutputStream)}
- * to retrieve a Client Certificate for this application.
+ * Kafka Cluster using one of the registration methods in ApplicationService to retrieve Kafka Client Credentials for
+ * this application.
  *
  * @author AlbrechtFlo
  *
@@ -60,4 +57,11 @@ public interface KnownApplication {
      */
     List<BusinessCapability> getBusinessCapabilities();
 
+    /**
+     * Returns a flag if the application should be treated as "valid". "Invalid" usually means that the system providing
+     * the list of applications no longer would provide this application (e.g. EOL).
+     *
+     * @return A flag if the application should be treated as "valid" or not.
+     */
+    boolean isValid();
 }

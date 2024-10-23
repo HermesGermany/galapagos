@@ -8,7 +8,7 @@ import {
     ApplicationsService,
     UserApplicationInfo
 } from '../../shared/services/applications.service';
-import { combineLatest, Observable, of } from 'rxjs';
+import { combineLatest, firstValueFrom, Observable, of } from 'rxjs';
 import { toNiceTimestamp } from '../../shared/util/time-util';
 
 import { DateTime } from 'luxon';
@@ -22,6 +22,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ApiKeyService } from '../../shared/services/apikey.service';
 import { ApplicationCertificate, CertificateService } from '../../shared/services/certificates.service';
 import { copy } from '../../shared/util/copy-util';
+import { AuthService } from '../../shared/services/auth.service';
 
 export interface UserApplicationInfoWithTopics extends UserApplicationInfo {
 
@@ -104,11 +105,12 @@ export class ApplicationsComponent implements OnInit {
         private topicsService: TopicsService,
         private toasts: ToastService,
         private translateService: TranslateService,
-        private certificateService: CertificateService
+        private certificateService: CertificateService,
+        private authService: AuthService
     ) {
     }
 
-    ngOnInit() {
+    async ngOnInit() {
         const now = DateTime.now();
 
         this.currentLang = this.translateService.onLangChange.pipe(map(evt => evt.lang))
@@ -116,12 +118,20 @@ export class ApplicationsComponent implements OnInit {
 
         const relevant = (req: ApplicationOwnerRequest) => DateTime.fromISO(req.lastStatusChangeAt)
             .minus(30, 'days') < now;
-        this.availableApplications = this.applicationsService.getAvailableApplications(true).pipe(
-            map(val => {
+
+        const admin = await firstValueFrom(this.authService.admin);
+
+        const filterInvalidApps = (ls: ApplicationInfo[]) => {
+            return admin ? ls : ls.filter(app => app.valid);
+        }
+
+        this.availableApplications = this.applicationsService.getAvailableApplications(true)
+            .pipe(map(ls => filterInvalidApps(ls)))
+            .pipe(map(val => {
                 this.appListLoading = false;
                 return val;
             })
-        );
+            );
         this.userRequests = this.applicationsService
             .getUserApplicationOwnerRequests()
             .pipe(map(requests => requests.filter(req => relevant(req))));
@@ -148,7 +158,7 @@ export class ApplicationsComponent implements OnInit {
 
         this.currentEnv = this.environmentsService.getCurrentEnvironment();
 
-        this.applicationsService.refresh().then();
+        await this.applicationsService.refresh();
     }
 
     submitRequest(): Promise<any> {

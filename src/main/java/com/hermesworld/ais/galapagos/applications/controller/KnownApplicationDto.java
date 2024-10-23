@@ -1,29 +1,32 @@
 package com.hermesworld.ais.galapagos.applications.controller;
 
-import java.util.List;
-
 import lombok.Getter;
+
+import java.util.List;
 
 @Getter
 public class KnownApplicationDto {
 
-    private String id;
+    private final String id;
 
-    private String name;
+    private final String name;
 
-    private String infoUrl;
+    private final String infoUrl;
 
-    private List<BusinessCapabilityDto> businessCapabilities;
+    private final List<BusinessCapabilityDto> businessCapabilities;
 
-    private List<String> aliases;
+    private final List<String> aliases;
+
+    private final boolean valid;
 
     public KnownApplicationDto(String id, String name, String infoUrl, List<BusinessCapabilityDto> businessCapabilities,
-            List<String> aliases) {
+                               List<String> aliases, boolean valid) {
         this.id = id;
         this.name = name;
         this.infoUrl = infoUrl;
         this.businessCapabilities = businessCapabilities;
         this.aliases = aliases;
+        this.valid = valid;
     }
 
 }
