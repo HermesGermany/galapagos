@@ -75,7 +75,6 @@ export class SingleTopicComponent implements OnInit {
             shareReplay(1)
         );
         this.selectedEnvironment = this.environmentsService.getCurrentEnvironment();
-        this.loading = of(false);
         combineLatest([this.selectedEnvironment, this.topicName]).subscribe(([environment, name]) => {
             if (environment && name) {
                 this.topicService.getSingleTopic(environment.id, name)
