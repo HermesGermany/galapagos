@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title th:text="'Kafka-Topic ' + ${topic_name_abbreviated} + ' has been deleted'">Kafka Topic has been
+    <title th:text="'internal Kafka-Topic ' + ${topic_name_abbreviated} + ' has been deleted'">Kafka Topic has been
         deleted</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
 </head>
@@ -11,14 +11,15 @@
 <!--/*@thymesVar id="environment_name" type="java.lang.String"*/-->
 <body style="font-family: Helvetica, Arial, sans-serif; font-size: 11pt">
 <p>
-    Hello dear Galapagos user,
+    Hello dear Galapagos user, the internal topic was automatically detected as deleted because it no longer seems to
+    exist on the Kafka cluster. The associated metadata has been removed from Galapagos. It is recommended to delete
+    internal topics created through Galapagos exclusively via Galapagos. Internal topics created outside of Galapagos
+    can, of course, be deleted at any time.
 </p>
 <p>User <b><i><span th:text="${user_name}">someuser</span></i></b> has deleted the Kafka Topic <b>
     <span th:text="${topic_name}">de.hlg.something.SomeTopic</span></b> in the Kafka Environment <b>
     <span th:text="${environment_name}">DEV/TEST</span></b>.
 </p>
-<p>Please be aware that this topic is no longer available. If this deletion impacts your application(s), take the
-    necessary actions.</p>
 <table style="width:300px; margin-left:auto; margin-right:auto">
     <tr>
         <td>
@@ -32,7 +33,7 @@
 <br><br>
 <p style="text-align: center"></p>
 <p><i style="font-size: 10pt">This email was sent to you by Galapagos because you are an Application Topic Owner of
-    at least one application that had subscribed to this topic.<br>
+    at least one application that manages this topic.<br>
     If you believe you should not have received this email, please contact a Galapagos administrator.</i>
 </p>
 </body>

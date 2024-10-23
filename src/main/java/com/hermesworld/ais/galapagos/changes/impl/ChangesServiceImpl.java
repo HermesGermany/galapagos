@@ -11,6 +11,7 @@ import com.hermesworld.ais.galapagos.kafka.util.InitPerCluster;
 import com.hermesworld.ais.galapagos.kafka.util.TopicBasedRepository;
 import com.hermesworld.ais.galapagos.security.AuditPrincipal;
 import com.hermesworld.ais.galapagos.topics.TopicType;
+import com.hermesworld.ais.galapagos.util.FutureUtil;
 import com.hermesworld.ais.galapagos.util.JsonUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -64,7 +65,7 @@ public class ChangesServiceImpl
 
     @Override
     public CompletableFuture<Void> handleMissingInternalTopicDeleted(TopicEvent event) {
-        return null;
+        return FutureUtil.noop();
     }
 
     @Override

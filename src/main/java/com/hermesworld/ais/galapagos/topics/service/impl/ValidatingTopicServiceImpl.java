@@ -1,7 +1,6 @@
 package com.hermesworld.ais.galapagos.topics.service.impl;
 
 import com.hermesworld.ais.galapagos.applications.ApplicationsService;
-import com.hermesworld.ais.galapagos.applications.KnownApplication;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.kafka.TopicCreateParams;
 import com.hermesworld.ais.galapagos.kafka.config.KafkaEnvironmentConfig;
@@ -267,18 +266,7 @@ public class ValidatingTopicServiceImpl implements ValidatingTopicService {
     @Override
     public Optional<TopicMetadata> getSingleTopic(String environmentId, String topicName) {
         Optional<TopicMetadata> optionalMetadata = getTopic(environmentId, topicName);
-
         if (optionalMetadata.isEmpty()) {
-            return Optional.empty();
-        }
-
-        TopicMetadata metadata = optionalMetadata.get();
-        String ownerApplicationId = metadata.getOwnerApplicationId();
-
-        boolean hasAccess = applicationsService.getUserApplications().stream().map(KnownApplication::getId)
-                .anyMatch(id -> id.equals(ownerApplicationId));
-
-        if (!hasAccess) {
             return Optional.empty();
         }
         return topicService.getSingleTopic(environmentId, topicName);

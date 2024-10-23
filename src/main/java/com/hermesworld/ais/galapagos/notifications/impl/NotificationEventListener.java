@@ -129,7 +129,7 @@ public class NotificationEventListener
         return notificationService.notifyApplicationTopicOwners(clientApplicationId, params);
     }
 
-    public String abbreviateTopicName(String topicName) {
+    private String abbreviateTopicName(String topicName) {
         String[] blocks = topicName.split("\\.");
         if (blocks.length < 4) {
             return topicName;
@@ -171,9 +171,6 @@ public class NotificationEventListener
 
     @Override
     public CompletableFuture<Void> handleMissingInternalTopicDeleted(TopicEvent event) {
-        if (kafkaClusters.getProductionEnvironmentId().equals(event.getContext().getKafkaCluster().getId())) {
-            return handleInternalTopicDeleted(event);
-        }
         return FutureUtil.noop();
     }
 
@@ -311,7 +308,7 @@ public class NotificationEventListener
         String environmentName = kafkaClusters.getEnvironmentMetadata(environmentId)
                 .map(KafkaEnvironmentConfig::getName).orElse(unknownEnv);
 
-        NotificationParams params = new NotificationParams("topic-deleted");
+        NotificationParams params = new NotificationParams("internal-topic-deleted");
         params.addVariable("user_name", userName);
         params.addVariable("topic_name", topicName);
         params.addVariable("topic_name_abbreviated", topicNameAbbreviated);

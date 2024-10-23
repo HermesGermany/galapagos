@@ -88,8 +88,11 @@ public class TopicController {
     @GetMapping(value = "/api/topics/{environmentId}/{topicName}", produces = MediaType.APPLICATION_JSON_VALUE)
     public Optional<TopicMetadata> getSingleTopic(@PathVariable String environmentId, @PathVariable String topicName) {
         CompletableFuture<Boolean> future = topicService.verifyInternalTopicExists(environmentId, topicName);
-        if (!future.join()) {
-            return Optional.empty();
+        try {
+            future.get();
+        }
+        catch (InterruptedException | ExecutionException e) {
+            throw new RuntimeException(e);
         }
         kafkaEnvironments.getEnvironmentMetadata(environmentId).orElseThrow(notFound);
         List<String> userAppIds = applicationsService.getUserApplications().stream().map(KnownApplication::getId)

@@ -210,12 +210,14 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
 
         Optional<TopicMetadata> topicMetadata = getTopicRepository(kafkaCluster).getObject(topicName);
         if (topicMetadata.isPresent() && topicMetadata.get().getType() != TopicType.INTERNAL) {
-            return CompletableFuture.completedFuture(true);
+            return CompletableFuture.completedFuture(false);
         }
 
         CompletableFuture<?> future = kafkaCluster.getTopicConfig(topicName);
         try {
             future.get();
+            return CompletableFuture
+                    .completedFuture(topicMetadata.isPresent() && topicMetadata.get().getType() == TopicType.INTERNAL);
         }
         catch (InterruptedException e) {
             Thread.currentThread().interrupt();

@@ -2,8 +2,8 @@ import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { routerTransition } from '../../router.animations';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Topic, TopicsService, TopicSubscription } from '../../shared/services/topics.service';
-import { combineLatest, firstValueFrom, Observable, of, switchMap } from 'rxjs';
-import { catchError, finalize, map, shareReplay } from 'rxjs/operators';
+import { combineLatest, firstValueFrom, Observable, of } from 'rxjs';
+import { finalize, map, shareReplay } from 'rxjs/operators';
 import { ApplicationsService, UserApplicationInfo } from '../../shared/services/applications.service';
 import { EnvironmentsService, KafkaEnvironment } from '../../shared/services/environments.service';
 
@@ -69,48 +69,44 @@ export class SingleTopicComponent implements OnInit {
     }
 
     ngOnInit() {
-        this.topicName = this.route.params.pipe(map(params => params['name'] as string)).pipe(shareReplay(1));
-        this.selectedEnvironment = this.environmentsService.getCurrentEnvironment();
-        this.environmentName = this.route.params.pipe(map(params => params['environment'] as string)).pipe(shareReplay(1));
-        const singleTopic = this.topicService.getSingleTopic('nonprod', 'de.hlg.data.sales.graphql-test');
-        console.log('Show Topic Info : ', singleTopic);
-        //this.loading = singleTopic.getLoadingStatus();
-        const listTopics = this.topicService.listTopics();
-
-        this.loading = listTopics.getLoadingStatus();
-
-        this.topic = combineLatest([this.topicName, this.selectedEnvironment]).pipe(
-            switchMap(([name, env]) => this.topicService.getSingleTopic(env.id, name).pipe(
-                catchError(err => {
-                    if (err.status === 404) {
-                        this.handleTopicNotFound();
-                        return of(null);
-                    }
-                    return of(null);
-                })
-            )),
+        this.topic = of(null);
+        this.topicName = this.route.params.pipe(
+            map(params => params['name'] as string),
             shareReplay(1)
         );
-
-        combineLatest([this.topic, this.environmentsService.getCurrentEnvironment()]).subscribe({
-            next: ([topic, environment]) => {
-                if (topic) {
-                    this.loadSubscribers(topic, environment.id);
-                    this.translateParams.topicName = topic.name;
-                }
-            },
-            error: async () => {
-                await this.handleTopicNotFound();
+        this.selectedEnvironment = this.environmentsService.getCurrentEnvironment();
+        this.loading = of(false);
+        combineLatest([this.selectedEnvironment, this.topicName]).subscribe(([environment, name]) => {
+            if (environment && name) {
+                this.topicService.getSingleTopic(environment.id, name)
+                    .subscribe({
+                        next: singleTopic => {
+                            if (singleTopic) {
+                                this.topic = of(singleTopic);
+                                this.loadSubscribers(singleTopic, environment.id);
+                                this.translateParams.topicName = singleTopic.name;
+                            } else {
+                                console.error('Topic not found or is null');
+                                this.handleTopicNotFound();
+                            }
+                        }
+                    });
+            } else {
+                this.handleTopicNotFound();
             }
         });
 
-        this.isOwnerOfTopic = combineLatest([this.topic, this.applicationsService.getUserApplications().getObservable()]).pipe(
-            map(value => value[0] && value[1] && !!value[1].find(app => value[0].ownerApplication.id === app.id))
+        this.isOwnerOfTopic = combineLatest([
+            this.topic,
+            this.applicationsService.getUserApplications().getObservable()
+        ]).pipe(
+            map(([topic, applications]) => topic && applications && !!applications.find(app => topic.ownerApplication.id === app.id))
         );
 
-        this.environmentsService.getCurrentEnvironment().subscribe({ next: env => (this.translateParams.environmentName = env.name) });
+        this.environmentsService.getCurrentEnvironment().subscribe(env => {
+            this.translateParams.environmentName = env.name;
+        });
     }
-
 
     async handleTopicNotFound() {
         await this.router.navigate(['/topics/not-found']);

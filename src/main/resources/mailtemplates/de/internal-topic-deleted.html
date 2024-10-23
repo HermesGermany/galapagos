@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title th:text="'Kafka-Topic ' + ${topic_name_abbreviated} + ' wurde gelöscht'">Kafka-Topic wurde
+    <title th:text="'Internes Kafka-Topic ' + ${topic_name_abbreviated} + ' wurde gelöscht'">Kafka-Topic wurde
         gelöscht</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
 </head>
@@ -11,15 +11,16 @@
 <!--/*@thymesVar id="environment_name" type="java.lang.String"*/-->
 <body style="font-family: Helvetica, Arial, sans-serif; font-size: 11pt">
 <p>
-    Hallo lieber Galapagos-Benutzer,
+    Hallo lieber Galapagos-Benutzer, das interne Topic wurde automatisch als gelöscht erkannt, da es auf dem
+    Kafka-Cluster nicht mehr zu existieren scheint. Die zugehörigen Metadaten wurden aus Galapagos entfernt. Es wird
+    empfohlen, über Galapagos angelegte interne Topics auch ausschließlich über Galapagos zu löschen. Außerhalb von
+    Galapagos angelegte interne Topics können natürlich jederzeit gelöscht werden.
 </p>
 <p>Benutzer <b><i>
     <span th:text="${user_name}">someuser</span></i></b> hat das Kafka-Topic <b>
     <span th:text="${topic_name}">de.hlg.something.SomeTopic</span></b> auf der Kafka-Umgebung <b>
     <span th:text="${environment_name}">DEV/TEST</span></b> gelöscht.
 </p>
-<p>Dieses Topic ist nun nicht mehr verfügbar. Bitte überprüfe, ob diese Löschung Auswirkungen auf deine Anwendung(en)
-    hat und ergreife gegebenenfalls die notwendigen Maßnahmen.</p>
 <table style="width:300px; margin-left:auto; margin-right:auto">
     <tr>
         <td>
@@ -33,7 +34,7 @@
 <br><br>
 <p style="text-align: center"></p>
 <p><i style="font-size: 10pt">Diese E-Mail wurde von Galapagos an dich gesendet, da du Application Topic Owner von
-    mindestens einer Anwendung bist, die dieses Topic abonniert hat.<br>
+    mindestens einer Anwendung bist, die dieses Topic verwaltet.<br>
     Wenn du der Meinung bist, dass du diese E-Mail nicht erhalten solltest, wende dich bitte an einen
     Galapagos-Administrator.</i>
 </p>
