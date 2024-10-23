@@ -207,6 +207,7 @@
     "APP_SUBSCRIPTION_CANCELLED": "The application's rights for this topic have been revoked.",
     "APP_SUBSCRIPTION_CANNOT_BE_REVOKED": "The application's rights for this topic could not be revoked.",
     "APP_SUCCESSFUL_TOPIC_APPROVED": "The application was successfully approved for this topic.",
-    "APP_TOPIC_APPROVED_FAILED": "The application could not be approved for this topic"
+    "APP_TOPIC_APPROVED_FAILED": "The application could not be approved for this topic",
+    "INVALID_APP_TOOLTIP": "This application should no longer be used."
 }
 

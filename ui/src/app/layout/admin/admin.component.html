@@ -15,7 +15,6 @@
                                 id="table-complete-search"
                                 type="text"
                                 class="form-control"
-                                class="form-control"
                                 name="searchTerm"
                                 [(ngModel)]="state.searchTerm"
                                 (ngModelChange)="search()"
@@ -38,8 +37,9 @@
                                 <td>{{ niceTimestamp(request.createdAt) | async }}</td>
                                 <td><ngb-highlight [result]="request.userName" [term]="state.searchTerm"></ngb-highlight></td>
                                 <td>
-                                    <a *ngIf="request.applicationInfoUrl" [href]="request.applicationInfoUrl" target="_blank"><ngb-highlight [result]="request.applicationName" [term]="state.searchTerm"></ngb-highlight></a>
-                                    <ngb-highlight *ngIf="!request.applicationInfoUrl" [result]="request.applicationName" [term]="state.searchTerm"></ngb-highlight></td>
+                                    <app-app-link *ngIf="request.appInfo" [app]="request.appInfo"
+                                                  [highlightText]="state.searchTerm"></app-app-link>
+                                    <span *ngIf="!request.appInfo">{{ request.applicationId }}</span>
                                 <td><span [innerHTML]="request.comments"></span></td>
                                 <td style="min-width: 9em">
                                     <span

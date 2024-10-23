@@ -1,34 +1,41 @@
 package com.hermesworld.ais.galapagos.applications.impl;
 
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.hermesworld.ais.galapagos.applications.BusinessCapability;
 import com.hermesworld.ais.galapagos.applications.KnownApplication;
 import com.hermesworld.ais.galapagos.util.HasKey;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.lang.NonNull;
+
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @JsonSerialize
 @Slf4j
 public class KnownApplicationImpl implements KnownApplication, HasKey, Comparable<KnownApplicationImpl> {
 
-    private String id;
+    private final String id;
 
-    private String name;
+    private final String name;
 
+    @Setter
     private List<String> aliases;
 
+    @Setter
     private String infoUrl;
 
+    @Setter
     private List<BusinessCapabilityImpl> businessCapabilities;
+
+    @Setter
+    private boolean valid;
 
     @JsonCreator
     public KnownApplicationImpl(@JsonProperty(value = "id", required = true) String id,
@@ -41,6 +48,7 @@ public class KnownApplicationImpl implements KnownApplication, HasKey, Comparabl
         }
         this.id = id;
         this.name = name;
+        this.valid = true;
     }
 
     @Override
@@ -63,10 +71,6 @@ public class KnownApplicationImpl implements KnownApplication, HasKey, Comparabl
         return this.aliases == null ? Collections.emptySet() : new HashSet<>(this.aliases);
     }
 
-    public void setAliases(List<String> aliases) {
-        this.aliases = aliases;
-    }
-
     @Override
     public URL getInfoUrl() {
         try {
@@ -78,25 +82,18 @@ public class KnownApplicationImpl implements KnownApplication, HasKey, Comparabl
         }
     }
 
-    public void setInfoUrl(String infoUrl) {
-        this.infoUrl = infoUrl;
-    }
-
     @Override
     public List<BusinessCapability> getBusinessCapabilities() {
-        return this.businessCapabilities == null ? Collections.emptyList()
-                : this.businessCapabilities.stream().collect(Collectors.toList());
-    }
-
-    public void setBusinessCapabilities(List<BusinessCapabilityImpl> businessCapabilities) {
-        this.businessCapabilities = businessCapabilities;
+        return this.businessCapabilities == null ? List.of() : List.copyOf(this.businessCapabilities);
     }
 
     @Override
-    public int compareTo(KnownApplicationImpl o) {
-        if (o == null) {
-            return 1;
-        }
+    public boolean isValid() {
+        return valid;
+    }
+
+    @Override
+    public int compareTo(@NonNull KnownApplicationImpl o) {
         return name.compareToIgnoreCase(o.name);
     }
 

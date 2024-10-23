@@ -325,7 +325,7 @@ public class ApplicationsController {
         }
         return new KnownApplicationDto(app.getId(), app.getName(),
                 app.getInfoUrl() == null ? null : app.getInfoUrl().toString(), toCapDtos(app.getBusinessCapabilities()),
-                new ArrayList<>(app.getAliases()));
+                new ArrayList<>(app.getAliases()), app.isValid());
     }
 
     private List<BusinessCapabilityDto> toCapDtos(List<? extends BusinessCapability> caps) {

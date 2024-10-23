@@ -30,7 +30,8 @@
                                 for="app_picker">{{ 'Select Application' | translate }}</label>
                             <select class="form-select w-auto" name="appPicker" id="app_picker"
                                 [(ngModel)]="selectedApplicationForRequest">
-                                <option *ngFor="let app of availableApplications | async" [ngValue]="app">{{ app.name }}
+                                <option *ngFor="let app of availableApplications | async"
+                                        [ngValue]="app">{{ app.valid ? '' : '(!) ' }}{{ app.name }}
                                 </option>
                             </select>
                             <span class="ms-3 text-muted" [style.display]="appListLoading ? 'inline' : 'none'"><i
