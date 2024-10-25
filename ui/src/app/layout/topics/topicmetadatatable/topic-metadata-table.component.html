@@ -1,5 +1,6 @@
 <div class="card-header bg-hermes text-white"><i
-    class="fas fa-info me-3"></i>{{ 'General' | translate }}</div>
+    class="fas fa-info me-3"></i>{{ 'General' | translate }}
+</div>
 <div class="card-body table-responsive">
     <table class="table">
         <tbody>
@@ -10,7 +11,7 @@
         <tr>
             <th scope="row">{{ 'Topic Type' | translate }}</th>
             <td>
-                {{topic.topicType | translate}}
+                {{ topic.topicType | translate }}
             </td>
         </tr>
         <tr>
@@ -18,7 +19,7 @@
             <td>{{ topic.description }}
                 <span *ngIf="topic.deprecated">
                                        <span class="deprecatedNote">Deprecated</span>
-                                        <span class="deprecationText">{{topic.deprecationText}}</span>
+                                        <span class="deprecationText">{{ topic.deprecationText }}</span>
                                         </span>
                 <button
                     *ngIf="isOwnerOfTopic && !(selectedEnvironment | async)?.stagingOnly"
@@ -28,6 +29,12 @@
                     class="btn btn-primary btn-sm ms-3"><i class="fas fa-edit"></i>
                     {{ 'Edit' | translate }}
                 </button>
+            </td>
+        </tr>
+        <tr *ngIf="topic.externalInterfaceUrl">
+            <th scope="row">{{ 'More Infos' | translate }}</th>
+            <td>
+                <a [href]="topic.externalInterfaceUrl" target="_blank">{{ topic.externalInterfaceUrl }}</a>
             </td>
         </tr>
         <tr *ngIf="topic.deprecated">
@@ -193,7 +200,8 @@
     <div class="modal-footer">
         <button class="btn btn-warning" ngbAutofocus appSpinnerWhile #d="appSpinnerWhile"
                 (click)="d.while(updateTopicDesc()).then(dlg.dismiss)"><i
-            class="fas fa-save me-3"></i>{{ 'Save' | translate }}</button>
+            class="fas fa-save me-3"></i>{{ 'Save' | translate }}
+        </button>
         <button type="button" class="btn btn-success" (click)="dlg.dismiss()"><i
             class="fas fa-times"></i>&nbsp;{{ 'Cancel' | translate }}
         </button>
@@ -265,7 +273,8 @@
     <div class="modal-footer">
         <button class="btn btn-danger" appSpinnerWhile #d="appSpinnerWhile"
                 (click)="d.while(rejectSubscription(selectedSubscription)).then(dlg.dismiss)"><i
-            class="fas fa-ban me-3"></i>{{ 'Cancel Subscription' | translate }}</button>
+            class="fas fa-ban me-3"></i>{{ 'Cancel Subscription' | translate }}
+        </button>
         <button type="button" class="btn btn-success" (click)="dlg.dismiss()"><i
             class="fas fa-times"></i>&nbsp;{{ 'Cancel' | translate }}
         </button>
@@ -290,7 +299,8 @@
     <div class="modal-footer">
         <button class="btn btn-danger" appSpinnerWhile #d="appSpinnerWhile"
                 (click)="d.while(unsubscribe(selectedSubscription)).then(dlg.dismiss)"><i
-            class="fas fa-eraser mr-1"></i>{{ 'Unsubscribe' | translate }}</button>
+            class="fas fa-eraser mr-1"></i>{{ 'Unsubscribe' | translate }}
+        </button>
         <button type="button" class="btn btn-success" (click)="dlg.dismiss()"><i
             class="fas fa-times"></i>&nbsp;{{ 'Cancel' | translate }}
         </button>
@@ -317,7 +327,8 @@
         <button class="btn btn-danger" appSpinnerWhile #d="appSpinnerWhile"
                 (click)="d.while(deleteProducer(topicName, selectedProducer.id).then(dlg.dismiss))">
             <i
-                class="fas fa-eraser mr-1"></i>{{ 'Delete Producer' | translate }}</button>
+                class="fas fa-eraser mr-1"></i>{{ 'Delete Producer' | translate }}
+        </button>
         <button type="button" class="btn btn-success" (click)="dlg.dismiss()"><i
             class="fas fa-times"></i>&nbsp;{{ 'Cancel' | translate }}
         </button>
@@ -341,7 +352,8 @@
     <div class="modal-footer">
         <button class="btn btn-warning" appSpinnerWhile #d="appSpinnerWhile"
                 (click)="d.while(changeTopicOwner(topicName, newTopicOwner.id).then(dlg.dismiss))">
-            <i class="fas fa-arrow-up mr-1"></i>{{ 'Change Owner' | translate }}</button>
+            <i class="fas fa-arrow-up mr-1"></i>{{ 'Change Owner' | translate }}
+        </button>
         <button type="button" class="btn btn-success" (click)="dlg.dismiss()"><i
             class="fas fa-times"></i>&nbsp;{{ 'Cancel' | translate }}
         </button>

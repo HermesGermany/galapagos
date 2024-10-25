@@ -10,7 +10,7 @@ import { ToastService } from '../../../shared/modules/toast/toast.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { LanguageTranslationModule } from '../../../shared/modules/language-translation/language-translation.module';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { PageHeaderModule } from '../../../shared';
@@ -21,6 +21,7 @@ import { FormsModule } from '@angular/forms';
 import { SpinnerWhileModule } from '../../../shared/modules/spinner-while/spinner-while.module';
 import { AuthService } from '../../../shared/services/auth.service';
 import { MockAuthService } from '../../../shared/util/test-util';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('SchemaSectionComponent', () => {
     let component: SchemaSectionComponent;
@@ -30,17 +31,14 @@ describe('SchemaSectionComponent', () => {
     beforeEach((() => {
         TestBed.configureTestingModule({
             declarations: [SchemaSectionComponent],
-            imports: [
-                TranslateModule.forRoot(),
+            imports: [TranslateModule.forRoot(),
                 LanguageTranslationModule,
                 NgbModule,
-                HttpClientTestingModule,
                 RouterTestingModule,
                 BrowserAnimationsModule,
                 PageHeaderModule,
                 FormsModule,
-                SpinnerWhileModule
-            ],
+                SpinnerWhileModule],
             providers: [
                 RouterModule,
                 TopicsService,
@@ -53,7 +51,9 @@ describe('SchemaSectionComponent', () => {
                 NgbModal,
                 Location,
                 TranslateService,
-                { provide: AuthService, useClass: MockAuthService }
+                { provide: AuthService, useClass: MockAuthService },
+                provideHttpClient(withInterceptorsFromDi()),
+                provideHttpClientTesting()
             ]
         }).compileComponents();
         fixture = TestBed.createComponent(SchemaSectionComponent);

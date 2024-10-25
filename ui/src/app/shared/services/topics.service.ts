@@ -41,6 +41,8 @@ export interface Topic {
 
     producers: string[];
 
+    externalInterfaceUrl?: string;
+
 }
 
 export interface TopicSubscription {
@@ -383,9 +385,9 @@ export class TopicsService {
                 ownerApplication: apps.find(app => app.id === a.ownerApplicationId) || null,
                 subscriptionApprovalRequired: a.subscriptionApprovalRequired,
                 deletable: a.deletable,
-                producers: a.producers
+                producers: a.producers,
+                externalInterfaceUrl: a.externalInterfaceUrl
             }));
-
             return result;
         };
 

@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { Location } from '@angular/common';
 import { LayoutComponent } from './layout.component';
@@ -18,6 +18,7 @@ import { ServerInfoService } from '../shared/services/serverinfo.service';
 import { StagingModule } from './staging/staging.module';
 import { AuthService } from '../shared/services/auth.service';
 import { MockAuthService } from '../shared/util/test-util';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('LayoutComponent', () => {
     let component: LayoutComponent;
@@ -25,25 +26,21 @@ describe('LayoutComponent', () => {
 
     beforeEach(() => {
         TestBed.configureTestingModule({
-            imports: [
-                TranslateModule.forRoot(),
+            declarations: [LayoutComponent, HeaderComponent, SidebarComponent, GalapagosToastComponent],
+            imports: [TranslateModule.forRoot(),
                 LanguageTranslationModule,
                 NgbModule,
-                HttpClientTestingModule,
                 BrowserAnimationsModule,
                 PageHeaderModule,
                 AdminModule,
-                StagingModule
-            ],
-            declarations: [LayoutComponent, HeaderComponent, SidebarComponent, GalapagosToastComponent],
+                StagingModule],
             providers: [TranslateService,
                 { provide: AuthService, useClass: MockAuthService },
                 Location,
                 ToastService,
                 EnvironmentsService,
                 ApplicationsService,
-                ServerInfoService
-            ]
+                ServerInfoService, provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
         }).compileComponents();
 
         fixture = TestBed.createComponent(LayoutComponent);

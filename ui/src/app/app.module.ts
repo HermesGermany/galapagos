@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { HttpClientModule } from '@angular/common/http';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { ApplicationRef, DoBootstrap, NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
@@ -24,33 +24,25 @@ import { OAuthModule, OAuthService } from 'angular-oauth2-oidc';
 
 const isApiUrl = (url: string) => !url.startsWith('http') && url.indexOf('/api/') > -1;
 
-@NgModule({
-    imports: [
-        CommonModule,
-        BrowserModule,
-        BrowserAnimationsModule,
-        HttpClientModule,
-        LanguageTranslationModule,
-        AppRoutingModule,
-        OAuthModule.forRoot({
-            resourceServer: {
-                sendAccessToken: true,
-                customUrlValidation: isApiUrl
-            }
-        })
-    ],
-    declarations: [AppComponent],
-    providers: [AuthGuard, ApplicationsService, EnvironmentsService, TopicsService, ApiKeyService, ToastService, CertificateService,
-        ServerInfoService, OAuthService,
-        {
-            provide: HIGHLIGHT_OPTIONS,
-            useValue: {
-                coreLibraryLoader: () => import('highlight.js/lib/core'),
-                languages: getHighlightLanguages()
-            }
+@NgModule({ declarations: [AppComponent], imports: [CommonModule,
+    BrowserModule,
+    BrowserAnimationsModule,
+    LanguageTranslationModule,
+    AppRoutingModule,
+    OAuthModule.forRoot({
+        resourceServer: {
+            sendAccessToken: true,
+            customUrlValidation: isApiUrl
         }
-    ]
-})
+    })], providers: [AuthGuard, ApplicationsService, EnvironmentsService, TopicsService, ApiKeyService, ToastService, CertificateService,
+    ServerInfoService, OAuthService,
+    {
+        provide: HIGHLIGHT_OPTIONS,
+        useValue: {
+            coreLibraryLoader: () => import('highlight.js/lib/core'),
+            languages: getHighlightLanguages()
+        }
+    }, provideHttpClient(withInterceptorsFromDi())] })
 export class AppModule implements DoBootstrap {
 
     ngDoBootstrap(app: ApplicationRef) {
