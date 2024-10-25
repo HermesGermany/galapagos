@@ -59,7 +59,7 @@ public class NotificationEventListener
     private static final String IS_ADMIN_KEY = NotificationEventListener.class.getName() + "_isAdmin";
 
     public NotificationEventListener(NotificationService notificationService, ApplicationsService applicationsService,
-            TopicService topicService, CurrentUserService userService, KafkaClusters kafkaClusters) {
+                                     TopicService topicService, CurrentUserService userService, KafkaClusters kafkaClusters) {
         this.notificationService = notificationService;
         this.applicationsService = applicationsService;
         this.topicService = topicService;
@@ -133,8 +133,7 @@ public class NotificationEventListener
         String[] blocks = topicName.split("\\.");
         if (blocks.length < 4) {
             return topicName;
-        }
-        else {
+        } else {
             StringJoiner joiner = new StringJoiner(".");
             joiner.add(blocks[0]);
             joiner.add(blocks[1]);
@@ -171,7 +170,7 @@ public class NotificationEventListener
 
     @Override
     public CompletableFuture<Void> handleMissingInternalTopicDeleted(TopicEvent event) {
-        return FutureUtil.noop();
+        return handleInternalTopicDeleted(event);
     }
 
     @Override
@@ -213,7 +212,7 @@ public class NotificationEventListener
     }
 
     private CompletableFuture<Void> handleTopicProducerEvent(String templateName, String producerApplicationId,
-            TopicEvent event) {
+                                                             TopicEvent event) {
         String environmentId = event.getContext().getKafkaCluster().getId();
         String environmentName = kafkaClusters.getEnvironmentMetadata(environmentId)
                 .map(KafkaEnvironmentConfig::getName).orElse(unknownEnv);
@@ -343,8 +342,7 @@ public class NotificationEventListener
             URL requestUrl = new URL(opRequestUrl.get());
             return new URL(requestUrl.getProtocol(), requestUrl.getHost(), requestUrl.getPort(),
                     "/app/" + (uri.startsWith("/") ? uri.substring(1) : uri)).toString();
-        }
-        catch (MalformedURLException e) {
+        } catch (MalformedURLException e) {
             log.warn("Could not parse request URL from HTTP Request", e);
             return "#";
         }
@@ -352,7 +350,7 @@ public class NotificationEventListener
 
     private static Optional<HttpServletRequest> getCurrentHttpRequest() {
         return Optional.ofNullable(RequestContextHolder.getRequestAttributes()).filter(
-                requestAttributes -> ServletRequestAttributes.class.isAssignableFrom(requestAttributes.getClass()))
+                        requestAttributes -> ServletRequestAttributes.class.isAssignableFrom(requestAttributes.getClass()))
                 .map(requestAttributes -> ((ServletRequestAttributes) requestAttributes))
                 .map(ServletRequestAttributes::getRequest);
     }

@@ -1,8 +1,8 @@
 import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { routerTransition } from '../../router.animations';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { Topic, TopicsService, TopicSubscription } from '../../shared/services/topics.service';
-import { combineLatest, firstValueFrom, Observable, of } from 'rxjs';
+import { combineLatest, first, firstValueFrom, Observable, tap } from 'rxjs';
 import { finalize, map, shareReplay } from 'rxjs/operators';
 import { ApplicationsService, UserApplicationInfo } from '../../shared/services/applications.service';
 import { EnvironmentsService, KafkaEnvironment } from '../../shared/services/environments.service';
@@ -21,8 +21,6 @@ export class SingleTopicComponent implements OnInit {
     topicName: Observable<string>;
 
     environmentName: Observable<string>
-
-    loading: Observable<boolean>;
 
     topicSubscribers: Observable<TopicSubscription[]>;
 
@@ -48,8 +46,7 @@ export class SingleTopicComponent implements OnInit {
         private route: ActivatedRoute,
         private topicService: TopicsService,
         private environmentsService: EnvironmentsService,
-        private applicationsService: ApplicationsService,
-        private router: Router
+        private applicationsService: ApplicationsService
     ) {
         route.queryParamMap.subscribe({
             next: params => {
@@ -69,46 +66,36 @@ export class SingleTopicComponent implements OnInit {
     }
 
     ngOnInit() {
-        this.topic = of(null);
         this.topicName = this.route.params.pipe(
             map(params => params['name'] as string),
             shareReplay(1)
         );
         this.selectedEnvironment = this.environmentsService.getCurrentEnvironment();
-        combineLatest([this.selectedEnvironment, this.topicName]).subscribe(([environment, name]) => {
-            if (environment && name) {
-                this.topicService.getSingleTopic(environment.id, name)
-                    .subscribe({
-                        next: singleTopic => {
-                            if (singleTopic) {
-                                this.topic = of(singleTopic);
-                                this.loadSubscribers(singleTopic, environment.id);
-                                this.translateParams.topicName = singleTopic.name;
-                            } else {
-                                console.error('Topic not found or is null');
-                                this.handleTopicNotFound();
-                            }
-                        }
-                    });
-            } else {
-                this.handleTopicNotFound();
-            }
-        });
+
+        combineLatest([this.selectedEnvironment, this.topicName])
+            .pipe(first(([environment, name]) => !!environment && !!name)) // Nur ausführen, wenn beide Werte existieren
+            .subscribe(([environment, name]) => {
+                this.topic = this.topicService.getSingleTopic(environment.id, name).pipe(
+                    tap(ts => this.loadSubscribers(ts, environment.id)),
+                    shareReplay(1)
+                );
+            });
 
         this.isOwnerOfTopic = combineLatest([
             this.topic,
             this.applicationsService.getUserApplications().getObservable()
         ]).pipe(
-            map(([topic, applications]) => topic && applications && !!applications.find(app => topic.ownerApplication.id === app.id))
+            first(([topic, applications]) => !!topic && !!applications), // Nur ausführen, wenn beide Werte geladen sind
+            map(([topic, applications]) =>
+                !!applications.find(app => topic.ownerApplication?.id === app.id)
+            ),
+            shareReplay(1)
         );
+
 
         this.environmentsService.getCurrentEnvironment().subscribe(env => {
             this.translateParams.environmentName = env.name;
         });
-    }
-
-    async handleTopicNotFound() {
-        await this.router.navigate(['/topics/not-found']);
     }
 
     async refreshChildData() {
