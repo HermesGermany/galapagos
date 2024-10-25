@@ -73,7 +73,7 @@ export class SingleTopicComponent implements OnInit {
         this.selectedEnvironment = this.environmentsService.getCurrentEnvironment();
 
         combineLatest([this.selectedEnvironment, this.topicName])
-            .pipe(first(([environment, name]) => !!environment && !!name)) // Nur ausführen, wenn beide Werte existieren
+            .pipe(first(([environment, name]) => !!environment && !!name))
             .subscribe(([environment, name]) => {
                 this.topic = this.topicService.getSingleTopic(environment.id, name).pipe(
                     tap(ts => this.loadSubscribers(ts, environment.id)),
@@ -85,7 +85,7 @@ export class SingleTopicComponent implements OnInit {
             this.topic,
             this.applicationsService.getUserApplications().getObservable()
         ]).pipe(
-            first(([topic, applications]) => !!topic && !!applications), // Nur ausführen, wenn beide Werte geladen sind
+            first(([topic, applications]) => !!topic && !!applications),
             map(([topic, applications]) =>
                 !!applications.find(app => topic.ownerApplication?.id === app.id)
             ),
