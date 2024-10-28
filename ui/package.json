@@ -31,7 +31,7 @@
         "core-js": "3.21.1",
         "file-saver": "^2.0.5",
         "highlight.js": "^11.10.0",
-        "keycloak-js": "^19.0.2",
+        "keycloak-js": "^26.0.2",
         "luxon": "^2.5.2",
         "ngx-highlightjs": "^6.1.1",
         "rxjs": "7.5.4",
