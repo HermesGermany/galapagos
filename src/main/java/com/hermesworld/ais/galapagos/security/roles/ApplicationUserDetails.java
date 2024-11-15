@@ -7,6 +7,7 @@ import java.util.Collection;
 
 public class ApplicationUserDetails implements UserDetails {
     private final String username;
+
     private final Collection<? extends GrantedAuthority> authorities;
 
     public ApplicationUserDetails(String username, Collection<? extends GrantedAuthority> authorities) {
@@ -49,4 +50,3 @@ public class ApplicationUserDetails implements UserDetails {
         return true;
     }
 }
-

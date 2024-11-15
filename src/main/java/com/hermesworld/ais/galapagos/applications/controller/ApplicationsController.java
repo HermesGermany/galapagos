@@ -45,7 +45,7 @@ public class ApplicationsController {
     private final KafkaClusters kafkaClusters;
 
     public ApplicationsController(ApplicationsService applicationsService, StagingService stagingService,
-                                  KafkaClusters kafkaClusters) {
+            KafkaClusters kafkaClusters) {
         this.applicationsService = applicationsService;
         this.stagingService = stagingService;
         this.kafkaClusters = kafkaClusters;
@@ -82,9 +82,11 @@ public class ApplicationsController {
         try {
             return applicationsService.submitApplicationOwnerRequest(request.getApplicationId(), request.getComments())
                     .get();
-        } catch (ExecutionException e) {
+        }
+        catch (ExecutionException e) {
             throw handleExecutionException(e, "Could not submit application owner request: ");
-        } catch (InterruptedException e) {
+        }
+        catch (InterruptedException e) {
             return null;
         }
     }
@@ -105,12 +107,14 @@ public class ApplicationsController {
     @PostMapping(value = "/api/admin/requests/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @Secured("ROLE_ADMIN")
     public ApplicationOwnerRequest updateApplicationOwnerRequest(@PathVariable String id,
-                                                                 @RequestBody UpdateApplicationOwnerRequestDto updateData) {
+            @RequestBody UpdateApplicationOwnerRequestDto updateData) {
         try {
             return applicationsService.updateApplicationOwnerRequest(id, updateData.getNewState()).get();
-        } catch (InterruptedException e) {
+        }
+        catch (InterruptedException e) {
             return null;
-        } catch (ExecutionException e) {
+        }
+        catch (ExecutionException e) {
             throw handleExecutionException(e, "Could not update application owner request: ");
         }
     }
@@ -122,9 +126,11 @@ public class ApplicationsController {
             if (!b) {
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND);
             }
-        } catch (ExecutionException e) {
+        }
+        catch (ExecutionException e) {
             throw handleExecutionException(e, "Could not retrieve user's requests: ");
-        } catch (InterruptedException e) {
+        }
+        catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
     }
@@ -132,7 +138,7 @@ public class ApplicationsController {
     @CanEditApplication
     @GetMapping(value = "/api/environments/{environmentId}/prefixes/{applicationId}")
     public ApplicationPrefixesDto getApplicationPrefixes(@PathVariable String environmentId,
-                                                         @PathVariable String applicationId) {
+            @PathVariable String applicationId) {
         return applicationsService.getApplicationMetadata(environmentId, applicationId)
                 .map(metadata -> toPrefixesDto(metadata))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
@@ -140,7 +146,7 @@ public class ApplicationsController {
 
     @PostMapping(value = "/api/certificates/{applicationId}/{environmentId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public CertificateResponseDto updateApplicationCertificate(@PathVariable String applicationId,
-                                                               @PathVariable String environmentId, @RequestBody CertificateRequestDto request) {
+            @PathVariable String environmentId, @RequestBody CertificateRequestDto request) {
         KnownApplication app = applicationsService.getKnownApplication(applicationId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
@@ -159,7 +165,8 @@ public class ApplicationsController {
                         "No CSR (csrData) present! Set generateKey to true if you want the server to generate a private key for you (not recommended).");
             }
             filename += ".cer";
-        } else {
+        }
+        else {
             if (environmentId.equals(kafkaClusters.getProductionEnvironmentId())) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                         "You cannot get a server-side generated key for production environments.");
@@ -178,18 +185,21 @@ public class ApplicationsController {
             dto.setFileName(filename);
             dto.setFileContentsBase64(Base64.getEncoder().encodeToString(cerOut.toByteArray()));
             return dto;
-        } catch (ExecutionException e) {
+        }
+        catch (ExecutionException e) {
             throw handleExecutionException(e, "Could not create certificate: ");
-        } catch (JsonProcessingException e) {
+        }
+        catch (JsonProcessingException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid JSON body");
-        } catch (InterruptedException e) {
+        }
+        catch (InterruptedException e) {
             return null;
         }
     }
 
     @PostMapping(value = "/api/apikeys/{applicationId}/{environmentId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public CreatedApiKeyDto createApiKeyForApplication(@PathVariable String environmentId,
-                                                       @PathVariable String applicationId, @RequestBody String request) {
+            @PathVariable String applicationId, @RequestBody String request) {
         applicationsService.getKnownApplication(applicationId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
@@ -209,11 +219,14 @@ public class ApplicationsController {
             dto.setApiKey(ConfluentCloudAuthUtil.getApiKey(metadata.getAuthenticationJson()));
             dto.setApiSecret(baos.toString(StandardCharsets.UTF_8));
             return dto;
-        } catch (JSONException e) {
+        }
+        catch (JSONException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
-        } catch (ExecutionException e) {
+        }
+        catch (ExecutionException e) {
             throw handleExecutionException(e, "Could not create API Key: ");
-        } catch (InterruptedException e) {
+        }
+        catch (InterruptedException e) {
             return null;
         }
     }
@@ -248,18 +261,20 @@ public class ApplicationsController {
         }
         try {
             return stagingService.prepareStaging(applicationId, environmentId, Collections.emptyList()).get();
-        } catch (ExecutionException e) {
+        }
+        catch (ExecutionException e) {
             // noinspection ThrowableNotThrown
             handleExecutionException(e, "Could not prepare staging: ");
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
-        } catch (InterruptedException e) {
+        }
+        catch (InterruptedException e) {
             return null;
         }
     }
 
     @PostMapping(value = "/api/environments/{environmentId}/staging/{applicationId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public List<StagingResult> performStaging(@PathVariable String environmentId, @PathVariable String applicationId,
-                                              @RequestBody String stagingFilterRaw) {
+            @RequestBody String stagingFilterRaw) {
         if (!applicationsService.isUserAuthorizedFor(applicationId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
@@ -269,16 +284,19 @@ public class ApplicationsController {
             try {
                 stagingFilter = JsonUtil.newObjectMapper().readValue(stagingFilterRaw,
                         TypeFactory.defaultInstance().constructCollectionType(ArrayList.class, Change.class));
-            } catch (IOException e) {
+            }
+            catch (IOException e) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
             }
         }
 
         try {
             return stagingService.prepareStaging(applicationId, environmentId, stagingFilter).get().perform();
-        } catch (ExecutionException e) {
+        }
+        catch (ExecutionException e) {
             throw handleExecutionException(e, "Could not prepare staging: ");
-        } catch (InterruptedException e) {
+        }
+        catch (InterruptedException e) {
             return Collections.emptyList();
         }
     }

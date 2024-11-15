@@ -11,21 +11,21 @@ import java.util.Collection;
 public class ApplicationAccessDecisionManager implements AccessDecisionManager {
 
     @Override
-    public void decide(Authentication authentication, Object object,
-                       Collection<ConfigAttribute> configAttributes) throws AccessDeniedException {
+    public void decide(Authentication authentication, Object object, Collection<ConfigAttribute> configAttributes)
+            throws AccessDeniedException {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new AccessDeniedException("User is not authenticated");
         }
 
         for (ConfigAttribute attribute : configAttributes) {
             String requiredAuthority = attribute.getAttribute();
-            if (requiredAuthority == null) continue;
+            if (requiredAuthority == null)
+                continue;
 
             for (GrantedAuthority authority : authentication.getAuthorities()) {
                 if (authority instanceof ApplicationGrantedAuthority appAuthority) {
-                    if (requiredAuthority.equals(appAuthority.getAuthority()) &&
-                            object instanceof String applicationId &&
-                            applicationId.equals(appAuthority.getApplicationId())) {
+                    if (requiredAuthority.equals(appAuthority.getAuthority()) && object instanceof String applicationId
+                            && applicationId.equals(appAuthority.getApplicationId())) {
                         return;
                     }
                 }
@@ -34,7 +34,6 @@ public class ApplicationAccessDecisionManager implements AccessDecisionManager {
 
         throw new AccessDeniedException("Access denied: insufficient permissions.");
     }
-
 
     @Override
     public boolean supports(ConfigAttribute attribute) {
@@ -46,4 +45,3 @@ public class ApplicationAccessDecisionManager implements AccessDecisionManager {
         return true;
     }
 }
-

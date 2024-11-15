@@ -36,9 +36,8 @@ public class AuthorizationService {
         return authentication.getAuthorities().stream()
                 .filter(authority -> authority instanceof ApplicationGrantedAuthority)
                 .map(authority -> (ApplicationGrantedAuthority) authority)
-                .anyMatch(appAuthority ->
-                        "ROLE_GENERATE_API_KEY".equals(appAuthority.getAuthority()) &&
-                                applicationId.equals(appAuthority.getApplicationId()));
+                .anyMatch(appAuthority -> "ROLE_GENERATE_API_KEY".equals(appAuthority.getAuthority())
+                        && applicationId.equals(appAuthority.getApplicationId()));
     }
 
 }
