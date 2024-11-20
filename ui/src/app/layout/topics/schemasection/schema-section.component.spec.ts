@@ -73,7 +73,9 @@ describe('SchemaSectionComponent', () => {
 
                 name: 'app1',
 
-                aliases: ['a1']
+                aliases: ['a1'],
+
+                valid: true
             },
 
             createdTimestamp: 'string',

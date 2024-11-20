@@ -13,6 +13,8 @@ export interface ApplicationInfo {
     infoUrl?: string;
 
     aliases: string[];
+
+    valid: boolean;
 }
 
 export interface BusinessCapabilityInfo {

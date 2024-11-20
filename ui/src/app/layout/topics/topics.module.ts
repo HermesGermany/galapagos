@@ -17,6 +17,7 @@ import { SubscriptionSectionComponent } from './subscribesection/subscribe-secti
 import { DeprecationComponent } from './deprecation/deprecation.component';
 import { DeleteTopicComponent } from './deletetopic/delete-topic.component';
 import { TopicMultipleProducerComponent } from './deletetopic/multiappproducer/topic-multiple-producer.component';
+import { AppLinkModule } from '../../shared/modules/app-link/app-link.module';
 
 export const getHighlightLanguages = () => ({
     json: () => import('highlight.js/lib/languages/json')
@@ -24,7 +25,7 @@ export const getHighlightLanguages = () => ({
 
 @NgModule({
     imports: [CommonModule, TopicsRoutingModule, TranslateModule, FormsModule, NgbModule,
-        SpinnerWhileModule, HighlightModule],
+        SpinnerWhileModule, HighlightModule, AppLinkModule],
     declarations: [TopicsComponent, TableSortDirective, SingleTopicComponent,
         TopicConfigEditorComponent, SchemaSectionComponent, TopicMetadataTableComponent,
         SubscriptionSectionComponent, DeprecationComponent, DeleteTopicComponent, TopicMultipleProducerComponent]

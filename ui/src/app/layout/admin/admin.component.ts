@@ -18,7 +18,7 @@ import { AuthService } from '../../shared/services/auth.service';
 
 interface TranslatedApplicationOwnerRequest extends ApplicationOwnerRequest {
     applicationName?: string;
-    applicationInfoUrl?: string;
+    appInfo?: ApplicationInfo;
 }
 
 
@@ -37,8 +37,10 @@ const translateApps: (requests: ApplicationOwnerRequest[], apps: ApplicationInfo
     (requests, apps) => {
         const appMap = {};
         apps.forEach(app => appMap[app.id] = app);
-        return requests.map(req => appMap[req.applicationId] ? { ...req, applicationName: appMap[req.applicationId].name || req.id,
-            applicationInfoUrl: appMap[req.applicationId].infoUrl } : req);
+        return requests.map(req => appMap[req.applicationId] ? {
+            ...req, applicationName: appMap[req.applicationId].name || req.applicationId,
+            appInfo: appMap[req.applicationId]
+        } : req);
     };
 
 const entityMap = {
