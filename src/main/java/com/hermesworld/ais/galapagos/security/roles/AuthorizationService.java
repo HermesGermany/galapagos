@@ -1,43 +1,40 @@
 package com.hermesworld.ais.galapagos.security.roles;
 
-import com.hermesworld.ais.galapagos.applications.ApplicationsService;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Service;
+/**
+ * Service interface for handling authorization logic in the application. Provides methods to verify user permissions
+ * for various actions and resources.
+ */
+public interface AuthorizationService {
 
-@Service
-public class AuthorizationService {
-    private final ApplicationsService applicationsService;
+    /**
+     * Checks if the current user has permission to view in the specified environment.
+     *
+     * @param environmentId The ID of the environment to check.
+     * @return <code>true</code> if the user is authorized to view, otherwise <code>false</code>.
+     */
+    boolean canView(String environmentId);
 
-    public AuthorizationService(ApplicationsService applicationsService) {
-        this.applicationsService = applicationsService;
-    }
+    /**
+     * Checks if the current user has permission to edit in the specified environment.
+     *
+     * @param environmentId The ID of the environment to check.
+     * @return <code>true</code> if the user is authorized to edit, otherwise <code>false</code>.
+     */
+    boolean canEdit(String environmentId);
 
-    public boolean canView(String envId) {
-        System.out.println(envId);
-        return true;
-    }
+    /**
+     * Checks if the current user has permission to edit in the specified application.
+     *
+     * @param applicationId The ID of the application to check.
+     * @return <code>true</code> if the user is authorized to edit, otherwise <code>false</code>.
+     */
+    boolean canEditApplication(String applicationId);
 
-    public boolean canEdit(String envId) {
-        System.out.println(envId);
-        return true;
-    }
-
-    public boolean canEditApplication(String appId) {
-        return applicationsService.isUserAuthorizedFor(appId);
-    }
-
-    public boolean canGenerateNewApiKey(String applicationId) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
-            return false;
-        }
-
-        return authentication.getAuthorities().stream()
-                .filter(authority -> authority instanceof ApplicationGrantedAuthority)
-                .map(authority -> (ApplicationGrantedAuthority) authority)
-                .anyMatch(appAuthority -> "ROLE_GENERATE_API_KEY".equals(appAuthority.getAuthority())
-                        && applicationId.equals(appAuthority.getApplicationId()));
-    }
-
+    /**
+     * Checks if the current user has permission to generate a new API key in the specified application.
+     *
+     * @param applicationId The ID of the application.
+     * @return <code>true</code> if the user is authorized to generate a new API key, otherwise <code>false</code>.
+     */
+    boolean canGenerateNewApiKey(String applicationId);
 }
