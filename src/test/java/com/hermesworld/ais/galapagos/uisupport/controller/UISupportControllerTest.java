@@ -5,7 +5,7 @@ import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.context.annotation.Import;
 
 import java.util.List;
@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class UISupportControllerTest {
 
     @SuppressWarnings("unused")
-    @MockBean
+    @MockitoBean
     private KafkaClusters kafkaClusters;
 
     @Autowired

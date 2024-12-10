@@ -11,7 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.security.oauth2.client.servlet.OAuth2ClientAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.*;
@@ -39,18 +39,18 @@ class SecurityConfigIntegrationTest {
     private TestRestTemplate restTemplate;
 
     @SuppressWarnings("unused")
-    @MockBean
+    @MockitoBean
     private ApplicationsService applicationsService;
 
     @SuppressWarnings("unused")
-    @MockBean
+    @MockitoBean
     private StagingService stagingService;
 
     @SuppressWarnings("unused")
-    @MockBean
+    @MockitoBean
     private KafkaClusters kafkaClusters;
 
-    @MockBean
+    @MockitoBean
     private JwtDecoder jwtDecoder;
 
     @BeforeEach

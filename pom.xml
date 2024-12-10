@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.3.5</version>
+        <version>3.4.0</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.hermesworld.ais</groupId>
@@ -24,8 +24,6 @@
         <sonar.sources>src/main/java</sonar.sources>
         <sonar.exclusions>src/main/resources/*</sonar.exclusions>
         <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
-        <!-- Spring Framework Override to temporarily fix security issues -->
-        <spring-framework.version>6.1.14</spring-framework.version>
     </properties>
 
     <dependencies>
@@ -247,6 +245,12 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <proc>full</proc>
+                </configuration>
             </plugin>
 
             <!-- this ensures consistent Java code formatting using Eclipse Formatter Settings.

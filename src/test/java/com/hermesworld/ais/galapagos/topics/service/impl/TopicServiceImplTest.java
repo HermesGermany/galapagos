@@ -26,7 +26,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.invocation.InvocationOnMock;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.util.StreamUtils;
 
@@ -42,7 +42,7 @@ import static org.mockito.Mockito.*;
 
 class TopicServiceImplTest {
 
-    @MockBean
+    @MockitoBean
     private KafkaClusters kafkaClusters;
 
     private ApplicationsService applicationsService;
