@@ -20,7 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.autoconfigure.mail.MailHealthContributorAutoConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.mail.javamail.JavaMailSender;
 
@@ -42,16 +42,16 @@ import static org.mockito.Mockito.when;
 @Import(GalapagosTestConfig.class)
 class CertificateExpiryReminderRunnerIntegrationTest {
 
-    @MockBean
+    @MockitoBean
     private KafkaClusters kafkaClusters;
 
-    @MockBean
+    @MockitoBean
     private CertificateExpiryReminderService reminderService;
 
-    @MockBean
+    @MockitoBean
     private ApplicationsService applicationsService;
 
-    @MockBean
+    @MockitoBean
     private JavaMailSender mailSender;
 
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")

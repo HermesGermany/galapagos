@@ -14,7 +14,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientProperties;
 import org.springframework.boot.autoconfigure.security.oauth2.client.servlet.OAuth2ClientAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpHeaders;
@@ -47,10 +47,10 @@ class OAuthConfigControllerIntegrationTest {
     @Autowired
     private TestRestTemplate restTemplate;
 
-    @MockBean
+    @MockitoBean
     private OAuth2ClientProperties oauthProperties;
 
-    @MockBean
+    @MockitoBean
     @SuppressWarnings("unused")
     private JwtDecoder jwtDecoder;
 
