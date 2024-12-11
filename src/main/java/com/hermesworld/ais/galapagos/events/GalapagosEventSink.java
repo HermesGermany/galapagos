@@ -24,6 +24,8 @@ public interface GalapagosEventSink {
 
     CompletableFuture<Void> handleTopicSubscriptionApprovalRequiredFlagChanged(TopicMetadata metadata);
 
+    CompletableFuture<Void> handleMissingInternalTopicDeleted(TopicMetadata metadata);
+
     CompletableFuture<Void> handleTopicSchemaAdded(TopicMetadata metadata, SchemaMetadata newSchema);
 
     CompletableFuture<Void> handleTopicSchemaDeleted(TopicMetadata metadata);
