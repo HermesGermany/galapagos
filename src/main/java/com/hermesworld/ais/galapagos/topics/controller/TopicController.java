@@ -12,6 +12,7 @@ import com.hermesworld.ais.galapagos.naming.InvalidTopicNameException;
 import com.hermesworld.ais.galapagos.naming.NamingService;
 import com.hermesworld.ais.galapagos.schemas.IncompatibleSchemaException;
 import com.hermesworld.ais.galapagos.security.CurrentUserService;
+import com.hermesworld.ais.galapagos.security.roles.CanView;
 import com.hermesworld.ais.galapagos.topics.SchemaCompatCheckMode;
 import com.hermesworld.ais.galapagos.topics.SchemaMetadata;
 import com.hermesworld.ais.galapagos.topics.TopicMetadata;
@@ -312,6 +313,7 @@ public class TopicController {
         }
     }
 
+    @CanView
     @DeleteMapping(value = "/api/topics/{environmentId}/{topicName}")
     public ResponseEntity<Void> deleteTopic(@PathVariable String environmentId, @PathVariable String topicName) {
         TopicMetadata metadata = topicService.listTopics(environmentId).stream()

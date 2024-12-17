@@ -25,7 +25,7 @@ import java.util.Locale;
 import java.util.stream.Collectors;
 
 @Configuration
-@EnableMethodSecurity(securedEnabled = true, prePostEnabled = false)
+@EnableMethodSecurity(securedEnabled = true, prePostEnabled = true)
 public class SecurityConfig {
 
     @Bean
