@@ -70,7 +70,6 @@ public class TopicController {
         this.userService = userService;
     }
 
-    @CanView
     @GetMapping(value = "/api/topics/{environmentId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public List<TopicDto> listTopics(@PathVariable String environmentId,
             @RequestParam(required = false, defaultValue = "true") boolean includeInternal) {
@@ -314,6 +313,7 @@ public class TopicController {
         }
     }
 
+    @CanView
     @DeleteMapping(value = "/api/topics/{environmentId}/{topicName}")
     public ResponseEntity<Void> deleteTopic(@PathVariable String environmentId, @PathVariable String topicName) {
         TopicMetadata metadata = topicService.listTopics(environmentId).stream()

@@ -9,11 +9,13 @@ import java.util.concurrent.CompletableFuture;
  */
 public interface UserRoleService {
 
-    CompletableFuture<Void> addUserRole(String environmentId, String userName, Role role, String applicationId);
+    CompletableFuture<Void> addUserRole(String environmentId, UserRoleData userRoleData);
 
     List<UserRoleData> getAllRoles(String environmentId);
 
     List<UserRoleData> getRolesForUser(String environmentId, String userName);
 
-    CompletableFuture<Void> deleteUserRole(String environmentId, UserRoleData value);
+    CompletableFuture<Void> deleteUserRole(String environmentId);
+
+    List<UserRoleData> getAllRolesForCurrentUser();
 }

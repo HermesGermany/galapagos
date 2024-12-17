@@ -18,8 +18,24 @@ public class UserRoleData implements HasKey {
 
     private String applicationId;
 
+    public UserRoleData() {
+    }
+
+    public UserRoleData(UserRoleData original) {
+        this.id = original.id;
+        this.userName = original.userName;
+        this.role = original.role;
+        this.applicationId = original.applicationId;
+    }
+
     @Override
     public String key() {
         return id;
+    }
+
+    @Override
+    public String toString() {
+        return "UserRoleData{" + "id='" + id + '\'' + ", userName='" + userName + '\'' + ", role=" + role
+                + ", applicationId='" + applicationId + '\'' + '}' + '\n';
     }
 }

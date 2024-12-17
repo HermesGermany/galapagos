@@ -9,6 +9,6 @@ import java.lang.annotation.Target;
 
 @Target({ ElementType.METHOD, ElementType.TYPE })
 @Retention(RetentionPolicy.RUNTIME)
-@PreAuthorize("@authorizationService.canView(#environmentId)")
+@PreAuthorize("@authorizationService.canView(#environmentId, #topicName, #applicationId)")
 public @interface CanView {
 }

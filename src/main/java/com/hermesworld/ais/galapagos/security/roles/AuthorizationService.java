@@ -12,7 +12,7 @@ public interface AuthorizationService {
      * @param environmentId The ID of the environment to check.
      * @return <code>true</code> if the user is authorized to view, otherwise <code>false</code>.
      */
-    boolean canView(String environmentId);
+    boolean canView(String environmentId, String topicName, String applicationId);
 
     /**
      * Checks if the current user has permission to edit in the specified environment.
