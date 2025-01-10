@@ -280,14 +280,15 @@ public class NotificationEventListener
     private CompletableFuture<Void> handleTopicChange(TopicEvent event, String changeText) {
         String environmentId = event.getContext().getKafkaCluster().getId();
         String topicName = event.getMetadata().getName();
+        String topicNameAbbreviated = abbreviateTopicName(topicName);
         String userName = event.getContext().getContextValue(USER_NAME_KEY).map(Object::toString).orElse(unknownUser);
         String environmentName = kafkaClusters.getEnvironmentMetadata(environmentId)
                 .map(KafkaEnvironmentConfig::getName).orElse(unknownEnv);
 
-        // TODO externalize strings
         NotificationParams params = new NotificationParams("topic-changed");
         params.addVariable("user_name", userName);
         params.addVariable("topic_name", topicName);
+        params.addVariable("topic_name_abbreviated", topicNameAbbreviated);
         params.addVariable("change_action_text", changeText);
         params.addVariable("galapagos_topic_url",
                 buildUIUrl(event, "/topics/" + topicName + "?environment=" + environmentId));
