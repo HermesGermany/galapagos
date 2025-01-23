@@ -263,6 +263,20 @@ public class ValidatingTopicServiceImpl implements ValidatingTopicService {
                 .orElseGet(() -> topicService.changeTopicOwner(environmentId, topicName, newApplicationOwnerId));
     }
 
+    @Override
+    public Optional<TopicMetadata> getSingleTopic(String environmentId, String topicName) {
+        Optional<TopicMetadata> optionalMetadata = getTopic(environmentId, topicName);
+        if (optionalMetadata.isEmpty()) {
+            return Optional.empty();
+        }
+        return topicService.getSingleTopic(environmentId, topicName);
+    }
+
+    @Override
+    public CompletableFuture<Boolean> verifyInternalTopicExists(String environmentId, String topicName) {
+        return topicService.verifyInternalTopicExists(environmentId, topicName);
+    }
+
     private boolean currentUserMayRead(String environmentId, TopicMetadata metadata) {
         Set<String> subscribedApplications = subscriptionService
                 .getSubscriptionsForTopic(environmentId, metadata.getName(), false).stream()

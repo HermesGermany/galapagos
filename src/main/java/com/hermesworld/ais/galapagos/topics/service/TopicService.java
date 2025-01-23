@@ -126,4 +126,21 @@ public interface TopicService {
     @CheckReturnValue
     CompletableFuture<Void> changeTopicOwner(String environmentId, String topicName, String newApplicationOwnerId);
 
+    @CheckReturnValue
+    Optional<TopicMetadata> getSingleTopic(String environmentId, String topicName);
+
+    /**
+     * This method checks, if and only if the given topic is an INTERNAL topic, if the topic really still physically
+     * exists on the given Kafka environment. If it does not exist anymore, but has metadata stored, the metadata are
+     * deleted, and an event is fired that the metadata for this topic have been deleted.
+     *
+     * @param environmentId Kafka environment
+     * @param topicName     Name of the topic
+     * @return A Completable Future which evaluates to <code>true</code> if the topic is internal and exists, and
+     *         <code>false</code> in all other cases (including non-internal topics, non-existing non-internal topics
+     *         etc).
+     */
+    @CheckReturnValue
+    CompletableFuture<Boolean> verifyInternalTopicExists(String environmentId, String topicName);
+
 }
