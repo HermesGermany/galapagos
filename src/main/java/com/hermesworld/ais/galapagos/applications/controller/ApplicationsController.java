@@ -9,6 +9,7 @@ import com.hermesworld.ais.galapagos.changes.Change;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.kafka.config.KafkaEnvironmentConfig;
 import com.hermesworld.ais.galapagos.naming.ApplicationPrefixes;
+import com.hermesworld.ais.galapagos.security.roles.CanEditApplication;
 import com.hermesworld.ais.galapagos.staging.Staging;
 import com.hermesworld.ais.galapagos.staging.StagingResult;
 import com.hermesworld.ais.galapagos.staging.StagingService;
@@ -134,6 +135,7 @@ public class ApplicationsController {
         }
     }
 
+    @CanEditApplication
     @GetMapping(value = "/api/environments/{environmentId}/prefixes/{applicationId}")
     public ApplicationPrefixesDto getApplicationPrefixes(@PathVariable String environmentId,
             @PathVariable String applicationId) {
