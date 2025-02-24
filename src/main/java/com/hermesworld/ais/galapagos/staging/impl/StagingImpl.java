@@ -190,8 +190,13 @@ public final class StagingImpl implements Staging, ApplyChangeContext {
 
         ChangeBase createChange = ChangeBase.createTopic(topic, createParams);
         if (topic.getType() != TopicType.INTERNAL) {
+            List<ChangeBase> additionalChanges = new ArrayList<>();
             ChangeBase firstSchemaChange = ChangeBase.publishTopicSchemaVersion(topic.getName(), firstSchema);
-            return ChangeBase.compoundChange(createChange, List.of(firstSchemaChange));
+            additionalChanges.add(firstSchemaChange);
+            for (String producer : topic.getProducers()) {
+                additionalChanges.add(ChangeBase.addTopicProducer(topic.getName(), producer));
+            }
+            return ChangeBase.compoundChange(createChange, additionalChanges);
         }
 
         return createChange;
@@ -237,7 +242,6 @@ public final class StagingImpl implements Staging, ApplyChangeContext {
 
             toBeDeletedIds
                     .forEach(producerId -> result.add(ChangeBase.removeTopicProducer(newTopic.getName(), producerId)));
-
         }
 
         return result;
