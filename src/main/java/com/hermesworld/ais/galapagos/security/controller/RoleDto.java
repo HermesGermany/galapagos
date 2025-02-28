@@ -33,7 +33,9 @@ public class RoleDto {
 
     private final RequestState state;
 
-    public RoleDto(String id, String userName, Role role, String environment, String applicationId1, String comments, ZonedDateTime createdAt, String notificationEmailAddress, ZonedDateTime lastStatusChangeAt, String lastStatusChangeBy, RequestState state) {
+    public RoleDto(String id, String userName, Role role, String environment, String applicationId1, String comments,
+            ZonedDateTime createdAt, String notificationEmailAddress, ZonedDateTime lastStatusChangeAt,
+            String lastStatusChangeBy, RequestState state) {
         this.id = id;
         this.userName = userName;
         this.role = role;

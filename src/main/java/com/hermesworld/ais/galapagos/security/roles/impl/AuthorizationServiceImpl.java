@@ -23,7 +23,7 @@ public class AuthorizationServiceImpl implements AuthorizationService {
     private final UserRoleService userRoleService;
 
     public AuthorizationServiceImpl(ApplicationsService applicationsService, TopicService topicService,
-                                    UserRoleService userRoleService) {
+            UserRoleService userRoleService) {
         this.applicationsService = applicationsService;
         this.topicService = topicService;
         this.userRoleService = userRoleService;

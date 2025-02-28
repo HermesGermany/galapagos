@@ -29,7 +29,8 @@ public class UserRoleServiceImpl implements UserRoleService, InitPerCluster {
 
     private static final String TOPIC_NAME = "user-roles";
 
-    public UserRoleServiceImpl(KafkaClusters kafkaClusters, CurrentUserService currentUserService, TimeService timeService) {
+    public UserRoleServiceImpl(KafkaClusters kafkaClusters, CurrentUserService currentUserService,
+            TimeService timeService) {
         this.kafkaClusters = kafkaClusters;
         this.currentUserService = currentUserService;
         this.timeService = timeService;
@@ -69,8 +70,7 @@ public class UserRoleServiceImpl implements UserRoleService, InitPerCluster {
 
     private boolean userRoleByAppIdExistsForUser(String environmentId, String userName, String appId) {
         List<UserRoleData> data = getAllRoles(environmentId);
-        return data.stream()
-                .anyMatch(u -> u.getUserName().equals(userName) && u.getApplicationId().equals(appId));
+        return data.stream().anyMatch(u -> u.getUserName().equals(userName) && u.getApplicationId().equals(appId));
     }
 
     @Override
@@ -98,8 +98,11 @@ public class UserRoleServiceImpl implements UserRoleService, InitPerCluster {
         if (kafkaCluster == null) {
             return FutureUtil.noop();
         }
-        List<UserRoleData> data = getAllRoles(environmentId).stream().filter(userRole -> userRole.getUserName().equals(userName)).toList();
-        return CompletableFuture.allOf(data.stream().map(userRoleData -> getRepository(kafkaCluster).delete(userRoleData)).toArray(CompletableFuture[]::new));
+        List<UserRoleData> data = getAllRoles(environmentId).stream()
+                .filter(userRole -> userRole.getUserName().equals(userName)).toList();
+        return CompletableFuture
+                .allOf(data.stream().map(userRoleData -> getRepository(kafkaCluster).delete(userRoleData))
+                        .toArray(CompletableFuture[]::new));
     }
 
     @Override
@@ -155,9 +158,7 @@ public class UserRoleServiceImpl implements UserRoleService, InitPerCluster {
 
     @Override
     public List<UserRoleData> listAllRoles() {
-        return kafkaClusters.getEnvironmentIds().stream()
-                .map(this::getAllRoles)
-                .flatMap(List::stream)
+        return kafkaClusters.getEnvironmentIds().stream().map(this::getAllRoles).flatMap(List::stream)
                 .collect(Collectors.toList());
     }
 
