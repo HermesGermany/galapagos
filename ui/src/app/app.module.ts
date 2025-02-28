@@ -21,28 +21,33 @@ import { ApiKeyService } from './shared/services/apikey.service';
 import { CertificateService } from './shared/services/certificates.service';
 
 import { OAuthModule, OAuthService } from 'angular-oauth2-oidc';
+import { RoleService } from './shared/services/role.service';
 
 const isApiUrl = (url: string) => !url.startsWith('http') && url.indexOf('/api/') > -1;
 
-@NgModule({ declarations: [AppComponent], imports: [CommonModule,
-    BrowserModule,
-    BrowserAnimationsModule,
-    LanguageTranslationModule,
-    AppRoutingModule,
-    OAuthModule.forRoot({
-        resourceServer: {
-            sendAccessToken: true,
-            customUrlValidation: isApiUrl
-        }
-    })], providers: [AuthGuard, ApplicationsService, EnvironmentsService, TopicsService, ApiKeyService, ToastService, CertificateService,
-    ServerInfoService, OAuthService,
-    {
-        provide: HIGHLIGHT_OPTIONS,
-        useValue: {
-            coreLibraryLoader: () => import('highlight.js/lib/core'),
-            languages: getHighlightLanguages()
-        }
-    }, provideHttpClient(withInterceptorsFromDi())] })
+@NgModule({
+    declarations: [AppComponent],
+    imports: [CommonModule,
+        BrowserModule,
+        BrowserAnimationsModule,
+        LanguageTranslationModule,
+        AppRoutingModule,
+        OAuthModule.forRoot({
+            resourceServer: {
+                sendAccessToken: true,
+                customUrlValidation: isApiUrl
+            }
+        })],
+    providers: [AuthGuard, ApplicationsService, EnvironmentsService, TopicsService, ApiKeyService, ToastService, CertificateService,
+        ServerInfoService, OAuthService, RoleService,
+        {
+            provide: HIGHLIGHT_OPTIONS,
+            useValue: {
+                coreLibraryLoader: () => import('highlight.js/lib/core'),
+                languages: getHighlightLanguages()
+            }
+        }, provideHttpClient(withInterceptorsFromDi())]
+})
 export class AppModule implements DoBootstrap {
 
     ngDoBootstrap(app: ApplicationRef) {

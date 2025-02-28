@@ -13,8 +13,8 @@ export interface RoleDto {
     applicationId: string;
     environmentId: string;
     comments: string;
-    //state: 'SUBMITTED' | 'REJECTED' | 'ACCEPTED' | 'REVOKED';
-    state: string;
+    state: 'SUBMITTED' | 'REJECTED' | 'ACCEPTED' | 'REVOKED';
+    //state: string;
     createdAt: string;
     lastStatusChangeAt: string;
     lastStatusChangeBy: string;
@@ -27,10 +27,7 @@ export interface CreateUserRoleDto {
     comments: string;
 }
 
-@Injectable({
-    providedIn: 'root'
-}
-)
+@Injectable()
 export class RoleService {
 
     private userRoles = new ReplayContainer<RoleDto[]>(() => this.http.get<RoleDto[]>('/api/me/roles'))

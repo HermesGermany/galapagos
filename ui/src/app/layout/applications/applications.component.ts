@@ -23,7 +23,6 @@ import { ApiKeyService } from '../../shared/services/apikey.service';
 import { ApplicationCertificate, CertificateService } from '../../shared/services/certificates.service';
 import { copy } from '../../shared/util/copy-util';
 import { AVAILABLE_ROLES, Role } from '../../shared/services/role.service';
-import { join } from '@angular/compiler-cli';
 
 export interface UserApplicationInfoWithTopics extends UserApplicationInfo {
 
@@ -344,5 +343,4 @@ export class ApplicationsComponent implements OnInit {
         return dn.match(/OU=([^,]+)/)[1];
     }
 
-    protected readonly join = join;
 }
