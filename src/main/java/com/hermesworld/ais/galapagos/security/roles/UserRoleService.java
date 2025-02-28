@@ -1,6 +1,9 @@
 package com.hermesworld.ais.galapagos.security.roles;
 
+import com.hermesworld.ais.galapagos.applications.RequestState;
+
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -15,7 +18,13 @@ public interface UserRoleService {
 
     List<UserRoleData> getRolesForUser(String environmentId, String userName);
 
-    CompletableFuture<Void> deleteUserRole(String environmentId);
+    CompletableFuture<Void> deleteUserRoles(String environmentId, String userName);
 
-    List<UserRoleData> getAllRolesForCurrentUser();
+    Map<String, List<UserRoleData>> getAllRolesForCurrentUser();
+
+    CompletableFuture<Void> deleteUserRoleById(String environmentId, String id);
+
+    CompletableFuture<Void> updateRole(String requestId, String environmentId, RequestState newState);
+
+    List<UserRoleData> listAllRoles();
 }

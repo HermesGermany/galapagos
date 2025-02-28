@@ -1,9 +1,13 @@
 package com.hermesworld.ais.galapagos.security.roles;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.hermesworld.ais.galapagos.applications.RequestState;
 import com.hermesworld.ais.galapagos.util.HasKey;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.time.ZonedDateTime;
 
 @JsonSerialize
 @Getter
@@ -16,17 +20,23 @@ public class UserRoleData implements HasKey {
 
     private Role role;
 
+    private String environment;
+
     private String applicationId;
 
-    public UserRoleData() {
-    }
+    private String comments;
 
-    public UserRoleData(UserRoleData original) {
-        this.id = original.id;
-        this.userName = original.userName;
-        this.role = original.role;
-        this.applicationId = original.applicationId;
-    }
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
+    private ZonedDateTime createdAt;
+
+    private String notificationEmailAddress;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
+    private ZonedDateTime lastStatusChangeAt;
+
+    private String lastStatusChangeBy;
+
+    private RequestState state;
 
     @Override
     public String key() {
@@ -35,7 +45,12 @@ public class UserRoleData implements HasKey {
 
     @Override
     public String toString() {
-        return "UserRoleData{" + "id='" + id + '\'' + ", userName='" + userName + '\'' + ", role=" + role
-                + ", applicationId='" + applicationId + '\'' + '}' + '\n';
+        return "UserRoleData{" + "id='" + id + '\'' + ", userName='" + userName + '\'' + ", role=" + role + '\''
+                + ", applicationId='" + applicationId + '\''
+                + ", environment='" + environment + '\''
+                + ", comments='" + comments + '\'' + ", createdAt=" + createdAt
+                + ", lastStatusChangeAt=" + lastStatusChangeAt
+                + ", lastStatusChangeBy='" + lastStatusChangeBy + '\'' + ", state=" + state
+                + '\'' + '}' + '\n';
     }
 }

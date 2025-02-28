@@ -7,9 +7,12 @@ import lombok.Setter;
 @Getter
 @Setter
 public class CreateUserRoleDto {
+
     private String userName;
 
     private Role role;
 
     private String applicationId;
+
+    private String comments;
 }

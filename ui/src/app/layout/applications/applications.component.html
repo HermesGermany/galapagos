@@ -27,23 +27,38 @@
                     <form #appForm="ngForm">
                         <div class="d-flex mb-3 justify-content-start align-items-center">
                             <label style="margin-right: 1em"
-                                for="app_picker">{{ 'Select Application' | translate }}</label>
+                                   for="app_picker">{{ 'Select Application' | translate }}</label>
                             <select class="form-select w-auto" name="appPicker" id="app_picker"
-                                [(ngModel)]="selectedApplicationForRequest">
+                                    [(ngModel)]="selectedApplicationForRequest">
                                 <option *ngFor="let app of availableApplications | async" [ngValue]="app">{{ app.name }}
                                 </option>
                             </select>
                             <span class="ms-3 text-muted" [style.display]="appListLoading ? 'inline' : 'none'"><i
-                                    class="fas fa-cog fa-spin"></i></span>
+                                class="fas fa-cog fa-spin"></i></span>
                         </div>
-                        <div class="form-group">
+                        <div class="from-group mb-3">
+                            <label for="role_picker">{{ 'Select Role' | translate }}</label>
+                            <select class="form-select w-auto" id="role_picker"
+                                    [(ngModel)]="selectedRole" name="role">
+                                <option *ngFor="let role of availableRoles" [ngValue]="role">{{ role }}</option>
+                            </select>
+                        </div>
+                        <div class="from-group mb-3">
+                            <label>{{ 'Select Environments' | translate }}</label>
+                            <div *ngFor="let env of selectedEnvironments">
+                                <input class="form-check-input" type="checkbox" [name]="env.environment.id"
+                                       [(ngModel)]="env.selected"/>
+                                <label class="form-check-label ms-2">{{ env.environment.name }}</label>
+                            </div>
+                        </div>
+                        <div class="form-group mb-3">
                             <label for="reason">{{ 'Reason / comments (optional)' | translate }}:</label>
                             <textarea id="reason" name="comments" class="form-control" rows="4" maxlength="1000" #box
                                       [(ngModel)]="commentsForRequest"></textarea>
                             <p class="text-muted">{{ 'REMAINING_CHARACTERS_TEXT' | translate:{characters: 1000 - box.value.length} }}</p>
                         </div>
                         <button type="button" class="btn btn-warning" (click)="d.while(submitRequest())" appSpinnerWhile
-                            #d="appSpinnerWhile">
+                                #d="appSpinnerWhile">
                             <i class="fas fa-envelope fa-fw"></i>&nbsp;{{ 'Submit Request' | translate }}
                         </button>
                     </form>
@@ -61,34 +76,37 @@
                 <div class="card-body table-responsive">
                     <table class="table">
                         <thead>
-                            <tr>
-                                <th>{{ 'Date' | translate }}</th>
-                                <th>{{ 'Application' | translate }}</th>
-                                <th>{{ 'State' | translate }}</th>
-                                <th>{{ 'Last updated at' | translate }}</th>
-                                <th>{{ 'Last updated by' | translate }}</th>
-                                <th>{{ 'Action' | translate }}</th>
-                            </tr>
+                        <tr>
+                            <th>{{ 'Date' | translate }}</th>
+                            <th>{{ 'Application' | translate }}</th>
+                            <th>{{ 'Role' | translate }}</th>
+                            <th>{{ 'Environment' | translate }}</th>
+                            <th>{{ 'State' | translate }}</th>
+                            <th>{{ 'Last updated at' | translate }}</th>
+                            <th>{{ 'Last updated by' | translate }}</th>
+                            <th>{{ 'Action' | translate }}</th>
+                        </tr>
                         </thead>
                         <tbody>
-                            <tr *ngFor="let req of userRequests | async">
-                                <td>{{ niceTimestamp(req.createdAt) | async }}</td>
-                                <td>{{ toAppName(req.applicationId) | async }}</td>
-                                <td>
+                        <tr *ngFor="let req of userRequests | async">
+                            <td>{{ niceTimestamp(req.createdAt) | async }}</td>
+                            <td>{{ toAppName(req.applicationId) | async }}</td>
+                            <td>
                                     <span class="badge" [class.bg-secondary]="req.state === 'SUBMITTED'"
-                                        [class.bg-success]="req.state === 'APPROVED'"
-                                        [class.bg-warning]="req.state === 'RESIGNED'"
-                                        [class.bg-danger]="req.state === 'REJECTED' || req.state === 'REVOKED'">{{ req.state }}</span>
-                                </td>
-                                <td>{{ niceTimestamp(req.lastStatusChangeAt) | async }}</td>
-                                <td>{{ req.lastStatusChangeBy }}</td>
-                                <td>
-                                    <button type="button" class="btn btn-danger" (click)="d.while(cancelRequest(req))"
-                                        appSpinnerWhile #d="appSpinnerWhile" [disabled]="req.state !== 'SUBMITTED' && req.state !== 'APPROVED'">
-                                        <i class="fa fa-trash"></i>
-                                    </button>
-                                </td>
-                            </tr>
+                                          [class.bg-success]="req.state === 'APPROVED'"
+                                          [class.bg-warning]="req.state === 'RESIGNED'"
+                                          [class.bg-danger]="req.state === 'REJECTED' || req.state === 'REVOKED'">{{ req.state }}</span>
+                            </td>
+                            <td>{{ niceTimestamp(req.lastStatusChangeAt) | async }}</td>
+                            <td>{{ req.lastStatusChangeBy }}</td>
+                            <td>
+                                <button type="button" class="btn btn-danger" (click)="d.while(cancelRequest(req))"
+                                        appSpinnerWhile #d="appSpinnerWhile"
+                                        [disabled]="req.state !== 'SUBMITTED' && req.state !== 'APPROVED'">
+                                    <i class="fa fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
                         </tbody>
                     </table>
                 </div>
@@ -124,7 +142,7 @@
                             <i class="fas fa-key"></i>&nbsp;{{ 'Generate API Key' | translate }}
                         </button>
                         <div *ngIf="apiKeyRequestError" class="alert alert-danger mb-4 mt-3">
-                            <span><b>{{'API_KEY_REQUEST_FAILED' | translate}}:</b>
+                            <span><b>{{ 'API_KEY_REQUEST_FAILED' | translate }}:</b>
                                 {{ apiKeyRequestError | json }}</span>
                         </div>
                     </div>
@@ -135,20 +153,20 @@
                             <tbody>
                             <tr>
                                 <th scope="row"><i class="fas fa-key"></i>&nbsp;Key</th>
-                                <td>{{key}}</td>
+                                <td>{{ key }}</td>
                                 <button (click)="copyValue(key)"
                                         class="btn btn-outline-secondary btn-sm ms-3 mt-1 mb-1"><i
                                     class="fas fa-copy"></i>
-                                    <span class="ms-1" *ngIf="copiedKey"> {{ 'Copied!' | translate}}</span>
+                                    <span class="ms-1" *ngIf="copiedKey"> {{ 'Copied!' | translate }}</span>
                                 </button>
                             </tr>
                             <tr>
                                 <th scope="row"><i class="fas fa-user-secret"></i>&nbsp;Secret</th>
-                                <td>{{secret}}</td>
+                                <td>{{ secret }}</td>
                                 <button (click)="copyValue(secret)"
                                         class="btn btn-outline-secondary btn-sm ms-3 mt-1 mb-1"><i
                                     class="fas fa-copy"></i>
-                                    <span class="ms-1" *ngIf="copiedSecret"> {{ 'Copied!' | translate}}</span>
+                                    <span class="ms-1" *ngIf="copiedSecret"> {{ 'Copied!' | translate }}</span>
                                 </button>
                             </tr>
                             </tbody>
@@ -161,7 +179,8 @@
     </div>
     <div class="modal-footer">
         <button type="button" ngbAutofocus class="btn btn-primary" (click)="handleDlgDismiss(); keyDlg.dismiss()"><i
-            class="fas fa-times"></i>&nbsp;{{ 'Close' | translate }}</button>
+            class="fas fa-times"></i>&nbsp;{{ 'Close' | translate }}
+        </button>
     </div>
 </ng-template>
 <ng-template #certDlg let-dlg>
@@ -256,6 +275,7 @@
             <i class="fas fa-cogs"></i>&nbsp;{{ 'Generate Client Certificate' | translate }}
         </button>
         <button type="button" ngbAutofocus class="btn btn-danger" (click)="dlg.dismiss()"><i
-            class="fas fa-times"></i>&nbsp;{{ 'Cancel' | translate }}</button>
+            class="fas fa-times"></i>&nbsp;{{ 'Cancel' | translate }}
+        </button>
     </div>
 </ng-template>

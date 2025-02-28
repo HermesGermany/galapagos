@@ -1,47 +1,72 @@
 <div [@routerTransition] *ngIf="isAdmin | async">
     <h2 id="adminHeader" class="text-muted">{{ 'Administration' | translate }}</h2>
     <hr/>
-    <div class="row mb-4">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-header">
-                    <b>{{ 'Application Owner Requests' | translate }}</b>
-                </div>
-                <div class="card-body table-responsive">
-                    <div class="mb-3 row">
-                        <label for="table-complete-search" class="col-xs-3 col-sm-auto col-form-label">{{ 'Search' | translate }}:</label>
-                        <div class="col-xs-3 col-sm-auto">
-                            <input
-                                id="table-complete-search"
-                                type="text"
-                                class="form-control"
-                                class="form-control"
-                                name="searchTerm"
-                                [(ngModel)]="state.searchTerm"
-                                (ngModelChange)="search()"
-                            />
-                        </div>
-                    </div>
-                    <table class="table table-striped">
-                        <thead>
-                            <tr>
-                                <th scope="col" sortable="createdAt" (sort)="onSort($event)">{{ 'Date' | translate }}</th>
-                                <th scope="col" sortable="userName" (sort)="onSort($event)">{{ 'User name' | translate }}</th>
-                                <th scope="col" sortable="applicationName" (sort)="onSort($event)">{{ 'Application' | translate }}</th>
-                                <th scope="col">{{ 'Comments / Remarks' | translate }}</th>
-                                <th scope="col" sortable="state" (sort)="onSort($event)">{{ 'State' | translate }}</th>
-                                <th scope="col">{{ 'Actions' | translate }}</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr *ngFor="let request of currentRequests">
-                                <td>{{ niceTimestamp(request.createdAt) | async }}</td>
-                                <td><ngb-highlight [result]="request.userName" [term]="state.searchTerm"></ngb-highlight></td>
-                                <td>
-                                    <a *ngIf="request.applicationInfoUrl" [href]="request.applicationInfoUrl" target="_blank"><ngb-highlight [result]="request.applicationName" [term]="state.searchTerm"></ngb-highlight></a>
-                                    <ngb-highlight *ngIf="!request.applicationInfoUrl" [result]="request.applicationName" [term]="state.searchTerm"></ngb-highlight></td>
-                                <td><span [innerHTML]="request.comments"></span></td>
-                                <td style="min-width: 9em">
+    <ul ngbNav #nav="ngbNav" [(activeId)]="active" class="nav-tabs">
+        <li [ngbNavItem]="1">
+            <button ngbNavLink>{{ 'Application Owner Requests' | translate }}</button>
+            <ng-template ngbNavContent>
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <b>{{ 'Application Owner Requests' | translate }}</b>
+                            </div>
+                            <div class="card-body table-responsive">
+                                <p>
+                                <div class="mb-3 row">
+                                    <label for="table-complete-search"
+                                           class="col-xs-3 col-sm-auto col-form-label">{{ 'Search' | translate }}
+                                        :</label>
+                                    <div class="col-xs-3 col-sm-auto">
+                                        <input
+                                            id="table-complete-search"
+                                            type="text"
+                                            class="form-control"
+                                            class="form-control"
+                                            name="searchTerm"
+                                            [(ngModel)]="state.searchTerm"
+                                            (ngModelChange)="search()"
+                                        />
+                                    </div>
+                                </div>
+                                <table class="table table-striped">
+                                    <thead>
+                                    <tr>
+                                        <th scope="col" sortable="createdAt"
+                                            (sort)="onSort($event)">{{ 'Date' | translate }}
+                                        </th>
+                                        <th scope="col" sortable="userName"
+                                            (sort)="onSort($event)">{{ 'User name' | translate }}
+                                        </th>
+                                        <th scope="col" sortable="applicationName"
+                                            (sort)="onSort($event)">{{ 'Application' | translate }}
+                                        </th>
+                                        <th scope="col">{{ 'Comments / Remarks' | translate }}</th>
+                                        <th scope="col" sortable="state"
+                                            (sort)="onSort($event)">{{ 'State' | translate }}
+                                        </th>
+                                        <th scope="col">{{ 'Actions' | translate }}</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <tr *ngFor="let request of currentRequests">
+                                        <td>{{ niceTimestamp(request.createdAt) | async }}</td>
+                                        <td>
+                                            <ngb-highlight [result]="request.userName"
+                                                           [term]="state.searchTerm"></ngb-highlight>
+                                        </td>
+                                        <td>
+                                            <a *ngIf="request.applicationInfoUrl" [href]="request.applicationInfoUrl"
+                                               target="_blank">
+                                                <ngb-highlight [result]="request.applicationName"
+                                                               [term]="state.searchTerm"></ngb-highlight>
+                                            </a>
+                                            <ngb-highlight *ngIf="!request.applicationInfoUrl"
+                                                           [result]="request.applicationName"
+                                                           [term]="state.searchTerm"></ngb-highlight>
+                                        </td>
+                                        <td><span [innerHTML]="request.comments"></span></td>
+                                        <td style="min-width: 9em">
                                     <span
                                         class="badge"
                                         [class.bg-secondary]="request.state === 'SUBMITTED'"
@@ -49,36 +74,171 @@
                                         [class.bg-warning]="request.state === 'RESIGNED'"
                                         [class.bg-danger]="request.state === 'REJECTED' || request.state === 'REVOKED'"
                                         [title]="lastChangeTitle(request) | async"
-                                        >{{ request.state }}
+                                    >{{ request.state }}
                                     </span>
-                                </td>
-                                <td style="min-width: 9em">
-                                    <button type="button" class="btn btn-success" appSpinnerWhile #u="appSpinnerWhile" (click)="u.while(approve(request))" [disabled]="request.state === 'APPROVED'"><i class="fa fas fa-thumbs-up"></i></button>&nbsp;
-                                    <button type="button" class="btn btn-danger" appSpinnerWhile #d="appSpinnerWhile" (click)="d.while(reject(request))" [disabled]="request.state === 'REJECTED' || request.state === 'REVOKED'"><i class="fa fas fa-thumbs-down"></i></button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                                        </td>
+                                        <td style="min-width: 9em">
+                                            <button type="button" class="btn btn-success" appSpinnerWhile
+                                                    #u="appSpinnerWhile"
+                                                    (click)="u.while(approve(request))"
+                                                    [disabled]="request.state === 'APPROVED'"><i
+                                                class="fa fas fa-thumbs-up"></i></button>&nbsp;
+                                            <button type="button" class="btn btn-danger" appSpinnerWhile
+                                                    #d="appSpinnerWhile"
+                                                    (click)="d.while(reject(request))"
+                                                    [disabled]="request.state === 'REJECTED' || request.state === 'REVOKED'">
+                                                <i
+                                                    class="fa fas fa-thumbs-down"></i></button>
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
 
-                    <div class="card-footer d-flex justify-content-between">
-                        <ngb-pagination
-                            [collectionSize]="state.totalItems"
-                            [(page)]="state.currentPage"
-                            [pageSize]="state.pageSize"
-                            [maxSize]="state.maxSize"
-                            [rotate]="true"
-                            (pageChange)="sliceData()"
-                        ></ngb-pagination>
+                                <div class="card-footer d-flex justify-content-between">
+                                    <ngb-pagination
+                                        [collectionSize]="state.totalItems"
+                                        [(page)]="state.currentPage"
+                                        [pageSize]="state.pageSize"
+                                        [maxSize]="state.maxSize"
+                                        [rotate]="true"
+                                        (pageChange)="sliceData()"
+                                    ></ngb-pagination>
 
-                        <select class="form-select" style="width: auto" name="pageSize" [(ngModel)]="state.pageSize" (ngModelChange)="sliceData()">
-                            <option [ngValue]="15">15 {{'items per page' | translate}}</option>
-                            <option [ngValue]="25">25 {{'items per page' | translate}}</option>
-                            <option [ngValue]="50">50 {{'items per page' | translate}}</option>
-                            <option [ngValue]="100">100 {{'items per page' | translate}}</option>
-                        </select>
+                                    <select class="form-select" style="width: auto" name="pageSize"
+                                            [(ngModel)]="state.pageSize"
+                                            (ngModelChange)="sliceData()">
+                                        <option [ngValue]="15">15 {{ 'items per page' | translate }}</option>
+                                        <option [ngValue]="25">25 {{ 'items per page' | translate }}</option>
+                                        <option [ngValue]="50">50 {{ 'items per page' | translate }}</option>
+                                        <option [ngValue]="100">100 {{ 'items per page' | translate }}</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <p>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
+            </ng-template>
+        </li>
+        <li [ngbNavItem]="2">
+            <button ngbNavLink>{{ 'Role Assignment' | translate }}</button>
+            <ng-template ngbNavContent>
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <b>{{ 'Role Assignment' | translate }}</b>
+                            </div>
+                            <div class="card-body table-responsive">
+                                <!-- Hier steht der Inhalt von Role Assignment-->
+
+                                <div class="mb-3 row">
+                                    <label for="role-table-search" class="col-xs-3 col-sm-auto col-form-label">
+                                        {{ 'Search' | translate }}:
+                                    </label>
+                                    <div class="col-xs-3 col-sm-auto">
+                                        <input
+                                            id="role-table-search"
+                                            type="text"
+                                            class="form-control"
+                                            name="rolesSearchTerm"
+                                            [(ngModel)]="roleState.searchTerm"
+                                            (ngModelChange)="searchRoles()"
+                                        />
+                                    </div>
+                                </div>
+
+                                <table class="table table-striped">
+                                    <thead>
+                                    <tr>
+                                        <th scope="col" sortable="requestedAt"
+                                            (sort)="onRoleSort($event)">{{ 'Requested At' | translate }}
+                                        </th>
+                                        <th scope="col" sortable="userName" (sort)="onRoleSort($event)">
+                                            {{ 'User Name' | translate }}
+                                        </th>
+                                        <th scope="col" sortable="applicationName"
+                                            (sort)="onRoleSort($event)">{{ 'Application' | translate }}
+                                        </th>
+                                        <th scope="col" sortable="role" (sort)="onRoleSort($event)">
+                                            {{ 'Role' | translate }}
+                                        </th>
+                                        <th scope="col">{{ 'Comments / Remarks' | translate }}</th>
+                                        <th scope="col" sortable="state"
+                                            (sort)="onRoleSort($event)">{{ 'State' | translate }}
+                                        </th>
+                                        <th scope="col">{{ 'Actions' | translate }}</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <tr *ngFor="let role of currentRoles">
+                                        <td>{{ niceTimestamp(role.createdAt) | async }}</td>
+                                        <td>
+                                            <ngb-highlight [result]="role.userName"
+                                                           [term]="roleState.searchTerm"></ngb-highlight>
+                                        </td>
+                                        <td>
+                                            <ngb-highlight [result]="role.applicationName"
+                                                           [term]="roleState.searchTerm"></ngb-highlight>
+                                        </td>
+                                        <td>
+                                            <ngb-highlight [result]="role.role"
+                                                           [term]="roleState.searchTerm"></ngb-highlight>
+                                        </td>
+                                        <td><span [innerHTML]="role.comments"></span></td>
+                                        <td style="min-width: 9em">
+                                    <span
+                                        class="badge"
+                                        [class.bg-secondary]="role.state === 'SUBMITTED'"
+                                        [class.bg-success]="role.state === 'APPROVED'"
+                                        [class.bg-warning]="role.state === 'RESIGNED'"
+                                        [class.bg-danger]="role.state === 'REJECTED' || role.state === 'REVOKED'"
+                                        [title]="lastRoleChangeTitle(role) | async"
+                                    >{{ role.state }}
+                                    </span>
+                                        </td>
+                                        <td style="min-width: 9em">
+                                            <button type="button" class="btn btn-success" appSpinnerWhile
+                                                    #u="appSpinnerWhile"
+                                                    (click)="u.while(approveRole(role))"
+                                                    [disabled]="role.state === 'APPROVED'"><i
+                                                class="fa fas fa-thumbs-up"></i></button>&nbsp;
+                                            <button type="button" class="btn btn-danger" appSpinnerWhile
+                                                    #d="appSpinnerWhile"
+                                                    (click)="d.while(rejectRole(role))"
+                                                    [disabled]="role.state === 'REJECTED' || role.state === 'REVOKED'">
+                                                <i
+                                                    class="fa fas fa-thumbs-down"></i></button>
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+
+                                <div class="card-footer d-flex justify-content-between">
+                                    <ngb-pagination
+                                        [collectionSize]="roleState.totalItems"
+                                        [(page)]="roleState.currentPage"
+                                        [pageSize]="roleState.pageSize"
+                                        [maxSize]="roleState.maxSize"
+                                        [rotate]="true"
+                                        (pageChange)="sliceRoleData()"
+                                    ></ngb-pagination>
+
+                                    <select class="form-select" style="width: auto" [(ngModel)]="roleState.pageSize"
+                                            (ngModelChange)="sliceRoleData()">
+                                        <option [ngValue]="15">15 {{ 'items per page' | translate }}</option>
+                                        <option [ngValue]="25">25 {{ 'items per page' | translate }}</option>
+                                        <option [ngValue]="50">50 {{ 'items per page' | translate }}</option>
+                                        <option [ngValue]="100">100 {{ 'items per page' | translate }}</option>
+                                    </select>
+                                </div>
+                                <!-- Ende -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </ng-template>
+        </li>
+    </ul>
+    <div [ngbNavOutlet]="nav" class="mt-2"></div>
 </div>

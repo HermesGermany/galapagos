@@ -8,7 +8,7 @@ import {
     ApplicationsService,
     UserApplicationInfo
 } from '../../shared/services/applications.service';
-import { combineLatest, Observable, of } from 'rxjs';
+import { combineLatest, firstValueFrom, Observable, of } from 'rxjs';
 import { toNiceTimestamp } from '../../shared/util/time-util';
 
 import { DateTime } from 'luxon';
@@ -22,6 +22,8 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ApiKeyService } from '../../shared/services/apikey.service';
 import { ApplicationCertificate, CertificateService } from '../../shared/services/certificates.service';
 import { copy } from '../../shared/util/copy-util';
+import { AVAILABLE_ROLES, Role } from '../../shared/services/role.service';
+import { join } from '@angular/compiler-cli';
 
 export interface UserApplicationInfoWithTopics extends UserApplicationInfo {
 
@@ -31,6 +33,11 @@ export interface UserApplicationInfoWithTopics extends UserApplicationInfo {
 
     prefixes: Observable<ApplicationPrefixes>;
 
+}
+
+interface SelectableEnvironment {
+    environment: KafkaEnvironment;
+    selected: boolean;
 }
 
 @Component({
@@ -95,6 +102,9 @@ export class ApplicationsComponent implements OnInit {
     activeTab: string;
 
     certificateCreationType = 'hasCsr';
+    availableRoles: Role[] = AVAILABLE_ROLES;
+    selectedRole: Role = 'VIEWER';
+    selectedEnvironments: SelectableEnvironment[] = [];
 
     constructor(
         private modalService: NgbModal,
@@ -143,6 +153,11 @@ export class ApplicationsComponent implements OnInit {
             })).pipe(shareReplay(1));
 
         this.environments = this.environmentsService.getEnvironments();
+
+        firstValueFrom(this.environmentsService.getEnvironments()).then(ls => this.selectedEnvironments = ls.map(e => ({
+            environment: e,
+            selected: false
+        })));
 
         this.activeTab = 'new';
 
@@ -329,4 +344,5 @@ export class ApplicationsComponent implements OnInit {
         return dn.match(/OU=([^,]+)/)[1];
     }
 
+    protected readonly join = join;
 }

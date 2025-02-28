@@ -23,7 +23,7 @@ public class AuthorizationServiceImpl implements AuthorizationService {
     private final UserRoleService userRoleService;
 
     public AuthorizationServiceImpl(ApplicationsService applicationsService, TopicService topicService,
-            UserRoleService userRoleService) {
+                                    UserRoleService userRoleService) {
         this.applicationsService = applicationsService;
         this.topicService = topicService;
         this.userRoleService = userRoleService;
@@ -45,7 +45,7 @@ public class AuthorizationServiceImpl implements AuthorizationService {
         }
         String finalApplicationId = applicationId;
         return userRoleService.getRolesForUser(environmentId, userName).stream().anyMatch(
-                role -> (role.getRole() == Role.USER || role.getRole() == Role.TESTER || role.getRole() == Role.ADMIN)
+                role -> (role.getRole() == Role.VIEWER || role.getRole() == Role.TESTER || role.getRole() == Role.ADMIN)
                         && Objects.equals(role.getApplicationId(), finalApplicationId));
     }
 

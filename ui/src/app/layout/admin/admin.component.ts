@@ -15,14 +15,29 @@ import { TranslateService } from '@ngx-translate/core';
 import { NgbPaginationConfig } from '@ng-bootstrap/ng-bootstrap';
 import { SortDirection } from '../topics/sort';
 import { AuthService } from '../../shared/services/auth.service';
+import { RoleDto, RoleService } from '../../shared/services/role.service';
 
 interface TranslatedApplicationOwnerRequest extends ApplicationOwnerRequest {
     applicationName?: string;
     applicationInfoUrl?: string;
 }
 
+interface TranslateRoleDto extends RoleDto {
+    applicationName?: string;
+    requestedAt?: string;
+}
 
 interface State {
+    currentPage: number;
+    totalItems: number;
+    pageSize: number;
+    maxSize: number;
+    searchTerm: string;
+    sortColumn: string;
+    sortDirection: SortDirection;
+}
+
+interface RoleState {
     currentPage: number;
     totalItems: number;
     pageSize: number;
@@ -37,8 +52,20 @@ const translateApps: (requests: ApplicationOwnerRequest[], apps: ApplicationInfo
     (requests, apps) => {
         const appMap = {};
         apps.forEach(app => appMap[app.id] = app);
-        return requests.map(req => appMap[req.applicationId] ? { ...req, applicationName: appMap[req.applicationId].name || req.id,
-            applicationInfoUrl: appMap[req.applicationId].infoUrl } : req);
+        return requests.map(req => appMap[req.applicationId] ? {
+            ...req, applicationName: appMap[req.applicationId].name || req.id,
+            applicationInfoUrl: appMap[req.applicationId].infoUrl
+        } : req);
+    };
+
+const translateRoles: (roles: RoleDto[], apps: ApplicationInfo[]) => TranslateRoleDto[] =
+    (roles, apps) => {
+        const appMap = {};
+        apps.forEach(app => appMap[app.id] = app);
+        return roles.map(role => appMap[role.applicationId] ? {
+            ...role, applicationName: appMap[role.applicationId].name || role.id,
+            assignedOn: role.lastStatusChangeAt
+        } : role);
     };
 
 const entityMap = {
@@ -74,7 +101,23 @@ export class AdminComponent implements OnInit {
         sortDirection: ''
     };
 
-    constructor(private applicationsService: ApplicationsService, authService: AuthService,
+    currentRoles: TranslateRoleDto[];
+
+    allFetchedRoles: TranslateRoleDto[];
+
+    roleState: RoleState = {
+        currentPage: 1, // Current page number
+        pageSize: 15, // Number of items per page
+        maxSize: 5, // Maximum number of page links to display
+        totalItems: 0, // Total number of items
+        searchTerm: '',
+        sortColumn: '',
+        sortDirection: ''
+    };
+
+    active: number = 1;
+
+    constructor(private applicationsService: ApplicationsService, private roleService: RoleService, authService: AuthService,
                 private translate: TranslateService, private config: NgbPaginationConfig) {
         config.size = 'sm';
         config.boundaryLinks = true;
@@ -95,6 +138,19 @@ export class AdminComponent implements OnInit {
         })).subscribe();
 
         this.applicationsService.refresh().then();
+
+        const allRoles = combineLatest([this.roleService.listAllRoles(),
+            this.applicationsService.getAvailableApplications(false)]).pipe(map(values => translateRoles(values[0], values[1])))
+            .pipe(map(values => values.map(role => this.escapeRoleComments(role))));
+
+        allRoles.pipe(tap(roles => {
+            this.allFetchedRoles = roles;
+            this.roleState.totalItems = roles.length;
+            this.sliceRoleData();
+            this.searchRoles();
+        })).subscribe();
+
+        this.roleService.refresh().then();
     }
 
     approve(request: TranslatedApplicationOwnerRequest): Promise<any> {
@@ -119,7 +175,7 @@ export class AdminComponent implements OnInit {
 
     sliceData() {
         this.currentRequests = this.allFetchedRequests.slice(
-            (this.state.currentPage-1)*this.state.pageSize, this.state.currentPage*this.state.pageSize);
+            (this.state.currentPage - 1) * this.state.pageSize, this.state.currentPage * this.state.pageSize);
     }
 
     lastChangeTitle(request: TranslatedApplicationOwnerRequest): Observable<string> {
@@ -149,9 +205,9 @@ export class AdminComponent implements OnInit {
     matches(request: TranslatedApplicationOwnerRequest, searchTerm: string) {
         return (
             (request.applicationName && request.applicationName.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (request.applicationId && request.applicationId.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (request.userName && request.userName.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (request.comments && request.comments.toLowerCase().includes(searchTerm.toLowerCase()))
+            (request.applicationId && request.applicationId.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            (request.userName && request.userName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            (request.comments && request.comments.toLowerCase().includes(searchTerm.toLowerCase()))
         );
     }
 
@@ -162,4 +218,60 @@ export class AdminComponent implements OnInit {
         this.currentRequests = filterData.slice(0, pageSize);
     }
 
+    escapeRoleComments(role: TranslateRoleDto) {
+        let comments = role.comments;
+        if (comments) {
+            comments = this.escapeHtml(comments);
+            comments = comments.replace(/(?:\r\n|\r|\n)/g, '<br>');
+        }
+        return {
+            ...role,
+            comments: comments
+        };
+    }
+
+    sliceRoleData() {
+        this.currentRoles = this.allFetchedRoles.slice(
+            (this.roleState.currentPage - 1) * this.roleState.pageSize, this.roleState.currentPage * this.roleState.pageSize);
+    }
+
+    lastRoleChangeTitle(role: TranslateRoleDto): Observable<string> {
+        return this.niceTimestamp(role.lastStatusChangeAt).pipe(map(l => l + ' by ' + role.lastStatusChangeBy));
+    }
+
+    approveRole(request: TranslateRoleDto): Promise<any> {
+        return this.roleService.updateRole(request.id, request.environmentId, 'APPROVED');
+    }
+
+    rejectRole(role: TranslateRoleDto): Promise<any> {
+        const newStatus = role.state === 'SUBMITTED' ? 'REJECTED' : 'REVOKED';
+        return this.roleService.updateRole(role.id, role.environmentId, newStatus);
+    }
+
+    async onRoleSort({ column, direction }: SortEvent) {
+        const roles = this.allFetchedRoles;
+        if (direction === 'asc') {
+            this.allFetchedRoles = roles.sort((a, b) => a[column] < b[column] ? 1 : a[column] > b[column] ? -1 : 0);
+        }
+        if (direction === 'desc') {
+            this.allFetchedRoles = roles.sort((a, b) => a[column] > b[column] ? 1 : a[column] < b[column] ? -1 : 0);
+        }
+        this.sliceRoleData();
+    }
+
+    matchesRole(role: TranslateRoleDto, searchTerm: string) {
+        return (
+            (role.applicationName && role.applicationName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            (role.userName && role.userName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            (role.role && role.role.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            (role.comments && role.comments.toLowerCase().includes(searchTerm.toLowerCase()))
+        );
+    }
+
+    searchRoles() {
+        const { pageSize, searchTerm } = this.roleState;
+        const filterData = this.allFetchedRoles.filter(role => this.matchesRole(role, searchTerm));
+        this.roleState.totalItems = filterData.length;
+        this.currentRoles = filterData.slice(0, pageSize);
+    }
 }
