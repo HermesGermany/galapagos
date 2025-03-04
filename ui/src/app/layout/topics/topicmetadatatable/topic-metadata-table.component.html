@@ -51,12 +51,7 @@
         <tr>
             <th scope="row">{{ 'Owning Application' | translate }}</th>
             <td>
-                <a *ngIf="topic.ownerApplication?.infoUrl; else infoUrlText"
-                   [href]="topic.ownerApplication?.infoUrl"
-                   target="_blank">{{ topic.ownerApplication?.name }}</a>
-                <ng-template #infoUrlText>
-                    <span>{{ topic.ownerApplication?.name }}</span>
-                </ng-template>
+                <app-app-link [app]="topic.ownerApplication"></app-app-link>
             </td>
         </tr>
         <tr *ngIf="topic.producers?.length > 0">

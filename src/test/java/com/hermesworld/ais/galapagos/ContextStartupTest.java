@@ -6,9 +6,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.security.Security;
 
@@ -22,7 +22,7 @@ class ContextStartupTest {
     private ApplicationContext context;
 
     // mock the KafkaClusters implementation as we do not have a live Kafka server here
-    @MockBean
+    @MockitoBean
     private KafkaClusters kafkaClusters;
 
     @BeforeAll

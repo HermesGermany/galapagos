@@ -1,0 +1,12 @@
+<a *ngIf="app?.infoUrl; else appNameText"
+   [href]="app?.infoUrl"
+   target="_blank">
+    <ng-container *ngTemplateOutlet="appNameText">
+    </ng-container>
+</a>
+<ng-template #appNameText>
+    <ngb-highlight *ngIf="highlightText" [result]="app?.name" [term]="highlightText"></ngb-highlight>
+    <span *ngIf="!highlightText">{{ app?.name }}</span>
+</ng-template>
+<i class="fa-solid fa-triangle-exclamation text-danger ms-1" *ngIf="!app.valid"
+   [title]="'INVALID_APP_TOOLTIP' | translate"></i>

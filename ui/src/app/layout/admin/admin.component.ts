@@ -19,7 +19,7 @@ import { RoleDto, RoleService } from '../../shared/services/role.service';
 
 interface TranslatedApplicationOwnerRequest extends ApplicationOwnerRequest {
     applicationName?: string;
-    applicationInfoUrl?: string;
+    appInfo?: ApplicationInfo;
 }
 
 interface TranslateRoleDto extends RoleDto {
@@ -53,8 +53,8 @@ const translateApps: (requests: ApplicationOwnerRequest[], apps: ApplicationInfo
         const appMap = {};
         apps.forEach(app => appMap[app.id] = app);
         return requests.map(req => appMap[req.applicationId] ? {
-            ...req, applicationName: appMap[req.applicationId].name || req.id,
-            applicationInfoUrl: appMap[req.applicationId].infoUrl
+            ...req, applicationName: appMap[req.applicationId].name || req.applicationId,
+            appInfo: appMap[req.applicationId]
         } : req);
     };
 

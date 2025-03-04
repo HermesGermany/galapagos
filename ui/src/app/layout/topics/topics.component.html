@@ -49,14 +49,8 @@
                         </td>
                         <td>{{topic.topicType | translate}}</td>
                         <td class="col-2">
-                            <a *ngIf="topic.ownerApplication && topic.ownerApplication.infoUrl"
-                               [href]="topic.ownerApplication.infoUrl" target="_blank">
-                                <ngb-highlight [result]="topic.ownerApplication.name"
-                                               [term]="searchData.searchTerm"></ngb-highlight>
-                            </a>
-                            <ngb-highlight *ngIf="!topic.ownerApplication || !topic.ownerApplication.infoUrl"
-                                           [result]="topic.ownerApplication ? topic.ownerApplication.name : ''"
-                                           [term]="searchData.searchTerm"></ngb-highlight>
+                            <app-app-link [app]="topic.ownerApplication"
+                                          [highlightText]="searchData.searchTerm"></app-app-link>
                         </td>
                     </tr>
                 </tbody>

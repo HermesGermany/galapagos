@@ -113,7 +113,8 @@ class NotificationEventListenerTest {
                 .contains("some change description goes here"));
         assertFalse(
                 params.getVariables().get("change_action_text").toString().contains("Keine Beschreibung angegeben"));
-
+        assertNotNull(params.getVariables().get("topic_name_abbreviated"),
+                "topic_name_abbreviated must be set for topic-changed e-mail template");
     }
 
     @Test

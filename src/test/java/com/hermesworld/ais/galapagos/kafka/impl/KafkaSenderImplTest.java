@@ -1,6 +1,5 @@
 package com.hermesworld.ais.galapagos.kafka.impl;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -22,34 +21,26 @@ import com.hermesworld.ais.galapagos.kafka.KafkaExecutorFactory;
 
 class KafkaSenderImplTest {
 
-    private static ThreadFactory tfDecoupled = new ThreadFactory() {
-        @Override
-        public Thread newThread(Runnable r) {
-            return new Thread(r, "decoupled-" + System.currentTimeMillis());
-        }
-    };
+    private static final ThreadFactory tfDecoupled = r -> new Thread(r, "decoupled-" + System.currentTimeMillis());
 
-    private static KafkaExecutorFactory executorFactory = () -> {
-        return Executors.newSingleThreadExecutor(tfDecoupled);
-    };
+    private static final KafkaExecutorFactory executorFactory = () -> Executors.newSingleThreadExecutor(tfDecoupled);
 
     @Test
     void testSendDecoupling() throws Exception {
         KafkaFutureDecoupler decoupler = new KafkaFutureDecoupler(executorFactory);
 
-        @SuppressWarnings("unchecked")
+        @SuppressWarnings({ "unchecked", "resource" })
         Producer<String, String> producer = mock(Producer.class);
-        when(producer.send(any(), any())).then(inv -> {
-            return CompletableFuture.runAsync(() -> {
-                try {
-                    Thread.sleep(200);
-                }
-                catch (InterruptedException e) {
-                }
-                Callback cb = inv.getArgument(1);
-                cb.onCompletion(new RecordMetadata(new TopicPartition("a", 0), 0, 0, 0, null, 0, 0), null);
-            });
-        });
+        when(producer.send(any(), any())).then(inv -> CompletableFuture.runAsync(() -> {
+            try {
+                Thread.sleep(200);
+            }
+            catch (InterruptedException e) {
+                return;
+            }
+            Callback cb = inv.getArgument(1);
+            cb.onCompletion(new RecordMetadata(new TopicPartition("a", 0), 0, 0, 0, 0, 0), null);
+        }));
 
         ProducerFactory<String, String> factory = () -> {
             return producer;
