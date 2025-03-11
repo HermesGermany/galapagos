@@ -82,7 +82,7 @@
                             <li *ngFor="let result of stagingResult" [class.text-danger]="!result.stagingSuccessful" [class.text-success]="result.stagingSuccessful">
                                 <span *ngIf="!result.stagingSuccessful" class="me-3"><i class="fas fa-times"></i></span>
                                 <span *ngIf="result.stagingSuccessful" class="me-3"><i class="fas fa-check"></i></span>
-                                <span [innerHTML]="stagingText(result.change)"></span>
+                                <span [innerHTML]="stagingText(result.change, true)"></span>
                                 <span *ngIf="!result.stagingSuccessful">
                                     <br>
                                     <span style="font-size: smaller">{{ result.errorMessage }}</span>

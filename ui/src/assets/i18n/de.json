@@ -301,6 +301,7 @@
     "APP_SUBSCRIPTION_CANNOT_BE_REVOKED": "Der Anwendung konnten die Rechte für dieses Topic nicht entzogen werden.",
     "APP_SUCCESSFUL_TOPIC_APPROVED": "Die Anwendung wurde erfolgreich für dieses Topic freigegeben.",
     "APP_TOPIC_APPROVED_FAILED": "Die Anwendung konnte nicht für dieses Topic freigegeben werden'",
-    "INVALID_APP_TOOLTIP": "Diese Anwendung sollte nicht mehr verwendet werden."
+    "INVALID_APP_TOOLTIP": "Diese Anwendung sollte nicht mehr verwendet werden.",
+    "COMPOUND_CHANGE_COUNT": " (und {{count}} weitere Aktion(en))"
 }
 

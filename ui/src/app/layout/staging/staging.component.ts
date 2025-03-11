@@ -123,7 +123,7 @@ export class StagingComponent implements OnInit {
             });
     }
 
-    stagingText(change: any): string {
+    stagingText(change: any, isResult: boolean = false): string {
         const changeType = change.changeType;
 
         switch (changeType) {
@@ -158,6 +158,9 @@ export class StagingComponent implements OnInit {
                 return this.translate.instant('TOPIC_SUBSCRIPTION_APPROVAL_REQUIRED_FLAG_UPDATED_STAGING',
                     { topicName: change.topicMetadata.name });
             case 'COMPOUND_CHANGE':
+                if (isResult && change.additionalChanges && change.additionalChanges.length) {
+                    return this.stagingText(change.mainChange) + this.translate.instant('COMPOUND_CHANGE_COUNT', { count: change.additionalChanges.length });
+                }
                 return this.stagingText(change.mainChange);
         }
         return this.translate.instant('OTHER_CHANGE_STAGING', { changeType: changeType });
