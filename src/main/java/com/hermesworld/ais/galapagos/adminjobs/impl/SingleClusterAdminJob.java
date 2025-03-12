@@ -1,6 +1,5 @@
 package com.hermesworld.ais.galapagos.adminjobs.impl;
 
-import com.hermesworld.ais.galapagos.adminjobs.AdminJob;
 import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import org.springframework.boot.ApplicationArguments;
@@ -14,7 +13,7 @@ import java.util.Optional;
  * values. Subclasses will receive the parsed and looked up Kafka cluster object, but can parse other command line
  * arguments theirselves, if needed.
  */
-public abstract class SingleClusterAdminJob implements AdminJob {
+public abstract class SingleClusterAdminJob extends AbstractAdminJob {
 
     protected final KafkaClusters kafkaClusters;
 

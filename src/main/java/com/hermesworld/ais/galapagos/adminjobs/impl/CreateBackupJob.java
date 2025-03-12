@@ -2,7 +2,6 @@ package com.hermesworld.ais.galapagos.adminjobs.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.hermesworld.ais.galapagos.adminjobs.AdminJob;
 import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.kafka.util.TopicBasedRepository;
@@ -18,7 +17,7 @@ import java.util.Collection;
 import java.util.Optional;
 
 @Component
-public class CreateBackupJob implements AdminJob {
+public class CreateBackupJob extends AbstractAdminJob {
 
     private final KafkaClusters kafkaClusters;
 
@@ -43,16 +42,12 @@ public class CreateBackupJob implements AdminJob {
 
         JSONObject backup = new JSONObject();
 
-        System.out.println();
-        System.out.println("========================= Starting Backup Creation ========================");
-        System.out.println();
+        printBanner("Starting Backup Creation");
 
         kafkaClusters.getEnvironmentIds().forEach(envId -> kafkaClusters.getEnvironment(envId)
                 .ifPresent(env -> backup.put(envId, backupEnvironment(env))));
 
-        System.out.println();
-        System.out.println("========================= Backup Creation COMPLETE ========================");
-        System.out.println();
+        printBanner("Backup Creation COMPLETE");
 
         if (!createBackupFile) {
             System.out.println("Backup JSON:");
@@ -69,6 +64,7 @@ public class CreateBackupJob implements AdminJob {
             }
             catch (IOException e) {
                 System.err.println("Could not create Backup file");
+                //noinspection CallToPrintStackTrace
                 e.printStackTrace();
                 return;
             }
@@ -99,6 +95,7 @@ public class CreateBackupJob implements AdminJob {
                 result.put(obj.key(), new JSONObject(objectMapper.writeValueAsString(obj)));
             }
             catch (JSONException | JsonProcessingException e) {
+                //noinspection CallToPrintStackTrace
                 e.printStackTrace();
             }
         }

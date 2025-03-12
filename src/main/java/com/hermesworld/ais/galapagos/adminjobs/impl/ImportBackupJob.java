@@ -1,7 +1,6 @@
 package com.hermesworld.ais.galapagos.adminjobs.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.hermesworld.ais.galapagos.adminjobs.AdminJob;
 import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.kafka.util.TopicBasedRepository;
@@ -37,7 +36,7 @@ import java.util.concurrent.ExecutionException;
  */
 
 @Component
-public class ImportBackupJob implements AdminJob {
+public class ImportBackupJob extends AbstractAdminJob {
 
     private final KafkaClusters kafkaClusters;
 
@@ -76,9 +75,7 @@ public class ImportBackupJob implements AdminJob {
             data = new JSONObject(StreamUtils.copyToString(fis, StandardCharsets.UTF_8));
         }
 
-        System.out.println();
-        System.out.println("========================= Starting Backup Import ========================");
-        System.out.println();
+        printBanner("Starting Backup Import");
 
         Iterator<String> envIds = data.keys();
 
@@ -100,9 +97,7 @@ public class ImportBackupJob implements AdminJob {
             importBackup(env, data.getJSONObject(envId));
         }
 
-        System.out.println();
-        System.out.println("========================= Backup Import COMPLETE ========================");
-        System.out.println();
+        printBanner("Backup Import COMPLETE");
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })

@@ -88,9 +88,7 @@ public class GenerateToolingApiKeyJob extends SingleClusterAdminJob {
         System.out.println("SAML Username: " + samlUsername);
         System.out.println("Secret: " + secret);
 
-        System.out.println();
-        System.out.println("==================== Galapagos Tooling API Key CREATED ====================");
-        System.out.println();
+        printBanner("Galapagos Tooling API Key CREATED");
 
         System.out.println("You can now use the API Key above for Galapagos external tooling on " + metadata.getName());
 
@@ -108,7 +106,7 @@ public class GenerateToolingApiKeyJob extends SingleClusterAdminJob {
         System.out.println(
                 "To remove ACLs for this API Key AND to delete the key itself, run Galapagos admin task galapagos.jobs.delete-apikey");
         System.out.println("with --kafka.environment=" + cluster.getId());
-        System.out.println();
-        System.out.println("==============================================================================");
+
+        printBanner("");
     }
 }

@@ -1,18 +1,17 @@
 package com.hermesworld.ais.galapagos.adminjobs.impl;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
-import com.hermesworld.ais.galapagos.adminjobs.AdminJob;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.topics.service.TopicService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
 @Component
-public class MarkTopicApprovalRequiredJob implements AdminJob {
+public class MarkTopicApprovalRequiredJob extends AbstractAdminJob {
 
     private final KafkaClusters kafkaClusters;
 
@@ -56,11 +55,8 @@ public class MarkTopicApprovalRequiredJob implements AdminJob {
             throw new IllegalStateException("Could not find any of the specified topics on any environment");
         }
 
-        System.out.println();
-        System.out.println("============================ Topic(s) reconfigured ===========================");
-        System.out.println();
+        printBanner("Topic(s) reconfigured");
         resultLines.forEach(System.out::println);
-        System.out.println();
-        System.out.println("==============================================================================");
+        printBanner("");
     }
 }

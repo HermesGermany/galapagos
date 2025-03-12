@@ -43,7 +43,7 @@ public class UpdateConfluentAuthMetadataJob implements AdminJob {
             KafkaAuthenticationModule authenticationModule = kafkaClusters.getAuthenticationModule(environmentId)
                     .orElse(null);
 
-            if (!(authenticationModule instanceof ConfluentCloudAuthenticationModule)) {
+            if (!(authenticationModule instanceof ConfluentCloudAuthenticationModule confluentCloudAuthenticationModule)) {
                 continue;
             }
             KafkaCluster cluster = kafkaClusters.getEnvironment(environmentId).orElseThrow();
@@ -51,8 +51,6 @@ public class UpdateConfluentAuthMetadataJob implements AdminJob {
                     ApplicationMetadata.class);
             TopicBasedRepository<DevAuthenticationMetadata> devAuthRepo = cluster.getRepository("devauth",
                     DevAuthenticationMetadata.class);
-
-            ConfluentCloudAuthenticationModule confluentCloudAuthenticationModule = (ConfluentCloudAuthenticationModule) authenticationModule;
 
             List<ApplicationMetadata> allApplicationMetadata = applicationsService
                     .getAllApplicationMetadata(environmentId);
