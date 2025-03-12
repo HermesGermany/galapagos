@@ -64,7 +64,7 @@ public class CreateBackupJob extends AbstractAdminJob {
             }
             catch (IOException e) {
                 System.err.println("Could not create Backup file");
-                //noinspection CallToPrintStackTrace
+                // noinspection CallToPrintStackTrace
                 e.printStackTrace();
                 return;
             }
@@ -95,7 +95,7 @@ public class CreateBackupJob extends AbstractAdminJob {
                 result.put(obj.key(), new JSONObject(objectMapper.writeValueAsString(obj)));
             }
             catch (JSONException | JsonProcessingException e) {
-                //noinspection CallToPrintStackTrace
+                // noinspection CallToPrintStackTrace
                 e.printStackTrace();
             }
         }
