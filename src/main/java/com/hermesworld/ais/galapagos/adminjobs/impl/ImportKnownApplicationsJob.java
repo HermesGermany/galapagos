@@ -1,18 +1,8 @@
 package com.hermesworld.ais.galapagos.adminjobs.impl;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.time.Duration;
-import java.util.*;
-import java.util.stream.Collectors;
-
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.TypeFactory;
-import com.hermesworld.ais.galapagos.adminjobs.AdminJob;
 import com.hermesworld.ais.galapagos.applications.BusinessCapability;
 import com.hermesworld.ais.galapagos.applications.impl.KnownApplicationImpl;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
@@ -23,6 +13,15 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StreamUtils;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Admin job to import known applications from a JSON file (or STDIN) to the global Galapagos topic
@@ -41,9 +40,9 @@ import org.springframework.util.StreamUtils;
  */
 @Component
 @Slf4j
-public class ImportKnownApplicationsJob implements AdminJob {
+public class ImportKnownApplicationsJob extends AbstractAdminJob {
 
-    private KafkaClusters kafkaClusters;
+    private final KafkaClusters kafkaClusters;
 
     public ImportKnownApplicationsJob(KafkaClusters kafkaClusters) {
         this.kafkaClusters = kafkaClusters;
@@ -57,11 +56,10 @@ public class ImportKnownApplicationsJob implements AdminJob {
     @Override
     public void run(ApplicationArguments allArguments) throws Exception {
         String jsonFile = Optional.ofNullable(allArguments.getOptionValues("applications.import.file"))
-                .map(ls -> ls.stream().findFirst().orElse(null)).orElse(null);
+                .flatMap(ls -> ls.stream().findFirst()).orElse(null);
 
         boolean remove = Optional.ofNullable(allArguments.getOptionValues("remove.missing.applications"))
-                .map(ls -> ls.stream().findFirst().orElse(null)).map(s -> s == null ? false : Boolean.parseBoolean(s))
-                .orElse(false);
+                .flatMap(ls -> ls.stream().findFirst()).map(s -> Boolean.parseBoolean(s)).orElse(false);
 
         if (ObjectUtils.isEmpty(jsonFile)) {
             throw new IllegalArgumentException("Please provide --applications.import.file=<file> for JSON to import");
@@ -111,16 +109,13 @@ public class ImportKnownApplicationsJob implements AdminJob {
             }
         }
 
-        System.out.println();
-        System.out.println("========================= Known applications IMPORTED ========================");
-        System.out.println();
+        printBanner("Known applications IMPORTED");
         System.out.println(cntImported + " new application(s) imported.");
         if (remove) {
             System.out.println(cntDeleted + " application(s) removed as they did not exist in JSON data.");
         }
-        System.out.println();
-        System.out.println("==============================================================================");
 
+        printBanner("");
     }
 
     private List<KnownApplicationImpl> readFromStdin() throws IOException {
@@ -170,7 +165,6 @@ public class ImportKnownApplicationsJob implements AdminJob {
         }
 
         return true;
-
     }
 
 }

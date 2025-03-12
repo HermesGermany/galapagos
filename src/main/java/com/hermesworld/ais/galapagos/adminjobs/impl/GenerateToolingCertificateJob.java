@@ -130,9 +130,7 @@ public class GenerateToolingCertificateJob extends SingleClusterAdminJob {
             System.out.println("CERTIFICATE DATA: " + base64Data);
         }
 
-        System.out.println();
-        System.out.println("==================== Galapagos Tooling Certificate CREATED ====================");
-        System.out.println();
+        printBanner("Galapagos Tooling Certificate CREATED");
         if (!ObjectUtils.isEmpty(outputFilename)) {
             System.out.println("You can now use the certificate in " + outputFilename
                     + " for Galapagos external tooling on " + metadata.getName());
@@ -157,8 +155,8 @@ public class GenerateToolingCertificateJob extends SingleClusterAdminJob {
         System.out.println("To remove ACLs for this certificate, run Galapagos admin task galapagos.jobs.delete-acls");
         System.out.println("with --certificate.dn=" + result.getPublicAuthenticationData().getString("dn")
                 + " --kafka.environment=" + cluster.getId());
-        System.out.println();
-        System.out.println("==============================================================================");
+
+        printBanner("");
     }
 
 }

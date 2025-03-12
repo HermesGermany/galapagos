@@ -1,9 +1,5 @@
 package com.hermesworld.ais.galapagos.adminjobs.impl;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Optional;
-
 import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.kafka.KafkaUser;
@@ -11,6 +7,10 @@ import org.apache.kafka.common.acl.AclBinding;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Optional;
 
 /**
  * Admin job to explicitly delete ACLs from a Kafka Cluster. This job is useful if something went terribly wrong with
@@ -50,13 +50,10 @@ public class DeleteAclsJob extends SingleClusterAdminJob {
 
         cluster.removeUserAcls(new DummyKafkaUser(certificateDn)).get();
 
-        System.out.println();
-        System.out.println("========================== Certificate ACLs DELETED ==========================");
-        System.out.println();
+        printBanner("Certificate ACLs DELETED");
         System.out.println("All ACLs for certificate " + certificateDn + " have been deleted on Kafka Environment "
                 + cluster.getId());
-        System.out.println();
-        System.out.println("==============================================================================");
+        printBanner("");
     }
 
     private static class DummyKafkaUser implements KafkaUser {

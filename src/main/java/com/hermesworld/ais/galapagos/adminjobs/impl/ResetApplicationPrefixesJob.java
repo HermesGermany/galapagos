@@ -61,12 +61,12 @@ public class ResetApplicationPrefixesJob extends SingleClusterAdminJob {
                 .orElseThrow(() -> new IllegalArgumentException("Please provide required parameter --application.id"));
 
         try {
-            System.out.println("===== Resetting Prefixes and ACLs for Application " + applicationId + " =====");
+            printBanner("Resetting Prefixes and ACLs for Application " + applicationId);
             applicationsService.resetApplicationPrefixes(cluster.getId(), applicationId)
                     .thenCompose(metadata -> cluster.updateUserAcls(new ToolingUser(metadata, cluster.getId(),
                             kafkaClusters.getAuthenticationModule(cluster.getId()).orElseThrow(), aclSupport)))
                     .get();
-            System.out.println("===== Prefixes and ACL Reset SUCCESSFUL =====");
+            printBanner("Prefixes and ACL Reset SUCCESSFUL");
         }
         catch (ExecutionException e) {
             if (e.getCause() instanceof Exception) {
