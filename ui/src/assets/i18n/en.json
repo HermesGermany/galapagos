@@ -209,6 +209,9 @@
     "APP_SUCCESSFUL_TOPIC_APPROVED": "The application was successfully approved for this topic.",
     "APP_TOPIC_APPROVED_FAILED": "The application could not be approved for this topic",
     "Role Assignment": "Role Assignment",
+    "Role": "Role",
+    "Select Role": "Select Role",
+    "Select Environments": "Select Environments",
     "INVALID_APP_TOOLTIP": "This application should no longer be used."
 }
 

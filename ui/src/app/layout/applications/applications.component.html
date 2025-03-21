@@ -29,7 +29,7 @@
                             <label style="margin-right: 1em"
                                    for="app_picker">{{ 'Select Application' | translate }}</label>
                             <select class="form-select w-auto" name="appPicker" id="app_picker"
-                                [(ngModel)]="selectedApplicationForRequest">
+                                    [(ngModel)]="selectedApplicationForRequest">
                                 <option *ngFor="let app of availableApplications | async"
                                         [ngValue]="app">{{ app.valid ? '' : '(!) ' }}{{ app.name }}
                                 </option>
@@ -58,7 +58,14 @@
                                       [(ngModel)]="commentsForRequest"></textarea>
                             <p class="text-muted">{{ 'REMAINING_CHARACTERS_TEXT' | translate:{characters: 1000 - box.value.length} }}</p>
                         </div>
+                        <!--
                         <button type="button" class="btn btn-warning" (click)="d.while(submitRequest())" appSpinnerWhile
+                                #d="appSpinnerWhile">
+                            <i class="fas fa-envelope fa-fw"></i>&nbsp;{{ 'Submit Request' | translate }}
+                        </button>
+                        -->
+                        <button type="button" class="btn btn-warning" (click)="d.while(submitRoleRequest())"
+                                appSpinnerWhile
                                 #d="appSpinnerWhile">
                             <i class="fas fa-envelope fa-fw"></i>&nbsp;{{ 'Submit Request' | translate }}
                         </button>
@@ -79,16 +86,48 @@
                         <thead>
                         <tr>
                             <th>{{ 'Date' | translate }}</th>
-                            <th>{{ 'Application' | translate }}</th>
+                            <th>{{ 'User Name' | translate }}</th>
                             <th>{{ 'Role' | translate }}</th>
+                            <th>{{ 'Application' | translate }}</th>
                             <th>{{ 'Environment' | translate }}</th>
                             <th>{{ 'State' | translate }}</th>
-                            <th>{{ 'Last updated at' | translate }}</th>
-                            <th>{{ 'Last updated by' | translate }}</th>
                             <th>{{ 'Action' | translate }}</th>
                         </tr>
                         </thead>
                         <tbody>
+                        <tr *ngFor="let req of userRoleRequests | async">
+                            <td>{{ niceTimestamp(req.createdAt) | async }}</td>
+                            <td>{{ req.userName }}</td>
+                            <td>{{ req.role }}</td>
+                            <td>{{ toAppName(req.applicationId) | async }}</td>
+                            <td>{{ toEnvironmentName(req.environmentId) | async }}</td>
+                            <td>
+                                    <span class="badge" [class.bg-secondary]="req.state === 'SUBMITTED'"
+                                          [class.bg-success]="req.state === 'APPROVED'"
+                                          [class.bg-warning]="req.state === 'RESIGNED'"
+                                          [class.bg-danger]="req.state === 'REJECTED' || req.state === 'REVOKED'"
+                                          [title]="lastChangeTitle(req) | async"
+                                    >
+                                        {{ req.state }}</span>
+                            </td>
+                            <!--
+                            <td>
+                                <button type="button" class="btn btn-danger" (click)="d.while(cancelRequest(req))"
+                                        appSpinnerWhile #d="appSpinnerWhile"
+                                        [disabled]="req.state !== 'SUBMITTED' && req.state !== 'APPROVED'">
+                                    <i class="fa fa-trash"></i>
+                                </button>
+                            </td>
+                            -->
+                            <td>
+                                <button type="button" class="btn btn-danger" (click)="d.while(cancelRoleRequest(req))"
+                                        appSpinnerWhile #d="appSpinnerWhile"
+                                        [disabled]="req.state !== 'SUBMITTED' && req.state !== 'APPROVED'">
+                                    <i class="fa fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <!--
                         <tr *ngFor="let req of userRequests | async">
                             <td>{{ niceTimestamp(req.createdAt) | async }}</td>
                             <td>{{ toAppName(req.applicationId) | async }}</td>
@@ -108,6 +147,7 @@
                                 </button>
                             </td>
                         </tr>
+                        -->
                         </tbody>
                     </table>
                 </div>

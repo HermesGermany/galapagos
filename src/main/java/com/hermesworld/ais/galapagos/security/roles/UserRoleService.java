@@ -8,11 +8,9 @@ import java.util.concurrent.CompletableFuture;
 
 /**
  * Service interface for managing user roles in the system. Provides methods for adding, retrieving, and removing user
- * roles,
+ * roles
  */
 public interface UserRoleService {
-
-    CompletableFuture<Void> addUserRole(String environmentId, UserRoleData userRoleData);
 
     List<UserRoleData> getAllRoles(String environmentId);
 
@@ -24,7 +22,12 @@ public interface UserRoleService {
 
     CompletableFuture<Void> deleteUserRoleById(String environmentId, String id);
 
-    CompletableFuture<Void> updateRole(String requestId, String environmentId, RequestState newState);
+    CompletableFuture<UserRoleData> updateRole(String requestId, String environmentId, RequestState newState);
 
     List<UserRoleData> listAllRoles();
+
+    CompletableFuture<UserRoleData> submitRoleRequest(String applicationId, Role role, String environmentId,
+            String comments);
+
+    CompletableFuture<Boolean> cancelUserRoleRequest(String requestId, String environmentId);
 }

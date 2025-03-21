@@ -56,12 +56,12 @@
                                                            [term]="state.searchTerm"></ngb-highlight>
                                         </td>
                                         <td>
-                                            <a *ngIf="request.applicationInfoUrl" [href]="request.applicationInfoUrl"
+                                            <a *ngIf="request.appInfo" [href]="request.appInfo"
                                                target="_blank">
                                                 <ngb-highlight [result]="request.applicationName"
                                                                [term]="state.searchTerm"></ngb-highlight>
                                             </a>
-                                            <ngb-highlight *ngIf="!request.applicationInfoUrl"
+                                            <ngb-highlight *ngIf="!request.appInfo"
                                                            [result]="request.applicationName"
                                                            [term]="state.searchTerm"></ngb-highlight>
                                         </td>
@@ -130,8 +130,6 @@
                                 <b>{{ 'Role Assignment' | translate }}</b>
                             </div>
                             <div class="card-body table-responsive">
-                                <!-- Hier steht der Inhalt von Role Assignment-->
-
                                 <div class="mb-3 row">
                                     <label for="role-table-search" class="col-xs-3 col-sm-auto col-form-label">
                                         {{ 'Search' | translate }}:
@@ -163,6 +161,9 @@
                                         <th scope="col" sortable="role" (sort)="onRoleSort($event)">
                                             {{ 'Role' | translate }}
                                         </th>
+                                        <th scope="col" sortable="environmentId" (sort)="onRoleSort($event)">
+                                            {{ 'Environment' | translate }}
+                                        </th>
                                         <th scope="col">{{ 'Comments / Remarks' | translate }}</th>
                                         <th scope="col" sortable="state"
                                             (sort)="onRoleSort($event)">{{ 'State' | translate }}
@@ -183,6 +184,10 @@
                                         </td>
                                         <td>
                                             <ngb-highlight [result]="role.role"
+                                                           [term]="roleState.searchTerm"></ngb-highlight>
+                                        </td>
+                                        <td>
+                                            <ngb-highlight [result]="toEnvironmentName(role.environmentId) | async"
                                                            [term]="roleState.searchTerm"></ngb-highlight>
                                         </td>
                                         <td><span [innerHTML]="role.comments"></span></td>
@@ -232,7 +237,6 @@
                                         <option [ngValue]="100">100 {{ 'items per page' | translate }}</option>
                                     </select>
                                 </div>
-                                <!-- Ende -->
                             </div>
                         </div>
                     </div>

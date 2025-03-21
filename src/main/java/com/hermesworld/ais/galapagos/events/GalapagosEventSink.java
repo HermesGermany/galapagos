@@ -3,6 +3,7 @@ package com.hermesworld.ais.galapagos.events;
 import com.hermesworld.ais.galapagos.applications.ApplicationMetadata;
 import com.hermesworld.ais.galapagos.applications.ApplicationOwnerRequest;
 import com.hermesworld.ais.galapagos.kafka.TopicCreateParams;
+import com.hermesworld.ais.galapagos.security.roles.UserRoleData;
 import com.hermesworld.ais.galapagos.subscriptions.SubscriptionMetadata;
 import com.hermesworld.ais.galapagos.topics.SchemaMetadata;
 import com.hermesworld.ais.galapagos.topics.TopicMetadata;
@@ -44,6 +45,12 @@ public interface GalapagosEventSink {
     CompletableFuture<Void> handleApplicationOwnerRequestUpdated(ApplicationOwnerRequest request);
 
     CompletableFuture<Void> handleApplicationOwnerRequestCanceled(ApplicationOwnerRequest request);
+
+    CompletableFuture<Void> handleRoleRequestCreated(UserRoleData request);
+
+    CompletableFuture<Void> handleRoleRequestUpdated(UserRoleData request);
+
+    CompletableFuture<Void> handleRoleRequestCanceled(UserRoleData request);
 
     CompletableFuture<Void> handleAddTopicProducer(TopicMetadata metadata, String producerApplicationId);
 

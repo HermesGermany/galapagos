@@ -302,6 +302,9 @@
     "APP_SUCCESSFUL_TOPIC_APPROVED": "Die Anwendung wurde erfolgreich für dieses Topic freigegeben.",
     "APP_TOPIC_APPROVED_FAILED": "Die Anwendung konnte nicht für dieses Topic freigegeben werden'",
     "Role Assignment": "Rollenvergabe",
+    "Role": "Rolle",
+    "Select Role": "Rolle auswählen",
+    "Select Environments": "Umgebungen auswählen",
     "INVALID_APP_TOOLTIP": "Diese Anwendung sollte nicht mehr verwendet werden."
 }
 

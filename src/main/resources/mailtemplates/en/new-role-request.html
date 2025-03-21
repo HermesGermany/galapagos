@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>New Role Request</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+</head>
+<body style="font-family: Helvetica, Arial, sans-serif; font-size: 11pt">
+<p>
+    Hello dear Galapagos Administrator,
+</p>
+<p>A user has requested to be assigned a role in the application <span th:text="${app_name}" style="font-weight:bold">AppName</span>
+    in the
+    <span th:text="${environment_name}" style="font-weight:bold">Environment</span> environment. Please log in to
+    Galapagos to review and
+    approve the request, or reject it if necessary:</p>
+<table style="width:300px; margin-left:auto; margin-right:auto">
+    <tr>
+        <td>
+            <div style="background-color: #0091CD; border-radius: 4px; text-align: center; padding: 1em 1.5em">
+                <a style="font-weight: bold; font-size:16pt; color: white; text-decoration: none"
+                   th:href="${galapagos_admin_url}">Open Galapagos</a>
+            </div>
+        </td>
+    </tr>
+</table>
+<br><br>
+<p style="text-align: center">
+</p>
+<p><i style="font-size: 10pt">This email was sent by Galapagos to all configured administrator email addresses.
+    If you believe you should not have received this email, please contact a Galapagos administrator.</i>
+</p>
+</body>
+</html>

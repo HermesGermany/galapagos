@@ -1,11 +1,15 @@
 package com.hermesworld.ais.galapagos.security.roles.impl;
 
+import com.hermesworld.ais.galapagos.applications.ApplicationsService;
 import com.hermesworld.ais.galapagos.applications.RequestState;
+import com.hermesworld.ais.galapagos.events.GalapagosEventManager;
+import com.hermesworld.ais.galapagos.events.GalapagosEventSink;
 import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.kafka.util.InitPerCluster;
 import com.hermesworld.ais.galapagos.kafka.util.TopicBasedRepository;
 import com.hermesworld.ais.galapagos.security.CurrentUserService;
+import com.hermesworld.ais.galapagos.security.roles.Role;
 import com.hermesworld.ais.galapagos.security.roles.UserRoleData;
 import com.hermesworld.ais.galapagos.security.roles.UserRoleService;
 import com.hermesworld.ais.galapagos.util.FutureUtil;
@@ -25,52 +29,25 @@ public class UserRoleServiceImpl implements UserRoleService, InitPerCluster {
 
     private final CurrentUserService currentUserService;
 
+    private final ApplicationsService applicationsService;
+
+    private final GalapagosEventManager eventManager;
+
     private final TimeService timeService;
 
     private static final String TOPIC_NAME = "user-roles";
 
     public UserRoleServiceImpl(KafkaClusters kafkaClusters, CurrentUserService currentUserService,
-            TimeService timeService) {
+            ApplicationsService applicationsService, GalapagosEventManager eventManager, TimeService timeService) {
         this.kafkaClusters = kafkaClusters;
         this.currentUserService = currentUserService;
+        this.applicationsService = applicationsService;
+        this.eventManager = eventManager;
         this.timeService = timeService;
     }
 
     public void init(KafkaCluster cluster) {
         getRepository(cluster).getObjects();
-    }
-
-    @Override
-    public CompletableFuture<Void> addUserRole(String environmentId, UserRoleData userRoleData) {
-        String userName = currentUserService.getCurrentUserName().orElse(null);
-        if (userRoleData.getUserName() == null) {
-            return noUser();
-        }
-        KafkaCluster kafkaCluster = kafkaClusters.getEnvironment(environmentId).orElse(null);
-        if (kafkaCluster == null) {
-            return CompletableFuture.completedFuture(null);
-        }
-        if (userRoleByAppIdExistsForUser(environmentId, userRoleData.getUserName(), userRoleData.getApplicationId())) {
-            return CompletableFuture.completedFuture(null);
-        }
-        UserRoleData data = new UserRoleData();
-        data.setId(UUID.randomUUID().toString());
-        data.setUserName(userRoleData.getUserName());
-        data.setState(RequestState.SUBMITTED);
-        data.setRole(userRoleData.getRole());
-        data.setEnvironment(userRoleData.getEnvironment());
-        data.setApplicationId(userRoleData.getApplicationId());
-        data.setComments(userRoleData.getComments());
-        data.setNotificationEmailAddress(currentUserService.getCurrentUserEmailAddress().orElse(null));
-        data.setCreatedAt(timeService.getTimestamp());
-        data.setLastStatusChangeAt(timeService.getTimestamp());
-        data.setLastStatusChangeBy(userName);
-        return getRepository(kafkaCluster).save(data);
-    }
-
-    private boolean userRoleByAppIdExistsForUser(String environmentId, String userName, String appId) {
-        List<UserRoleData> data = getAllRoles(environmentId);
-        return data.stream().anyMatch(u -> u.getUserName().equals(userName) && u.getApplicationId().equals(appId));
     }
 
     @Override
@@ -96,7 +73,7 @@ public class UserRoleServiceImpl implements UserRoleService, InitPerCluster {
     public CompletableFuture<Void> deleteUserRoles(String environmentId, String userName) {
         KafkaCluster kafkaCluster = kafkaClusters.getEnvironment(environmentId).orElse(null);
         if (kafkaCluster == null) {
-            return FutureUtil.noop();
+            return FutureUtil.noSuchEnvironment(environmentId);
         }
         List<UserRoleData> data = getAllRoles(environmentId).stream()
                 .filter(userRole -> userRole.getUserName().equals(userName)).toList();
@@ -118,7 +95,7 @@ public class UserRoleServiceImpl implements UserRoleService, InitPerCluster {
     public CompletableFuture<Void> deleteUserRoleById(String environmentId, String id) {
         KafkaCluster kafkaCluster = kafkaClusters.getEnvironment(environmentId).orElse(null);
         if (kafkaCluster == null) {
-            return FutureUtil.noop();
+            return FutureUtil.noSuchEnvironment(environmentId);
         }
 
         List<UserRoleData> data = getAllRoles(environmentId);
@@ -131,10 +108,10 @@ public class UserRoleServiceImpl implements UserRoleService, InitPerCluster {
     }
 
     @Override
-    public CompletableFuture<Void> updateRole(String requestId, String environmentId, RequestState newState) {
+    public CompletableFuture<UserRoleData> updateRole(String requestId, String environmentId, RequestState newState) {
         KafkaCluster kafkaCluster = kafkaClusters.getEnvironment(environmentId).orElse(null);
         if (kafkaCluster == null) {
-            return FutureUtil.noop();
+            return FutureUtil.noSuchEnvironment(environmentId);
         }
         String userName = currentUserService.getCurrentUserName().orElse(null);
         if (userName == null) {
@@ -145,7 +122,7 @@ public class UserRoleServiceImpl implements UserRoleService, InitPerCluster {
                 .filter(req -> requestId.equals(req.getId())).findFirst();
 
         if (opRequest.isEmpty()) {
-            return FutureUtil.noop();
+            return unknownRequest(requestId);
         }
 
         UserRoleData request = opRequest.get();
@@ -153,7 +130,11 @@ public class UserRoleServiceImpl implements UserRoleService, InitPerCluster {
         request.setLastStatusChangeAt(timeService.getTimestamp());
         request.setLastStatusChangeBy(userName);
 
-        return getRepository(kafkaCluster).save(request);
+        GalapagosEventSink eventSink = eventManager
+                .newEventSink(kafkaClusters.getEnvironment(kafkaClusters.getProductionEnvironmentId()).orElse(null));
+
+        return getRepository(kafkaCluster).save(request).thenCompose(o -> eventSink.handleRoleRequestUpdated(request))
+                .thenApply(o -> request);
     }
 
     @Override
@@ -162,8 +143,108 @@ public class UserRoleServiceImpl implements UserRoleService, InitPerCluster {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public CompletableFuture<UserRoleData> submitRoleRequest(String applicationId, Role role, String environmentId,
+            String comments) {
+        KafkaCluster kafkaCluster = kafkaClusters.getEnvironment(environmentId).orElse(null);
+        if (kafkaCluster == null) {
+            return FutureUtil.noSuchEnvironment(environmentId);
+        }
+        String userName = currentUserService.getCurrentUserName().orElse(null);
+        if (userName == null) {
+            return noUser();
+        }
+
+        if (applicationsService.getKnownApplication(applicationId).isEmpty()) {
+            return unknownApplication(applicationId);
+        }
+
+        Optional<UserRoleData> existing = getRepository(kafkaCluster)
+                .getObjects().stream().filter(req -> userName.equals(req.getUserName())
+                        && applicationId.equals(req.getApplicationId()) && environmentId.equals(req.getEnvironmentId()))
+                .findAny();
+        if (existing.isPresent() && (existing.get().getState() == RequestState.SUBMITTED
+                || existing.get().getState() == RequestState.APPROVED)) {
+            return CompletableFuture
+                    .failedFuture(new IllegalStateException("A role for this application has been already submitted"));
+        }
+
+        UserRoleData request;
+        if (existing.isPresent()) {
+            request = existing.get();
+        }
+        else {
+            request = new UserRoleData();
+            request.setId(UUID.randomUUID().toString());
+            request.setCreatedAt(timeService.getTimestamp());
+        }
+        request.setApplicationId(applicationId);
+        request.setState(RequestState.SUBMITTED);
+        request.setUserName(userName);
+        request.setRole(role);
+        request.setEnvironmentId(environmentId);
+        request.setNotificationEmailAddress(currentUserService.getCurrentUserEmailAddress().orElse(null));
+        request.setComments(comments);
+        request.setLastStatusChangeAt(timeService.getTimestamp());
+        request.setLastStatusChangeBy(userName);
+
+        GalapagosEventSink eventSink = eventManager
+                .newEventSink(kafkaClusters.getEnvironment(kafkaClusters.getProductionEnvironmentId()).orElse(null));
+
+        return getRepository(kafkaCluster).save(request).thenCompose(o -> eventSink.handleRoleRequestCreated(request))
+                .thenApply(o -> request);
+    }
+
+    @Override
+    public CompletableFuture<Boolean> cancelUserRoleRequest(String requestId, String environmentId)
+            throws IllegalStateException {
+        KafkaCluster kafkaCluster = kafkaClusters.getEnvironment(environmentId).orElse(null);
+        if (kafkaCluster == null) {
+            return FutureUtil.noSuchEnvironment(environmentId);
+        }
+        String userName = currentUserService.getCurrentUserName().orElse(null);
+        if (userName == null) {
+            return noUser();
+        }
+
+        Optional<UserRoleData> opRequest = getRepository(kafkaCluster).getObjects().stream()
+                .filter(req -> requestId.equals(req.getId())).findFirst();
+
+        if (opRequest.isEmpty()) {
+            return unknownRequest(requestId);
+        }
+
+        GalapagosEventSink eventSink = eventManager
+                .newEventSink(kafkaClusters.getEnvironment(kafkaClusters.getProductionEnvironmentId()).orElse(null));
+
+        UserRoleData request = opRequest.get();
+        if (request.getState() == RequestState.SUBMITTED) {
+            return getRepository(kafkaCluster).delete(request)
+                    .thenCompose(o -> eventSink.handleRoleRequestCanceled(request)).thenApply(o -> Boolean.TRUE);
+        }
+
+        if (request.getState() == RequestState.APPROVED) {
+            request.setState(RequestState.RESIGNED);
+            request.setLastStatusChangeAt(timeService.getTimestamp());
+            request.setLastStatusChangeBy(userName);
+
+            return getRepository(kafkaCluster).save(request)
+                    .thenCompose(o -> eventSink.handleRoleRequestUpdated(request)).thenApply(o -> Boolean.TRUE);
+
+        }
+        return CompletableFuture
+                .failedFuture(new IllegalStateException("May only cancel requests in state SUBMITTED or APPROVED"));
+    }
+
     private TopicBasedRepository<UserRoleData> getRepository(KafkaCluster kafkaCluster) {
         return kafkaCluster.getRepository(TOPIC_NAME, UserRoleData.class);
     }
 
+    private static <T> CompletableFuture<T> unknownApplication(String applicationId) {
+        return CompletableFuture.failedFuture(new NoSuchElementException("Unknown application ID: " + applicationId));
+    }
+
+    private static <T> CompletableFuture<T> unknownRequest(String requestId) {
+        return CompletableFuture.failedFuture(new NoSuchElementException("Unknown request ID: " + requestId));
+    }
 }

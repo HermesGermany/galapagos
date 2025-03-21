@@ -6,6 +6,7 @@ import com.hermesworld.ais.galapagos.applications.RequestState;
 import com.hermesworld.ais.galapagos.notifications.NotificationParams;
 import com.hermesworld.ais.galapagos.notifications.NotificationService;
 import com.hermesworld.ais.galapagos.notifications.config.GalapagosMailConfig;
+import com.hermesworld.ais.galapagos.security.roles.UserRoleData;
 import com.hermesworld.ais.galapagos.subscriptions.SubscriptionMetadata;
 import com.hermesworld.ais.galapagos.subscriptions.service.SubscriptionService;
 import com.hermesworld.ais.galapagos.topics.service.TopicService;
@@ -90,6 +91,24 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public CompletableFuture<Void> notifyRequestor(ApplicationOwnerRequest request,
             NotificationParams notificationParams) {
+        if (!StringUtils.hasLength(request.getNotificationEmailAddress())) {
+            log.warn("Could not send e-mail to requestor: no e-mail address found in request " + request.getId());
+            return CompletableFuture.completedFuture(null);
+        }
+
+        try {
+            return doSendAsync(notificationParams,
+                    Arrays.asList(InternetAddress.parse(request.getNotificationEmailAddress())), false);
+        }
+        catch (AddressException e) {
+            log.error("Invalid e-mail address found in request, could not send notification e-mail to "
+                    + request.getNotificationEmailAddress(), e);
+            return CompletableFuture.failedFuture(e);
+        }
+    }
+
+    @Override
+    public CompletableFuture<Void> notifyRoleRequestor(UserRoleData request, NotificationParams notificationParams) {
         if (!StringUtils.hasLength(request.getNotificationEmailAddress())) {
             log.warn("Could not send e-mail to requestor: no e-mail address found in request " + request.getId());
             return CompletableFuture.completedFuture(null);

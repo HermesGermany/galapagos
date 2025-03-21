@@ -4,6 +4,7 @@ import com.hermesworld.ais.galapagos.applications.ApplicationOwnerRequest;
 import com.hermesworld.ais.galapagos.events.*;
 import com.hermesworld.ais.galapagos.kafka.TopicCreateParams;
 import com.hermesworld.ais.galapagos.security.GalapagosAuditEventType;
+import com.hermesworld.ais.galapagos.security.roles.UserRoleData;
 import com.hermesworld.ais.galapagos.subscriptions.SubscriptionMetadata;
 import com.hermesworld.ais.galapagos.topics.TopicMetadata;
 import com.hermesworld.ais.galapagos.util.FutureUtil;
@@ -161,6 +162,21 @@ public class AuditEventsListener implements TopicEventsListener, SubscriptionEve
     }
 
     @Override
+    public CompletableFuture<Void> handleRoleRequestCreated(RoleRequestEvent event) {
+        return handleRoleRequest(event, GalapagosAuditEventType.ROLE_REQUEST_CREATED, false);
+    }
+
+    @Override
+    public CompletableFuture<Void> handleRoleRequestUpdated(RoleRequestEvent event) {
+        return handleRoleRequest(event, GalapagosAuditEventType.ROLE_REQUEST_UPDATED, true);
+    }
+
+    @Override
+    public CompletableFuture<Void> handleRoleRequestCanceled(RoleRequestEvent event) {
+        return handleRoleRequest(event, GalapagosAuditEventType.ROLE_REQUEST_CANCELED, false);
+    }
+
+    @Override
     public CompletableFuture<Void> handleSubscriptionCreated(SubscriptionEvent event) {
         return handleSubscriptionEvent(event, GalapagosAuditEventType.TOPIC_SUBSCRIBED);
     }
@@ -178,6 +194,22 @@ public class AuditEventsListener implements TopicEventsListener, SubscriptionEve
     private CompletableFuture<Void> handleApplicationOwnerRequest(ApplicationOwnerRequestEvent event,
             GalapagosAuditEventType type, boolean includeStatus) {
         ApplicationOwnerRequest request = event.getRequest();
+
+        Map<String, Object> auditData = new LinkedHashMap<>();
+        auditData.put(APPLICATION_ID, request.getApplicationId());
+        auditData.put("requestingUser", request.getUserName());
+        if (includeStatus) {
+            auditData.put("newStatus", request.getState());
+        }
+
+        auditRepository.add(new AuditEvent(getUserName(event), type.name(), auditData));
+
+        return FutureUtil.noop();
+    }
+
+    private CompletableFuture<Void> handleRoleRequest(RoleRequestEvent event, GalapagosAuditEventType type,
+            boolean includeStatus) {
+        UserRoleData request = event.getRequest();
 
         Map<String, Object> auditData = new LinkedHashMap<>();
         auditData.put(APPLICATION_ID, request.getApplicationId());

@@ -20,7 +20,7 @@ public class UserRoleData implements HasKey {
 
     private Role role;
 
-    private String environment;
+    private String environmentId;
 
     private String applicationId;
 
@@ -46,8 +46,9 @@ public class UserRoleData implements HasKey {
     @Override
     public String toString() {
         return "UserRoleData{" + "id='" + id + '\'' + ", userName='" + userName + '\'' + ", role=" + role + '\''
-                + ", applicationId='" + applicationId + '\'' + ", environment='" + environment + '\'' + ", comments='"
-                + comments + '\'' + ", createdAt=" + createdAt + ", lastStatusChangeAt=" + lastStatusChangeAt
-                + ", lastStatusChangeBy='" + lastStatusChangeBy + '\'' + ", state=" + state + '\'' + '}' + '\n';
+                + ", applicationId='" + applicationId + '\'' + ", environmentId='" + environmentId + '\''
+                + ", comments='" + comments + '\'' + ", createdAt=" + createdAt + ", lastStatusChangeAt="
+                + lastStatusChangeAt + ", lastStatusChangeBy='" + lastStatusChangeBy + '\'' + ", state=" + state + '\''
+                + '}' + '\n';
     }
 }

@@ -13,4 +13,10 @@ public interface ApplicationEventsListener {
     CompletableFuture<Void> handleApplicationOwnerRequestUpdated(ApplicationOwnerRequestEvent event);
 
     CompletableFuture<Void> handleApplicationOwnerRequestCanceled(ApplicationOwnerRequestEvent event);
+
+    CompletableFuture<Void> handleRoleRequestCreated(RoleRequestEvent event);
+
+    CompletableFuture<Void> handleRoleRequestUpdated(RoleRequestEvent event);
+
+    CompletableFuture<Void> handleRoleRequestCanceled(RoleRequestEvent event);
 }

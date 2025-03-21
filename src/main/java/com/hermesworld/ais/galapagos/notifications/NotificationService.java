@@ -1,6 +1,7 @@
 package com.hermesworld.ais.galapagos.notifications;
 
 import com.hermesworld.ais.galapagos.applications.ApplicationOwnerRequest;
+import com.hermesworld.ais.galapagos.security.roles.UserRoleData;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -27,6 +28,8 @@ public interface NotificationService {
             NotificationParams notificationParams, String excludeUser);
 
     CompletableFuture<Void> notifyRequestor(ApplicationOwnerRequest request, NotificationParams notificationParams);
+
+    CompletableFuture<Void> notifyRoleRequestor(UserRoleData request, NotificationParams notificationParams);
 
     CompletableFuture<Void> notifyAdmins(NotificationParams notificationParams);
 

@@ -5,6 +5,7 @@ import com.hermesworld.ais.galapagos.applications.ApplicationOwnerRequest;
 import com.hermesworld.ais.galapagos.events.*;
 import com.hermesworld.ais.galapagos.kafka.KafkaCluster;
 import com.hermesworld.ais.galapagos.kafka.TopicCreateParams;
+import com.hermesworld.ais.galapagos.security.roles.UserRoleData;
 import com.hermesworld.ais.galapagos.subscriptions.SubscriptionMetadata;
 import com.hermesworld.ais.galapagos.topics.SchemaMetadata;
 import com.hermesworld.ais.galapagos.topics.TopicMetadata;
@@ -145,6 +146,24 @@ public class GalapagosEventManagerImpl implements GalapagosEventManager {
         public CompletableFuture<Void> handleApplicationOwnerRequestCanceled(ApplicationOwnerRequest request) {
             ApplicationOwnerRequestEvent event = new ApplicationOwnerRequestEvent(eventContext, request);
             return handleEvent(applicationListeners, l -> l.handleApplicationOwnerRequestCanceled(event));
+        }
+
+        @Override
+        public CompletableFuture<Void> handleRoleRequestCreated(UserRoleData request) {
+            RoleRequestEvent event = new RoleRequestEvent(eventContext, request);
+            return handleEvent(applicationListeners, l -> l.handleRoleRequestCreated(event));
+        }
+
+        @Override
+        public CompletableFuture<Void> handleRoleRequestUpdated(UserRoleData request) {
+            RoleRequestEvent event = new RoleRequestEvent(eventContext, request);
+            return handleEvent(applicationListeners, l -> l.handleRoleRequestUpdated(event));
+        }
+
+        @Override
+        public CompletableFuture<Void> handleRoleRequestCanceled(UserRoleData request) {
+            RoleRequestEvent event = new RoleRequestEvent(eventContext, request);
+            return handleEvent(applicationListeners, l -> l.handleRoleRequestCanceled(event));
         }
 
         @Override

@@ -277,6 +277,53 @@ public class NotificationEventListener
         return FutureUtil.noop();
     }
 
+    @Override
+    public CompletableFuture<Void> handleRoleRequestCreated(RoleRequestEvent event) {
+        String environmentId = event.getRequest().getEnvironmentId();
+        String environmentName = kafkaClusters.getEnvironmentMetadata(environmentId)
+                .map(KafkaEnvironmentConfig::getName).orElse(unknownEnv);
+        NotificationParams params = new NotificationParams("new-role-request");
+        params.addVariable("galapagos_admin_url", buildUIUrl(event, "/admin"));
+        params.addVariable("environment_name", environmentName);
+        Optional<KnownApplication> app = applicationsService.getKnownApplication(event.getRequest().getApplicationId());
+        params.addVariable("app_name", app.map(KnownApplication::getName).orElse(unknownApp));
+        Optional<Boolean> isAdmin = event.getContext().getContextValue(IS_ADMIN_KEY).map(o -> (Boolean) o);
+        if (isAdmin.orElse(false)) {
+            return FutureUtil.noop();
+        }
+        return notificationService.notifyAdmins(params);
+    }
+
+    @Override
+    public CompletableFuture<Void> handleRoleRequestUpdated(RoleRequestEvent event) {
+        RequestState newState = event.getRequest().getState();
+        String userName = event.getContext().getContextValue(USER_NAME_KEY).map(Object::toString).orElse(unknownUser);
+
+        String requestorUserName = event.getRequest().getUserName();
+        String environmentId = event.getRequest().getEnvironmentId();
+        String environmentName = kafkaClusters.getEnvironmentMetadata(environmentId)
+                .map(KafkaEnvironmentConfig::getName).orElse(unknownEnv);
+        if (userName.equals(requestorUserName)) {
+            return FutureUtil.noop();
+        }
+
+        NotificationParams params = new NotificationParams(
+                "role-request-" + newState.toString().toLowerCase(Locale.US));
+        params.addVariable("galapagos_apps_url", buildUIUrl(event, "/applications"));
+        params.addVariable("user_name", requestorUserName);
+        params.addVariable("updated_by", userName);
+        params.addVariable("environment_name", environmentName);
+        Optional<KnownApplication> app = applicationsService.getKnownApplication(event.getRequest().getApplicationId());
+        params.addVariable("app_name", app.map(KnownApplication::getName).orElse(unknownApp));
+
+        return notificationService.notifyRoleRequestor(event.getRequest(), params);
+    }
+
+    @Override
+    public CompletableFuture<Void> handleRoleRequestCanceled(RoleRequestEvent event) {
+        return FutureUtil.noop();
+    }
+
     private CompletableFuture<Void> handleTopicChange(TopicEvent event, String changeText) {
         String environmentId = event.getContext().getKafkaCluster().getId();
         String topicName = event.getMetadata().getName();

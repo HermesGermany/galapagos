@@ -86,6 +86,22 @@ public class DevUserAclListener implements TopicEventsListener, SubscriptionEven
     }
 
     @Override
+    public CompletableFuture<Void> handleRoleRequestCreated(RoleRequestEvent event) {
+        return handleRoleRequestUpdated(event);
+    }
+
+    @Override
+    public CompletableFuture<Void> handleRoleRequestUpdated(RoleRequestEvent event) {
+        KafkaCluster cluster = event.getContext().getKafkaCluster();
+        return updateAcls(cluster, getValidDevAuthenticationForUser(cluster, event.getRequest().getUserName()));
+    }
+
+    @Override
+    public CompletableFuture<Void> handleRoleRequestCanceled(RoleRequestEvent event) {
+        return handleRoleRequestUpdated(event);
+    }
+
+    @Override
     @CheckReturnValue
     public CompletableFuture<Void> handleSubscriptionCreated(SubscriptionEvent event) {
         KafkaCluster cluster = event.getContext().getKafkaCluster();

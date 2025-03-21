@@ -6,13 +6,14 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class CreateUserRoleDto {
-
-    private String userName;
-
-    private Role role;
+public class RoleRequestSubmissionDto {
 
     private String applicationId;
 
+    private Role role;
+
+    private String environmentId;
+
     private String comments;
+
 }

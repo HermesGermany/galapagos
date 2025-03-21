@@ -14,14 +14,12 @@ export interface RoleDto {
     environmentId: string;
     comments: string;
     state: 'SUBMITTED' | 'REJECTED' | 'ACCEPTED' | 'REVOKED';
-    //state: string;
     createdAt: string;
     lastStatusChangeAt: string;
     lastStatusChangeBy: string;
 }
 
 export interface CreateUserRoleDto {
-    userName: string;
     role: Role;
     applicationId: string;
     comments: string;
@@ -53,12 +51,6 @@ export class RoleService {
         return this.http.get<RoleDto[]>(`/api/roles/${environmentId}/${userName}`);
     }
 
-    public async addUserRole(environmentId: string, data: CreateUserRoleDto): Promise<void> {
-        return firstValueFrom(this.http.put<void>(`/api/roles/${environmentId}`, data)).then(() => {
-            this.refresh();
-        });
-    }
-
     public async deleteUserRoles(environmentId: string, userName: string): Promise<void> {
         return firstValueFrom(this.http.delete<void>(`/api/roles/${environmentId}/${userName}`)).then(() => {
             this.refresh();
@@ -73,12 +65,32 @@ export class RoleService {
 
     public async updateRole(requestId: string, environmentId: string, newState: string): Promise<any> {
         const body = JSON.stringify({ newState: newState });
-        return firstValueFrom(this.http.post('/api/admin/roles/requests/' + requestId + environmentId, body, { headers: jsonHeader() })).then(() => {
+        return firstValueFrom(this.http.post(`/api/admin/roles/requests/${requestId}/${environmentId}`, body, { headers: jsonHeader() })).then(() => {
+            this.refresh();
+        });
+    }
+
+    public async submitRoleRequest(applicationId: string, role: Role, environmentId: string, comments: string): Promise<RoleDto> {
+        const body = JSON.stringify({
+            applicationId: applicationId,
+            role: role,
+            environmentId: environmentId,
+            comments: comments || null
+        });
+
+        return firstValueFrom(this.http.put('/api/me/roles/requests', body, { headers: jsonHeader() })).then(value => {
+            this.refresh();
+            return value as RoleDto;
+        });
+    }
+
+    public async cancelRoleRequest(requestId: string, environmentId: string): Promise<any> {
+        return firstValueFrom(this.http.delete('/api/me/roles/requests/' + requestId + environmentId)).then(() => {
             this.refresh();
         });
     }
 
     public async refresh(): Promise<any> {
-        return this.userRoles.refresh().then(this.allRoles.refresh);
+        return this.userRoles.refresh().then(() => this.allRoles.refresh());
     }
 }

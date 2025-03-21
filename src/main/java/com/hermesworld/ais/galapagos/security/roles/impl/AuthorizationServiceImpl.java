@@ -57,8 +57,7 @@ public class AuthorizationServiceImpl implements AuthorizationService {
         }
         String userName = authentication.getName();
         return userRoleService.getRolesForUser(environmentId, userName).stream()
-                .anyMatch(role -> (role.getRole() == Role.ADMIN)
-                        || (role.getRole() == Role.TESTER && !"prod".equals(environmentId)));
+                .anyMatch(role -> (role.getRole() == Role.ADMIN) || (role.getRole() == Role.TESTER));
     }
 
     @Override

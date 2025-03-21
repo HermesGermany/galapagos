@@ -22,7 +22,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ApiKeyService } from '../../shared/services/apikey.service';
 import { ApplicationCertificate, CertificateService } from '../../shared/services/certificates.service';
 import { copy } from '../../shared/util/copy-util';
-import { AVAILABLE_ROLES, Role } from '../../shared/services/role.service';
+import { AVAILABLE_ROLES, Role, RoleDto, RoleService } from '../../shared/services/role.service';
 import { AuthService } from '../../shared/services/auth.service';
 
 export interface UserApplicationInfoWithTopics extends UserApplicationInfo {
@@ -50,6 +50,8 @@ export class ApplicationsComponent implements OnInit {
     availableApplications: Observable<ApplicationInfo[]>;
 
     userRequests: Observable<ApplicationOwnerRequest[]>;
+
+    userRoleRequests: Observable<RoleDto[]>;
 
     environments: Observable<KafkaEnvironment[]>;
 
@@ -115,7 +117,8 @@ export class ApplicationsComponent implements OnInit {
         private toasts: ToastService,
         private translateService: TranslateService,
         private certificateService: CertificateService,
-        private authService: AuthService
+        private authService: AuthService,
+        private roleService: RoleService
     ) {
     }
 
@@ -126,6 +129,9 @@ export class ApplicationsComponent implements OnInit {
             .pipe(startWith(this.translateService.currentLang)).pipe(shareReplay(1));
 
         const relevant = (req: ApplicationOwnerRequest) => DateTime.fromISO(req.lastStatusChangeAt)
+            .minus(30, 'days') < now;
+
+        const relevantRole = (req: RoleDto) => DateTime.fromISO(req.lastStatusChangeAt)
             .minus(30, 'days') < now;
 
         const admin = await firstValueFrom(this.authService.admin);
@@ -144,6 +150,12 @@ export class ApplicationsComponent implements OnInit {
         this.userRequests = this.applicationsService
             .getUserApplicationOwnerRequests()
             .pipe(map(requests => requests.filter(req => relevant(req))));
+
+        this.userRoleRequests = this.roleService
+            .listAllRoles()
+            .pipe(map(requests => requests.filter(req => relevantRole(req))
+                .sort((a, b) => DateTime.fromISO(b.lastStatusChangeAt) - DateTime.fromISO(a.lastStatusChangeAt))
+            ));
 
         const obsTopics = this.topicsService.listTopics().getObservable();
         const obsPlainUserApplications = this.applicationsService.getUserApplications().getObservable();
@@ -175,28 +187,67 @@ export class ApplicationsComponent implements OnInit {
         await this.applicationsService.refresh();
     }
 
-    submitRequest(): Promise<any> {
+    /**
+     submitRequest(): Promise<any> {
+     if (!this.selectedApplicationForRequest) {
+     this.toasts.addErrorToast('APPLICATION_SELECTION_EMPTY');
+     return Promise.resolve();
+     }
+
+     this.submitting = true;
+     return this.applicationsService
+     .submitApplicationOwnerRequest(this.selectedApplicationForRequest.id, this.commentsForRequest)
+     .then(
+     () => {
+     this.selectedApplicationForRequest = null;
+     this.commentsForRequest = '';
+     this.toasts.addSuccessToast('REQUEST_CREATION_SUCCESS');
+     },
+     err => this.toasts.addHttpErrorToast('REQUEST_CREATION_ERROR', err)
+     )
+     .finally(() => (this.submitting = false));
+     }
+     */
+
+    submitRoleRequest(): Promise<any> {
         if (!this.selectedApplicationForRequest) {
             this.toasts.addErrorToast('APPLICATION_SELECTION_EMPTY');
             return Promise.resolve();
         }
 
+        const selectedEnvs = this.selectedEnvironments.filter(env => env.selected);
+        if (selectedEnvs.length === 0) {
+            this.toasts.addErrorToast('ENVIRONMENT_SELECTION_EMPTY');
+            return Promise.resolve();
+        }
         this.submitting = true;
-        return this.applicationsService
-            .submitApplicationOwnerRequest(this.selectedApplicationForRequest.id, this.commentsForRequest)
+        return Promise.all(
+            selectedEnvs.map(env => this.roleService
+                .submitRoleRequest(this.selectedApplicationForRequest.id, this.selectedRole, env.environment.id, this.commentsForRequest)))
             .then(
                 () => {
                     this.selectedApplicationForRequest = null;
+                    this.selectedRole = 'VIEWER';
+                    this.selectedEnvironments.forEach(env => env.selected = false)
                     this.commentsForRequest = '';
-                    this.toasts.addSuccessToast('REQUEST_CREATION_SUCCESS');
+                    this.toasts.addSuccessToast('ROLE_REQUEST_CREATION_SUCCESS');
                 },
-                err => this.toasts.addHttpErrorToast('REQUEST_CREATION_ERROR', err)
+                err => this.toasts.addHttpErrorToast('ROLE_REQUEST_CREATION_ERROR', err)
             )
             .finally(() => (this.submitting = false));
     }
 
-    async cancelRequest(req: ApplicationOwnerRequest): Promise<any> {
-        return this.applicationsService.cancelApplicationOwnerRequest(req.id).then(
+    /**
+     async cancelRequest(req: ApplicationOwnerRequest): Promise<any> {
+     return this.applicationsService.cancelApplicationOwnerRequest(req.id).then(
+     () => this.toasts.addSuccessToast('REQUEST_ABORT_SUCCESS'),
+     err => this.toasts.addHttpErrorToast('REQUEST_ABORT_ERROR', err)
+     );
+     }
+     */
+
+    async cancelRoleRequest(req: RoleDto): Promise<any> {
+        return this.roleService.cancelRoleRequest(req.id, req.environmentId).then(
             () => this.toasts.addSuccessToast('REQUEST_ABORT_SUCCESS'),
             err => this.toasts.addHttpErrorToast('REQUEST_ABORT_ERROR', err)
         );
@@ -343,6 +394,16 @@ export class ApplicationsComponent implements OnInit {
         return this.applicationsService
             .getAvailableApplications(false)
             .pipe(map(apps => apps.filter(app => app.id === appId).map(app => app.name)[0] || appId));
+    }
+
+    toEnvironmentName(envId: string): Observable<string> {
+        return this.environmentsService
+            .getEnvironments()
+            .pipe(map(envs => envs.filter(env => env.id === envId).map(env => env.name)[0] || envId));
+    }
+
+    lastChangeTitle(request: RoleDto): Observable<string> {
+        return this.niceTimestamp(request.lastStatusChangeAt).pipe(map(l => l + ' by ' + request.lastStatusChangeBy));
     }
 
     extractCommonName(dn: string): string {

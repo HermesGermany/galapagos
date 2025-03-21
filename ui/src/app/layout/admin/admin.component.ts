@@ -16,6 +16,7 @@ import { NgbPaginationConfig } from '@ng-bootstrap/ng-bootstrap';
 import { SortDirection } from '../topics/sort';
 import { AuthService } from '../../shared/services/auth.service';
 import { RoleDto, RoleService } from '../../shared/services/role.service';
+import { EnvironmentsService } from '../../shared/services/environments.service';
 
 interface TranslatedApplicationOwnerRequest extends ApplicationOwnerRequest {
     applicationName?: string;
@@ -64,7 +65,7 @@ const translateRoles: (roles: RoleDto[], apps: ApplicationInfo[]) => TranslateRo
         apps.forEach(app => appMap[app.id] = app);
         return roles.map(role => appMap[role.applicationId] ? {
             ...role, applicationName: appMap[role.applicationId].name || role.id,
-            assignedOn: role.lastStatusChangeAt
+            requestedAt: role.lastStatusChangeAt
         } : role);
     };
 
@@ -118,7 +119,7 @@ export class AdminComponent implements OnInit {
     active: number = 1;
 
     constructor(private applicationsService: ApplicationsService, private roleService: RoleService, authService: AuthService,
-                private translate: TranslateService, private config: NgbPaginationConfig) {
+                private translate: TranslateService, private config: NgbPaginationConfig, private environmentsService: EnvironmentsService) {
         config.size = 'sm';
         config.boundaryLinks = true;
         this.isAdmin = authService.admin;
@@ -146,8 +147,15 @@ export class AdminComponent implements OnInit {
         allRoles.pipe(tap(roles => {
             this.allFetchedRoles = roles;
             this.roleState.totalItems = roles.length;
+            if (this.roleState.sortColumn && this.roleState.sortDirection) {
+                this.applySorting(this.roleState.sortColumn, this.roleState.sortDirection)
+            }
             this.sliceRoleData();
-            this.searchRoles();
+            if (this.roleState.searchTerm) {
+                this.searchRoles();
+            }
+            //this.sliceRoleData();
+            //this.searchRoles();
         })).subscribe();
 
         this.roleService.refresh().then();
@@ -239,8 +247,8 @@ export class AdminComponent implements OnInit {
         return this.niceTimestamp(role.lastStatusChangeAt).pipe(map(l => l + ' by ' + role.lastStatusChangeBy));
     }
 
-    approveRole(request: TranslateRoleDto): Promise<any> {
-        return this.roleService.updateRole(request.id, request.environmentId, 'APPROVED');
+    approveRole(role: TranslateRoleDto): Promise<any> {
+        return this.roleService.updateRole(role.id, role.environmentId, 'APPROVED');
     }
 
     rejectRole(role: TranslateRoleDto): Promise<any> {
@@ -248,7 +256,10 @@ export class AdminComponent implements OnInit {
         return this.roleService.updateRole(role.id, role.environmentId, newStatus);
     }
 
-    async onRoleSort({ column, direction }: SortEvent) {
+    applySorting(column: string, direction: SortDirection) {
+        if (!column || !direction) {
+            return;
+        }
         const roles = this.allFetchedRoles;
         if (direction === 'asc') {
             this.allFetchedRoles = roles.sort((a, b) => a[column] < b[column] ? 1 : a[column] > b[column] ? -1 : 0);
@@ -256,6 +267,12 @@ export class AdminComponent implements OnInit {
         if (direction === 'desc') {
             this.allFetchedRoles = roles.sort((a, b) => a[column] > b[column] ? 1 : a[column] < b[column] ? -1 : 0);
         }
+    }
+
+    async onRoleSort({ column, direction }: SortEvent) {
+        this.roleState.sortColumn = column;
+        this.roleState.sortDirection = direction;
+        this.applySorting(column, direction);
         this.sliceRoleData();
     }
 
@@ -273,5 +290,11 @@ export class AdminComponent implements OnInit {
         const filterData = this.allFetchedRoles.filter(role => this.matchesRole(role, searchTerm));
         this.roleState.totalItems = filterData.length;
         this.currentRoles = filterData.slice(0, pageSize);
+    }
+
+    toEnvironmentName(envId: string): Observable<string> {
+        return this.environmentsService
+            .getEnvironments()
+            .pipe(map(envs => envs.filter(env => env.id === envId).map(env => env.name)[0] || envId));
     }
 }
