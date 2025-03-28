@@ -2,7 +2,13 @@ import { Component, OnInit } from '@angular/core';
 import { routerTransition } from '../../router.animations';
 import { ApplicationInfo, ApplicationsService, UserApplicationInfo } from '../../shared/services/applications.service';
 import { firstValueFrom, Observable } from 'rxjs';
-import { Change, EnvironmentsService, KafkaEnvironment, Staging, StagingResult } from '../../shared/services/environments.service';
+import {
+    Change,
+    EnvironmentsService,
+    KafkaEnvironment,
+    Staging,
+    StagingResult
+} from '../../shared/services/environments.service';
 import { map } from 'rxjs/operators';
 import { ToastService } from '../../shared/modules/toast/toast.service';
 import { TranslateService } from '@ngx-translate/core';
@@ -26,7 +32,7 @@ export class StagingComponent implements OnInit {
 
     availableApplications: Observable<UserApplicationInfo[]>;
 
-    registeredApplicationsSnapshot: ApplicationInfo[];
+    knownApplicationsSnapshot: ApplicationInfo[];
 
     selectedEnvironment: KafkaEnvironment;
 
@@ -83,7 +89,7 @@ export class StagingComponent implements OnInit {
         this.staging = null;
         this.stagingResult = [];
 
-        this.registeredApplicationsSnapshot = await this.applicationsService.getRegisteredApplications(this.selectedEnvironment.id);
+        this.knownApplicationsSnapshot = await firstValueFrom(this.applicationsService.getAvailableApplications(false));
 
         return this.environmentsService.prepareStaging(this.selectedApplication.id, this.selectedEnvironment).then(
             s => {
@@ -147,12 +153,12 @@ export class StagingComponent implements OnInit {
             case 'TOPIC_PRODUCER_APPLICATION_ADDED':
                 return this.translate.instant('TOPIC_PRODUCER_APPLICATION_ADDED_STAGING', {
                     topicName: change.topicName,
-                    producer: this.applicationInfo(change.producerApplicationId).name
+                    producer: this.applicationName(change.producerApplicationId)
                 });
             case 'TOPIC_PRODUCER_APPLICATION_REMOVED':
                 return this.translate.instant('TOPIC_PRODUCER_APPLICATION_REMOVED_STAGING', {
                     topicName: change.topicName,
-                    producer: this.applicationInfo(change.producerApplicationId).name
+                    producer: this.applicationName(change.producerApplicationId)
                 });
             case 'TOPIC_SUBSCRIPTION_APPROVAL_REQUIRED_FLAG_UPDATED':
                 return this.translate.instant('TOPIC_SUBSCRIPTION_APPROVAL_REQUIRED_FLAG_UPDATED_STAGING',
@@ -166,8 +172,8 @@ export class StagingComponent implements OnInit {
         return this.translate.instant('OTHER_CHANGE_STAGING', { changeType: changeType });
     }
 
-    private applicationInfo(applicationId): ApplicationInfo {
-        const apps = this.registeredApplicationsSnapshot.filter(app => app.id === applicationId);
-        return apps.length === 0 ? null : apps[0];
-    };
+    private applicationName(applicationId: string): string {
+        const apps = this.knownApplicationsSnapshot.filter(app => app.id === applicationId);
+        return apps.length === 0 ? applicationId : apps[0].name;
+    }
 }
