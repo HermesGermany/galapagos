@@ -10,26 +10,17 @@ import com.hermesworld.ais.galapagos.kafka.util.AclSupport;
 import com.hermesworld.ais.galapagos.subscriptions.SubscriptionMetadata;
 import com.hermesworld.ais.galapagos.subscriptions.service.SubscriptionService;
 import com.hermesworld.ais.galapagos.topics.TopicType;
-import com.hermesworld.ais.galapagos.topics.service.TopicService;
 import com.hermesworld.ais.galapagos.util.FutureUtil;
-import org.apache.kafka.common.acl.AccessControlEntry;
 import org.apache.kafka.common.acl.AclBinding;
-import org.apache.kafka.common.acl.AclOperation;
-import org.apache.kafka.common.acl.AclPermissionType;
-import org.apache.kafka.common.resource.PatternType;
-import org.apache.kafka.common.resource.ResourcePattern;
-import org.apache.kafka.common.resource.ResourceType;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import org.thymeleaf.util.StringUtils;
 
 import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Component
 public class UpdateApplicationAclsListener
@@ -179,6 +170,11 @@ public class UpdateApplicationAclsListener
     }
 
     @Override
+    public CompletableFuture<Void> handleMissingInternalTopicDeleted(TopicEvent event) {
+        return FutureUtil.noop();
+    }
+
+    @Override
     public CompletableFuture<Void> handleTopicUndeprecated(TopicEvent event) {
         return FutureUtil.noop();
     }
@@ -199,7 +195,6 @@ public class UpdateApplicationAclsListener
      *
      * @param metadata      Metadata of the application
      * @param environmentId Environment for which the ACLs are needed.
-     *
      * @return A KafkaUser object which can be queried for its ACLs.
      */
     public KafkaUser getApplicationUser(ApplicationMetadata metadata, String environmentId) {
