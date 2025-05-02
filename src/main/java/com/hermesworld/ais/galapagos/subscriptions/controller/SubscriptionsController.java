@@ -1,11 +1,5 @@
 package com.hermesworld.ais.galapagos.subscriptions.controller;
 
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.concurrent.ExecutionException;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-
 import com.hermesworld.ais.galapagos.applications.ApplicationsService;
 import com.hermesworld.ais.galapagos.kafka.KafkaClusters;
 import com.hermesworld.ais.galapagos.kafka.config.KafkaEnvironmentConfig;
@@ -18,6 +12,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.concurrent.ExecutionException;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 @RestController
 @Slf4j
@@ -55,7 +55,8 @@ public class SubscriptionsController {
             @PathVariable String environmentId, @RequestBody CreateSubscriptionDto createData) {
         KafkaEnvironmentConfig environment = kafkaEnvironments.getEnvironmentMetadata(environmentId)
                 .orElseThrow(notFound);
-        if (!applicationsService.isUserAuthorizedFor(applicationId) || environment.isStagingOnly()) {
+        if (!applicationsService.isUserAuthorizedForEditing(applicationId, environmentId)
+                || environment.isStagingOnly()) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
 
@@ -86,7 +87,7 @@ public class SubscriptionsController {
         TopicMetadata topicMetadata = topicService.getTopic(environmentId, topicName).orElseThrow(notFound);
 
         // user must be authorized for Topic Owner application, not subscribing application!
-        if (!applicationsService.isUserAuthorizedFor(topicMetadata.getOwnerApplicationId())) {
+        if (!applicationsService.isUserAuthorizedForEditing(topicMetadata.getOwnerApplicationId(), environmentId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
 
@@ -107,7 +108,7 @@ public class SubscriptionsController {
     @DeleteMapping(value = "/api/applications/{applicationId}/subscriptions/{environmentId}/{subscriptionId}")
     public void deleteApplicationSubscription(@PathVariable String applicationId, @PathVariable String environmentId,
             @PathVariable String subscriptionId) {
-        if (!applicationsService.isUserAuthorizedFor(applicationId)) {
+        if (!applicationsService.isUserAuthorizedForEditing(applicationId, environmentId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
 
@@ -125,7 +126,6 @@ public class SubscriptionsController {
             throw handleExecutionException(e);
         }
         catch (InterruptedException e) {
-            return;
         }
     }
 

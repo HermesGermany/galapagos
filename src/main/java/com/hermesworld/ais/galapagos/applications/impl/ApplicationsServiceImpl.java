@@ -12,6 +12,8 @@ import com.hermesworld.ais.galapagos.kafka.util.TopicBasedRepository;
 import com.hermesworld.ais.galapagos.naming.ApplicationPrefixes;
 import com.hermesworld.ais.galapagos.naming.NamingService;
 import com.hermesworld.ais.galapagos.security.CurrentUserService;
+import com.hermesworld.ais.galapagos.security.roles.Role;
+import com.hermesworld.ais.galapagos.security.roles.UserRoleService;
 import com.hermesworld.ais.galapagos.util.TimeService;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
@@ -46,6 +48,8 @@ public class ApplicationsServiceImpl implements ApplicationsService, InitPerClus
 
     private final GalapagosEventManager eventManager;
 
+    private final UserRoleService userRoleService;
+
     private static final String TOPIC_NAME = "application-metadata";
 
     private static final String KNOWN_APPLICATIONS_TOPIC_NAME = "known-applications";
@@ -56,7 +60,8 @@ public class ApplicationsServiceImpl implements ApplicationsService, InitPerClus
             .compareTo(r1.getLastStatusChangeAt());
 
     public ApplicationsServiceImpl(KafkaClusters kafkaClusters, CurrentUserService currentUserService,
-            TimeService timeService, NamingService namingService, GalapagosEventManager eventManager) {
+            TimeService timeService, NamingService namingService, GalapagosEventManager eventManager,
+            UserRoleService userRoleService) {
         this.kafkaClusters = kafkaClusters;
         this.knownApplicationsSource = kafkaClusters.getGlobalRepository(KNOWN_APPLICATIONS_TOPIC_NAME,
                 KnownApplicationImpl.class);
@@ -65,6 +70,7 @@ public class ApplicationsServiceImpl implements ApplicationsService, InitPerClus
         this.timeService = timeService;
         this.namingService = namingService;
         this.eventManager = eventManager;
+        this.userRoleService = userRoleService;
     }
 
     @Override
@@ -229,6 +235,33 @@ public class ApplicationsServiceImpl implements ApplicationsService, InitPerClus
     public boolean isUserAuthorizedFor(String applicationId) {
         return getUserApplicationOwnerRequests().stream().anyMatch(
                 req -> req.getState() == RequestState.APPROVED && applicationId.equals(req.getApplicationId()));
+    }
+
+    @Override
+    public boolean isUserAuthorizedForEditing(String applicationId, String environmentId) {
+        String userName = currentUserService.getCurrentUserName()
+                .orElseThrow(() -> new IllegalStateException("No currently logged in user"));
+        return userRoleService.getRolesForUser(environmentId, userName).stream()
+                .anyMatch(role -> applicationId.equals(role.getApplicationId())
+                        && role.getState() == RequestState.APPROVED && (role.getRole() == Role.ADMIN));
+    }
+
+    @Override
+    public boolean isUserAuthorizedForTesting(String applicationId, String environmentId) {
+        String userName = currentUserService.getCurrentUserName()
+                .orElseThrow(() -> new IllegalStateException("No currently logged in user"));
+        return userRoleService.getRolesForUser(environmentId, userName).stream()
+                .anyMatch(role -> applicationId.equals(role.getApplicationId())
+                        && role.getState() == RequestState.APPROVED
+                        && (role.getRole() == Role.TESTER || role.getRole() == Role.ADMIN));
+    }
+
+    @Override
+    public boolean isUserAuthorizedForViewing(String applicationId, String environmentId) {
+        String userName = currentUserService.getCurrentUserName()
+                .orElseThrow(() -> new IllegalStateException("No currently logged in user"));
+        return userRoleService.getRolesForUser(environmentId, userName).stream().anyMatch(
+                role -> applicationId.equals(role.getApplicationId()) && role.getState() == RequestState.APPROVED);
     }
 
     @Override

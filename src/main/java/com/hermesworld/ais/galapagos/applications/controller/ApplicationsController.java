@@ -150,7 +150,7 @@ public class ApplicationsController {
         KnownApplication app = applicationsService.getKnownApplication(applicationId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
-        if (!applicationsService.isUserAuthorizedFor(applicationId)) {
+        if (!applicationsService.isUserAuthorizedForEditing(applicationId, environmentId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
 
@@ -203,7 +203,7 @@ public class ApplicationsController {
         applicationsService.getKnownApplication(applicationId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
-        if (!applicationsService.isUserAuthorizedFor(applicationId)) {
+        if (!applicationsService.isUserAuthorizedForEditing(applicationId, environmentId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
 
@@ -233,7 +233,8 @@ public class ApplicationsController {
 
     @GetMapping(value = "/api/authentications/{applicationId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ApplicationAuthenticationsDto listApplicationAuthentications(@PathVariable String applicationId) {
-        if (!applicationsService.isUserAuthorizedFor(applicationId)) {
+        if (!applicationsService.isUserAuthorizedForEditing(applicationId,
+                kafkaClusters.getProductionEnvironmentId())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
 
@@ -256,7 +257,7 @@ public class ApplicationsController {
 
     @GetMapping(value = "/api/environments/{environmentId}/staging/{applicationId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public Staging describeStaging(@PathVariable String environmentId, @PathVariable String applicationId) {
-        if (!applicationsService.isUserAuthorizedFor(applicationId)) {
+        if (!applicationsService.isUserAuthorizedForEditing(applicationId, environmentId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
         try {
@@ -275,7 +276,7 @@ public class ApplicationsController {
     @PostMapping(value = "/api/environments/{environmentId}/staging/{applicationId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public List<StagingResult> performStaging(@PathVariable String environmentId, @PathVariable String applicationId,
             @RequestBody String stagingFilterRaw) {
-        if (!applicationsService.isUserAuthorizedFor(applicationId)) {
+        if (!applicationsService.isUserAuthorizedForEditing(applicationId, environmentId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
 

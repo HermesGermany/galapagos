@@ -12,7 +12,6 @@ import com.hermesworld.ais.galapagos.naming.InvalidTopicNameException;
 import com.hermesworld.ais.galapagos.naming.NamingService;
 import com.hermesworld.ais.galapagos.schemas.IncompatibleSchemaException;
 import com.hermesworld.ais.galapagos.security.CurrentUserService;
-import com.hermesworld.ais.galapagos.security.roles.CanView;
 import com.hermesworld.ais.galapagos.topics.SchemaCompatCheckMode;
 import com.hermesworld.ais.galapagos.topics.SchemaMetadata;
 import com.hermesworld.ais.galapagos.topics.TopicMetadata;
@@ -109,7 +108,7 @@ public class TopicController {
             @RequestBody AddProducerDto producer) {
         TopicMetadata topic = topicService.getTopic(environmentId, topicName).orElseThrow(notFound);
 
-        if (!applicationsService.isUserAuthorizedFor(topic.getOwnerApplicationId())) {
+        if (!applicationsService.isUserAuthorizedForEditing(topic.getOwnerApplicationId(), environmentId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
 
@@ -136,7 +135,7 @@ public class TopicController {
         }
 
         TopicMetadata topic = topicService.getTopic(envId, topicName).orElseThrow(notFound);
-        if (!applicationsService.isUserAuthorizedFor(topic.getOwnerApplicationId())) {
+        if (!applicationsService.isUserAuthorizedForEditing(topic.getOwnerApplicationId(), envId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
 
@@ -161,7 +160,7 @@ public class TopicController {
         }
 
         TopicMetadata topic = topicService.getTopic(envId, topicName).orElseThrow(notFound);
-        if (!applicationsService.isUserAuthorizedFor(topic.getOwnerApplicationId())) {
+        if (!applicationsService.isUserAuthorizedForEditing(topic.getOwnerApplicationId(), envId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
 
@@ -182,7 +181,7 @@ public class TopicController {
             @RequestBody UpdateTopicDto request) {
 
         TopicMetadata topic = topicService.getTopic(environmentId, topicName).orElseThrow(notFound);
-        if (!applicationsService.isUserAuthorizedFor(topic.getOwnerApplicationId())) {
+        if (!applicationsService.isUserAuthorizedForEditing(topic.getOwnerApplicationId(), environmentId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
         try {
@@ -228,7 +227,7 @@ public class TopicController {
         TopicMetadata metadata = topicService.listTopics(environmentId).stream()
                 .filter(topic -> topicName.equals(topic.getName())).findAny().orElseThrow(notFound);
 
-        if (!applicationsService.isUserAuthorizedFor(metadata.getOwnerApplicationId())) {
+        if (!applicationsService.isUserAuthorizedForEditing(metadata.getOwnerApplicationId(), environmentId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
 
@@ -278,7 +277,7 @@ public class TopicController {
 
     @PutMapping(value = "/api/topics/{environmentId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public TopicDto createTopic(@PathVariable String environmentId, @RequestBody CreateTopicDto topicData) {
-        if (!applicationsService.isUserAuthorizedFor(topicData.getOwnerApplicationId())) {
+        if (!applicationsService.isUserAuthorizedForEditing(topicData.getOwnerApplicationId(), environmentId)) {
             // TODO Security Audit log?
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
@@ -313,7 +312,6 @@ public class TopicController {
         }
     }
 
-    @CanView
     @DeleteMapping(value = "/api/topics/{environmentId}/{topicName}")
     public ResponseEntity<Void> deleteTopic(@PathVariable String environmentId, @PathVariable String topicName) {
         TopicMetadata metadata = topicService.listTopics(environmentId).stream()
@@ -321,7 +319,7 @@ public class TopicController {
 
         kafkaEnvironments.getEnvironmentMetadata(environmentId).orElseThrow(notFound);
 
-        if (!applicationsService.isUserAuthorizedFor(metadata.getOwnerApplicationId())) {
+        if (!applicationsService.isUserAuthorizedForEditing(metadata.getOwnerApplicationId(), environmentId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
 
@@ -374,7 +372,7 @@ public class TopicController {
             @RequestBody AddSchemaVersionDto schemaVersionDto) {
         TopicMetadata topic = topicService.listTopics(environmentId).stream().filter(t -> topicName.equals(t.getName()))
                 .findAny().orElseThrow(notFound);
-        if (!applicationsService.isUserAuthorizedFor(topic.getOwnerApplicationId())) {
+        if (!applicationsService.isUserAuthorizedForEditing(topic.getOwnerApplicationId(), environmentId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
 
@@ -413,7 +411,7 @@ public class TopicController {
 
         TopicMetadata topic = topicService.listTopics(environmentId).stream().filter(t -> topicName.equals(t.getName()))
                 .findAny().orElseThrow(notFound);
-        if (!applicationsService.isUserAuthorizedFor(topic.getOwnerApplicationId())) {
+        if (!applicationsService.isUserAuthorizedForEditing(topic.getOwnerApplicationId(), environmentId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
 

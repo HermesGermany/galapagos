@@ -17,6 +17,7 @@ import com.hermesworld.ais.galapagos.naming.config.CaseStrategy;
 import com.hermesworld.ais.galapagos.naming.config.NamingConfig;
 import com.hermesworld.ais.galapagos.naming.impl.NamingServiceImpl;
 import com.hermesworld.ais.galapagos.security.CurrentUserService;
+import com.hermesworld.ais.galapagos.security.roles.UserRoleService;
 import com.hermesworld.ais.galapagos.util.TimeService;
 import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,7 +31,6 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -123,7 +123,7 @@ class ApplicationsServiceImplTest {
         daos.forEach(requestRepository::save);
 
         ApplicationsServiceImpl service = new ApplicationsServiceImpl(kafkaClusters, mock(CurrentUserService.class),
-                () -> now, mock(NamingService.class), new GalapagosEventManagerMock());
+                () -> now, mock(NamingService.class), new GalapagosEventManagerMock(), mock(UserRoleService.class));
 
         service.removeOldRequests();
 
@@ -156,7 +156,8 @@ class ApplicationsServiceImplTest {
         requestRepository.save(appOwnReq);
 
         ApplicationsServiceImpl applicationServiceImpl = new ApplicationsServiceImpl(kafkaClusters, currentUserService,
-                mock(TimeService.class), mock(NamingService.class), new GalapagosEventManagerMock());
+                mock(TimeService.class), mock(NamingService.class), new GalapagosEventManagerMock(),
+                mock(UserRoleService.class));
         List<? extends KnownApplication> result = applicationServiceImpl.getKnownApplications(true);
 
         for (KnownApplication resultKnownApp : result) {
@@ -195,7 +196,8 @@ class ApplicationsServiceImplTest {
         GalapagosEventManagerMock eventManagerMock = new GalapagosEventManagerMock();
 
         ApplicationsServiceImpl applicationServiceImpl = new ApplicationsServiceImpl(kafkaClusters,
-                mock(CurrentUserService.class), mock(TimeService.class), namingService, eventManagerMock);
+                mock(CurrentUserService.class), mock(TimeService.class), namingService, eventManagerMock,
+                mock(UserRoleService.class));
 
         applicationServiceImpl
                 .registerApplicationOnEnvironment("test", "quattro-1", new JSONObject(), new ByteArrayOutputStream())
@@ -234,7 +236,8 @@ class ApplicationsServiceImplTest {
         NamingService namingService = buildNamingService();
 
         ApplicationsServiceImpl applicationServiceImpl = new ApplicationsServiceImpl(kafkaClusters,
-                mock(CurrentUserService.class), mock(TimeService.class), namingService, eventManagerMock);
+                mock(CurrentUserService.class), mock(TimeService.class), namingService, eventManagerMock,
+                mock(UserRoleService.class));
 
         applicationServiceImpl
                 .registerApplicationOnEnvironment("test", "quattro-1", new JSONObject(), new ByteArrayOutputStream())
@@ -259,7 +262,8 @@ class ApplicationsServiceImplTest {
         applicationMetadataRepository.save(appl).get();
 
         ApplicationsServiceImpl applicationServiceImpl = new ApplicationsServiceImpl(kafkaClusters,
-                mock(CurrentUserService.class), mock(TimeService.class), namingService, eventManagerMock);
+                mock(CurrentUserService.class), mock(TimeService.class), namingService, eventManagerMock,
+                mock(UserRoleService.class));
 
         applicationServiceImpl
                 .registerApplicationOnEnvironment("test", "quattro-1", new JSONObject(), new ByteArrayOutputStream())
@@ -340,7 +344,7 @@ class ApplicationsServiceImplTest {
 
         ApplicationsServiceImpl applicationServiceImpl = new ApplicationsServiceImpl(kafkaClusters,
                 mock(CurrentUserService.class), mock(TimeService.class), buildNamingService(),
-                new GalapagosEventManagerMock());
+                new GalapagosEventManagerMock(), mock(UserRoleService.class));
 
         CreateAuthenticationResult authResult = new CreateAuthenticationResult(new JSONObject(), new byte[] { 1 });
         when(authenticationModule.createApplicationAuthentication(any(), any(), any()))

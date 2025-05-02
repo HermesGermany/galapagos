@@ -29,6 +29,12 @@ public interface ApplicationsService {
 
     List<? extends KnownApplication> getUserApplications();
 
+    boolean isUserAuthorizedForEditing(String applicationId, String environmentId);
+
+    boolean isUserAuthorizedForTesting(String applicationId, String environmentId);
+
+    boolean isUserAuthorizedForViewing(String applicationId, String environmentId);
+
     default List<ApplicationMetadata> getAllApplicationMetadata(String environmentId) {
         return getAllApplicationOwnerRequests().stream().map(req -> req.getApplicationId()).distinct()
                 .map(id -> getApplicationMetadata(environmentId, id).orElse(null)).filter(Objects::nonNull)
@@ -53,7 +59,6 @@ public interface ApplicationsService {
      *
      * @param environmentId ID of Kafka cluster to operate on.
      * @param applicationId ID of application to reset prefixes of.
-     *
      * @return A CompletableFuture completing once Application Metadata has been updated, or failing when any ID is
      *         invalid, or any other error occurs.
      */

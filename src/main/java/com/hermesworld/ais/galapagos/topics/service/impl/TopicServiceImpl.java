@@ -104,7 +104,7 @@ public class TopicServiceImpl implements TopicService, InitPerCluster {
                     "APPLICATION_NOT_REGISTERED_ON_ENVIRONMENT", topic.getOwnerApplicationId(), environmentId)));
         }
 
-        if (!applicationsService.isUserAuthorizedFor(metadata.getApplicationId())) {
+        if (!applicationsService.isUserAuthorizedForEditing(metadata.getApplicationId(), environmentId)) {
             return CompletableFuture.failedFuture(new IllegalStateException(messagesService
                     .getMessage("CURRENT_USER_IS_NO_OWNER_OF_APPLICATION", metadata.getApplicationId())));
         }

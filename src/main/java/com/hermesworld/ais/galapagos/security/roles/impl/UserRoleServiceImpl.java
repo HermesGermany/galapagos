@@ -14,6 +14,7 @@ import com.hermesworld.ais.galapagos.security.roles.UserRoleData;
 import com.hermesworld.ais.galapagos.security.roles.UserRoleService;
 import com.hermesworld.ais.galapagos.util.FutureUtil;
 import com.hermesworld.ais.galapagos.util.TimeService;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -38,7 +39,8 @@ public class UserRoleServiceImpl implements UserRoleService, InitPerCluster {
     private static final String TOPIC_NAME = "user-roles";
 
     public UserRoleServiceImpl(KafkaClusters kafkaClusters, CurrentUserService currentUserService,
-            ApplicationsService applicationsService, GalapagosEventManager eventManager, TimeService timeService) {
+            @Lazy ApplicationsService applicationsService, GalapagosEventManager eventManager,
+            TimeService timeService) {
         this.kafkaClusters = kafkaClusters;
         this.currentUserService = currentUserService;
         this.applicationsService = applicationsService;
@@ -86,8 +88,8 @@ public class UserRoleServiceImpl implements UserRoleService, InitPerCluster {
     public Map<String, List<UserRoleData>> getAllRolesForCurrentUser() {
         String userName = currentUserService.getCurrentUserName()
                 .orElseThrow(() -> new IllegalStateException("No currently logged in user"));
-        return kafkaClusters.getEnvironmentsMetadata().stream()
-                .map(env -> Map.entry(env.getId(), getRolesForUser(env.getId(), userName)))
+        return kafkaClusters.getEnvironmentIds().stream()
+                .map(envId -> Map.entry(envId, getRolesForUser(envId, userName)))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
@@ -166,7 +168,7 @@ public class UserRoleServiceImpl implements UserRoleService, InitPerCluster {
         if (existing.isPresent() && (existing.get().getState() == RequestState.SUBMITTED
                 || existing.get().getState() == RequestState.APPROVED)) {
             return CompletableFuture
-                    .failedFuture(new IllegalStateException("A role for this application has been already submitted"));
+                    .failedFuture(new IllegalStateException("A role for this application has been already submitted."));
         }
 
         UserRoleData request;

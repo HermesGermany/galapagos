@@ -1,14 +1,5 @@
 package com.hermesworld.ais.galapagos.kafka.impl;
 
-import java.io.IOException;
-import java.time.Duration;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicReference;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hermesworld.ais.galapagos.kafka.KafkaSender;
@@ -18,6 +9,15 @@ import com.hermesworld.ais.galapagos.util.JsonUtil;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.time.Duration;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicReference;
 
 final class TopicBasedRepositoryImpl<T extends HasKey> implements TopicBasedRepository<T> {
 
@@ -60,7 +60,7 @@ final class TopicBasedRepositoryImpl<T extends HasKey> implements TopicBasedRepo
         this.sender = sender;
     }
 
-    public final void messageReceived(String topicName, String messageKey, String message) {
+    public void messageReceived(String topicName, String messageKey, String message) {
         if (!this.kafkaTopicName.equals(topicName)) {
             return;
         }
@@ -68,6 +68,11 @@ final class TopicBasedRepositoryImpl<T extends HasKey> implements TopicBasedRepo
         Runnable r = messageReceivedHook.get();
         if (r != null) {
             r.run();
+        }
+
+        if (message == null) {
+            data.remove(messageKey);
+            return;
         }
 
         JSONObject obj = new JSONObject(message);
@@ -85,27 +90,27 @@ final class TopicBasedRepositoryImpl<T extends HasKey> implements TopicBasedRepo
     }
 
     @Override
-    public final Class<T> getValueClass() {
+    public Class<T> getValueClass() {
         return valueClass;
     }
 
     @Override
-    public final String getTopicName() {
+    public String getTopicName() {
         return topicName;
     }
 
     @Override
-    public final boolean containsObject(String id) {
+    public boolean containsObject(String id) {
         return data.containsKey(id);
     }
 
     @Override
-    public final Optional<T> getObject(String id) {
+    public Optional<T> getObject(String id) {
         return Optional.ofNullable(data.get(id));
     }
 
     @Override
-    public final Collection<T> getObjects() {
+    public Collection<T> getObjects() {
         return Collections.unmodifiableCollection(data.values());
     }
 

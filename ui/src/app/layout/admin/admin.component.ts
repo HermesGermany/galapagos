@@ -154,8 +154,6 @@ export class AdminComponent implements OnInit {
             if (this.roleState.searchTerm) {
                 this.searchRoles();
             }
-            //this.sliceRoleData();
-            //this.searchRoles();
         })).subscribe();
 
         this.roleService.refresh().then();
