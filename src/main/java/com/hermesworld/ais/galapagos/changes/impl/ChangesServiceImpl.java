@@ -11,6 +11,7 @@ import com.hermesworld.ais.galapagos.kafka.util.InitPerCluster;
 import com.hermesworld.ais.galapagos.kafka.util.TopicBasedRepository;
 import com.hermesworld.ais.galapagos.security.AuditPrincipal;
 import com.hermesworld.ais.galapagos.topics.TopicType;
+import com.hermesworld.ais.galapagos.util.FutureUtil;
 import com.hermesworld.ais.galapagos.util.JsonUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -60,6 +61,11 @@ public class ChangesServiceImpl
     public CompletableFuture<Void> handleTopicDeprecated(TopicEvent event) {
         return logChange(ChangeBase.markTopicDeprecated(event.getMetadata().getName(),
                 event.getMetadata().getDeprecationText(), event.getMetadata().getEolDate()), event);
+    }
+
+    @Override
+    public CompletableFuture<Void> handleMissingInternalTopicDeleted(TopicEvent event) {
+        return FutureUtil.noop();
     }
 
     @Override

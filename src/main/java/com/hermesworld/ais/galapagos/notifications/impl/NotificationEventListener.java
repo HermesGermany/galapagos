@@ -59,7 +59,7 @@ public class NotificationEventListener
     private static final String IS_ADMIN_KEY = NotificationEventListener.class.getName() + "_isAdmin";
 
     public NotificationEventListener(NotificationService notificationService, ApplicationsService applicationsService,
-            TopicService topicService, CurrentUserService userService, KafkaClusters kafkaClusters) {
+                                     TopicService topicService, CurrentUserService userService, KafkaClusters kafkaClusters) {
         this.notificationService = notificationService;
         this.applicationsService = applicationsService;
         this.topicService = topicService;
@@ -133,8 +133,7 @@ public class NotificationEventListener
         String[] blocks = topicName.split("\\.");
         if (blocks.length < 4) {
             return topicName;
-        }
-        else {
+        } else {
             StringJoiner joiner = new StringJoiner(".");
             joiner.add(blocks[0]);
             joiner.add(blocks[1]);
@@ -167,6 +166,11 @@ public class NotificationEventListener
             return handleTopicChange(event, "als \"deprecated\" markiert");
         }
         return FutureUtil.noop();
+    }
+
+    @Override
+    public CompletableFuture<Void> handleMissingInternalTopicDeleted(TopicEvent event) {
+        return handleInternalTopicDeleted(event);
     }
 
     @Override
@@ -208,7 +212,7 @@ public class NotificationEventListener
     }
 
     private CompletableFuture<Void> handleTopicProducerEvent(String templateName, String producerApplicationId,
-            TopicEvent event) {
+                                                             TopicEvent event) {
         String environmentId = event.getContext().getKafkaCluster().getId();
         String environmentName = kafkaClusters.getEnvironmentMetadata(environmentId)
                 .map(KafkaEnvironmentConfig::getName).orElse(unknownEnv);
@@ -296,6 +300,25 @@ public class NotificationEventListener
         return notificationService.notifySubscribers(environmentId, topicName, params, userName);
     }
 
+    private CompletableFuture<Void> handleInternalTopicDeleted(TopicEvent event) {
+        String environmentId = event.getContext().getKafkaCluster().getId();
+        String topicName = event.getMetadata().getName();
+        String topicNameAbbreviated = abbreviateTopicName(topicName);
+        String userName = event.getContext().getContextValue(USER_NAME_KEY).map(Object::toString).orElse(unknownUser);
+        String environmentName = kafkaClusters.getEnvironmentMetadata(environmentId)
+                .map(KafkaEnvironmentConfig::getName).orElse(unknownEnv);
+
+        NotificationParams params = new NotificationParams("internal-topic-deleted");
+        params.addVariable("user_name", userName);
+        params.addVariable("topic_name", topicName);
+        params.addVariable("topic_name_abbreviated", topicNameAbbreviated);
+        params.addVariable("environment_name", environmentName);
+        params.addVariable("galapagos_topic_url",
+                buildUIUrl(event, "/topics/" + topicName + "?environment=" + environmentId));
+
+        return notificationService.notifyApplicationTopicOwners(event.getMetadata().getOwnerApplicationId(), params);
+    }
+
     @Override
     public Map<String, Object> getContextValues() {
         // store the HttpRequest in the event context, as we may otherwise not be able to get it later (different
@@ -320,8 +343,7 @@ public class NotificationEventListener
             URL requestUrl = new URL(opRequestUrl.get());
             return new URL(requestUrl.getProtocol(), requestUrl.getHost(), requestUrl.getPort(),
                     "/app/" + (uri.startsWith("/") ? uri.substring(1) : uri)).toString();
-        }
-        catch (MalformedURLException e) {
+        } catch (MalformedURLException e) {
             log.warn("Could not parse request URL from HTTP Request", e);
             return "#";
         }
@@ -329,7 +351,7 @@ public class NotificationEventListener
 
     private static Optional<HttpServletRequest> getCurrentHttpRequest() {
         return Optional.ofNullable(RequestContextHolder.getRequestAttributes()).filter(
-                requestAttributes -> ServletRequestAttributes.class.isAssignableFrom(requestAttributes.getClass()))
+                        requestAttributes -> ServletRequestAttributes.class.isAssignableFrom(requestAttributes.getClass()))
                 .map(requestAttributes -> ((ServletRequestAttributes) requestAttributes))
                 .map(ServletRequestAttributes::getRequest);
     }

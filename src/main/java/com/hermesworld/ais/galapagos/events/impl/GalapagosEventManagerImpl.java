@@ -86,6 +86,12 @@ public class GalapagosEventManagerImpl implements GalapagosEventManager {
         }
 
         @Override
+        public CompletableFuture<Void> handleMissingInternalTopicDeleted(TopicMetadata metadata) {
+            TopicEvent event = new TopicEvent(eventContext, metadata);
+            return handleEvent(topicListeners, l -> l.handleMissingInternalTopicDeleted(event));
+        }
+
+        @Override
         public CompletableFuture<Void> handleTopicSchemaAdded(TopicMetadata metadata, SchemaMetadata newSchema) {
             TopicSchemaAddedEvent event = new TopicSchemaAddedEvent(eventContext, metadata, newSchema);
             return handleEvent(topicListeners, l -> l.handleTopicSchemaAdded(event));

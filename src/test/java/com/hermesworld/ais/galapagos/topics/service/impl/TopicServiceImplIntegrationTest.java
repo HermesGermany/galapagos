@@ -212,6 +212,11 @@ class TopicServiceImplIntegrationTest {
         }
 
         @Override
+        public CompletableFuture<Void> handleMissingInternalTopicDeleted(TopicEvent event) {
+            return FutureUtil.noop();
+        }
+
+        @Override
         public CompletableFuture<Void> handleTopicUndeprecated(TopicEvent event) {
             undeprecationEvents.add(event);
             return FutureUtil.noop();

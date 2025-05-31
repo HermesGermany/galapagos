@@ -2,7 +2,7 @@ import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { routerTransition } from '../../router.animations';
 import { ActivatedRoute } from '@angular/router';
 import { Topic, TopicsService, TopicSubscription } from '../../shared/services/topics.service';
-import { combineLatest, firstValueFrom, Observable } from 'rxjs';
+import { combineLatest, first, firstValueFrom, Observable, tap } from 'rxjs';
 import { finalize, map, shareReplay } from 'rxjs/operators';
 import { ApplicationsService, UserApplicationInfo } from '../../shared/services/applications.service';
 import { EnvironmentsService, KafkaEnvironment } from '../../shared/services/environments.service';
@@ -20,7 +20,7 @@ export class SingleTopicComponent implements OnInit {
 
     topicName: Observable<string>;
 
-    loading: Observable<boolean>;
+    environmentName: Observable<string>
 
     topicSubscribers: Observable<TopicSubscription[]>;
 
@@ -66,33 +66,37 @@ export class SingleTopicComponent implements OnInit {
     }
 
     ngOnInit() {
-        this.topicName = this.route.params.pipe(map(params => params['name'] as string)).pipe(shareReplay(1));
+        this.topicName = this.route.params.pipe(
+            map(params => params['name'] as string),
+            shareReplay(1)
+        );
         this.selectedEnvironment = this.environmentsService.getCurrentEnvironment();
 
-        const listTopics = this.topicService.listTopics();
+        combineLatest([this.selectedEnvironment, this.topicName])
+            .pipe(first(([environment, name]) => !!environment && !!name))
+            .subscribe(([environment, name]) => {
+                this.topic = this.topicService.getSingleTopic(environment.id, name).pipe(
+                    tap(ts => this.loadSubscribers(ts, environment.id)),
+                    shareReplay(1)
+                );
+            });
 
-        this.loading = listTopics.getLoadingStatus();
-
-        this.topic = combineLatest([this.topicName, listTopics.getObservable()])
-            .pipe(map(values => values[1].find(t => t.name === values[0])))
-            .pipe(shareReplay(1));
-
-        combineLatest([this.topic, this.environmentsService.getCurrentEnvironment()]).subscribe({
-            next: value => {
-                if (value[0]) {
-                    this.loadSubscribers(value[0], value[1].id);
-                    this.translateParams.topicName = value[0].name;
-                }
-            }
-        });
-
-        this.isOwnerOfTopic = combineLatest([this.topic, this.applicationsService.getUserApplications().getObservable()]).pipe(
-            map(value => value[0] && value[1] && !!value[1].find(app => value[0].ownerApplication.id === app.id))
+        this.isOwnerOfTopic = combineLatest([
+            this.topic,
+            this.applicationsService.getUserApplications().getObservable()
+        ]).pipe(
+            first(([topic, applications]) => !!topic && !!applications),
+            map(([topic, applications]) =>
+                !!applications.find(app => topic.ownerApplication?.id === app.id)
+            ),
+            shareReplay(1)
         );
 
-        this.environmentsService.getCurrentEnvironment().subscribe({ next: env => (this.translateParams.environmentName = env.name) });
-    }
 
+        this.environmentsService.getCurrentEnvironment().subscribe(env => {
+            this.translateParams.environmentName = env.name;
+        });
+    }
 
     async refreshChildData() {
         const topic = await firstValueFrom(this.topic);
